@@ -1,0 +1,64 @@
+buildscript {
+    repositories {
+        jcenter()
+        maven {
+            name = "forge"
+            url = "http://files.minecraftforge.net/maven"
+        }
+    }
+    dependencies {
+        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
+    }
+}
+
+apply plugin: 'net.minecraftforge.gradle.forge'
+apply plugin: 'idea'
+
+version = "1.0"
+group = "raylras.zenserver"
+archivesBaseName = "zenserver"
+
+sourceCompatibility = targetCompatibility = '1.8'
+compileJava {
+    sourceCompatibility = targetCompatibility = '1.8'
+}
+
+minecraft {
+    version = "1.12.2-14.23.5.2847"
+    runDir = "run"
+    mappings = "snapshot_20171003"
+}
+
+repositories {
+    mavenCentral()
+    maven {
+		name = "blamejared"
+		url = 'https://maven.blamejared.com'
+	}
+}
+
+dependencies {
+    compile "CraftTweaker2:CraftTweaker2-MC1120-Main:1.12-4.1.20.670"
+    compile "org.eclipse.lsp4j:org.eclipse.lsp4j:0.12.0"
+
+}
+
+processResources {
+    inputs.property "version", project.version
+    inputs.property "mcversion", project.minecraft.version
+
+    from(sourceSets.main.resources.srcDirs) {
+        include 'mcmod.info'
+        expand 'version':project.version, 'mcversion':project.minecraft.version
+    }
+        
+    from(sourceSets.main.resources.srcDirs) {
+        exclude 'mcmod.info'
+    }
+}
+
+sourceSets {
+    main {
+        output.resourcesDir = output.classesDir
+    }
+}

@@ -1,0 +1,17 @@
+[
+{
+  "modid": "zenserver",
+  "name": "ZenServer",
+  "description": "ZenServer is a mod that implements the Language Server Protocol(LSP) for ZenScript language. The server based on CraftTweaker2 and Eclipse LSP4J.
+",
+  "version": "${version}",
+  "mcversion": "${mcversion}",
+  "url": "",
+  "updateUrl": "",
+  "authorList": ["Raylras"],
+  "credits": "",
+  "logoFile": "",
+  "screenshots": [],
+  "dependencies": []
+}
+]
