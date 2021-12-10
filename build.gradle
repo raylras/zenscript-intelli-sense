@@ -37,28 +37,60 @@ repositories {
 	}
 }
 
+configurations {
+    embed
+    implementation.extendsFrom(embed)
+}
+
 dependencies {
     compile "CraftTweaker2:CraftTweaker2-MC1120-Main:1.12-4.1.20.670"
+    compile(project(':ZenScript'))
     compile "org.eclipse.lsp4j:org.eclipse.lsp4j:0.12.0"
+    embed "org.eclipse.lsp4j:org.eclipse.lsp4j:0.12.0"
+
+    testCompile(
+            'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    )
+
+    testRuntime(
+            'org.junit.jupiter:junit-jupiter-engine:5.8.2',
+            'org.junit.vintage:junit-vintage-engine:5.8.2',
+            'org.junit.platform:junit-platform-launcher:1.8.2',
+            'org.junit.platform:junit-platform-runner:1.8.2'
+    )
 
 }
 
 processResources {
     inputs.property "version", project.version
     inputs.property "mcversion", project.minecraft.version
-
     from(sourceSets.main.resources.srcDirs) {
         include 'mcmod.info'
         expand 'version':project.version, 'mcversion':project.minecraft.version
     }
-        
     from(sourceSets.main.resources.srcDirs) {
         exclude 'mcmod.info'
     }
 }
 
-sourceSets {
-    main {
-        output.resourcesDir = output.classesDir
+jar {
+    manifest {
+        attributes 'Main-Class': 'raylras.lsp.Main'
+    }
+    from (configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }) {
+        exclude 'META-INF/maven/**', 'META-INF/*.RSA', 'META-INF/*.SF', '*.html', 'module-info.class'
     }
 }
+
+test {
+    useJUnitPlatform()
+    testLogging{
+        events "PASSED", "FAILED", "SKIPPED"
+    }
+}
+
+//sourceSets {
+//    main {
+//        output.resourcesDir = output.classesDir
+//    }
+//}

@@ -1,4 +1,4 @@
-package raylras.lsp;
+package raylras.zen.lsp;
 
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.*;
@@ -7,7 +7,7 @@ import java.net.URI;
 import java.nio.file.Paths;
 import java.util.concurrent.CompletableFuture;
 
-public class ZenScriptLanguageServer implements LanguageServer, LanguageClientAware {
+public class ZenScriptLanguageServer implements LanguageServer {
 
     private final ZenScriptServices services;
 
@@ -17,7 +17,7 @@ public class ZenScriptLanguageServer implements LanguageServer, LanguageClientAw
 
     @Override
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
-        params.getWorkspaceFolders().stream().findFirst().ifPresent(workspaceFolder -> services.setWorkspaceRoot(Paths.get(URI.create(workspaceFolder.getUri()))));
+        params.getWorkspaceFolders().stream().findFirst().ifPresent(workspaceFolder -> services.setWorkspacePath(Paths.get(URI.create(workspaceFolder.getUri()))));
 
         ServerCapabilities capabilities = new ServerCapabilities();
         capabilities.setCompletionProvider(new CompletionOptions());
@@ -56,11 +56,6 @@ public class ZenScriptLanguageServer implements LanguageServer, LanguageClientAw
     @Override
     public WorkspaceService getWorkspaceService() {
         return services;
-    }
-
-    @Override
-    public void connect(LanguageClient client) {
-        services.connect(client);
     }
 
 }
