@@ -4,39 +4,39 @@ import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
-import raylras.zen.util.CommonErrorLogger;
+import raylras.zen.util.CommonErrorHandler;
 import stanhebben.zenscript.ZenModule;
 import stanhebben.zenscript.ZenParsedFile;
 import stanhebben.zenscript.ZenTokener;
 import stanhebben.zenscript.compiler.IEnvironmentGlobal;
 import stanhebben.zenscript.impl.GenericCompileEnvironment;
-import stanhebben.zenscript.impl.GenericFunctions;
 import stanhebben.zenscript.impl.GenericRegistry;
+import stanhebben.zenscript.parser.ParseException;
 
 import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class ZenScriptServices implements TextDocumentService, WorkspaceService {
-    
+
     private Path workspacePath;
     private Path scriptsPath;
 
+    List<Diagnostic> diagnostics;
     GenericCompileEnvironment compileEnvironment;
     GenericRegistry registry;
     IEnvironmentGlobal environmentGlobal;
 
     public ZenScriptServices() {
+        diagnostics = new ArrayList<>();
         compileEnvironment = new GenericCompileEnvironment();
-        registry = new GenericRegistry(compileEnvironment, new CommonErrorLogger());
-        registry.registerGlobal("print", registry.getStaticFunction(GenericFunctions.class, "print", String.class));
-        Map<String, byte[]> classes = new HashMap<>();
-        environmentGlobal = registry.makeGlobalEnvironment(classes);
+        registry = new GenericRegistry(compileEnvironment, new CommonErrorHandler(diagnostics));
+        environmentGlobal = registry.makeGlobalEnvironment(new HashMap<>());
     }
 
     public Path getWorkspacePath() {
@@ -78,9 +78,23 @@ public class ZenScriptServices implements TextDocumentService, WorkspaceService 
         try {
             tokener = new ZenTokener(params.getTextDocument().getText(), compileEnvironment, fileName, false);
             parsedFile = new ZenParsedFile(fileName, className, tokener, environmentGlobal);
+        } catch (ParseException e) {
+            Manager.getClient().logMessage(new MessageParams(MessageType.Error, e.getMessage()));
+
+            int line = e.getLine() - 1;
+            int column = e.getLineOffset() - 1;
+            Position start = new Position(line, column);
+            Position end = new Position(line, column);
+            diagnostics.add(new Diagnostic(new Range(start, start), e.getMessage()));
+
         } catch (IOException e) {
+            Manager.getClient().logMessage(new MessageParams(MessageType.Error, e.getMessage()));
             e.printStackTrace();
         }
+
+        PublishDiagnosticsParams diagnosticsParams = new PublishDiagnosticsParams(params.getTextDocument().getUri(), diagnostics);
+        Manager.getClient().publishDiagnostics(diagnosticsParams);
+        diagnostics.clear();
 
     }
 
