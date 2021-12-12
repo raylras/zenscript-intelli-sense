@@ -9,6 +9,9 @@ import java.util.List;
 
 public class CommonErrorHandler implements IZenErrorLogger {
 
+    // ZenScript's ZenPosition counts from 1, LSP4J‘s Position counts from 0
+    // so Position = ZenPosition - 1
+
     List<Diagnostic> diagnostics;
 
     public CommonErrorHandler(List<Diagnostic> diagnostics) {
@@ -47,7 +50,7 @@ public class CommonErrorHandler implements IZenErrorLogger {
     public void error(ZenPosition position, String message) {
         System.out.println(position + ": " + message);
         Manager.getClient().logMessage(new MessageParams(MessageType.Error, position+ ": " + message));
-        Position pos = new Position(position.getLine() - 1, position.getLineOffset());
+        Position pos = new Position(position.getLine() - 1, position.getLineOffset() - 1);
         //diagnostics.add(new Diagnostic(new Range(pos,pos), message));
     }
 
@@ -55,7 +58,7 @@ public class CommonErrorHandler implements IZenErrorLogger {
     public void warning(ZenPosition position, String message) {
         System.out.println(position + ": " + message);
         Manager.getClient().logMessage(new MessageParams(MessageType.Warning, position+ ": " + message));
-        Position pos = new Position(position.getLine() - 1, position.getLineOffset());
+        Position pos = new Position(position.getLine() - 1, position.getLineOffset() - 1);
         //diagnostics.add(new Diagnostic(new Range(pos,pos), message));
     }
 
@@ -63,7 +66,7 @@ public class CommonErrorHandler implements IZenErrorLogger {
     public void info(ZenPosition position, String message) {
         System.out.println(position + ": " + message);
         Manager.getClient().logMessage(new MessageParams(MessageType.Info, position+ ": " + message));
-        Position pos = new Position(position.getLine() - 1, position.getLineOffset());
+        Position pos = new Position(position.getLine() - 1, position.getLineOffset() - 1);
         //diagnostics.add(new Diagnostic(new Range(pos,pos), message));
     }
 
@@ -71,7 +74,7 @@ public class CommonErrorHandler implements IZenErrorLogger {
     public void error(ZenPosition start, ZenPosition end, String message) {
         error(start, message);
         Position posStart = new Position(start.getLine() - 1, start.getLineOffset() - 1);
-        Position posEnd = new Position(end.getLine() - 1, end.getLineOffset());
+        Position posEnd = new Position(end.getLine() - 1, end.getLineOffset() - 1);
         diagnostics.add(new Diagnostic(new Range(posStart, posEnd), message));
     }
 
@@ -79,7 +82,7 @@ public class CommonErrorHandler implements IZenErrorLogger {
     public void warning(ZenPosition start, ZenPosition end, String message) {
         warning(start, message);
         Position posStart = new Position(start.getLine() - 1, start.getLineOffset() - 1);
-        Position posEnd = new Position(end.getLine() - 1, end.getLineOffset());
+        Position posEnd = new Position(end.getLine() - 1, end.getLineOffset() - 1);
         diagnostics.add(new Diagnostic(new Range(posStart, posEnd), message));
     }
 
@@ -87,7 +90,7 @@ public class CommonErrorHandler implements IZenErrorLogger {
     public void info(ZenPosition start, ZenPosition end, String message) {
         info(start, message);
         Position posStart = new Position(start.getLine() - 1, start.getLineOffset() - 1);
-        Position posEnd = new Position(end.getLine() - 1, end.getLineOffset());
+        Position posEnd = new Position(end.getLine() - 1, end.getLineOffset() - 1);
         diagnostics.add(new Diagnostic(new Range(posStart, posEnd), message));
     }
 
