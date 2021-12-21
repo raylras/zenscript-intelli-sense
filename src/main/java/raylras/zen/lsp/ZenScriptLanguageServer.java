@@ -5,6 +5,7 @@ import org.eclipse.lsp4j.services.*;
 
 import java.net.URI;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
 public class ZenScriptLanguageServer implements LanguageServer {
@@ -20,11 +21,18 @@ public class ZenScriptLanguageServer implements LanguageServer {
         params.getWorkspaceFolders().stream().findFirst().ifPresent(workspaceFolder -> services.setWorkspacePath(Paths.get(URI.create(workspaceFolder.getUri()))));
 
         ServerCapabilities capabilities = new ServerCapabilities();
-        capabilities.setCompletionProvider(new CompletionOptions());
+//        capabilities.setCompletionProvider(new CompletionOptions());
         capabilities.setTextDocumentSync(TextDocumentSyncKind.Full);
-//        capabilities.setDocumentSymbolProvider(true);
+        capabilities.setDocumentSymbolProvider(true);
 //        capabilities.setWorkspaceSymbolProvider(true);
-//        capabilities.setDocumentSymbolProvider(true);
+        capabilities.setDocumentHighlightProvider(true);
+        SignatureHelpOptions signatureHelpOptions = new SignatureHelpOptions();
+        signatureHelpOptions.setTriggerCharacters(Arrays.asList("(", ","));
+        capabilities.setSignatureHelpProvider(signatureHelpOptions);
+        SemanticTokensWithRegistrationOptions semanticTokensOptions = new SemanticTokensWithRegistrationOptions();
+        semanticTokensOptions.setLegend(new SemanticTokensLegend(ZenTokenType.getTokenTypes(), ZenTokenTypeModifier.getTokenTypeModifiers()));
+        semanticTokensOptions.setFull(true);
+        capabilities.setSemanticTokensProvider(semanticTokensOptions);
 //        capabilities.setReferencesProvider(true);
 //        capabilities.setDefinitionProvider(true);
 //        capabilities.setTypeDefinitionProvider(true);

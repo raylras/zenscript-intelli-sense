@@ -9,9 +9,6 @@ import java.util.List;
 
 public class CommonErrorHandler implements IZenErrorLogger {
 
-    // ZenScript's ZenPosition counts from 1, LSP4J‘s Position counts from 0
-    // so Position = ZenPosition - 1
-
     List<Diagnostic> diagnostics;
 
     public CommonErrorHandler(List<Diagnostic> diagnostics) {
@@ -47,50 +44,50 @@ public class CommonErrorHandler implements IZenErrorLogger {
     }
 
     @Override
-    public void error(ZenPosition position, String message) {
-        System.out.println(position + ": " + message);
-        Manager.getClient().logMessage(new MessageParams(MessageType.Error, position+ ": " + message));
-        Position pos = new Position(position.getLine() - 1, position.getLineOffset() - 1);
+    public void error(ZenPosition zenPos, String message) {
+        System.out.println(zenPos + ": " + message);
+        Manager.getClient().logMessage(new MessageParams(MessageType.Error, zenPos+ ": " + message));
+        Position pos = PosUtil.convert(zenPos);
         //diagnostics.add(new Diagnostic(new Range(pos,pos), message));
     }
 
     @Override
-    public void warning(ZenPosition position, String message) {
-        System.out.println(position + ": " + message);
-        Manager.getClient().logMessage(new MessageParams(MessageType.Warning, position+ ": " + message));
-        Position pos = new Position(position.getLine() - 1, position.getLineOffset() - 1);
+    public void warning(ZenPosition zenPos, String message) {
+        System.out.println(zenPos + ": " + message);
+        Manager.getClient().logMessage(new MessageParams(MessageType.Warning, zenPos+ ": " + message));
+        Position pos = PosUtil.convert(zenPos);
         //diagnostics.add(new Diagnostic(new Range(pos,pos), message));
     }
 
     @Override
-    public void info(ZenPosition position, String message) {
-        System.out.println(position + ": " + message);
-        Manager.getClient().logMessage(new MessageParams(MessageType.Info, position+ ": " + message));
-        Position pos = new Position(position.getLine() - 1, position.getLineOffset() - 1);
+    public void info(ZenPosition zenPos, String message) {
+        System.out.println(zenPos + ": " + message);
+        Manager.getClient().logMessage(new MessageParams(MessageType.Info, zenPos+ ": " + message));
+        Position pos = PosUtil.convert(zenPos);
         //diagnostics.add(new Diagnostic(new Range(pos,pos), message));
     }
 
     @Override
-    public void error(ZenPosition start, ZenPosition end, String message) {
-        error(start, message);
-        Position posStart = new Position(start.getLine() - 1, start.getLineOffset() - 1);
-        Position posEnd = new Position(end.getLine() - 1, end.getLineOffset() - 1);
+    public void error(ZenPosition zenPosStart, ZenPosition zenPosEnd, String message) {
+        error(zenPosStart, message);
+        Position posStart = PosUtil.convert(zenPosStart);
+        Position posEnd = PosUtil.convert(zenPosEnd);
         diagnostics.add(new Diagnostic(new Range(posStart, posEnd), message));
     }
 
     @Override
-    public void warning(ZenPosition start, ZenPosition end, String message) {
-        warning(start, message);
-        Position posStart = new Position(start.getLine() - 1, start.getLineOffset() - 1);
-        Position posEnd = new Position(end.getLine() - 1, end.getLineOffset() - 1);
+    public void warning(ZenPosition zenPosStart, ZenPosition zenPosEnd, String message) {
+        warning(zenPosStart, message);
+        Position posStart = PosUtil.convert(zenPosStart);
+        Position posEnd = PosUtil.convert(zenPosEnd);
         diagnostics.add(new Diagnostic(new Range(posStart, posEnd), message));
     }
 
     @Override
-    public void info(ZenPosition start, ZenPosition end, String message) {
-        info(start, message);
-        Position posStart = new Position(start.getLine() - 1, start.getLineOffset() - 1);
-        Position posEnd = new Position(end.getLine() - 1, end.getLineOffset() - 1);
+    public void info(ZenPosition zenPosStart, ZenPosition zenPosEnd, String message) {
+        info(zenPosStart, message);
+        Position posStart = PosUtil.convert(zenPosStart);
+        Position posEnd = PosUtil.convert(zenPosEnd);
         diagnostics.add(new Diagnostic(new Range(posStart, posEnd), message));
     }
 
