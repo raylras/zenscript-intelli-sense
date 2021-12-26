@@ -1,30 +1,23 @@
 package raylras.zen.lsp;
 
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
-import raylras.zen.lsp.provider.DocumentHighlightProvider;
+import raylras.zen.lsp.antlr.ZenScriptLexer;
+import raylras.zen.lsp.antlr.ZenScriptParser;
 import raylras.zen.lsp.provider.DocumentSymbolProvider;
 import raylras.zen.lsp.provider.SemanticTokensFullProvider;
-import raylras.zen.lsp.provider.SignatureHelpProvider;
-import raylras.zen.util.CommonErrorHandler;
-import stanhebben.zenscript.ZenModule;
-import stanhebben.zenscript.ZenParsedFile;
-import stanhebben.zenscript.ZenTokener;
-import stanhebben.zenscript.compiler.IEnvironmentGlobal;
-import stanhebben.zenscript.impl.GenericCompileEnvironment;
-import stanhebben.zenscript.impl.GenericRegistry;
-import stanhebben.zenscript.parser.ParseException;
+import raylras.zen.scope.CommonScope;
+import raylras.zen.scope.Scope;
 
-import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class ZenScriptServices implements TextDocumentService, WorkspaceService {
@@ -33,17 +26,17 @@ public class ZenScriptServices implements TextDocumentService, WorkspaceService 
     private Path scriptsPath;
 
     List<Diagnostic> diagnostics;
-    GenericCompileEnvironment compileEnvironment;
-    GenericRegistry registry;
-    IEnvironmentGlobal environmentGlobal;
-    Map<String, ZenParsedFile> parsedFiles;
+//    GenericCompileEnvironment compileEnvironment;
+//    GenericRegistry registry;
+//    IEnvironmentGlobal environmentGlobal;
+    Map<String, ZenScriptParser.ScriptContext> scriptContextMap;
 
     public ZenScriptServices() {
-        diagnostics = new ArrayList<>();
-        compileEnvironment = new GenericCompileEnvironment();
-        registry = new GenericRegistry(compileEnvironment, new CommonErrorHandler(diagnostics));
-        environmentGlobal = registry.makeGlobalEnvironment(new HashMap<>());
-        parsedFiles = new HashMap<>();
+        diagnostics = new LinkedList<>();
+//        compileEnvironment = new GenericCompileEnvironment();
+//        registry = new GenericRegistry(compileEnvironment, new CommonErrorHandler(diagnostics));
+//        environmentGlobal = registry.makeGlobalEnvironment(new HashMap<>());
+        scriptContextMap = new HashMap<>();
     }
 
     public Path getWorkspacePath() {
@@ -60,89 +53,56 @@ public class ZenScriptServices implements TextDocumentService, WorkspaceService 
         Manager.getClient().logMessage(new MessageParams(MessageType.Info, "Scripts root: " + scriptsPath));
     }
 
-    public void parse(String text, String fileName, String className) {
-        ZenTokener tokener;
-        ZenParsedFile parsedFile;
-
-        try {
-            tokener = new ZenTokener(text, compileEnvironment, fileName, false);
-            parsedFile = new ZenParsedFile(fileName, className, tokener, environmentGlobal);
-        } catch (ParseException e) {
-            e.printStackTrace();
-            Manager.getClient().logMessage(new MessageParams(MessageType.Error, e.getMessage()));
-
-            int line = e.getLine() - 1;
-            int column = e.getLineOffset() - 1;
-            Position start = new Position(line, column);
-            Position end = new Position(line, column);
-            diagnostics.add(new Diagnostic(new Range(start, end), e.getMessage()));
-        } catch (IOException e) {
-            e.printStackTrace();
-            Manager.getClient().logMessage(new MessageParams(MessageType.Error, e.getMessage()));
-        }
-
-    }
-
     @Override
     public void didOpen(DidOpenTextDocumentParams params) {
         String uri = params.getTextDocument().getUri();
         Path path = Paths.get(URI.create(uri));
         String pathStr = path.toString();
+        String fileName = path.toFile().getName();
+//        Path relativePath = scriptsPath.relativize(path); // such as "bar\baz.zs"
+//        String className = ZenModule.extractClassName(relativePath.toString());
 
         // If the opened file path is similar to "D:\foo\scripts\bar\baz.zs", then set scriptsPath to "D:\foo\scripts"
         scriptsPath = Paths.get(pathStr.substring(0, pathStr.indexOf("scripts") + "scripts".length()));
-
-        Path relativePath = scriptsPath.relativize(path); // such as "bar\baz.zs"
 
         Manager.getClient().logMessage(new MessageParams(MessageType.Info, "\n"));
         Manager.getClient().logMessage(new MessageParams(MessageType.Info, "Opened file: " + path));
         Manager.getClient().logMessage(new MessageParams(MessageType.Info, "File name: " + path.getFileName()));
         Manager.getClient().logMessage(new MessageParams(MessageType.Info, "Scripts root: " + scriptsPath));
-        Manager.getClient().logMessage(new MessageParams(MessageType.Info, "Relative path: " + relativePath));
+//        Manager.getClient().logMessage(new MessageParams(MessageType.Info, "Relative path: " + relativePath));
 
-        String fileName = path.toFile().getName();
-        String className = ZenModule.extractClassName(relativePath.toString());
+        // ANTLR
+        CharStream charStream = CharStreams.fromString(params.getTextDocument().getText(), fileName);
+        ZenScriptLexer lexer = new ZenScriptLexer(charStream);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        ZenScriptParser parser = new ZenScriptParser(tokens);
+        ZenScriptParser.ScriptContext scriptContext = parser.script();
 
-        ZenTokener tokener;
-        ZenParsedFile parsedFile;
-        try {
-            tokener = new ZenTokener(params.getTextDocument().getText(), compileEnvironment, fileName, false);
-            parsedFile = new ZenParsedFile(fileName, className, tokener, environmentGlobal);
-            parsedFiles.put(uri, parsedFile);
-        } catch (ParseException e) {
-            Manager.getClient().logMessage(new MessageParams(MessageType.Error, e.getMessage()));
+        scriptContextMap.put(uri, scriptContext);
 
-            int line = e.getLine() - 1;
-            int column = e.getLineOffset() - 1;
-            Position start = new Position(line, column);
-            Position end = new Position(line, column);
-            diagnostics.add(new Diagnostic(new Range(start, start), e.getMessage()));
+        Scope global = new CommonScope(null, "Global");
 
-        } catch (IOException e) {
-            Manager.getClient().logMessage(new MessageParams(MessageType.Error, e.getMessage()));
-            e.printStackTrace();
-        }
+        //ZenScriptDefinitionParser defParser = new ZenScriptDefinitionParser(fileName, global);
+        //defParser.visit(scriptContext);
 
-        PublishDiagnosticsParams diagnosticsParams = new PublishDiagnosticsParams(params.getTextDocument().getUri(), diagnostics);
-        Manager.getClient().publishDiagnostics(diagnosticsParams);
-        diagnostics.clear();
+//        PublishDiagnosticsParams diagnosticsParams = new PublishDiagnosticsParams(uri, diagnostics);
+//        Manager.getClient().publishDiagnostics(diagnosticsParams);
+//        diagnostics.clear();
 
     }
 
     @Override
     public void didChange(DidChangeTextDocumentParams params) {
-        String uri = params.getTextDocument().getUri();
-        Path path = Paths.get(URI.create(uri));
-        String pathStr = path.toString();
-        String fileName = path.toFile().getName();
-        Path relativePath = scriptsPath.relativize(path);
-        String className = ZenModule.extractClassName(relativePath.toString());
-
-        parse(params.getContentChanges().get(0).getText(), fileName, className);
-
-        PublishDiagnosticsParams diagnosticsParams = new PublishDiagnosticsParams(params.getTextDocument().getUri(), diagnostics);
-        Manager.getClient().publishDiagnostics(diagnosticsParams);
-        diagnostics.clear();
+//        String uri = params.getTextDocument().getUri();
+//        Path path = Paths.get(URI.create(uri));
+//        String pathStr = path.toString();
+//        String fileName = path.toFile().getName();
+//        Path relativePath = scriptsPath.relativize(path);
+//        String className = ZenModule.extractClassName(relativePath.toString());
+//
+//        PublishDiagnosticsParams diagnosticsParams = new PublishDiagnosticsParams(params.getTextDocument().getUri(), diagnostics);
+//        Manager.getClient().publishDiagnostics(diagnosticsParams);
+//        diagnostics.clear();
 
     }
 
@@ -184,7 +144,8 @@ public class ZenScriptServices implements TextDocumentService, WorkspaceService 
     @Override
     public CompletableFuture<SignatureHelp> signatureHelp(SignatureHelpParams params) {
         String uri = params.getTextDocument().getUri();
-        return new SignatureHelpProvider(uri, parsedFiles.get(uri)).provideSignatureHelp(params);
+//        return new SignatureHelpProvider(uri, parsedFiles.get(uri)).provideSignatureHelp(params);
+        return null;
     }
 
     @Override
@@ -214,19 +175,19 @@ public class ZenScriptServices implements TextDocumentService, WorkspaceService 
 
     @Override
     public CompletableFuture<List<? extends DocumentHighlight>> documentHighlight(DocumentHighlightParams params) {
-        String uri = params.getTextDocument().getUri();
-        Position pos = params.getPosition();
-        ZenTokener t = parsedFiles.get(uri).getTokener();
-        t.getToken(pos.getLine() + 1, pos.getCharacter() + 1);
-
-        return new DocumentHighlightProvider(uri, parsedFiles.get(uri)).provideDocumentHighlight(params);
-//        return null;
+//        String uri = params.getTextDocument().getUri();
+//        Position pos = params.getPosition();
+//        ZenTokener t = parsedFiles.get(uri).getTokener();
+//        t.getToken(pos.getLine() + 1, pos.getCharacter() + 1);
+//
+//        return new DocumentHighlightProvider(uri, parsedFiles.get(uri)).provideDocumentHighlight(params);
+        return null;
     }
 
     @Override
     public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(DocumentSymbolParams params) {
         String uri = params.getTextDocument().getUri();
-        return new DocumentSymbolProvider(uri, parsedFiles.get(uri)).provideDocumentSymbol(params);
+        return new DocumentSymbolProvider(scriptContextMap.get(uri)).provideDocumentSymbol(params);
     }
 
     @Override
@@ -272,11 +233,7 @@ public class ZenScriptServices implements TextDocumentService, WorkspaceService 
     @Override
     public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
         String uri = params.getTextDocument().getUri();
-        return new SemanticTokensFullProvider(uri, parsedFiles.get(uri)).provideSemanticTokensFull(params);
+        return new SemanticTokensFullProvider(scriptContextMap.get(uri)).provideSemanticTokensFull(params);
     }
-
-
-
-
 
 }

@@ -10,6 +10,7 @@ import org.eclipse.lsp4j.services.LanguageClientAware;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.SocketException;
 
 public class Manager implements LanguageClientAware {
 
@@ -22,6 +23,17 @@ public class Manager implements LanguageClientAware {
     }
 
     public static void start() {
+
+        // start the language server through standard IO.
+        // Only used as a built-in server, witch needs to put the compiled jar into the client
+//        {
+//            server = new ZenScriptLanguageServer();
+//            Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(server, System.in, System.out);
+//            client = launcher.getRemoteProxy();
+//            launcher.startListening();
+//        }
+
+        // start the language server through socket for debugging
         try {
             System.out.println("Waiting client...");
             Socket socket = new ServerSocket(PORT).accept();
@@ -30,9 +42,10 @@ public class Manager implements LanguageClientAware {
             Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(server, socket.getInputStream(), socket.getOutputStream());
             client = launcher.getRemoteProxy();
             launcher.startListening();
-        } catch (IOException ex) {
-            System.out.println("Could not start the language server: " + ex);
+        } catch (IOException e) {
+            System.out.println("Could not start the language server: " + e);
         }
+
     }
 
     public static ZenScriptLanguageServer getServer() {

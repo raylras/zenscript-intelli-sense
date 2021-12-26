@@ -25,10 +25,10 @@ public class ZenScriptLanguageServer implements LanguageServer {
         capabilities.setTextDocumentSync(TextDocumentSyncKind.Full);
         capabilities.setDocumentSymbolProvider(true);
 //        capabilities.setWorkspaceSymbolProvider(true);
-        capabilities.setDocumentHighlightProvider(true);
-        SignatureHelpOptions signatureHelpOptions = new SignatureHelpOptions();
-        signatureHelpOptions.setTriggerCharacters(Arrays.asList("(", ","));
-        capabilities.setSignatureHelpProvider(signatureHelpOptions);
+//        capabilities.setDocumentHighlightProvider(true);
+//        SignatureHelpOptions signatureHelpOptions = new SignatureHelpOptions();
+//        signatureHelpOptions.setTriggerCharacters(Arrays.asList("(", ","));
+//        capabilities.setSignatureHelpProvider(signatureHelpOptions);
         SemanticTokensWithRegistrationOptions semanticTokensOptions = new SemanticTokensWithRegistrationOptions();
         semanticTokensOptions.setLegend(new SemanticTokensLegend(ZenTokenType.getTokenTypes(), ZenTokenTypeModifier.getTokenTypeModifiers()));
         semanticTokensOptions.setFull(true);
