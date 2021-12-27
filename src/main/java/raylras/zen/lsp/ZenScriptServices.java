@@ -93,16 +93,18 @@ public class ZenScriptServices implements TextDocumentService, WorkspaceService 
 
     @Override
     public void didChange(DidChangeTextDocumentParams params) {
-//        String uri = params.getTextDocument().getUri();
-//        Path path = Paths.get(URI.create(uri));
-//        String pathStr = path.toString();
-//        String fileName = path.toFile().getName();
-//        Path relativePath = scriptsPath.relativize(path);
-//        String className = ZenModule.extractClassName(relativePath.toString());
-//
-//        PublishDiagnosticsParams diagnosticsParams = new PublishDiagnosticsParams(params.getTextDocument().getUri(), diagnostics);
-//        Manager.getClient().publishDiagnostics(diagnosticsParams);
-//        diagnostics.clear();
+        String uri = params.getTextDocument().getUri();
+        Path path = Paths.get(URI.create(uri));
+        String fileName = path.toFile().getName();
+
+        CharStream charStream = CharStreams.fromString(params.getContentChanges().get(0).getText(), fileName);
+        ZenScriptLexer lexer = new ZenScriptLexer(charStream);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        ZenScriptParser parser = new ZenScriptParser(tokens);
+        ZenScriptParser.ScriptContext scriptContext = parser.script();
+
+        scriptContextMap.put(uri, scriptContext);
+        Manager.getClient().refreshSemanticTokens();
 
     }
 
@@ -113,6 +115,9 @@ public class ZenScriptServices implements TextDocumentService, WorkspaceService 
 
     @Override
     public void didSave(DidSaveTextDocumentParams params) {
+        String uri = params.getTextDocument().getUri();
+        Path path = Paths.get(URI.create(uri));
+        String fileName = path.toFile().getName();
 
     }
 

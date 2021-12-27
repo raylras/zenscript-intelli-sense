@@ -107,6 +107,12 @@ public interface ZenScriptParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitFormalParameter(ZenScriptParser.FormalParameterContext ctx);
 	/**
+	 * Visit a parse tree produced by {@link ZenScriptParser#defaultValue}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitDefaultValue(ZenScriptParser.DefaultValueContext ctx);
+	/**
 	 * Visit a parse tree produced by {@link ZenScriptParser#arguments}.
 	 * @param ctx the parse tree
 	 * @return the visitor result

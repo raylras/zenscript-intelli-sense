@@ -73,7 +73,11 @@ formalParameters
     ;
 
 formalParameter
-    : IDENTIFIER asType?
+    : IDENTIFIER asType? defaultValue?
+    ;
+
+defaultValue
+    : '=' expression
     ;
 
 arguments

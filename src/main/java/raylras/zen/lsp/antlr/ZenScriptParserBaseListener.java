@@ -208,6 +208,18 @@ public class ZenScriptParserBaseListener implements ZenScriptParserListener {
 	 *
 	 * <p>The default implementation does nothing.</p>
 	 */
+	@Override public void enterDefaultValue(ZenScriptParser.DefaultValueContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
+	@Override public void exitDefaultValue(ZenScriptParser.DefaultValueContext ctx) { }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation does nothing.</p>
+	 */
 	@Override public void enterArguments(ZenScriptParser.ArgumentsContext ctx) { }
 	/**
 	 * {@inheritDoc}

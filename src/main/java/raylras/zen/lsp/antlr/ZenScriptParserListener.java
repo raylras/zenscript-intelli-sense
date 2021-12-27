@@ -168,6 +168,16 @@ public interface ZenScriptParserListener extends ParseTreeListener {
 	 */
 	void exitFormalParameter(ZenScriptParser.FormalParameterContext ctx);
 	/**
+	 * Enter a parse tree produced by {@link ZenScriptParser#defaultValue}.
+	 * @param ctx the parse tree
+	 */
+	void enterDefaultValue(ZenScriptParser.DefaultValueContext ctx);
+	/**
+	 * Exit a parse tree produced by {@link ZenScriptParser#defaultValue}.
+	 * @param ctx the parse tree
+	 */
+	void exitDefaultValue(ZenScriptParser.DefaultValueContext ctx);
+	/**
 	 * Enter a parse tree produced by {@link ZenScriptParser#arguments}.
 	 * @param ctx the parse tree
 	 */

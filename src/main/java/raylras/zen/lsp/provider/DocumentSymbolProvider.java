@@ -180,7 +180,7 @@ public class DocumentSymbolProvider extends ZenScriptParserBaseVisitor<DocumentS
 
     @Override
     public DocumentSymbol visitAnonymousFunction(ZenScriptParser.AnonymousFunctionContext ctx) {
-        String name = "[anonymous]";
+        String name = "<anonymous>";
         Token tStart = ctx.FUNCTION().getSymbol();
         Token tEnd = ctx.block().BRACE_CLOSE().getSymbol();
 

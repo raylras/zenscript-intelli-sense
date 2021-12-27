@@ -10,13 +10,14 @@ import org.eclipse.lsp4j.services.LanguageClientAware;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.SocketException;
 
 public class Manager implements LanguageClientAware {
 
     private static ZenScriptLanguageServer server;
     private static LanguageClient client;
     public static final int PORT = 9865;
+    public static Socket socket;
+    public static ServerSocket serverSocket;
 
     public static void main(String[] args) {
         start();
@@ -36,7 +37,8 @@ public class Manager implements LanguageClientAware {
         // start the language server through socket for debugging
         try {
             System.out.println("Waiting client...");
-            Socket socket = new ServerSocket(PORT).accept();
+            serverSocket = new ServerSocket(PORT);
+            socket = serverSocket.accept();
             System.out.println("Found a language client from " + socket.getRemoteSocketAddress() + ", starting the language server");
             server = new ZenScriptLanguageServer();
             Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(server, socket.getInputStream(), socket.getOutputStream());
