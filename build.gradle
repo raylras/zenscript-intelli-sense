@@ -1,6 +1,5 @@
 buildscript {
     repositories {
-        jcenter()
         maven {
             name = "forge"
             url = "http://files.minecraftforge.net/maven"
@@ -15,7 +14,7 @@ apply plugin: 'net.minecraftforge.gradle.forge'
 apply plugin: 'idea'
 
 version = "1.0"
-group = "raylras.zenserver"
+group = "raylras"
 archivesBaseName = "zenserver"
 
 sourceCompatibility = targetCompatibility = '1.8'
@@ -77,7 +76,7 @@ processResources {
 
 jar {
     manifest {
-        attributes 'Main-Class': 'raylras.zen.lsp.Manager'
+        attributes 'Main-Class': 'raylras.zen.Main'
     }
     from (configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }) {
         exclude 'META-INF/maven/**', 'META-INF/*.RSA', 'META-INF/*.SF', '*.html', 'module-info.class'

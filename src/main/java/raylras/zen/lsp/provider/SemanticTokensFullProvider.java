@@ -5,11 +5,11 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.eclipse.lsp4j.SemanticTokens;
 import org.eclipse.lsp4j.SemanticTokensParams;
+import raylras.zen.antlr.ZenScriptLexer;
 import raylras.zen.lsp.ZenTokenType;
 import raylras.zen.lsp.ZenTokenTypeModifier;
-import raylras.zen.lsp.antlr.ZenScriptLexer;
-import raylras.zen.lsp.antlr.ZenScriptParser;
-import raylras.zen.lsp.antlr.ZenScriptParserBaseVisitor;
+import raylras.zen.antlr.ZenScriptParser;
+import raylras.zen.antlr.ZenScriptParserBaseVisitor;
 import raylras.zen.util.PosUtil;
 import org.antlr.v4.runtime.Token;
 
@@ -34,10 +34,10 @@ public class SemanticTokensFullProvider extends ZenScriptParserBaseVisitor<Seman
 
     @Override
     public SemanticToken visitImportStatement(ZenScriptParser.ImportStatementContext ctx) {
-        List<TerminalNode> nNames = ctx.packageName().IDENTIFIER();
+        List<TerminalNode> nNames = ctx.className().IDENTIFIER();
         TerminalNode nRename = ctx.IDENTIFIER();
-        nNames.forEach(node -> builder.push(node.getSymbol(), ZenTokenType.CLASS));
-        if (nRename != null) { builder.push(nRename.getSymbol(), ZenTokenType.CLASS); }
+        nNames.forEach(node -> builder.push(node.getSymbol(), ZenTokenType.Class));
+        if (nRename != null) { builder.push(nRename.getSymbol(), ZenTokenType.Class); }
 
         return null;
     }
@@ -45,7 +45,7 @@ public class SemanticTokensFullProvider extends ZenScriptParserBaseVisitor<Seman
     @Override
     public SemanticToken visitZenClassDeclaration(ZenScriptParser.ZenClassDeclarationContext ctx) {
         Token tName = ctx.IDENTIFIER().getSymbol();
-        builder.push(tName, ZenTokenType.CLASS);
+        builder.push(tName, ZenTokenType.Class);
 
         return super.visitZenClassDeclaration(ctx);
     }
@@ -53,7 +53,7 @@ public class SemanticTokensFullProvider extends ZenScriptParserBaseVisitor<Seman
     @Override
     public SemanticToken visitConstructor(ZenScriptParser.ConstructorContext ctx) {
         Token tConstructor = ctx.ZEN_CONSTRUCTOR().getSymbol();
-        builder.push(tConstructor, ZenTokenType.FUNCTION);
+        builder.push(tConstructor, ZenTokenType.Function);
 
         return super.visitConstructor(ctx);
     }
@@ -61,7 +61,7 @@ public class SemanticTokensFullProvider extends ZenScriptParserBaseVisitor<Seman
     @Override
     public SemanticToken visitMethod(ZenScriptParser.MethodContext ctx) {
         Token tName = ctx.IDENTIFIER().getSymbol();
-        builder.push(tName, ZenTokenType.FUNCTION);
+        builder.push(tName, ZenTokenType.Function);
 
         return super.visitMethod(ctx);
     }
@@ -69,7 +69,7 @@ public class SemanticTokensFullProvider extends ZenScriptParserBaseVisitor<Seman
     @Override
     public SemanticToken visitField(ZenScriptParser.FieldContext ctx) {
         Token tName = ctx.IDENTIFIER().getSymbol();
-        builder.push(tName, ZenTokenType.VARIABLE);
+        builder.push(tName, ZenTokenType.Variable);
 
         return super.visitField(ctx);
     }
@@ -77,40 +77,24 @@ public class SemanticTokensFullProvider extends ZenScriptParserBaseVisitor<Seman
     @Override
     public SemanticToken visitFunctionDeclaration(ZenScriptParser.FunctionDeclarationContext ctx) {
         Token tName = ctx.IDENTIFIER().getSymbol();
-        builder.push(tName, ZenTokenType.FUNCTION);
+        builder.push(tName, ZenTokenType.Function);
 
         return super.visitFunctionDeclaration(ctx);
     }
 
     @Override
-    public SemanticToken visitFormalParameters(ZenScriptParser.FormalParametersContext ctx) {
-        ctx.formalParameter().forEach(context -> {
-            builder.push(context.IDENTIFIER().getSymbol(), ZenTokenType.PARAMETER);
+    public SemanticToken visitParameters(ZenScriptParser.ParametersContext ctx) {
+        ctx.parameter().forEach(context -> {
+            builder.push(context.IDENTIFIER().getSymbol(), ZenTokenType.Parameter);
         });
 
-        return super.visitFormalParameters(ctx);
-    }
-
-    @Override
-    public SemanticToken visitLocalVariableDeclaration(ZenScriptParser.LocalVariableDeclarationContext ctx) {
-        Token tName = ctx.IDENTIFIER().getSymbol();
-        builder.push(tName, ZenTokenType.VARIABLE);
-
-        return super.visitLocalVariableDeclaration(ctx);
-    }
-
-    @Override
-    public SemanticToken visitGlobalVariableDeclaration(ZenScriptParser.GlobalVariableDeclarationContext ctx) {
-        Token tName = ctx.IDENTIFIER().getSymbol();
-        builder.push(tName, ZenTokenType.VARIABLE);
-
-        return super.visitGlobalVariableDeclaration(ctx);
+        return super.visitParameters(ctx);
     }
 
     @Override
     public SemanticToken visitMethodCall(ZenScriptParser.MethodCallContext ctx) {
         Token tName = ctx.IDENTIFIER().getSymbol();
-        builder.push(tName, ZenTokenType.METHOD);
+        builder.push(tName, ZenTokenType.Method);
         
         return super.visitMethodCall(ctx);
     }
@@ -119,13 +103,13 @@ public class SemanticTokensFullProvider extends ZenScriptParserBaseVisitor<Seman
     public SemanticToken visitAsType(ZenScriptParser.AsTypeContext ctx) {
         if (ctx.type().typePrimitive() != null) {
             Token tType = ctx.type().typePrimitive().start;
-            builder.push(tType, tType.getType() == ZenScriptLexer.STRING ? ZenTokenType.CLASS : ZenTokenType.KEYWORD);
+            builder.push(tType, tType.getType() == ZenScriptLexer.STRING ? ZenTokenType.Class : ZenTokenType.Keyword);
             return null;
         }
 
         if (ctx.type().typeClass() != null) {
-            List<TerminalNode> nNames = ctx.type().typeClass().packageName().IDENTIFIER();
-            nNames.forEach(node -> builder.push(node.getSymbol(), ZenTokenType.CLASS));
+            List<TerminalNode> nNames = ctx.type().typeClass().className().IDENTIFIER();
+            nNames.forEach(node -> builder.push(node.getSymbol(), ZenTokenType.Class));
         }
 
         return null;

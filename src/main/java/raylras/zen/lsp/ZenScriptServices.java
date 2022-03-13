@@ -7,12 +7,12 @@ import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
-import raylras.zen.lsp.antlr.ZenScriptLexer;
-import raylras.zen.lsp.antlr.ZenScriptParser;
-import raylras.zen.lsp.provider.DocumentSymbolProvider;
+import raylras.zen.Main;
+import raylras.zen.antlr.ZenScriptLexer;
+import raylras.zen.lsp.provider.CompletionProvider;
 import raylras.zen.lsp.provider.SemanticTokensFullProvider;
-import raylras.zen.scope.CommonScope;
-import raylras.zen.scope.Scope;
+import raylras.zen.antlr.ZenScriptParser;
+import raylras.zen.lsp.provider.DocumentSymbolProvider;
 
 import java.net.URI;
 import java.nio.file.Path;
@@ -49,8 +49,8 @@ public class ZenScriptServices implements TextDocumentService, WorkspaceService 
 
     public void setWorkspacePath(Path workspacePath) {
         this.workspacePath = workspacePath;
-        Manager.getClient().logMessage(new MessageParams(MessageType.Info, "Workspace: " + workspacePath.toString()));
-        Manager.getClient().logMessage(new MessageParams(MessageType.Info, "Scripts root: " + scriptsPath));
+        Main.getClient().logMessage(new MessageParams(MessageType.Info, "Workspace: " + workspacePath.toString()));
+        Main.getClient().logMessage(new MessageParams(MessageType.Info, "Scripts root: " + scriptsPath));
     }
 
     @Override
@@ -65,10 +65,10 @@ public class ZenScriptServices implements TextDocumentService, WorkspaceService 
         // If the opened file path is similar to "D:\foo\scripts\bar\baz.zs", then set scriptsPath to "D:\foo\scripts"
         scriptsPath = Paths.get(pathStr.substring(0, pathStr.indexOf("scripts") + "scripts".length()));
 
-        Manager.getClient().logMessage(new MessageParams(MessageType.Info, "\n"));
-        Manager.getClient().logMessage(new MessageParams(MessageType.Info, "Opened file: " + path));
-        Manager.getClient().logMessage(new MessageParams(MessageType.Info, "File name: " + path.getFileName()));
-        Manager.getClient().logMessage(new MessageParams(MessageType.Info, "Scripts root: " + scriptsPath));
+        Main.getClient().logMessage(new MessageParams(MessageType.Info, "\n"));
+        Main.getClient().logMessage(new MessageParams(MessageType.Info, "Opened file: " + path));
+        Main.getClient().logMessage(new MessageParams(MessageType.Info, "File name: " + path.getFileName()));
+        Main.getClient().logMessage(new MessageParams(MessageType.Info, "Scripts root: " + scriptsPath));
 //        Manager.getClient().logMessage(new MessageParams(MessageType.Info, "Relative path: " + relativePath));
 
         // ANTLR
@@ -80,7 +80,7 @@ public class ZenScriptServices implements TextDocumentService, WorkspaceService 
 
         scriptContextMap.put(uri, scriptContext);
 
-        Scope global = new CommonScope(null, "Global");
+//        Scope global = new CommonScope(null, "Global");
 
         //ZenScriptDefinitionParser defParser = new ZenScriptDefinitionParser(fileName, global);
         //defParser.visit(scriptContext);
@@ -104,7 +104,7 @@ public class ZenScriptServices implements TextDocumentService, WorkspaceService 
         ZenScriptParser.ScriptContext scriptContext = parser.script();
 
         scriptContextMap.put(uri, scriptContext);
-        Manager.getClient().refreshSemanticTokens();
+        Main.getClient().refreshSemanticTokens();
 
     }
 
@@ -132,8 +132,10 @@ public class ZenScriptServices implements TextDocumentService, WorkspaceService 
     }
 
     @Override
-    public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams position) {
-        return null;
+    public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
+        String uri = params.getTextDocument().getUri();
+        Position position = params.getPosition();
+        return new CompletionProvider().provideCompletion(uri, position);
     }
 
     @Override

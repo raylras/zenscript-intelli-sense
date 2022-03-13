@@ -1,7 +1,7 @@
 package raylras.zen.util;
 
 import org.eclipse.lsp4j.*;
-import raylras.zen.lsp.Manager;
+import raylras.zen.Main;
 import stanhebben.zenscript.IZenErrorLogger;
 import stanhebben.zenscript.util.ZenPosition;
 
@@ -22,31 +22,31 @@ public class CommonErrorHandler implements IZenErrorLogger {
     @Override
     public void error(String message) {
         System.out.println(message);
-        Manager.getClient().logMessage(new MessageParams(MessageType.Error, message));
+        Main.getClient().logMessage(new MessageParams(MessageType.Error, message));
     }
 
     @Override
     public void error(String message, Throwable e) {
         System.out.println(message);
-        Manager.getClient().logMessage(new MessageParams(MessageType.Error, message + e));
+        Main.getClient().logMessage(new MessageParams(MessageType.Error, message + e));
     }
 
     @Override
     public void warning(String message) {
         System.out.println(message);
-        Manager.getClient().logMessage(new MessageParams(MessageType.Warning, message));
+        Main.getClient().logMessage(new MessageParams(MessageType.Warning, message));
     }
 
     @Override
     public void info(String message) {
         System.out.println(message);
-        Manager.getClient().logMessage(new MessageParams(MessageType.Info, message));
+        Main.getClient().logMessage(new MessageParams(MessageType.Info, message));
     }
 
     @Override
     public void error(ZenPosition zenPos, String message) {
         System.out.println(zenPos + ": " + message);
-        Manager.getClient().logMessage(new MessageParams(MessageType.Error, zenPos+ ": " + message));
+        Main.getClient().logMessage(new MessageParams(MessageType.Error, zenPos+ ": " + message));
         Position pos = PosUtil.convert(zenPos);
         //diagnostics.add(new Diagnostic(new Range(pos,pos), message));
     }
@@ -54,7 +54,7 @@ public class CommonErrorHandler implements IZenErrorLogger {
     @Override
     public void warning(ZenPosition zenPos, String message) {
         System.out.println(zenPos + ": " + message);
-        Manager.getClient().logMessage(new MessageParams(MessageType.Warning, zenPos+ ": " + message));
+        Main.getClient().logMessage(new MessageParams(MessageType.Warning, zenPos+ ": " + message));
         Position pos = PosUtil.convert(zenPos);
         //diagnostics.add(new Diagnostic(new Range(pos,pos), message));
     }
@@ -62,7 +62,7 @@ public class CommonErrorHandler implements IZenErrorLogger {
     @Override
     public void info(ZenPosition zenPos, String message) {
         System.out.println(zenPos + ": " + message);
-        Manager.getClient().logMessage(new MessageParams(MessageType.Info, zenPos+ ": " + message));
+        Main.getClient().logMessage(new MessageParams(MessageType.Info, zenPos+ ": " + message));
         Position pos = PosUtil.convert(zenPos);
         //diagnostics.add(new Diagnostic(new Range(pos,pos), message));
     }

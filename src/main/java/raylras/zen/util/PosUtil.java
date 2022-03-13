@@ -1,8 +1,10 @@
 package raylras.zen.util;
 
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.Range;
+import raylras.zen.ast.ASTNode;
 import stanhebben.zenscript.ZenParsedFile;
 import stanhebben.zenscript.util.ZenPosition;
 

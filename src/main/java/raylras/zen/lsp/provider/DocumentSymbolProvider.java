@@ -3,9 +3,9 @@ package raylras.zen.lsp.provider;
 import org.antlr.v4.runtime.Token;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
-import raylras.zen.lsp.antlr.ZenScriptParser;
-import raylras.zen.lsp.antlr.ZenScriptParserBaseVisitor;
 import raylras.zen.util.PosUtil;
+import raylras.zen.antlr.ZenScriptParser;
+import raylras.zen.antlr.ZenScriptParserBaseVisitor;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -141,44 +141,6 @@ public class DocumentSymbolProvider extends ZenScriptParserBaseVisitor<DocumentS
     }
 
     @Override
-    public DocumentSymbol visitLocalVariableDeclaration(ZenScriptParser.LocalVariableDeclarationContext ctx) {
-        Token tName = ctx.IDENTIFIER().getSymbol();
-        Token tEnd = ctx.SEMICOLON().getSymbol();
-
-        Range range = new Range(PosUtil.getPosition(tName), PosUtil.getPosition(tEnd));
-        DocumentSymbol symbol = new DocumentSymbol(tName.getText(), SymbolKind.Variable, range, range);
-
-        DocumentSymbol parent = symbolStack.empty() ? null : symbolStack.peek();
-        if (parent != null) {
-            if (parent.getChildren() == null) { parent.setChildren(new LinkedList<>()); }
-            parent.getChildren().add(symbol);
-            return null;
-        }
-
-        result.add(symbol);
-        return null;
-    }
-
-    @Override
-    public DocumentSymbol visitGlobalVariableDeclaration(ZenScriptParser.GlobalVariableDeclarationContext ctx) {
-        Token tName = ctx.IDENTIFIER().getSymbol();
-        Token tEnd = ctx.SEMICOLON().getSymbol();
-
-        Range range = new Range(PosUtil.getPosition(tName), PosUtil.getPosition(tEnd));
-        DocumentSymbol symbol = new DocumentSymbol(tName.getText(), SymbolKind.Variable, range, range);
-
-        DocumentSymbol parent = symbolStack.empty() ? null : symbolStack.peek();
-        if (parent != null) {
-            if (parent.getChildren() == null) { parent.setChildren(new LinkedList<>()); }
-            parent.getChildren().add(symbol);
-            return null;
-        }
-
-        result.add(symbol);
-        return null;
-    }
-
-    @Override
     public DocumentSymbol visitAnonymousFunction(ZenScriptParser.AnonymousFunctionContext ctx) {
         String name = "<anonymous>";
         Token tStart = ctx.FUNCTION().getSymbol();
@@ -202,7 +164,7 @@ public class DocumentSymbolProvider extends ZenScriptParserBaseVisitor<DocumentS
     public DocumentSymbol visitBlock(ZenScriptParser.BlockContext ctx) {
         // 4 means LocalVariableDeclaration
         // see ZenScriptParser.g4 statements rule
-        ZenScriptParser.StatementsContext context = ctx.statements(4);
+        ZenScriptParser.StatementContext context = ctx.statement(4);
         return context == null ? null : visit(context); // visitLocalVariableDeclaration
     }
 

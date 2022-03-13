@@ -8,19 +8,19 @@ import java.util.stream.Collectors;
 
 public enum ZenTokenType {
 
-    CLASS(0, SemanticTokenTypes.Class),
-    PARAMETER(1, SemanticTokenTypes.Parameter),
-    VARIABLE(2, SemanticTokenTypes.Variable),
-    EVENT(3, SemanticTokenTypes.Event),
-    FUNCTION(4, SemanticTokenTypes.Function),
-    METHOD(5, SemanticTokenTypes.Method),
-    KEYWORD(6, SemanticTokenTypes.Keyword),
-    MODIFIER(7, SemanticTokenTypes.Modifier),
-    COMMENT(8, SemanticTokenTypes.Comment),
-    STRING(9, SemanticTokenTypes.String),
-    NUMBER(10, SemanticTokenTypes.Number),
-    REGEXP(11, SemanticTokenTypes.Regexp),
-    OPERATOR(12, SemanticTokenTypes.Operator);
+    Class(0, SemanticTokenTypes.Class),
+    Parameter(1, SemanticTokenTypes.Parameter),
+    Variable(2, SemanticTokenTypes.Variable),
+    Event(3, SemanticTokenTypes.Event),
+    Function(4, SemanticTokenTypes.Function),
+    Method(5, SemanticTokenTypes.Method),
+    Keyword(6, SemanticTokenTypes.Keyword),
+    Modifier(7, SemanticTokenTypes.Modifier),
+    Comment(8, SemanticTokenTypes.Comment),
+    String(9, SemanticTokenTypes.String),
+    Number(10, SemanticTokenTypes.Number),
+    Regexp(11, SemanticTokenTypes.Regexp),
+    Operator(12, SemanticTokenTypes.Operator);
 
     private final int id;
     private final String value;

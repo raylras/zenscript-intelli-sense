@@ -5,7 +5,6 @@ import org.eclipse.lsp4j.services.*;
 
 import java.net.URI;
 import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 
 public class ZenScriptLanguageServer implements LanguageServer {
@@ -33,7 +32,7 @@ public class ZenScriptLanguageServer implements LanguageServer {
         semanticTokensOptions.setLegend(new SemanticTokensLegend(ZenTokenType.getTokenTypes(), ZenTokenTypeModifier.getTokenTypeModifiers()));
         semanticTokensOptions.setFull(true);
         capabilities.setSemanticTokensProvider(semanticTokensOptions);
-//        capabilities.setReferencesProvider(true);
+        capabilities.setReferencesProvider(true);
 //        capabilities.setDefinitionProvider(true);
 //        capabilities.setTypeDefinitionProvider(true);
 //        capabilities.setHoverProvider(true);
