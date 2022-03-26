@@ -2,16 +2,16 @@ package raylras.zen.lsp.provider;
 
 import org.antlr.v4.runtime.CommonToken;
 import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.eclipse.lsp4j.SemanticTokens;
 import org.eclipse.lsp4j.SemanticTokensParams;
 import raylras.zen.antlr.ZenScriptLexer;
-import raylras.zen.lsp.ZenTokenType;
-import raylras.zen.lsp.ZenTokenTypeModifier;
 import raylras.zen.antlr.ZenScriptParser;
 import raylras.zen.antlr.ZenScriptParserBaseVisitor;
+import raylras.zen.lsp.ZenTokenType;
+import raylras.zen.lsp.ZenTokenTypeModifier;
 import raylras.zen.util.PosUtil;
-import org.antlr.v4.runtime.Token;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -35,9 +35,6 @@ public class SemanticTokensFullProvider extends ZenScriptParserBaseVisitor<Seman
     @Override
     public SemanticToken visitImportStatement(ZenScriptParser.ImportStatementContext ctx) {
         List<TerminalNode> nNames = ctx.className().IDENTIFIER();
-        TerminalNode nRename = ctx.IDENTIFIER();
-        nNames.forEach(node -> builder.push(node.getSymbol(), ZenTokenType.Class));
-        if (nRename != null) { builder.push(nRename.getSymbol(), ZenTokenType.Class); }
 
         return null;
     }
@@ -89,14 +86,6 @@ public class SemanticTokensFullProvider extends ZenScriptParserBaseVisitor<Seman
         });
 
         return super.visitParameters(ctx);
-    }
-
-    @Override
-    public SemanticToken visitMethodCall(ZenScriptParser.MethodCallContext ctx) {
-        Token tName = ctx.IDENTIFIER().getSymbol();
-        builder.push(tName, ZenTokenType.Method);
-        
-        return super.visitMethodCall(ctx);
     }
 
     @Override

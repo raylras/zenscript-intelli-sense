@@ -3,11 +3,13 @@ package raylras.zen.lsp.provider;
 import org.antlr.v4.runtime.Token;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
-import raylras.zen.util.PosUtil;
 import raylras.zen.antlr.ZenScriptParser;
 import raylras.zen.antlr.ZenScriptParserBaseVisitor;
+import raylras.zen.util.PosUtil;
 
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Stack;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -135,26 +137,6 @@ public class DocumentSymbolProvider extends ZenScriptParserBaseVisitor<DocumentS
         symbolStack.push(symbol);
         visitBlock(ctx.block());
         symbolStack.pop();
-
-        result.add(symbol);
-        return null;
-    }
-
-    @Override
-    public DocumentSymbol visitAnonymousFunction(ZenScriptParser.AnonymousFunctionContext ctx) {
-        String name = "<anonymous>";
-        Token tStart = ctx.FUNCTION().getSymbol();
-        Token tEnd = ctx.block().BRACE_CLOSE().getSymbol();
-
-        Range range = new Range(PosUtil.getPosition(tStart), PosUtil.getPosition(tEnd));
-        DocumentSymbol symbol = new DocumentSymbol(name, SymbolKind.Function, range, range);
-
-        DocumentSymbol parent = symbolStack.empty() ? null : symbolStack.peek();
-        if (parent != null) {
-            if (parent.getChildren() == null) { parent.setChildren(new LinkedList<>()); }
-            parent.getChildren().add(symbol);
-            return null;
-        }
 
         result.add(symbol);
         return null;

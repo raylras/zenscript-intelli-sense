@@ -1,6 +1,6 @@
 package raylras.zen.ast.type;
 
-public class TypeLong extends Type {
+public class TypeLong extends TypeNumber {
 
     public static final TypeLong INSTANCE = new TypeLong();
 

@@ -1,32 +1,33 @@
 package raylras.zen.ast.scope;
 
 import raylras.zen.ast.ASTNode;
-import raylras.zen.ast.EnumError;
 import raylras.zen.ast.ErrorNode;
-import raylras.zen.ast.IErrorNode;
-import raylras.zen.ast.stmt.Statement;
+import raylras.zen.ast.VariableNode;
+import raylras.zen.verify.EnumError;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class VariableScope implements Scope, IErrorNode {
+public class VariableScope extends ASTNode implements Scope<VariableNode> {
 
-    private Scope parent;
-    private Map<String, ASTNode> variables;
-    private List<ErrorNode> errorNodes;
+    private final Map<String, VariableNode> variables;
+    private final List<ErrorNode> errorNodes;
+    private Scope<?> parent;
 
     public VariableScope() {
         this.variables = new HashMap<>();
+        this.errorNodes = new ArrayList<>();
     }
 
     @Override
-    public Scope getParent() {
+    public Scope<?> getParent() {
         return parent;
     }
 
     @Override
-    public void setParent(Scope parent) {
+    public void setParent(Scope<?> parent) {
         this.parent = parent;
     }
 
@@ -40,23 +41,13 @@ public class VariableScope implements Scope, IErrorNode {
     }
 
     @Override
-    public void define(String name, ASTNode node) {
+    public void define(String name, VariableNode node) {
         ASTNode same = resolve(name);
         if (same == null) {
             variables.put(name, node);
         } else {
             errorNodes.add(new ErrorNode(same, EnumError.ALREADY_DEFINED));
         }
-    }
-
-    @Override
-    public void addStatement(Statement statement) {
-        throw new RuntimeException("Cannot add a statement to VariableScope!");
-    }
-
-    @Override
-    public List<ErrorNode> getErrors() {
-        return errorNodes;
     }
 
 }

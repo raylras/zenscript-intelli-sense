@@ -12,7 +12,11 @@ script:
     ;
 
 importStatement
-    : IMPORT className (AS IDENTIFIER )? ';'
+    : IMPORT className (AS alias )? ';'
+    ;
+
+alias
+    : IDENTIFIER
     ;
 
 functionDeclaration
@@ -37,28 +41,15 @@ constructor
     ;
 
 field
-    : (VAR | VAL) IDENTIFIER asType ('=' expression asType?)? ';'
+    : (VAR | VAL) IDENTIFIER asType ('=' expression)? ';'
     ;
 
 method
     : FUNCTION IDENTIFIER parameters asType? block
     ;
 
-
 asType
     : AS type
-    ;
-
-memberCall
-    :  IDENTIFIER
-    ;
-
-methodCall
-    : IDENTIFIER arguments
-    ;
-
-anonymousFunction
-    : FUNCTION parameters asType? block
     ;
 
 parameters
@@ -78,34 +69,15 @@ arguments
     ;
 
 argument
-    : (IDENTIFIER | expression | literal) asType?
-    | anonymousFunction
+    : expression asType?
     ;
 
 block
     : '{' statement* '}'
     ;
 
-array
-    : '[' array? (',' array)* ']'
-    | '[' (literal | expression) (',' (literal | expression) )* ']'
-    ;
-
-map
-    : '{' map? (',' map)* '}'
-    | '{' (mapEntry (',' mapEntry)* )? '}'
-    ;
-
 mapEntry
-    : mapKey ':' mapValue
-    ;
-
-mapKey
-    : expression
-    ;
-
-mapValue
-    : expression
+    : key=expression ':' value=expression
     ;
 
 statement
@@ -126,7 +98,7 @@ breakStatement: BREAK ';';
 
 continueStatement: CONTINUE ';';
 
-ifStatement: IF expression (statement | block | ) (ELSE (statement | block | ))?;
+ifStatement: IF expression (statement | block) (ELSE (statement | block))?;
 
 forStatement: FOR forControl block;
 
@@ -141,18 +113,7 @@ expressionStatement
     ;
 
 forControl
-    : IDENTIFIER IN range
-    | IDENTIFIER (',' IDENTIFIER)? IN (expression | memberCall | methodCall)
-    ;
-
-range
-    : bounds  ('..' | 'to') bounds
-    ;
-
-bounds
-    : expression
-    | memberCall
-    | methodCall
+    : IDENTIFIER (',' IDENTIFIER)? IN expression
     ;
 
 className
@@ -161,29 +122,25 @@ className
 
 expression
     : literal # expressionLiteral
+    | id=IDENTIFIER # expressionIdentifier
     | '(' expression ')' # expressionParens
-    | expression '.' expression # expressionCall
-    | methodCall # expressionCall
-    | memberCall # expressionCall
-    | expression '[' expression ']' # expressionArrayGet
-    | ('+'|'-'|'!') expression # expressionUnary
-    | expression ('*'|'/'|'%') expression # expressionBinary
-    | expression ('+'|'-') expression # expressionBinary
-    | expression ('<=' | '>=' | '>' | '<' | '==' | '!=') expression # expressionBinary
+    | expression '.' expression # expressionAccess
+    | expression '[' expression ']' # expressionIndex
+    | expression arguments # expressionCall
+    | op=('+'|'-'|'!') expression # expressionUnary
+    | expression op=('*'|'/'|'%') expression # expressionBinary
+    | expression op=('+'|'-') expression # expressionBinary
+    | expression op=('<=' | '>=' | '>' | '<' | '==' | '!=') expression # expressionBinary
     | expression INSTANCEOF type # expressionBinary
     | expression (IN | HAS) expression # expressionBinary
-    | expression '&' expression # expressionBinary
-    | expression '^' expression # expressionBinary
-    | expression '|' expression # expressionBinary
-    | expression '&&' expression # expressionBinary
-    | expression '||' expression # expressionBinary
-    | expression '~' expression # expressionBinary
+    | expression op=('&'| '|' |'^'| '&&' | '||' | '~') expression # expressionBinary
     | <assoc=right> expression '?' expression ':' expression # expressionTrinary
-    | <assoc=right> expression ('=' | '+=' | '-=' | '*=' | '/=' | '&=' | '|=' | '^=' | '%=' | '~=') expression # expressionAssign
-    | bracketHandler # expressionBracketHandler
-    | array # expressionArray
-    | map # expressionMap
-    | anonymousFunction # expressionFunction
+    | <assoc=right> expression op=('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '~=' | '&=' | '|=' | '^=') expression # expressionAssign
+    | '<' (~'>' ':'?)* '>' # bracketHandler
+    | '[' expression (',' expression)* ']' # arrayInit
+    | '{' (mapEntry (',' mapEntry)* )? '}' # mapInit
+    | FUNCTION parameters asType? block # anonymousFunction
+    | expression  ('..' | 'to') expression # expressionRange
     | expression asType # expressionCast
     ;
 
@@ -219,18 +176,10 @@ typeClass
     ;
 
 literal
-    : integerLiteral
-    | FLOATING_LITERAL
-    | STRING_LITERAL
-    | BOOLEAN_LITERAL
-    | NULL_LITERAL
-    ;
-
-integerLiteral
-    : DECIMAL_LITERAL
-    | HEX_LITERAL
-    ;
-
-bracketHandler
-    : '<' (~'>' ':'?)* '>'
+    : DECIMAL_LITERAL # integerLiteral
+    | HEX_LITERAL # integerLiteral
+    | FLOATING_LITERAL # floatingLiteral
+    | STRING_LITERAL # stringLiteral
+    | BOOLEAN_LITERAL # booleanLiteral
+    | NULL_LITERAL # nullLiteral
     ;

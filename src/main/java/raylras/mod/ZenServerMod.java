@@ -4,7 +4,6 @@ import net.minecraftforge.fml.common.Mod;
 import net.minecraftforge.fml.common.event.FMLLoadCompleteEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
-import raylras.zen.Main;
 
 @Mod(modid = ZenServerMod.MODID, name = ZenServerMod.NAME, version = ZenServerMod.VERSION, dependencies = ZenServerMod.DEPENDENCIES)
 public class ZenServerMod {
@@ -17,10 +16,7 @@ public class ZenServerMod {
 
     @Mod.EventHandler
     public void onLoadComplete(FMLLoadCompleteEvent e) {
-        // TODO: use ModLauncher
-        Thread t = new Thread(Main::start);
-        t.setName("ZenServer");
-        t.start();
+        new ModSideLauncher().launchServer();
     }
 
 

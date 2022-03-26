@@ -1,6 +1,6 @@
 package raylras.zen.ast.type;
 
-public class TypeInt extends Type {
+public class TypeInt extends TypeNumber {
 
     public static final TypeInt INSTANCE = new TypeInt();
 

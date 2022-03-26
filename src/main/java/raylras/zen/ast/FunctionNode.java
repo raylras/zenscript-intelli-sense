@@ -1,67 +1,64 @@
 package raylras.zen.ast;
 
-import raylras.zen.ast.stmt.Statement;
 import raylras.zen.ast.type.Type;
-import raylras.zen.ast.type.TypeFunction;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 public class FunctionNode extends ASTNode {
 
-    private String name;
-    private List<VariableNode> parameters;
-    private List<Statement> statements;
-    private TypeFunction type;
+    private IDNode nameNode;
+    private List<ParameterNode> parameterNodes;
+    private TypeNode returnTypeNode;
+    private BlockNode blockNode;
 
-    public FunctionNode(String name) {
-        this.name = name;
-        this.type = new TypeFunction();
+    private Type returnType;
+
+    public IDNode getNameNode() {
+        return nameNode;
     }
 
-    public String getName() {
-        return name;
+    public void setNameNode(IDNode nameNode) {
+        this.nameNode = nameNode;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public List<ParameterNode> getParameterNodes() {
+        return parameterNodes;
     }
 
-    public List<VariableNode> getParameters() {
-        return parameters;
+    public void setParameterNodes(List<ParameterNode> parameterNodes) {
+        this.parameterNodes = parameterNodes;
     }
 
-    public void setParameters(List<VariableNode> parameters) {
-        this.parameters = parameters;
-        this.type.setParameterTypes(parameters.stream().map(VariableNode::getType).collect(Collectors.toList()));
+    public TypeNode getReturnTypeNode() {
+        return returnTypeNode;
     }
 
-    public Type getReturnType() {
-        return this.type.getReturnType();
+    public void setReturnTypeNode(TypeNode returnTypeNode) {
+        this.returnTypeNode = returnTypeNode;
     }
 
-    public void setReturnType(Type returnType) {
-        this.type.setReturnType(returnType);
+    public BlockNode getBlockNode() {
+        return blockNode;
     }
 
-    public List<Statement> getStatements() {
-        return statements;
-    }
-
-    public void setStatements(List<Statement> statements) {
-        this.statements = statements;
+    public void setBlockNode(BlockNode blockNode) {
+        this.blockNode = blockNode;
     }
 
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("function ")
-                .append(name)
-                .append("(")
-                .append(parameters.stream().map(VariableNode::getNameAndType).collect(Collectors.joining(",")))
-                .append(")")
-                .append(" as ")
-                .append(type.getReturnType());
+        builder.append(nameNode.getName());
+        builder.append('(');
+        builder.append(parameterNodes.stream().map(ParameterNode::toString).collect(Collectors.joining(",")));
+        builder.append(')');
+        if (returnType != null) {
+            builder.append(" as ").append(returnType.getTypeName());
+        }
+        if (returnTypeNode != null) {
+            builder.append(" as ").append(returnTypeNode.getTypeName());
+        }
         return builder.toString();
     }
 

@@ -6,12 +6,6 @@ public class StatementReturn extends Statement {
 
     private Expression expr;
 
-    public StatementReturn() {}
-
-    public StatementReturn(Expression expr) {
-        this.expr = expr;
-    }
-
     public Expression getExpr() {
         return expr;
     }

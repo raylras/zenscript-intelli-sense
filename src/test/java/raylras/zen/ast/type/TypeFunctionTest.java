@@ -7,7 +7,7 @@ import java.util.Arrays;
 
 class TypeFunctionTest {
 
-    TypeFunction test1 = new TypeFunction(TypeInt.INSTANCE, TypeFloat.INSTANCE, TypeBool.INSTANCE);
+    TypeFunction test1 = new TypeFunction(TypeInt.INSTANCE, TypeFloat.INSTANCE, TypeBoolean.INSTANCE);
     TypeFunction test2 = new TypeFunction(TypeVoid.INSTANCE, TypeByte.INSTANCE);
     TypeFunction test3 = new TypeFunction(new TypeArray(TypeDouble.INSTANCE), new TypeList(TypeShort.INSTANCE));
     TypeFunction test4 = new TypeFunction(new TypeFunction(TypeVoid.INSTANCE), new TypeMap(TypeString.INSTANCE, TypeString.INSTANCE));
@@ -30,7 +30,7 @@ class TypeFunctionTest {
 
     @Test
     void getArgumentTypes() {
-        Assertions.assertEquals(Arrays.asList(TypeFloat.INSTANCE, TypeBool.INSTANCE), test1.getParameterTypes());
+        Assertions.assertEquals(Arrays.asList(TypeFloat.INSTANCE, TypeBoolean.INSTANCE), test1.getParameterTypes());
         Assertions.assertEquals(Arrays.asList(TypeByte.INSTANCE), test2.getParameterTypes());
         Assertions.assertEquals(Arrays.asList(new TypeList(TypeShort.INSTANCE)), test3.getParameterTypes());
     }

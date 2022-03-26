@@ -20,7 +20,7 @@ public class NativeClassNode extends ClassNode {
 
     @Override
     public String getClassName() {
-        return null;
+        return nativeClass.getName();
     }
 
 }

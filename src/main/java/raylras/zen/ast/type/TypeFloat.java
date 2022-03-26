@@ -1,6 +1,6 @@
 package raylras.zen.ast.type;
 
-public class TypeFloat extends Type {
+public class TypeFloat extends TypeNumber {
 
     public static final TypeFloat INSTANCE = new TypeFloat();
 

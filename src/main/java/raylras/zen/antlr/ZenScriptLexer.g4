@@ -58,7 +58,7 @@ SUB:                    '-';
 MUL:                    '*';
 DIV:                    '/';
 MOD:                    '%';
-TILDE:                  '~';
+CAT:                    '~';
 NOT:                    '!';
 LESS:                   '<';
 GREATER:                '>';
@@ -135,16 +135,3 @@ fragment HexDigit: [0-9a-fA-F];
 fragment LetterOrDigit: Letter | [0-9];
 
 fragment Letter: [a-zA-Z_];
-
-
-
-
-
-
-
-
-
-
-
-
-

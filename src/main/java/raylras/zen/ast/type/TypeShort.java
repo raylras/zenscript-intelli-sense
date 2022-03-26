@@ -1,6 +1,6 @@
 package raylras.zen.ast.type;
 
-public class TypeShort extends Type {
+public class TypeShort extends TypeNumber {
 
     public static final TypeShort INSTANCE = new TypeShort();
 

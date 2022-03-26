@@ -1,6 +1,6 @@
 package raylras.zen.ast.type;
 
-public class TypeByte extends Type {
+public class TypeByte extends TypeNumber {
 
     public static final TypeByte INSTANCE = new TypeByte();
 

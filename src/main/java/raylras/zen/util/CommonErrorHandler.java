@@ -7,6 +7,7 @@ import stanhebben.zenscript.util.ZenPosition;
 
 import java.util.List;
 
+@Deprecated
 public class CommonErrorHandler implements IZenErrorLogger {
 
     List<Diagnostic> diagnostics;

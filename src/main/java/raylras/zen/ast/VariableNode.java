@@ -1,28 +1,34 @@
 package raylras.zen.ast;
 
+import org.antlr.v4.runtime.Token;
 import raylras.zen.ast.type.Type;
 
 public class VariableNode extends ASTNode {
 
-    private String name;
+    private IDNode nameNode;
+    private TypeNode typeNode;
     private Type type;
     private boolean isFinal;
 
-    public VariableNode(String name) {
-        this.name = name;
+    public VariableNode(Token token) {
+        this.nameNode = new IDNode(token);
+        this.setSourcePosition(token);
     }
 
-    public VariableNode(String name, Type type) {
-        this.name = name;
-        this.type = type;
+    public IDNode getNameNode() {
+        return nameNode;
     }
 
-    public String getName() {
-        return name;
+    public void setNameNode(IDNode nameNode) {
+        this.nameNode = nameNode;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public TypeNode getAsTypeNode() {
+        return typeNode;
+    }
+
+    public void setAsTypeNode(TypeNode typeNode) {
+        this.typeNode = typeNode;
     }
 
     public Type getType() {
@@ -37,17 +43,22 @@ public class VariableNode extends ASTNode {
         return isFinal;
     }
 
-    public void setFinal(boolean isFinal) {
-        this.isFinal = isFinal;
-    }
-
-    public String getNameAndType() {
-        return name + " as " + type;
+    public void setFinal(boolean aFinal) {
+        isFinal = aFinal;
     }
 
     @Override
     public String toString() {
-        return name;
+        StringBuilder builder = new StringBuilder();
+        builder.append(nameNode.getName());
+        if (type != null) {
+            builder.append(" as ").append(type.getTypeName());
+            return builder.toString();
+        }
+        if (typeNode != null) {
+            builder.append(" as ").append(typeNode.getTypeName());
+        }
+        return builder.toString();
     }
 
 }

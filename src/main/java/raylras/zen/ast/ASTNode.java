@@ -11,6 +11,8 @@ public abstract class ASTNode {
     private int lastLine = -1;
     private int lastColumn = -1;
 
+    public void accept(ASTVisitor<?> visitor) {}
+
     public int getLine() {
         return line;
     }
@@ -43,7 +45,8 @@ public abstract class ASTNode {
         this.lastColumn = lastColumn;
     }
 
-    // get source position from antlr
+
+    // set source position from antlr
     public <T extends ASTNode> T setSourcePosition(ParserRuleContext ctx) {
         this.setLine(ctx.start.getLine());
         this.setColumn(ctx.start.getCharPositionInLine());
@@ -52,7 +55,7 @@ public abstract class ASTNode {
         return (T) this;
     }
 
-    // get source position from antlr
+    // set source position from antlr
     public <T extends ASTNode> T setSourcePosition(Token token) {
         this.setLine(token.getLine());
         this.setColumn(token.getCharPositionInLine());
@@ -61,7 +64,7 @@ public abstract class ASTNode {
         return (T) this;
     }
 
-    // get source position from another ASTNode
+    // set source position from another ASTNode
     public <T extends ASTNode> T setSourcePosition(ASTNode node) {
         this.setLine(node.getLine());
         this.setColumn(node.getColumn());

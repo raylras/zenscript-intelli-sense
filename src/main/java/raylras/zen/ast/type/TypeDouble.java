@@ -1,6 +1,6 @@
 package raylras.zen.ast.type;
 
-public class TypeDouble extends Type {
+public class TypeDouble extends TypeNumber {
 
     public static final TypeDouble INSTANCE = new TypeDouble();
 

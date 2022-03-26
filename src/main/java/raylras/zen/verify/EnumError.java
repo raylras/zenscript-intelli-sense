@@ -1,4 +1,4 @@
-package raylras.zen.ast;
+package raylras.zen.verify;
 
 public enum EnumError {
     UNKNOWN,

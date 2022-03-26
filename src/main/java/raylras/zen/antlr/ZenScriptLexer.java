@@ -1,13 +1,12 @@
 // Generated from D:/Projects/Forge/1.12.2/ZenServer/src/main/java/raylras/zen/antlr\ZenScriptLexer.g4 by ANTLR 4.9.2
 package raylras.zen.antlr;
-import org.antlr.v4.runtime.Lexer;
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.TokenStream;
+
 import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.atn.*;
+import org.antlr.v4.runtime.atn.ATN;
+import org.antlr.v4.runtime.atn.ATNDeserializer;
+import org.antlr.v4.runtime.atn.LexerATNSimulator;
+import org.antlr.v4.runtime.atn.PredictionContextCache;
 import org.antlr.v4.runtime.dfa.DFA;
-import org.antlr.v4.runtime.misc.*;
 
 @SuppressWarnings({"all", "warnings", "unchecked", "unused", "cast"})
 public class ZenScriptLexer extends Lexer {
@@ -23,7 +22,7 @@ public class ZenScriptLexer extends Lexer {
 		WHILE=26, BREAK=27, CONTINUE=28, RETURN=29, FRIGGIN_CLASS=30, FRIGGIN_CONSTRUCTOR=31, 
 		ZEN_CLASS=32, ZEN_CONSTRUCTOR=33, PAREN_OPEN=34, PAREN_CLOSE=35, BRACK_OPEN=36, 
 		BRACK_CLOSE=37, BRACE_OPEN=38, BRACE_CLOSE=39, COMMA=40, DOT=41, SEMICOLON=42, 
-		ADD=43, SUB=44, MUL=45, DIV=46, MOD=47, TILDE=48, NOT=49, LESS=50, GREATER=51, 
+		ADD=43, SUB=44, MUL=45, DIV=46, MOD=47, CAT=48, NOT=49, LESS=50, GREATER=51, 
 		XOR=52, COLON=53, QUEST=54, BACKTICK=55, DOLLAR=56, AND=57, OR=58, ASSIGN=59, 
 		AND_AND=60, OR_OR=61, EQUAL=62, NOT_EQUAL=63, LESS_EQUAL=64, GREATER_EQUAL=65, 
 		PLUS_ASSIGN=66, MINUS_ASSIGN=67, STAR_ASSIGN=68, DIV_ASSIGN=69, MOD_ASSIGN=70, 
@@ -47,11 +46,11 @@ public class ZenScriptLexer extends Lexer {
 			"BREAK", "CONTINUE", "RETURN", "FRIGGIN_CLASS", "FRIGGIN_CONSTRUCTOR", 
 			"ZEN_CLASS", "ZEN_CONSTRUCTOR", "PAREN_OPEN", "PAREN_CLOSE", "BRACK_OPEN", 
 			"BRACK_CLOSE", "BRACE_OPEN", "BRACE_CLOSE", "COMMA", "DOT", "SEMICOLON", 
-			"ADD", "SUB", "MUL", "DIV", "MOD", "TILDE", "NOT", "LESS", "GREATER", 
-			"XOR", "COLON", "QUEST", "BACKTICK", "DOLLAR", "AND", "OR", "ASSIGN", 
-			"AND_AND", "OR_OR", "EQUAL", "NOT_EQUAL", "LESS_EQUAL", "GREATER_EQUAL", 
-			"PLUS_ASSIGN", "MINUS_ASSIGN", "STAR_ASSIGN", "DIV_ASSIGN", "MOD_ASSIGN", 
-			"XOR_ASSIGN", "AND_ASSIGN", "OR_ASSIGN", "TILDE_ASSIGN", "DOT_DOT", "DECIMAL_LITERAL", 
+			"ADD", "SUB", "MUL", "DIV", "MOD", "CAT", "NOT", "LESS", "GREATER", "XOR", 
+			"COLON", "QUEST", "BACKTICK", "DOLLAR", "AND", "OR", "ASSIGN", "AND_AND", 
+			"OR_OR", "EQUAL", "NOT_EQUAL", "LESS_EQUAL", "GREATER_EQUAL", "PLUS_ASSIGN", 
+			"MINUS_ASSIGN", "STAR_ASSIGN", "DIV_ASSIGN", "MOD_ASSIGN", "XOR_ASSIGN", 
+			"AND_ASSIGN", "OR_ASSIGN", "TILDE_ASSIGN", "DOT_DOT", "DECIMAL_LITERAL", 
 			"HEX_LITERAL", "FLOATING_LITERAL", "BOOLEAN_LITERAL", "STRING_LITERAL", 
 			"NULL_LITERAL", "IDENTIFIER", "WHITE_SPACE", "BLOCK_COMMENT", "LINE_COMMENT", 
 			"Preprocessor", "EscapeSequence", "UnicodeCharacter", "Digits", "Digit", 
@@ -83,11 +82,11 @@ public class ZenScriptLexer extends Lexer {
 			"BREAK", "CONTINUE", "RETURN", "FRIGGIN_CLASS", "FRIGGIN_CONSTRUCTOR", 
 			"ZEN_CLASS", "ZEN_CONSTRUCTOR", "PAREN_OPEN", "PAREN_CLOSE", "BRACK_OPEN", 
 			"BRACK_CLOSE", "BRACE_OPEN", "BRACE_CLOSE", "COMMA", "DOT", "SEMICOLON", 
-			"ADD", "SUB", "MUL", "DIV", "MOD", "TILDE", "NOT", "LESS", "GREATER", 
-			"XOR", "COLON", "QUEST", "BACKTICK", "DOLLAR", "AND", "OR", "ASSIGN", 
-			"AND_AND", "OR_OR", "EQUAL", "NOT_EQUAL", "LESS_EQUAL", "GREATER_EQUAL", 
-			"PLUS_ASSIGN", "MINUS_ASSIGN", "STAR_ASSIGN", "DIV_ASSIGN", "MOD_ASSIGN", 
-			"XOR_ASSIGN", "AND_ASSIGN", "OR_ASSIGN", "TILDE_ASSIGN", "DOT_DOT", "DECIMAL_LITERAL", 
+			"ADD", "SUB", "MUL", "DIV", "MOD", "CAT", "NOT", "LESS", "GREATER", "XOR", 
+			"COLON", "QUEST", "BACKTICK", "DOLLAR", "AND", "OR", "ASSIGN", "AND_AND", 
+			"OR_OR", "EQUAL", "NOT_EQUAL", "LESS_EQUAL", "GREATER_EQUAL", "PLUS_ASSIGN", 
+			"MINUS_ASSIGN", "STAR_ASSIGN", "DIV_ASSIGN", "MOD_ASSIGN", "XOR_ASSIGN", 
+			"AND_ASSIGN", "OR_ASSIGN", "TILDE_ASSIGN", "DOT_DOT", "DECIMAL_LITERAL", 
 			"HEX_LITERAL", "FLOATING_LITERAL", "BOOLEAN_LITERAL", "STRING_LITERAL", 
 			"NULL_LITERAL", "IDENTIFIER", "WHITE_SPACE", "BLOCK_COMMENT", "LINE_COMMENT", 
 			"Preprocessor"

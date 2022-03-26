@@ -9,6 +9,8 @@ import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 
+// use launcher to start the lsp server. see SocketLauncher.
+@Deprecated
 public class Main {
 
     private static ZenScriptLanguageServer server;
