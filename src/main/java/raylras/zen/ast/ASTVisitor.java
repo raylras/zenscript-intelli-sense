@@ -1,30 +1,112 @@
 package raylras.zen.ast;
 
-import raylras.zen.ast.stmt.Statement;
+import raylras.zen.ast.expr.*;
+import raylras.zen.ast.stmt.*;
 
-@SuppressWarnings("UnusedReturnValue")
-public interface ASTVisitor<T> {
+public interface ASTVisitor {
 
-    T visitScript(ScriptNode script);
+    void visitAlias(AliasNode alias);
 
-    T visitImport(ImportNode importNode);
+    void visitBlock(BlockNode block);
 
-    T visitReference(ReferenceNode reference);
+    void visitClassReference(ClassReferenceNode classReference);
 
-    T visitAlias(AliasNode alias);
+    void visitConstructor(ConstructorNode constructor);
 
-    T visitFunction(FunctionNode function);
+    void visitCrossScriptReference(CrossScriptReferenceNode scriptReference);
 
-    T visitParameter(ParameterNode parameter);
+    void visitField(FieldNode field);
 
-    T visitZenClass(ZenClassNode zenClass);
+    void visitFunction(FunctionNode function);
 
-    T visitBlock(BlockNode block);
+    void visitIdentifier(IdentifierNode id);
 
-    T visitStatement(Statement statement);
+    void visitImport(ImportNode importNode);
 
-    T visitType(TypeNode type);
+    void visitParameter(ParameterNode parameter);
 
-    T visitID(IDNode id);
+    void visitReference(ReferenceNode reference);
+
+    void visitScriptNode(ScriptNode scriptUnit);
+
+    void visitType(TypeNode type);
+
+    void visitVariable(VariableNode variable);
+
+    void visitZenClass(ZenClassNode zenClass);
+
+    //
+    // Statement
+    //
+
+    void visitBlockStatement(BlockStatement blockStmt);
+
+    void visitBreakStatement(BreakStatement breakStmt);
+
+    void visitContinueStatement(ContinueStatement continueStmt);
+
+    void visitExpressionStatement(ExpressionStatement expressionStmt);
+
+    void visitForeachStatement(ForeachStatement foreachStmt);
+
+    void visitIfStatement(IfStatement ifStmt);
+
+    void visitImportStatement(ImportStatement importStmt);
+
+    void visitReturnStatement(ReturnStatement returnStmt);
+
+    void visitStatement(Statement statement);
+
+    void visitVarStatement(VarStatement varStmt);
+
+    void visitWhileStatement(WhileStatement whileStmt);
+
+    //
+    // Expression
+    //
+
+    void visitArgumentsExpression(ArgumentsExpression argumentsExpr);
+
+    void visitArrayLiteralExpression(ArrayLiteralExpression arrayLiteralExpr);
+
+    void visitAssignmentExpression(AssignmentExpression assignmentExpr);
+
+    void visitBinaryExpression(BinaryExpression binaryExpr);
+
+    void visitBooleanLiteralExpression(BooleanLiteralExpression boolLiteralExpr);
+
+    void visitBracketHandlerExpression(BracketHandlerExpression bracketExpr);
+
+    void visitExpression(Expression expression);
+
+    void visitFunctionExpression(FunctionExpression functionExpr);
+
+    void visitIdentifierExpression(IdentifierExpression idExpr);
+
+    void visitMapEntryExpression(MapEntryExpression entryExpr);
+
+    void visitMapLiteralExpression(MapLiteralExpression mapLiteralExpr);
+
+    void visitMemberAccessExpression(MemberAccessExpression memberAccessExpr);
+
+    void visitMemberIndexExpression(MemberIndexExpression memberIndexExpr);
+
+    void visitNullExpression(NullExpression nullExpr);
+
+    void visitNumberLiteralExpression(NumberLiteralExpression numberLiteralExpr);
+
+    void visitParensExpression(ParensExpression parensExpr);
+
+    void visitRangeExpression(RangeExpression rangeExpr);
+
+    void visitStringLiteralExpression(StringLiteralExpression stringLiteralExpr);
+
+    void visitTernaryExpression(TernaryExpression ternaryExpr);
+
+    void visitThisExpression(ThisExpression thisExpr);
+
+    void visitTypeCastExpression(TypeCastExpression typeCastExpr);
+
+    void visitUnaryExpression(UnaryExpression unaryExpr);
 
 }

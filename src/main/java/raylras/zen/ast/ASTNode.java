@@ -11,7 +11,7 @@ public abstract class ASTNode {
     private int lastLine = -1;
     private int lastColumn = -1;
 
-    public void accept(ASTVisitor<?> visitor) {}
+    public abstract void accept(ASTVisitor visitor);
 
     public int getLine() {
         return line;
@@ -51,7 +51,7 @@ public abstract class ASTNode {
         this.setLine(ctx.start.getLine());
         this.setColumn(ctx.start.getCharPositionInLine());
         this.setLastLine(ctx.stop.getLine());
-        this.setLastColumn(ctx.stop.getCharPositionInLine());
+        this.setLastColumn(ctx.stop.getCharPositionInLine() + ctx.stop.getText().length());
         return (T) this;
     }
 

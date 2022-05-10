@@ -1,63 +1,68 @@
 package raylras.zen.ast;
 
-import raylras.zen.ast.type.Type;
+import org.jetbrains.annotations.Nullable;
+import raylras.zen.verify.type.Type;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class FunctionNode extends ASTNode {
 
-    private IDNode nameNode;
-    private List<ParameterNode> parameterNodes;
-    private TypeNode returnTypeNode;
-    private BlockNode blockNode;
+    private final IdentifierNode idNode;
+    private final List<ParameterNode> parameterNodeList;
+    @Nullable
+    private final TypeNode resultTypeNode;
+    private final BlockNode blockNode;
+    private Type type;
 
-    private Type returnType;
-
-    public IDNode getNameNode() {
-        return nameNode;
+    public FunctionNode(IdentifierNode idNode, List<ParameterNode> parameterNodeList, @Nullable TypeNode resultTypeNode, BlockNode blockNode) {
+        this.idNode = idNode;
+        this.parameterNodeList = parameterNodeList;
+        this.resultTypeNode = resultTypeNode;
+        this.blockNode = blockNode;
     }
 
-    public void setNameNode(IDNode nameNode) {
-        this.nameNode = nameNode;
+    public IdentifierNode getIdNode() {
+        return idNode;
     }
 
-    public List<ParameterNode> getParameterNodes() {
-        return parameterNodes;
+    public List<ParameterNode> getParameterNodeList() {
+        return parameterNodeList;
     }
 
-    public void setParameterNodes(List<ParameterNode> parameterNodes) {
-        this.parameterNodes = parameterNodes;
-    }
-
-    public TypeNode getReturnTypeNode() {
-        return returnTypeNode;
-    }
-
-    public void setReturnTypeNode(TypeNode returnTypeNode) {
-        this.returnTypeNode = returnTypeNode;
+    @Nullable
+    public TypeNode getResultTypeNode() {
+        return resultTypeNode;
     }
 
     public BlockNode getBlockNode() {
         return blockNode;
     }
 
-    public void setBlockNode(BlockNode blockNode) {
-        this.blockNode = blockNode;
+    public Type getType() {
+        return type;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visitFunction(this);
+        idNode.accept(visitor);
+        parameterNodeList.forEach(node -> node.accept(visitor));
+        if (resultTypeNode != null) {
+            resultTypeNode.accept(visitor);
+        }
+        blockNode.accept(visitor);
     }
 
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append(nameNode.getName());
-        builder.append('(');
-        builder.append(parameterNodes.stream().map(ParameterNode::toString).collect(Collectors.joining(",")));
-        builder.append(')');
-        if (returnType != null) {
-            builder.append(" as ").append(returnType.getTypeName());
-        }
-        if (returnTypeNode != null) {
-            builder.append(" as ").append(returnTypeNode.getTypeName());
+        builder.append(idNode);
+        if (type != null) {
+            builder.append(" as ").append(type);
         }
         return builder.toString();
     }

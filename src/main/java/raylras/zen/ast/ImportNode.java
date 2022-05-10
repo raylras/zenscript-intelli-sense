@@ -1,30 +1,36 @@
 package raylras.zen.ast;
 
+import org.jetbrains.annotations.Nullable;
+
 public class ImportNode extends ASTNode {
 
-    private ReferenceNode referenceNode;
-    private AliasNode aliasNode;
+    private final ReferenceNode referenceNode;
+    @Nullable
+    private final AliasNode aliasNode;
 
-    public ReferenceNode getClassNameNode() {
+    public ImportNode(ReferenceNode referenceNode, @Nullable AliasNode aliasNode) {
+        this.referenceNode = referenceNode;
+        this.aliasNode = aliasNode;
+    }
+
+    public ReferenceNode getReferenceNode() {
         return referenceNode;
     }
 
-    public void setClassNameNode(ReferenceNode referenceNode) {
-        this.referenceNode = referenceNode;
-    }
-
+    @Nullable
     public AliasNode getAliasNode() {
         return aliasNode;
     }
 
-    public void setAliasNode(AliasNode aliasNode) {
-        this.aliasNode = aliasNode;
-    }
-
     @Override
-    public void accept(ASTVisitor<?> visitor) {
-        visitor.visitReference(referenceNode);
-        visitor.visitAlias(aliasNode);
+    public void accept(ASTVisitor visitor) {
+        visitor.visitImport(this);
+        if (referenceNode != null) {
+            referenceNode.accept(visitor);
+        }
+        if (aliasNode != null) {
+            aliasNode.accept(visitor);
+        }
     }
 
     @Override
@@ -32,8 +38,7 @@ public class ImportNode extends ASTNode {
         StringBuilder builder = new StringBuilder();
         builder.append(referenceNode.getReference());
         if (aliasNode != null) {
-            builder.append(" as ");
-            builder.append(aliasNode.getAlias());
+            builder.append(" as ").append(aliasNode.getIdNode());
         }
         return builder.toString();
     }

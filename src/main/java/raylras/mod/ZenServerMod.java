@@ -16,7 +16,10 @@ public class ZenServerMod {
 
     @Mod.EventHandler
     public void onLoadComplete(FMLLoadCompleteEvent e) {
+        // TODO: Initialize environment(ZenClasses, ZenMethods...)
         new ModSideLauncher().launchServer();
+
+
     }
 
 

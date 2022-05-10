@@ -1,59 +1,68 @@
 package raylras.zen.ast.expr;
 
-public enum Operator {
+public final class Operator {
 
-    NOT, NEG,
-    ADD, SUB, MUL, DIV, MOD, CAT, INSTANCEOF, CONTAINS,
-    LESS, GREATER, EQUALS, NOT_EQUALS, LESS_EQUALS, GREATER_EQUALS,
-    OR, AND, XOR, OR_OR, AND_AND,
-    ASSIGN, ADD_ASSIGN, SUB_ASSIGN, MUL_ASSIGN, DIV_ASSIGN, AND_ASSIGN, OR_ASSIGN, XOR_ASSIGN, MOD_ASSIGN, CAT_ASSIGN,
-    ;
+    public enum Unary {
+        NOT, NEG, PLUS
+    }
 
-    public static Operator getUnary(String operator) {
+    public enum Binary {
+        ADD, SUB, MUL, DIV, MOD, CAT, INSTANCEOF, CONTAINS,
+        LESS, GREATER, EQUALS, NOT_EQUALS, LESS_EQUALS, GREATER_EQUALS,
+        OR, AND, XOR, OR_OR, AND_AND
+    }
+
+    public enum Assignment {
+        ASSIGN, ADD_ASSIGN, SUB_ASSIGN, MUL_ASSIGN, DIV_ASSIGN,
+        AND_ASSIGN, OR_ASSIGN, XOR_ASSIGN, MOD_ASSIGN, CAT_ASSIGN
+    }
+
+    public static Operator.Unary getUnary(String operator) {
         switch (operator) {
-            case "!": return NOT;
-            case "-": return NEG;
+            case "!": return Unary.NOT;
+            case "-": return Unary.NEG;
+            case "+": return Unary.PLUS;
             default: return null;
         }
     }
 
-    public static Operator getBinary(String operator) {
+    public static Operator.Binary getBinary(String operator) {
         switch (operator) {
-            case "+": return ADD;
-            case "-": return SUB;
-            case "*": return MUL;
-            case "/": return DIV;
-            case "%": return MOD;
-            case "~": return CAT;
-            case "<": return LESS;
-            case ">": return GREATER;
-            case "==": return EQUALS;
-            case "!=": return NOT_EQUALS;
-            case "<=": return LESS_EQUALS;
-            case ">=": return GREATER_EQUALS;
-            case "|": return OR;
-            case "&": return AND;
-            case "^": return XOR;
-            case "||": return OR_OR;
-            case "&&": return AND_AND;
-            case "instanceof": return INSTANCEOF;
-            case "in": case "has": return CONTAINS;
+            case "+": return Binary.ADD;
+            case "-": return Binary.SUB;
+            case "*": return Binary.MUL;
+            case "/": return Binary.DIV;
+            case "%": return Binary.MOD;
+            case "~": return Binary.CAT;
+            case "<": return Binary.LESS;
+            case ">": return Binary.GREATER;
+            case "==": return Binary.EQUALS;
+            case "!=": return Binary.NOT_EQUALS;
+            case "<=": return Binary.LESS_EQUALS;
+            case ">=": return Binary.GREATER_EQUALS;
+            case "|": return Binary.OR;
+            case "&": return Binary.AND;
+            case "^": return Binary.XOR;
+            case "||": return Binary.OR_OR;
+            case "&&": return Binary.AND_AND;
+            case "instanceof": return Binary.INSTANCEOF;
+            case "in": case "has": return Binary.CONTAINS;
             default: return null;
         }
     }
 
-    public static Operator getAssign(String operator) {
+    public static Operator.Assignment getAssignment(String operator) {
         switch (operator) {
-            case "=": return ASSIGN;
-            case "+=": return ADD_ASSIGN;
-            case "-=": return SUB_ASSIGN;
-            case "*=": return MUL_ASSIGN;
-            case "/=": return DIV_ASSIGN;
-            case "%/": return MOD_ASSIGN;
-            case "~=": return CAT_ASSIGN;
-            case "&=": return AND_ASSIGN;
-            case "|=": return OR_ASSIGN;
-            case "^=": return XOR_ASSIGN;
+            case "=": return  Assignment.ASSIGN;
+            case "+=": return Assignment.ADD_ASSIGN;
+            case "-=": return Assignment.SUB_ASSIGN;
+            case "*=": return Assignment.MUL_ASSIGN;
+            case "/=": return Assignment.DIV_ASSIGN;
+            case "%/": return Assignment.MOD_ASSIGN;
+            case "~=": return Assignment.CAT_ASSIGN;
+            case "&=": return Assignment.AND_ASSIGN;
+            case "|=": return Assignment.OR_ASSIGN;
+            case "^=": return Assignment.XOR_ASSIGN;
             default: return null;
         }
     }

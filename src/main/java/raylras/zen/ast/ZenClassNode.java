@@ -2,53 +2,49 @@ package raylras.zen.ast;
 
 import java.util.List;
 
-public class ZenClassNode extends ClassNode {
+public class ZenClassNode extends ASTNode {
 
-    private IDNode nameNode;
-    private List<FieldNode> fieldNodes;
-    private List<MethodNode> methodNodes;
-    private List<ConstructorNode> constructorNodes;
+    private final IdentifierNode idNode;
+    private final List<FieldNode> fieldNodeList;
+    private final List<ConstructorNode> constructorNodeList;
 
-    public IDNode getNameNode() {
-        return nameNode;
+    private final List<FunctionNode> functionNodeList;
+
+    public ZenClassNode(IdentifierNode idNode, List<FieldNode> fieldNodeList, List<ConstructorNode> constructorNodeList, List<FunctionNode> functionNodeList) {
+        this.idNode = idNode;
+        this.fieldNodeList = fieldNodeList;
+        this.constructorNodeList = constructorNodeList;
+        this.functionNodeList = functionNodeList;
     }
 
-    public void setNameNode(IDNode nameNode) {
-        this.nameNode = nameNode;
+    public IdentifierNode getIdNode() {
+        return idNode;
     }
 
-    public List<FieldNode> getFieldNodes() {
-        return fieldNodes;
+    public List<FieldNode> getFieldNodeList() {
+        return fieldNodeList;
     }
 
-    public void setFieldNodes(List<FieldNode> fieldNodes) {
-        this.fieldNodes = fieldNodes;
+    public List<ConstructorNode> getConstructorNodeList() {
+        return constructorNodeList;
     }
 
-    public List<MethodNode> getMethodNodes() {
-        return methodNodes;
-    }
-
-    public void setMethodNodes(List<MethodNode> methodNodes) {
-        this.methodNodes = methodNodes;
-    }
-
-    public List<ConstructorNode> getConstructorNodes() {
-        return constructorNodes;
-    }
-
-    public void setConstructorNodes(List<ConstructorNode> constructorNodes) {
-        this.constructorNodes = constructorNodes;
+    public List<FunctionNode> getFunctionNodeList() {
+        return functionNodeList;
     }
 
     @Override
-    public String getClassName() {
-        return nameNode.getName();
+    public void accept(ASTVisitor visitor) {
+        visitor.visitZenClass(this);
+        idNode.accept(visitor);
+        fieldNodeList.forEach(node -> node.accept(visitor));
+        constructorNodeList.forEach(node -> node.accept(visitor));
+        functionNodeList.forEach(node -> node.accept(visitor));
     }
 
     @Override
     public String toString() {
-        return nameNode.getName();
+        return idNode.getName();
     }
 
 }

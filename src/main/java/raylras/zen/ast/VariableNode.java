@@ -1,34 +1,32 @@
 package raylras.zen.ast;
 
-import org.antlr.v4.runtime.Token;
-import raylras.zen.ast.type.Type;
+import org.jetbrains.annotations.Nullable;
+import raylras.zen.verify.type.Type;
 
 public class VariableNode extends ASTNode {
 
-    private IDNode nameNode;
-    private TypeNode typeNode;
+    private final IdentifierNode idNode;
+    @Nullable
+    private final TypeNode typeNode;
+
     private Type type;
     private boolean isFinal;
+    private boolean isStatic;
 
-    public VariableNode(Token token) {
-        this.nameNode = new IDNode(token);
-        this.setSourcePosition(token);
-    }
+    private boolean isGlobal;
 
-    public IDNode getNameNode() {
-        return nameNode;
-    }
-
-    public void setNameNode(IDNode nameNode) {
-        this.nameNode = nameNode;
-    }
-
-    public TypeNode getAsTypeNode() {
-        return typeNode;
-    }
-
-    public void setAsTypeNode(TypeNode typeNode) {
+    public VariableNode(IdentifierNode idNode, @Nullable TypeNode typeNode) {
+        this.idNode = idNode;
         this.typeNode = typeNode;
+    }
+
+    public IdentifierNode getIdNode() {
+        return idNode;
+    }
+
+    @Nullable
+    public TypeNode getTypeNode() {
+        return typeNode;
     }
 
     public Type getType() {
@@ -47,16 +45,37 @@ public class VariableNode extends ASTNode {
         isFinal = aFinal;
     }
 
+    public boolean isStatic() {
+        return isStatic;
+    }
+
+    public void setStatic(boolean aStatic) {
+        isStatic = aStatic;
+    }
+
+    public boolean isGlobal() {
+        return isGlobal;
+    }
+
+    public void setGlobal(boolean global) {
+        isGlobal = global;
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visitVariable(this);
+        idNode.accept(visitor);
+        if (typeNode != null) {
+            typeNode.accept(visitor);
+        }
+    }
+
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append(nameNode.getName());
+        builder.append(idNode);
         if (type != null) {
-            builder.append(" as ").append(type.getTypeName());
-            return builder.toString();
-        }
-        if (typeNode != null) {
-            builder.append(" as ").append(typeNode.getTypeName());
+            builder.append(" as ").append(type);
         }
         return builder.toString();
     }

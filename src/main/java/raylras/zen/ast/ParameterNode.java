@@ -1,27 +1,36 @@
 package raylras.zen.ast;
 
-import raylras.zen.ast.type.Type;
+import org.jetbrains.annotations.Nullable;
+import raylras.zen.ast.expr.Expression;
+import raylras.zen.verify.type.Type;
 
 public class ParameterNode extends ASTNode {
 
-    private IDNode nameNode;
-    private TypeNode typeNode;
+    private final IdentifierNode idNode;
+    @Nullable
+    private final TypeNode typeNode;
+    @Nullable
+    private final Expression defaultValueExpr;
     private Type type;
 
-    public IDNode getNameNode() {
-        return nameNode;
+    public ParameterNode(IdentifierNode idNode, @Nullable TypeNode typeNode, @Nullable Expression defaultValueExpr) {
+        this.idNode = idNode;
+        this.typeNode = typeNode;
+        this.defaultValueExpr = defaultValueExpr;
     }
 
-    public void setNameNode(IDNode nameNode) {
-        this.nameNode = nameNode;
+    public IdentifierNode getIdNode() {
+        return idNode;
     }
 
+    @Nullable
     public TypeNode getTypeNode() {
         return typeNode;
     }
 
-    public void setTypeNode(TypeNode typeNode) {
-        this.typeNode = typeNode;
+    @Nullable
+    public Expression getDefaultValueExpr() {
+        return defaultValueExpr;
     }
 
     public Type getType() {
@@ -33,16 +42,23 @@ public class ParameterNode extends ASTNode {
     }
 
     @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visitParameter(this);
+        idNode.accept(visitor);
+        if (typeNode != null) {
+            typeNode.accept(visitor);
+        }
+        if (defaultValueExpr != null) {
+            defaultValueExpr.accept(visitor);
+        }
+    }
+
+    @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append(nameNode.getName());
+        builder.append(idNode);
         if (type != null) {
-            builder.append(" as ").append(type.getTypeName());
-            return builder.toString();
-        }
-        if (typeNode != null) {
-            builder.append(" as ").append(typeNode.getTypeName());
-            return builder.toString();
+            builder.append(" as ").append(type);
         }
         return builder.toString();
     }

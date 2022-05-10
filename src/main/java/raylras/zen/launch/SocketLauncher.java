@@ -4,58 +4,56 @@ import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
 import raylras.zen.lsp.ZenScriptLanguageServer;
+import raylras.zen.verify.Environment;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 public class SocketLauncher {
 
     public static final int DEFAULT_SOCKET_PORT = 9865;
-    private static final Executor executor = Executors.newSingleThreadExecutor();
-    private static Socket socket;
-    private static ZenScriptLanguageServer server;
-    private static LanguageClient client;
+    private Socket socket;
+    private final Executor executor = Executors.newSingleThreadExecutor();
 
-    public static ZenScriptLanguageServer getServer() {
-        return server;
+    private Environment env = new Environment();
+
+    public static void start() {
+        new SocketLauncher().launchServer();
     }
 
-    public static LanguageClient getClient() {
-        return client;
+    public void launchServer() {
+        CompletableFuture.runAsync(() -> System.out.println("Waiting client..."), executor)
+                .thenRun(() -> {
+                    try (ServerSocket serverSocket = new ServerSocket(DEFAULT_SOCKET_PORT)) {
+                        socket = serverSocket.accept();
+                    } catch (IOException ignore) {
+                        try {
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }).thenRun(() -> {
+                    System.out.println("Found a language client from " + socket.getRemoteSocketAddress() + ", starting the language server");
+                    ZenScriptLanguageServer server = new ZenScriptLanguageServer(env);
+                    try {
+                        Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(server, socket.getInputStream(), socket.getOutputStream());
+                        server.getServices().setClient(launcher.getRemoteProxy());
+                        launcher.startListening().get();
+                        if (!socket.isClosed()) { socket.close(); }
+                    } catch (IOException | ExecutionException | InterruptedException ignore) {
+
+                    }
+                }).thenRun(this::launchServer);
     }
 
-    public static void launchServer() {
-        CompletableFuture.runAsync(() -> {
-            System.out.println("Waiting client...");
-            try {
-                socket = new ServerSocket(DEFAULT_SOCKET_PORT).accept();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }, executor).thenRun(() -> {
-            System.out.println("Found a language client from " + socket.getRemoteSocketAddress() + ", starting the language server");
-            server = new ZenScriptLanguageServer();
-            try {
-                Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(server, socket.getInputStream(), socket.getOutputStream());
-                client = launcher.getRemoteProxy();
-                launcher.startListening();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }).exceptionally(e -> {
-            // TODO: handle exceptions
-            try {
-                socket.close();
-            } catch (IOException ex) {
-                ex.printStackTrace();
-            }
-            e.printStackTrace();
-            return null;
-        });
+    public void setEnv(Environment env) {
+        this.env = env;
     }
 
 }

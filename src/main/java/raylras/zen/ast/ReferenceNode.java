@@ -1,20 +1,15 @@
 package raylras.zen.ast;
 
-public class ReferenceNode extends ASTNode {
+public abstract class ReferenceNode extends ASTNode {
 
-    private String reference;
+    private final String reference;
 
-    public String getReference() {
-        return reference;
-    }
-
-    public void setReference(String reference) {
+    public ReferenceNode(String reference) {
         this.reference = reference;
     }
 
-    @Override
-    public void accept(ASTVisitor<?> visitor) {
-        visitor.visitReference(this);
+    public String getReference() {
+        return reference;
     }
 
     @Override

@@ -2,19 +2,24 @@ package raylras.zen.ast;
 
 public class AliasNode extends ASTNode {
 
-    private String alias;
+    private final IdentifierNode idNode;
 
-    public String getAlias() {
-        return alias;
+    public AliasNode(IdentifierNode idNode) {
+        this.idNode = idNode;
     }
 
-    public void setAlias(String alias) {
-        this.alias = alias;
+    public IdentifierNode getIdNode() {
+        return idNode;
+    }
+
+    @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visitAlias(this);
     }
 
     @Override
     public String toString() {
-        return alias;
+        return idNode.toString();
     }
 
 }

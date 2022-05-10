@@ -1,186 +1,146 @@
 package raylras.zen.lsp.provider;
 
-import org.antlr.v4.runtime.CommonToken;
-import org.antlr.v4.runtime.ParserRuleContext;
-import org.antlr.v4.runtime.Token;
-import org.antlr.v4.runtime.tree.TerminalNode;
+import org.eclipse.lsp4j.Position;
 import org.eclipse.lsp4j.SemanticTokens;
 import org.eclipse.lsp4j.SemanticTokensParams;
-import raylras.zen.antlr.ZenScriptLexer;
-import raylras.zen.antlr.ZenScriptParser;
-import raylras.zen.antlr.ZenScriptParserBaseVisitor;
-import raylras.zen.lsp.ZenTokenType;
-import raylras.zen.lsp.ZenTokenTypeModifier;
-import raylras.zen.util.PosUtil;
+import raylras.zen.ast.*;
+import raylras.zen.ast.expr.ArgumentsExpression;
+import raylras.zen.ast.stmt.VarStatement;
+import raylras.zen.lsp.TokenModifier;
+import raylras.zen.lsp.TokenType;
+import raylras.zen.lsp.ZenScriptVisitor;
+import raylras.zen.util.ASTUtils;
+import raylras.zen.util.PosUtils;
+import raylras.zen.util.URIUtils;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-public class SemanticTokensFullProvider extends ZenScriptParserBaseVisitor<SemanticTokensFullProvider.SemanticToken> {
 
-    private final ParserRuleContext scriptContext;
-    private final SemanticTokenBuilder builder;
+// TODO: SemanticTokensFullProvider
+public class SemanticTokensFullProvider {
 
-    public SemanticTokensFullProvider(ParserRuleContext scriptContext) {
-        this.scriptContext = scriptContext;
-        this.builder = new SemanticTokenBuilder();
+    private final ZenScriptVisitor visitor;
+    private final SemanticTokenDataBuilder builder = new SemanticTokenDataBuilder();
+
+    public SemanticTokensFullProvider(ZenScriptVisitor visitor) {
+        this.visitor = visitor;
     }
 
     public CompletableFuture<SemanticTokens> provideSemanticTokensFull(SemanticTokensParams params) {
-        visit(scriptContext);
-        builder.build();
-        return CompletableFuture.completedFuture(new SemanticTokens(builder.getSemanticTokensData()));
-    }
+         List<ASTNode> nodes = visitor.getAstNodeListByURI().get(URIUtils.decode(params.getTextDocument().getUri()));
 
-    @Override
-    public SemanticToken visitImportStatement(ZenScriptParser.ImportStatementContext ctx) {
-        List<TerminalNode> nNames = ctx.className().IDENTIFIER();
+        if (nodes == null) return CompletableFuture.completedFuture(null);
 
-        return null;
-    }
+        builder.clear();
 
-    @Override
-    public SemanticToken visitZenClassDeclaration(ZenScriptParser.ZenClassDeclarationContext ctx) {
-        Token tName = ctx.IDENTIFIER().getSymbol();
-        builder.push(tName, ZenTokenType.Class);
+        nodes.forEach(node -> {
+            if (node instanceof ImportNode) {
+                builder.push(((ImportNode) node).getReferenceNode(), TokenType.Class);
+                builder.push(((ImportNode) node).getAliasNode(), TokenType.Class);
+            } else if (node instanceof FunctionNode) {
+                builder.push(((FunctionNode) node).getIdNode(), TokenType.Function, TokenModifier.Declaration);
+            } else if (node instanceof ParameterNode) {
+                builder.push(((ParameterNode) node).getIdNode(), TokenType.Parameter);
+            } else if (node instanceof VariableNode) {
+                VariableNode variable = (VariableNode) node;
+                int modifiers = TokenModifier.Declaration.getId() | ASTUtils.getModifiers(variable);
+                builder.push(variable.getIdNode(), TokenType.Variable, modifiers);
+            } else if (node instanceof ZenClassNode) {
+                builder.push(((ZenClassNode) node).getIdNode(), TokenType.Class, TokenModifier.Declaration);
+            } else if (node instanceof FieldNode) {
+                builder.push(((FieldNode) node).getIdNode(), TokenType.Property, TokenModifier.Declaration);
+            } else if (node instanceof VarStatement) {
+                VariableNode variable = ((VarStatement) node).getVariableNode();
+                int modifiers = TokenModifier.Declaration.getId() | ASTUtils.getModifiers(variable);
+                builder.push(((VarStatement) node).getVariableNode(), TokenType.Variable, modifiers);
+            } else if (node instanceof ArgumentsExpression) {
 
-        return super.visitZenClassDeclaration(ctx);
-    }
-
-    @Override
-    public SemanticToken visitConstructor(ZenScriptParser.ConstructorContext ctx) {
-        Token tConstructor = ctx.ZEN_CONSTRUCTOR().getSymbol();
-        builder.push(tConstructor, ZenTokenType.Function);
-
-        return super.visitConstructor(ctx);
-    }
-
-    @Override
-    public SemanticToken visitMethod(ZenScriptParser.MethodContext ctx) {
-        Token tName = ctx.IDENTIFIER().getSymbol();
-        builder.push(tName, ZenTokenType.Function);
-
-        return super.visitMethod(ctx);
-    }
-
-    @Override
-    public SemanticToken visitField(ZenScriptParser.FieldContext ctx) {
-        Token tName = ctx.IDENTIFIER().getSymbol();
-        builder.push(tName, ZenTokenType.Variable);
-
-        return super.visitField(ctx);
-    }
-
-    @Override
-    public SemanticToken visitFunctionDeclaration(ZenScriptParser.FunctionDeclarationContext ctx) {
-        Token tName = ctx.IDENTIFIER().getSymbol();
-        builder.push(tName, ZenTokenType.Function);
-
-        return super.visitFunctionDeclaration(ctx);
-    }
-
-    @Override
-    public SemanticToken visitParameters(ZenScriptParser.ParametersContext ctx) {
-        ctx.parameter().forEach(context -> {
-            builder.push(context.IDENTIFIER().getSymbol(), ZenTokenType.Parameter);
+            }
         });
 
-        return super.visitParameters(ctx);
+        builder.build();
+
+        return CompletableFuture.completedFuture(new SemanticTokens(builder.getSemanticTokenData()));
     }
 
-    @Override
-    public SemanticToken visitAsType(ZenScriptParser.AsTypeContext ctx) {
-        if (ctx.type().typePrimitive() != null) {
-            Token tType = ctx.type().typePrimitive().start;
-            builder.push(tType, tType.getType() == ZenScriptLexer.STRING ? ZenTokenType.Class : ZenTokenType.Keyword);
-            return null;
+    private static class SemanticToken implements Comparable<SemanticToken> {
+        private final int line;
+        private final int column;
+        private final int length;
+        private final int modifiers;
+        private final TokenType tokenType;
+        private final ASTNode node;
+
+        public SemanticToken(ASTNode node, TokenType type, int modifiers) {
+            this.node = node;
+            this.tokenType = type;
+            this.modifiers = modifiers;
+            Position pos = PosUtils.toLSPPos(node);
+            this.line = pos.getLine();
+            this.column = pos.getCharacter();
+            this.length = PosUtils.getLength(node);
         }
 
-        if (ctx.type().typeClass() != null) {
-            List<TerminalNode> nNames = ctx.type().typeClass().className().IDENTIFIER();
-            nNames.forEach(node -> builder.push(node.getSymbol(), ZenTokenType.Class));
-        }
-
-        return null;
-    }
-
-    static class SemanticToken implements Comparable<SemanticToken> {
-        Token token;
-        ZenTokenType tokenType;
-        ZenTokenTypeModifier[] tokenModifiers;
-
-        public SemanticToken(Token token, ZenTokenType tokenType, ZenTokenTypeModifier[] tokenModifiers) {
+        public SemanticToken(int line, int column, int length, TokenType tokenType, int modifiers) {
+            this.line = line;
+            this.column = column;
+            this.length = length;
             this.tokenType = tokenType;
-            this.tokenModifiers = tokenModifiers;
-            this.token = token;
+            this.modifiers = modifiers;
+            this.node = null;
         }
 
         @Override
         public int compareTo(SemanticToken o) {
-            // for tokens in the same line, the token of smaller column is ranked first
-            // if not in the same line, the token of smaller line is ranked first
-            int t1Line = this.token.getLine();
-            int t1Column = this.token.getCharPositionInLine();
-            int t2Line = o.token.getLine();
-            int t2Column = o.token.getCharPositionInLine();
-
-            return t1Line == t2Line ? t1Column - t2Column : t1Line - t2Line;
+            return this.line == o.line ? this.column - o.column : this.line - o.line;
         }
 
         @Override
         public String toString() {
-            return token.toString();
+            return node.toString();
         }
     }
 
+    private static class SemanticTokenDataBuilder {
+        private final List<Integer> semanticTokenData = new ArrayList<>();
+        private final Set<SemanticToken> semanticTokenSet = new TreeSet<>();
+        private SemanticToken prevToken;
 
-    // Because LSP's token format uses relative positions, witch means a token' position
-    // depends on the previous token, so the tokens must be in order.
-    // We use TreeSet to ensure that, and SemanticToken must be Comparable.
-    static class SemanticTokenBuilder {
-        private final Set<SemanticToken> semanticTokens = new TreeSet<>();
-        private final List<Integer> semanticTokensData = new LinkedList<>();
-        Token prevToken;
-
-        public SemanticTokenBuilder push(Token token, ZenTokenType tokenType, Collection<ZenTokenTypeModifier> tokenModifiers) {
-            semanticTokens.add(new SemanticToken(token, tokenType, tokenModifiers.toArray(new ZenTokenTypeModifier[0])));
-            return this;
+        public List<Integer> getSemanticTokenData() {
+            return semanticTokenData;
         }
 
-        public SemanticTokenBuilder push(Token token, ZenTokenType tokenType, ZenTokenTypeModifier... tokenModifiers) {
-            semanticTokens.add(new SemanticToken(token, tokenType, tokenModifiers));
-            return this;
+        public void push(ASTNode node, TokenType tokenType, TokenModifier... tokenModifiers) {
+            if (node == null) return;
+            int modifiers = 0;
+            for (TokenModifier m : tokenModifiers) {
+                modifiers |= m.getId();
+            }
+            semanticTokenSet.add(new SemanticToken(node, tokenType, modifiers));
         }
 
-        public SemanticTokenBuilder build() {
-            CommonToken first = new CommonToken(-1);
-            first.setLine(1);
-            first.setCharPositionInLine(0);
-            prevToken = first;
-            semanticTokens.forEach(this::semanticize);
-            return this;
+        public void push(ASTNode node, TokenType tokenType, int tokenModifiers) {
+            if (node == null) return;
+            semanticTokenSet.add(new SemanticToken(node, tokenType, tokenModifiers));
         }
 
-        private void semanticize(SemanticToken semanticToken) {
-            int prevLine = PosUtil.getPosition(prevToken).getLine();
-            int prevColumn = PosUtil.getPosition(prevToken).getCharacter();
-            int[] prevPos = new int[]{prevLine, prevColumn};
-
-            int line = PosUtil.getPosition(semanticToken.token).getLine();
-            int column = PosUtil.getPosition(semanticToken.token).getCharacter();
-            int length = PosUtil.getLength(semanticToken.token);
-            int tokenType = semanticToken.tokenType.getId();
-            int tokenModifiers = ZenTokenTypeModifier.getInt(semanticToken.tokenModifiers);
-
-            convertToRelativePosition(prevPos, line, column, length, tokenType, tokenModifiers);
-
-            prevToken = semanticToken.token;
+        private void build() {
+            prevToken = new SemanticToken(0, 0, 0, null, 0);;
+            semanticTokenSet.forEach(this::collectData);
         }
 
-        private void convertToRelativePosition(int[] prevPos, int line, int column, int length, int tokenType, int tokenModifiers) {
+        private void collectData(SemanticToken token) {
+            int[] prevPos = new int[]{prevToken.line, prevToken.column};
+            int tokenType = token.tokenType.getId();
 
+            convertToRelativePosition(prevPos, token.line, token.column, token.length, tokenType, token.modifiers);
+            prevToken = token;
+        }
+
+        private void convertToRelativePosition(int[] prevPos, int line, int column, int length, int tokenType, int tokenModifier) {
             // index:     0     1       2       3           4
-            // tokenData: line  column  length  tokenType   tokenModifiers
+            // tokenData: line  column  length  tokenType   tokenModifier
             int[] newTokenData = new int[5];
 
             // a new token's line is always the relative line of the previous token
@@ -197,13 +157,14 @@ public class SemanticTokensFullProvider extends ZenScriptParserBaseVisitor<Seman
 
             newTokenData[2] = length;
             newTokenData[3] = tokenType;
-            newTokenData[4] = tokenModifiers;
+            newTokenData[4] = tokenModifier;
 
-            semanticTokensData.addAll(Arrays.stream(newTokenData).collect(ArrayList::new, ArrayList::add, ArrayList::addAll));
+            semanticTokenData.addAll(Arrays.stream(newTokenData).collect(ArrayList::new, ArrayList::add, ArrayList::addAll));
         }
 
-        public List<Integer> getSemanticTokensData() {
-            return semanticTokensData;
+        private void clear() {
+            semanticTokenData.clear();
+            semanticTokenSet.clear();
         }
 
     }

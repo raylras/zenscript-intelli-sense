@@ -4,35 +4,21 @@ import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
 import raylras.zen.lsp.ZenScriptLanguageServer;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import raylras.zen.verify.Environment;
 
 public class StandardIOLauncher {
 
-    private static final Executor executor = Executors.newSingleThreadExecutor();
-    private static ZenScriptLanguageServer server;
-    private static LanguageClient client;
+    private Environment env = new Environment();
 
-    public static ZenScriptLanguageServer getServer() {
-        return server;
+    public static void start() {
+        new StandardIOLauncher().launchServer();
     }
 
-    public static LanguageClient getClient() {
-        return client;
-    }
-
-    public static void launchServer() {
-        server = new ZenScriptLanguageServer();
+    public void launchServer() {
+        ZenScriptLanguageServer server = new ZenScriptLanguageServer(env);
         Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(server, System.in, System.out);
-        client = launcher.getRemoteProxy();
-        CompletableFuture.runAsync(launcher::startListening, executor)
-                .exceptionally(e -> {
-                    // TODO: handle exceptions
-                    e.printStackTrace();
-                    return null;
-                });
+        server.getServices().setClient(launcher.getRemoteProxy());
+        launcher.startListening();
     }
 
 }

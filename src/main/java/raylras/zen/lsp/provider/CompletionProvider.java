@@ -8,6 +8,7 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
+// TODO: CompletionProvider
 public class CompletionProvider {
 
     public CompletableFuture<Either<List<CompletionItem>, CompletionList>> provideCompletion(String uri, Position position) {

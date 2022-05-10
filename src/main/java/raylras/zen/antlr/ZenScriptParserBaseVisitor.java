@@ -1,4 +1,4 @@
-// Generated from D:/Projects/Forge/1.12.2/ZenServer/src/main/java/raylras/zen/antlr\ZenScriptParser.g4 by ANTLR 4.9.2
+// Generated from D:/Projects/Forge/1.12.2/ZenServer/src/main/antlr\ZenScriptParser.g4 by ANTLR 4.10.1
 package raylras.zen.antlr;
 import org.antlr.v4.runtime.tree.AbstractParseTreeVisitor;
 
@@ -17,14 +17,28 @@ public class ZenScriptParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> i
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitScript(ZenScriptParser.ScriptContext ctx) { return visitChildren(ctx); }
+	@Override public T visitScriptUnit(ZenScriptParser.ScriptUnitContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitImportStatement(ZenScriptParser.ImportStatementContext ctx) { return visitChildren(ctx); }
+	@Override public T visitImportDeclaration(ZenScriptParser.ImportDeclarationContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitClassName(ZenScriptParser.ClassNameContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitCrossScriptReference(ZenScriptParser.CrossScriptReferenceContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -45,56 +59,7 @@ public class ZenScriptParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> i
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitZenClassDeclaration(ZenScriptParser.ZenClassDeclarationContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public T visitClassBody(ZenScriptParser.ClassBodyContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public T visitConstructor(ZenScriptParser.ConstructorContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public T visitField(ZenScriptParser.FieldContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public T visitMethod(ZenScriptParser.MethodContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public T visitAsType(ZenScriptParser.AsTypeContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public T visitParameters(ZenScriptParser.ParametersContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public T visitParameter(ZenScriptParser.ParameterContext ctx) { return visitChildren(ctx); }
+	@Override public T visitFormalParameter(ZenScriptParser.FormalParameterContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -108,14 +73,21 @@ public class ZenScriptParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> i
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitArguments(ZenScriptParser.ArgumentsContext ctx) { return visitChildren(ctx); }
+	@Override public T visitZenClassDeclaration(ZenScriptParser.ZenClassDeclarationContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitArgument(ZenScriptParser.ArgumentContext ctx) { return visitChildren(ctx); }
+	@Override public T visitConstructorDeclaration(ZenScriptParser.ConstructorDeclarationContext ctx) { return visitChildren(ctx); }
+	/**
+	 * {@inheritDoc}
+	 *
+	 * <p>The default implementation returns the result of calling
+	 * {@link #visitChildren} on {@code ctx}.</p>
+	 */
+	@Override public T visitFieldDeclaration(ZenScriptParser.FieldDeclarationContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -129,14 +101,14 @@ public class ZenScriptParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> i
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitMapEntry(ZenScriptParser.MapEntryContext ctx) { return visitChildren(ctx); }
+	@Override public T visitStatement(ZenScriptParser.StatementContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitStatement(ZenScriptParser.StatementContext ctx) { return visitChildren(ctx); }
+	@Override public T visitBlockStatement(ZenScriptParser.BlockStatementContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -171,7 +143,7 @@ public class ZenScriptParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> i
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitForStatement(ZenScriptParser.ForStatementContext ctx) { return visitChildren(ctx); }
+	@Override public T visitForeachStatement(ZenScriptParser.ForeachStatementContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -185,7 +157,7 @@ public class ZenScriptParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> i
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitVarStatement(ZenScriptParser.VarStatementContext ctx) { return visitChildren(ctx); }
+	@Override public T visitVariableDeclarationStatement(ZenScriptParser.VariableDeclarationStatementContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
@@ -199,208 +171,194 @@ public class ZenScriptParserBaseVisitor<T> extends AbstractParseTreeVisitor<T> i
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitForControl(ZenScriptParser.ForControlContext ctx) { return visitChildren(ctx); }
+	@Override public T visitMemberAccessExpression(ZenScriptParser.MemberAccessExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitClassName(ZenScriptParser.ClassNameContext ctx) { return visitChildren(ctx); }
+	@Override public T visitMapLiteralExpression(ZenScriptParser.MapLiteralExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitExpressionRange(ZenScriptParser.ExpressionRangeContext ctx) { return visitChildren(ctx); }
+	@Override public T visitBracketHandlerExpression(ZenScriptParser.BracketHandlerExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitArrayInit(ZenScriptParser.ArrayInitContext ctx) { return visitChildren(ctx); }
+	@Override public T visitTypeCastExpression(ZenScriptParser.TypeCastExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitExpressionUnary(ZenScriptParser.ExpressionUnaryContext ctx) { return visitChildren(ctx); }
+	@Override public T visitLiteralExpression(ZenScriptParser.LiteralExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitExpressionParens(ZenScriptParser.ExpressionParensContext ctx) { return visitChildren(ctx); }
+	@Override public T visitArrayLiteralExpression(ZenScriptParser.ArrayLiteralExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitAnonymousFunction(ZenScriptParser.AnonymousFunctionContext ctx) { return visitChildren(ctx); }
+	@Override public T visitIdentifierExpression(ZenScriptParser.IdentifierExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitExpressionAssign(ZenScriptParser.ExpressionAssignContext ctx) { return visitChildren(ctx); }
+	@Override public T visitUnaryExpression(ZenScriptParser.UnaryExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitExpressionBinary(ZenScriptParser.ExpressionBinaryContext ctx) { return visitChildren(ctx); }
+	@Override public T visitRangeExpression(ZenScriptParser.RangeExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitExpressionLiteral(ZenScriptParser.ExpressionLiteralContext ctx) { return visitChildren(ctx); }
+	@Override public T visitMemberIndexExpression(ZenScriptParser.MemberIndexExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitExpressionIdentifier(ZenScriptParser.ExpressionIdentifierContext ctx) { return visitChildren(ctx); }
+	@Override public T visitParensExpression(ZenScriptParser.ParensExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitExpressionTrinary(ZenScriptParser.ExpressionTrinaryContext ctx) { return visitChildren(ctx); }
+	@Override public T visitArgumentsExpression(ZenScriptParser.ArgumentsExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitExpressionIndex(ZenScriptParser.ExpressionIndexContext ctx) { return visitChildren(ctx); }
+	@Override public T visitThisExpression(ZenScriptParser.ThisExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitMapInit(ZenScriptParser.MapInitContext ctx) { return visitChildren(ctx); }
+	@Override public T visitFunctionExpression(ZenScriptParser.FunctionExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitExpressionCall(ZenScriptParser.ExpressionCallContext ctx) { return visitChildren(ctx); }
+	@Override public T visitBinaryExpression(ZenScriptParser.BinaryExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitExpressionCast(ZenScriptParser.ExpressionCastContext ctx) { return visitChildren(ctx); }
+	@Override public T visitAssignmentExpression(ZenScriptParser.AssignmentExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitExpressionAccess(ZenScriptParser.ExpressionAccessContext ctx) { return visitChildren(ctx); }
+	@Override public T visitTrinaryExpression(ZenScriptParser.TrinaryExpressionContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitBracketHandler(ZenScriptParser.BracketHandlerContext ctx) { return visitChildren(ctx); }
+	@Override public T visitMapEntry(ZenScriptParser.MapEntryContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitType(ZenScriptParser.TypeContext ctx) { return visitChildren(ctx); }
+	@Override public T visitBuiltinType(ZenScriptParser.BuiltinTypeContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitTypeFunction(ZenScriptParser.TypeFunctionContext ctx) { return visitChildren(ctx); }
+	@Override public T visitArrayType(ZenScriptParser.ArrayTypeContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitTypePrimitive(ZenScriptParser.TypePrimitiveContext ctx) { return visitChildren(ctx); }
+	@Override public T visitFunctionType(ZenScriptParser.FunctionTypeContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitTypeArray(ZenScriptParser.TypeArrayContext ctx) { return visitChildren(ctx); }
+	@Override public T visitListType(ZenScriptParser.ListTypeContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitTypeList(ZenScriptParser.TypeListContext ctx) { return visitChildren(ctx); }
+	@Override public T visitReferenceType(ZenScriptParser.ReferenceTypeContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitTypeMap(ZenScriptParser.TypeMapContext ctx) { return visitChildren(ctx); }
+	@Override public T visitMapType(ZenScriptParser.MapTypeContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitTypeClass(ZenScriptParser.TypeClassContext ctx) { return visitChildren(ctx); }
+	@Override public T visitBuiltin(ZenScriptParser.BuiltinContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitIntegerLiteral(ZenScriptParser.IntegerLiteralContext ctx) { return visitChildren(ctx); }
+	@Override public T visitArgumentTypeList(ZenScriptParser.ArgumentTypeListContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitFloatingLiteral(ZenScriptParser.FloatingLiteralContext ctx) { return visitChildren(ctx); }
+	@Override public T visitLiteral(ZenScriptParser.LiteralContext ctx) { return visitChildren(ctx); }
 	/**
 	 * {@inheritDoc}
 	 *
 	 * <p>The default implementation returns the result of calling
 	 * {@link #visitChildren} on {@code ctx}.</p>
 	 */
-	@Override public T visitStringLiteral(ZenScriptParser.StringLiteralContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public T visitBooleanLiteral(ZenScriptParser.BooleanLiteralContext ctx) { return visitChildren(ctx); }
-	/**
-	 * {@inheritDoc}
-	 *
-	 * <p>The default implementation returns the result of calling
-	 * {@link #visitChildren} on {@code ctx}.</p>
-	 */
-	@Override public T visitNullLiteral(ZenScriptParser.NullLiteralContext ctx) { return visitChildren(ctx); }
+	@Override public T visitIdentifier(ZenScriptParser.IdentifierContext ctx) { return visitChildren(ctx); }
 }

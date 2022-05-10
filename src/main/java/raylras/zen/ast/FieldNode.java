@@ -1,36 +1,48 @@
 package raylras.zen.ast;
 
-import raylras.zen.ast.type.Type;
+import org.jetbrains.annotations.Nullable;
+import raylras.zen.ast.expr.Expression;
+import raylras.zen.verify.type.AbstractType;
+import raylras.zen.verify.type.Type;
+
 
 public class FieldNode extends ASTNode {
 
-    private IDNode nameNode;
-    private TypeNode typeNode;
+    private final IdentifierNode idNode;
+    @Nullable
+    private final TypeNode typeNode;
+
+    @Nullable
+    private final Expression exprNode;
 
     private Type type;
     private boolean isFinal;
 
-    public IDNode getNameNode() {
-        return nameNode;
+    public FieldNode(IdentifierNode idNode, @Nullable TypeNode typeNode, @Nullable Expression exprNode) {
+        this.idNode = idNode;
+        this.typeNode = typeNode;
+        this.exprNode = exprNode;
     }
 
-    public void setNameNode(IDNode nameNode) {
-        this.nameNode = nameNode;
+    public IdentifierNode getIdNode() {
+        return idNode;
     }
 
-    public TypeNode getAsTypeNode() {
+    @Nullable
+    public TypeNode getTypeNode() {
         return typeNode;
     }
 
-    public void setTypeNode(TypeNode typeNode) {
-        this.typeNode = typeNode;
+    @Nullable
+    public Expression getExprNode() {
+        return exprNode;
     }
 
     public Type getType() {
         return type;
     }
 
-    public void setType(Type type) {
+    public void setType(AbstractType type) {
         this.type = type;
     }
 
@@ -43,16 +55,23 @@ public class FieldNode extends ASTNode {
     }
 
     @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visitField(this);
+        idNode.accept(visitor);
+        if (typeNode != null) {
+            typeNode.accept(visitor);
+        }
+        if (exprNode != null) {
+            exprNode.accept(visitor);
+        }
+    }
+
+    @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append(nameNode.getName());
+        builder.append(idNode);
         if (type != null) {
-            builder.append(" as ").append(type.getTypeName());
-            return builder.toString();
-        }
-        if (typeNode != null) {
-            builder.append(" as ").append(typeNode.getTypeName());
-            return builder.toString();
+            builder.append(" as ").append(type);
         }
         return builder.toString();
     }

@@ -4,23 +4,32 @@ import java.util.List;
 
 public class ConstructorNode extends ASTNode {
 
-    private List<ParameterNode> parameterNodes;
-    private BlockNode blockNode;
+    private final List<ParameterNode> parameterNodeList;
+    private final BlockNode blockNode;
 
-    public List<ParameterNode> getParameterNodes() {
-        return parameterNodes;
+    public ConstructorNode(List<ParameterNode> parameterNodeList, BlockNode blockNode) {
+        this.parameterNodeList = parameterNodeList;
+        this.blockNode = blockNode;
     }
 
-    public void setParameterNodes(List<ParameterNode> parameterNodes) {
-        this.parameterNodes = parameterNodes;
+    public List<ParameterNode> getParameterNodeList() {
+        return parameterNodeList;
     }
 
     public BlockNode getBlockNode() {
         return blockNode;
     }
 
-    public void setBlockNode(BlockNode blockNode) {
-        this.blockNode = blockNode;
+    @Override
+    public void accept(ASTVisitor visitor) {
+        visitor.visitConstructor(this);
+        parameterNodeList.forEach(node -> node.accept(visitor));
+        blockNode.accept(visitor);
+    }
+
+    @Override
+    public String toString() {
+        return "zenConstructor";
     }
 
 }
