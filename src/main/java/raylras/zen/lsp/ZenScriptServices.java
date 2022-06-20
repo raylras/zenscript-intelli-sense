@@ -56,18 +56,27 @@ public class ZenScriptServices implements TextDocumentService, WorkspaceService 
     }
 
     public void info(String message) {
+        if (client == null || message == null) return;
         client.logMessage(new MessageParams(MessageType.Info, message));
     }
 
     @Override
     public void didOpen(DidOpenTextDocumentParams params) {
-        compileUnit.compile(URIUtils.create(params.getTextDocument().getUri()), new StringReader(params.getTextDocument().getText()));
+        try {
+            compileUnit.compile(URIUtils.create(params.getTextDocument().getUri()), new StringReader(params.getTextDocument().getText()));
+        } catch (Exception e) {
+            info(e.getMessage());
+        }
         client.refreshSemanticTokens();
     }
 
     @Override
     public void didChange(DidChangeTextDocumentParams params) {
-        compileUnit.compile(URIUtils.create(params.getTextDocument().getUri()), new StringReader(params.getContentChanges().get(0).getText()));
+        try {
+            compileUnit.compile(URIUtils.create(params.getTextDocument().getUri()), new StringReader(params.getContentChanges().get(0).getText()));
+        } catch (Exception e) {
+            info(e.getMessage());
+        }
         client.refreshSemanticTokens();
     }
 
@@ -78,7 +87,11 @@ public class ZenScriptServices implements TextDocumentService, WorkspaceService 
 
     @Override
     public void didSave(DidSaveTextDocumentParams params) {
-        compileUnit.refresh(URIUtils.create(params.getTextDocument().getUri()));
+        try {
+            compileUnit.refresh(URIUtils.create(params.getTextDocument().getUri()));
+        } catch (Exception e) {
+            info(e.getMessage());
+        }
         client.refreshSemanticTokens();
     }
 
@@ -111,16 +124,25 @@ public class ZenScriptServices implements TextDocumentService, WorkspaceService 
 
     @Override
     public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(DocumentSymbolParams params) {
-        if (compileUnit == null) return CompletableFuture.completedFuture(Collections.emptyList());
-        ScriptNode scriptNode = compileUnit.getScriptNode(URIUtils.create(params.getTextDocument().getUri()));
-        return CompletableFuture.completedFuture(new DocumentSymbolProvider().provideDocumentSymbol(scriptNode));
+        try {
+            ScriptNode scriptNode = compileUnit.getScriptNode(URIUtils.create(params.getTextDocument().getUri()));
+            return CompletableFuture.completedFuture(new DocumentSymbolProvider().provideDocumentSymbol(scriptNode));
+
+        } catch (Exception e) {
+            info(e.getMessage());
+            return CompletableFuture.completedFuture(Collections.emptyList());
+        }
     }
 
     @Override
     public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
-        if (compileUnit == null) return CompletableFuture.completedFuture(new SemanticTokens(Collections.emptyList()));
-        ScriptNode scriptNode = compileUnit.getScriptNode(URIUtils.create(params.getTextDocument().getUri()));
-        return CompletableFuture.completedFuture(new SemanticTokensProvider().provideSemanticTokens(scriptNode));
+        try {
+            ScriptNode scriptNode = compileUnit.getScriptNode(URIUtils.create(params.getTextDocument().getUri()));
+            return CompletableFuture.completedFuture(new SemanticTokensProvider().provideSemanticTokens(scriptNode));
+        } catch (Exception e) {
+            info(e.getMessage());
+            return CompletableFuture.completedFuture(new SemanticTokens(Collections.emptyList()));
+        }
     }
 
 }

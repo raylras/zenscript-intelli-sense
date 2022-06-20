@@ -51,7 +51,11 @@ public class ZenScriptLanguageServer implements LanguageServer {
         }
 
         if (scripts != null) {
-            services.setCompileUnit(CompileUnit.fromPath(scripts));
+            try {
+                services.setCompileUnit(CompileUnit.fromPath(scripts));
+            } catch (Throwable t) {
+                services.info(t.getMessage());
+            }
         } else {
             services.info("Could not find \"scripts\" folder under workspace " + workspace);
         }

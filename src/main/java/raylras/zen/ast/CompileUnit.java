@@ -47,8 +47,7 @@ public final class CompileUnit {
             try {
                 sourceUnit.parse(new FileReader(Paths.get(uri).toFile()));
                 sourceUnit.convert(builder);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
+            } catch (Exception ignore) {
             }
         }
     }
@@ -61,7 +60,7 @@ public final class CompileUnit {
         return sourceUnits.get(uri).getAst();
     }
 
-    public static CompileUnit fromPath(Path root) {
+    public static CompileUnit fromPath(Path root) throws FileNotFoundException {
         CompileUnit compileUnit = new CompileUnit(root.toUri());
 
         // find all "*.zs" file using BFS
@@ -81,14 +80,15 @@ public final class CompileUnit {
             }
         }
 
-        compileUnit.sourceUnits.forEach((uri, sourceUnit) -> {
+        for (Map.Entry<URI, SourceUnit> entry : compileUnit.sourceUnits.entrySet()) {
+            URI uri = entry.getKey();
+            SourceUnit sourceUnit = entry.getValue();
             try {
                 sourceUnit.parse(new FileReader(Paths.get(uri).toFile()));
                 sourceUnit.convert(compileUnit.builder);
-            } catch (FileNotFoundException e) {
-                e.printStackTrace();
+            } catch (Throwable ignored) {
             }
-        });
+        }
 
         return compileUnit;
     }

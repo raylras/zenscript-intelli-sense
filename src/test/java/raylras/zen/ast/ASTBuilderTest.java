@@ -11,6 +11,7 @@ import raylras.zen.ast.decl.ImportDeclaration;
 import raylras.zen.ast.decl.ZenClassDeclaration;
 import raylras.zen.ast.visit.DefaultVisitor;
 
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -59,7 +60,7 @@ class ASTBuilderTest {
     }
 
     @Test
-    void visitScripts() {
+    void visitScripts() throws FileNotFoundException {
         Path scriptsPath = Paths.get("src/test/resources/scripts");
         CompileUnit compileUnit = CompileUnit.fromPath(scriptsPath);
         compileUnit.getScriptNodes().forEach(scriptNode -> {
