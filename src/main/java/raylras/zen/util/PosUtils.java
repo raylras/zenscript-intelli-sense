@@ -1,44 +1,68 @@
 package raylras.zen.util;
 
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
-import org.eclipse.lsp4j.Position;
-import org.eclipse.lsp4j.Range;
-import raylras.zen.ast.ASTNode;
+import raylras.zen.ast.Node;
+import raylras.zen.ast.Position;
+import raylras.zen.ast.Range;
 
-public class PosUtils {
+public final class PosUtils {
+
+    // LSP4J position starts from (0:0). ANTLR4 position starts from (1:0)
+    // (0:0) means line:0, column:0
 
     private PosUtils() {}
 
-    // Line:
-    // LSP4J‘s Line counts from 0, ANTLR4's Line counts from 1
-    // LSP_Line == ANTLR_Line - 1
-
-    // Column:
-    // LSP4J‘s Column counts from 0, ANTLR4's Column counts from 0
-    // LSP_Column == ANTLR_Column
-
-    public static Position toLSPPos(Token token) {
-        return new Position(token.getLine() - 1, token.getCharPositionInLine());
+    public static Position toASTPosition(org.eclipse.lsp4j.Position pos) {
+        return new Position(pos.getLine() + 1, pos.getCharacter());
     }
 
-    public static Position toLSPPos(ASTNode node) {
-        return new Position(node.getLine() - 1, node.getColumn());
+    public static Range toASTRange(org.eclipse.lsp4j.Range range) {
+        return new Range(range.getStart().getLine() + 1, range.getStart().getCharacter(), range.getEnd().getLine() + 1, range.getEnd().getCharacter());
     }
 
-    public static Range toLSPRange(Token token) {
-        return new Range(toLSPPos(token), new Position(token.getLine() - 1, getLength(token)));
+    public static org.eclipse.lsp4j.Range toLSPRange(Range range) {
+        return new org.eclipse.lsp4j.Range(new org.eclipse.lsp4j.Position(range.getLine() - 1, range.getColumn()), new org.eclipse.lsp4j.Position(range.getLastLine() - 1, range.getLastColumn()));
     }
 
-    public static Range toLSPRange(ASTNode node) {
-        return new Range(toLSPPos(node), new Position(node.getLastLine() - 1, node.getLastColumn()));
+    public static Position makeASTPosition(ParserRuleContext ctx) {
+        int line = ctx.start.getLine();
+        int column = ctx.start.getCharPositionInLine();
+        return new Position(line, column);
+    }
+
+    public static Range makeASTRange(ParserRuleContext ctx) {
+        int line = ctx.start.getLine();
+        int column = ctx.start.getCharPositionInLine();
+        int lastLine = ctx.stop.getLine();
+        int lastColumn = ctx.stop.getCharPositionInLine() + ctx.stop.getText().length();
+        return new Range(line, column, lastLine, lastColumn);
+    }
+
+    public static org.eclipse.lsp4j.Range makeLSPRange(Token token) {
+        org.eclipse.lsp4j.Position start = makeLSPPos(token);
+        org.eclipse.lsp4j.Position end = new org.eclipse.lsp4j.Position(token.getLine() - 1, getLength(token));
+        return new org.eclipse.lsp4j.Range(start, end);
+    }
+
+    public static org.eclipse.lsp4j.Range makeLSPRange(Node node) {
+        return toLSPRange(node.getRange());
+    }
+
+    public static org.eclipse.lsp4j.Position makeLSPPos(Token token) {
+        return new org.eclipse.lsp4j.Position(token.getLine() - 1, token.getCharPositionInLine());
+    }
+
+    public static org.eclipse.lsp4j.Position makeLSPPos(Node node) {
+        return new org.eclipse.lsp4j.Position(node.getRange().getLine() - 1, node.getRange().getColumn());
     }
 
     public static int getLength(Token token) {
         return token.getText().length();
     }
 
-    public static int getLength(ASTNode node) {
-        return node.getLastColumn() - node.getColumn();
+    public static int getLength(Node node) {
+        return node.getRange().getLastColumn() - node.getRange().getColumn();
     }
 
 }

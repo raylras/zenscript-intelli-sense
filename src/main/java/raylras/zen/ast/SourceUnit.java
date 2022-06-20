@@ -1,28 +1,38 @@
 package raylras.zen.ast;
 
+import org.antlr.v4.runtime.CharStream;
+import org.antlr.v4.runtime.CharStreams;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.Token;
+import org.jetbrains.annotations.NotNull;
+import raylras.zen.antlr.ZenScriptLexer;
 import raylras.zen.antlr.ZenScriptParser;
-import raylras.zen.verify.ErrorCollector;
+import raylras.zen.control.ErrorCollector;
 
-import java.io.File;
+import java.io.IOException;
+import java.io.Reader;
 import java.net.URI;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
-public class SourceUnit {
+public final class SourceUnit implements Comparable<SourceUnit> {
 
-    private File source;
-    private ErrorCollector errorCollector;
+    private final URI uri;
     private ZenScriptParser.ScriptUnitContext cst;
     private ScriptNode ast;
+    private final ErrorCollector errorCollector;
 
-    public SourceUnit(File source) {
-        this.source = source;
+    private List<String> preprocessors;
+    private int priority = 0;
+
+    public SourceUnit(URI uri, ErrorCollector errorCollector) {
+        this.uri = uri;
+        this.errorCollector = errorCollector;
     }
 
-    public URI getURI() {
-        return source.toURI();
-    }
-
-    public ErrorCollector getErrorCollector() {
-        return errorCollector;
+    public URI getUri() {
+        return uri;
     }
 
     public ZenScriptParser.ScriptUnitContext getCst() {
@@ -31,6 +41,52 @@ public class SourceUnit {
 
     public ScriptNode getAst() {
         return ast;
+    }
+
+    public ErrorCollector getErrorCollector() {
+        return errorCollector;
+    }
+
+    public List<String> getPreprocessors() {
+        return preprocessors;
+    }
+
+    public int getPriority() {
+        return priority;
+    }
+
+    public void parse(Reader source) {
+        try {
+            CharStream charStream = uri == null ? CharStreams.fromReader(source) : CharStreams.fromReader(source, uri.toString());
+            ZenScriptLexer lexer = new ZenScriptLexer(charStream);
+            CommonTokenStream tokens = new CommonTokenStream(lexer);
+            ZenScriptParser parser = new ZenScriptParser(tokens);
+            this.cst = parser.scriptUnit();
+
+            List<String> preps = tokens.getTokens().stream()
+                    .filter(token -> token.getChannel() == ZenScriptLexer.PREPROCESSOR_CHANNEL)
+                    .map(Token::getText)
+                    .collect(Collectors.toList());
+            preprocessors = Collections.unmodifiableList(preps);
+
+            priority = preprocessors.stream()
+                    .filter(prep -> prep.startsWith("#priority"))
+                    .findFirst()
+                    .map(prep -> prep.split(" ")[1])
+                    .map(Integer::valueOf)
+                    .orElse(0);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void convert(ASTBuilder builder) {
+        ast = builder.lower(uri, cst);
+    }
+
+    @Override
+    public int compareTo(@NotNull SourceUnit o) {
+        return o.getPriority() - this.getPriority();
     }
 
 }

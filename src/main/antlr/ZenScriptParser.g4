@@ -12,21 +12,15 @@ scriptUnit
     ;
 
 importDeclaration
-    : 'import' className ('as' alias )? ';'
-    | 'import' crossScriptReference ';'
+    : 'import' reference aliasDeclaration?';'
     ;
 
-className
-    : identifier
-    | (identifier ('.' identifier)*) '.' identifier
+reference
+    : identifier ('.' identifier)*
     ;
 
-crossScriptReference
-    : 'script' '.' identifier ('.' identifier)*
-    ;
-
-alias
-    : identifier
+aliasDeclaration
+    : 'as' identifier
     ;
 
 functionDeclaration
@@ -42,15 +36,11 @@ defaultValue
     ;
 
 zenClassDeclaration
-    : 'zenClass' identifier '{' (fieldDeclaration | constructorDeclaration | functionDeclaration)* '}'
+    : 'zenClass' identifier '{' (variableDeclStatement | constructorDeclaration | functionDeclaration)* '}'
     ;
 
 constructorDeclaration
     : 'zenConstructor' '(' formalParameter? (',' formalParameter)* ')' block
-    ;
-
-fieldDeclaration
-    : Modifier=('var' | 'val') identifier ('as' type) ('=' expression)? ';'
     ;
 
 block
@@ -62,10 +52,10 @@ statement
     | returnStatement
     | breakStatement
     | continueStatement
-    | ifStatement
+    | ifElseStatement
     | foreachStatement
     | whileStatement
-    | variableDeclarationStatement
+    | variableDeclStatement
     | expressionStatement
     ;
 
@@ -85,7 +75,7 @@ continueStatement
     : 'continue' ';'
     ;
 
-ifStatement
+ifElseStatement
     : 'if' expression (statement | block) ('else' (statement | block))?
     ;
 
@@ -97,7 +87,7 @@ whileStatement
     : 'while' '(' expression ')' block
     ;
 
-variableDeclarationStatement
+variableDeclStatement
     : Modifier=('var' | 'val' | 'static' | 'global') identifier ('as' type)? ('=' expression)? ';'
     ;
 
@@ -108,8 +98,9 @@ expressionStatement
 expression
     : 'function' '(' formalParameter? (',' formalParameter)* ')' ('as' type)? block # FunctionExpression
     | Left=expression '(' expression? (',' expression)* ')' # ArgumentsExpression
-    | Left=expression '.' Right=expression # MemberAccessExpression
+    | Left=expression '.' Right=identifier # MemberAccessExpression
     | Left=expression '[' Index=expression ']' # MemberIndexExpression
+    | expression 'as' type # TypeCastExpression
     | <assoc=right> Operator=('!' | '-' | '+') expression # UnaryExpression
     | Left=expression Operator=('*' | '/' | '%' | '+' | '-' | '~') Right=expression # BinaryExpression
     | Left=expression Operator=('<=' | '>=' | '>' | '<' | '==' | '!=') Right=expression # BinaryExpression
@@ -121,12 +112,11 @@ expression
     | '<' (~'>' ':'?)* '>' # BracketHandlerExpression
     | From=expression  Operator=('..' | 'to') To=expression # RangeExpression
     | 'this' # ThisExpression
-    | expression 'as' type # TypeCastExpression
     | '[' expression? (',' expression)* ','? ']' # ArrayLiteralExpression
     | '{' mapEntry? (',' mapEntry)* ','? '}' # MapLiteralExpression
     | literal # LiteralExpression
     | '(' expression ')' # ParensExpression
-    | identifier # identifierExpression
+    | identifier # VarAccessExpression
     ;
 
 mapEntry
@@ -135,7 +125,7 @@ mapEntry
 
 type
     : builtin # BuiltinType
-    | className # ReferenceType
+    | reference # ReferenceType
     | 'function' '(' argumentTypeList? ')' ResultType=type # FunctionType
     | '[' BaseType=type ']' # ListType
     | BaseType=type '['']' # ArrayType

@@ -1,12 +1,27 @@
 package raylras.zen.ast.stmt;
 
-import raylras.zen.ast.ASTVisitor;
+import raylras.zen.ast.BaseNode;
+import raylras.zen.ast.Node;
+import raylras.zen.ast.visit.NodeVisitor;
 
-public class ContinueStatement extends Statement {
+import java.util.Collections;
+import java.util.List;
+
+public final class ContinueStatement extends BaseNode implements Statement {
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitContinueStatement(this);
+    public <T> T accept(NodeVisitor<? extends T> visitor) {
+        return visitor.visit(this);
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public String toString() {
+        return "continue;";
     }
 
 }

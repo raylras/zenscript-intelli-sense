@@ -1,20 +1,25 @@
 package raylras.zen.lsp;
 
-import raylras.zen.ast.*;
+import raylras.zen.ast.BlockNode;
+import raylras.zen.ast.Node;
+import raylras.zen.ast.ScriptNode;
+import raylras.zen.ast.decl.*;
 import raylras.zen.ast.expr.*;
 import raylras.zen.ast.stmt.*;
-import raylras.zen.verify.Environment;
+import raylras.zen.ast.visit.DefaultVisitor;
 
 import java.net.URI;
-import java.util.*;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.Map;
 
-// TODO: AST visitor
-public class ZenScriptVisitor extends ZenScriptBaseVisitor {
+public class ZenScriptVisitor extends DefaultVisitor<Object> {
 
-    private class ASTLookupKey {
-        private final ASTNode node;
+    static class ASTLookupKey {
+        private final Node node;
 
-        public ASTLookupKey(ASTNode node) {
+        public ASTLookupKey(Node node) {
             this.node = node;
         }
 
@@ -32,38 +37,22 @@ public class ZenScriptVisitor extends ZenScriptBaseVisitor {
         }
     }
 
-    private class ASTNodeLookupData {
-        public ASTNode parent;
+    static class ASTNodeLookupData {
+        public Node parent;
         public URI uri;
     }
 
-    public final Environment env;
-    private final Map<URI, List<ASTNode>> astNodeListByURI = new HashMap<>();
-    private final Stack<ASTNode> stack = new Stack<>();
+    private final Deque<Node> stack = new ArrayDeque<>();
     private final Map<ASTLookupKey, ASTNodeLookupData> lookup = new HashMap<>();
-    private ScriptNode scriptUnit;
+    private ScriptNode scriptNode;
 
-
-    public ZenScriptVisitor(Environment env) {
-        this.env = env;
-    }
-
-    public Environment getEnv() {
-        return env;
-    }
-
-    public Map<URI, List<ASTNode>> getAstNodeListByURI() {
-        return astNodeListByURI;
-    }
-
-    private void pushASTNode(ASTNode node) {
-        URI uri = scriptUnit.getURI();
-        astNodeListByURI.get(uri).add(node);
+    private void pushASTNode(Node node) {
+        URI uri = scriptNode.getURI();
 
         ASTNodeLookupData data = new ASTNodeLookupData();
         data.uri = uri;
         if (stack.size() > 0) {
-            data.parent = stack.lastElement();
+            data.parent = stack.peek();
         }
         lookup.put(new ASTLookupKey(node), data);
 
@@ -74,262 +63,305 @@ public class ZenScriptVisitor extends ZenScriptBaseVisitor {
         stack.pop();
     }
 
-    //
-    // ASTVisitor overrides
-    //
-
     @Override
-    public void visitAlias(AliasNode node) {
-
+    public Object visit(AliasDeclaration aliasDecl) {
+        pushASTNode(aliasDecl);
+        super.visit(aliasDecl);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitBlock(BlockNode node) {
-
+    public Object visit(BlockNode blockNode) {
+        pushASTNode(blockNode);
+        super.visit(blockNode);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitClassReference(ClassReferenceNode node) {
-
+    public Object visit(ConstructorDeclaration ctorDecl) {
+        pushASTNode(ctorDecl);
+        super.visit(ctorDecl);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitConstructor(ConstructorNode node) {
-
+    public Object visit(FunctionDeclaration funcDecl) {
+        pushASTNode(funcDecl);
+        super.visit(funcDecl);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitCrossScriptReference(CrossScriptReferenceNode node) {
-
+    public Object visit(ImportDeclaration importDecl) {
+        pushASTNode(importDecl);
+        super.visit(importDecl);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitField(FieldNode node) {
-
+    public Object visit(ParameterDeclaration paramDecl) {
+        pushASTNode(paramDecl);
+        super.visit(paramDecl);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitFunction(FunctionNode node) {
+    public Object visit(ScriptNode scriptNode) {
+        this.scriptNode = scriptNode;
 
-    }
-
-    @Override
-    public void visitIdentifier(IdentifierNode node) {
-
-    }
-
-    @Override
-    public void visitImport(ImportNode node) {
-
-    }
-
-    @Override
-    public void visitParameter(ParameterNode node) {
-
-    }
-
-    @Override
-    public void visitReference(ReferenceNode node) {
-
-    }
-
-    @Override
-    public void visitScriptNode(ScriptNode node) {
-        this.scriptUnit = node;
-
-        pushASTNode(node);
-
-        astNodeListByURI.put(node.getURI(), new ArrayList<>());
-        node.getImportNodeList().forEach(this::visitImport);
-        node.getFunctionNodeList().forEach(this::visitFunction);
-        node.getZenClassNodeList().forEach(this::visitZenClass);
-        node.getStatementList().forEach(this::visitStatement);
-
+        pushASTNode(scriptNode);
+        super.visit(scriptNode);
         popASTNode();
 
-        this.scriptUnit = null;
+        this.scriptNode = null;
         stack.clear();
+        return null;
     }
 
     @Override
-    public void visitType(TypeNode node) {
-    }
-
-    @Override
-    public void visitVariable(VariableNode node) {
-
-    }
-
-    @Override
-    public void visitZenClass(ZenClassNode node) {
-        pushASTNode(node);
-
+    public Object visit(TypeDeclaration typeDecl) {
+        pushASTNode(typeDecl);
+        super.visit(typeDecl);
         popASTNode();
+        return null;
     }
 
     @Override
-    public void visitBlockStatement(BlockStatement node) {
-
+    public Object visit(ZenClassDeclaration classDecl) {
+        pushASTNode(classDecl);
+        super.visit(classDecl);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitBreakStatement(BreakStatement node) {
-
+    public Object visit(BreakStatement breakStmt) {
+        pushASTNode(breakStmt);
+        super.visit(breakStmt);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitContinueStatement(ContinueStatement node) {
-
+    public Object visit(ContinueStatement contStmt) {
+        pushASTNode(contStmt);
+        super.visit(contStmt);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitExpressionStatement(ExpressionStatement node) {
-
+    public Object visit(ExpressionStatement exprStmt) {
+        pushASTNode(exprStmt);
+        super.visit(exprStmt);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitForeachStatement(ForeachStatement node) {
-
+    public Object visit(ForeachStatement foreachStmt) {
+        pushASTNode(foreachStmt);
+        super.visit(foreachStmt);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitIfStatement(IfStatement node) {
-
+    public Object visit(IfElseStatement ifStmt) {
+        pushASTNode(ifStmt);
+        super.visit(ifStmt);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitImportStatement(ImportStatement node) {
-
+    public Object visit(ReturnStatement returnStmt) {
+        pushASTNode(returnStmt);
+        super.visit(returnStmt);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitReturnStatement(ReturnStatement node) {
-
+    public Object visit(VariableDeclStatement varDeclStmt) {
+        pushASTNode(varDeclStmt);
+        super.visit(varDeclStmt);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitStatement(Statement node) {
-
+    public Object visit(WhileStatement whileStmt) {
+        pushASTNode(whileStmt);
+        super.visit(whileStmt);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitVarStatement(VarStatement node) {
-
+    public Object visit(ArgumentsExpression argsExpr) {
+        pushASTNode(argsExpr);
+        super.visit(argsExpr);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitWhileStatement(WhileStatement node) {
-
+    public Object visit(ArrayLiteral arrayExpr) {
+        pushASTNode(arrayExpr);
+        super.visit(arrayExpr);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitArgumentsExpression(ArgumentsExpression node) {
-
+    public Object visit(AssignmentExpression assignExpr) {
+        pushASTNode(assignExpr);
+        super.visit(assignExpr);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitArrayLiteralExpression(ArrayLiteralExpression node) {
-
+    public Object visit(BinaryExpression binaryExpr) {
+        pushASTNode(binaryExpr);
+        super.visit(binaryExpr);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitAssignmentExpression(AssignmentExpression node) {
-
+    public Object visit(BoolLiteral boolExpr) {
+        pushASTNode(boolExpr);
+        super.visit(boolExpr);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitBinaryExpression(BinaryExpression node) {
-
+    public Object visit(BracketHandler bracketExpr) {
+        pushASTNode(bracketExpr);
+        super.visit(bracketExpr);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitBooleanLiteralExpression(BooleanLiteralExpression node) {
-
+    public Object visit(FunctionExpression funcExpr) {
+        pushASTNode(funcExpr);
+        super.visit(funcExpr);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitBracketHandlerExpression(BracketHandlerExpression node) {
-
+    public Object visit(VarAccessExpression varAccess) {
+        pushASTNode(varAccess);
+        super.visit(varAccess);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitExpression(Expression node) {
-
+    public Object visit(MapEntryExpression entryExpr) {
+        pushASTNode(entryExpr);
+        super.visit(entryExpr);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitFunctionExpression(FunctionExpression node) {
-
+    public Object visit(MapLiteral mapExpr) {
+        pushASTNode(mapExpr);
+        super.visit(mapExpr);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitIdentifierExpression(IdentifierExpression node) {
-
+    public Object visit(MemberAccess memberAccess) {
+        pushASTNode(memberAccess);
+        super.visit(memberAccess);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitMapEntryExpression(MapEntryExpression node) {
-
+    public Object visit(MemberIndexExpression memberIndex) {
+        pushASTNode(memberIndex);
+        super.visit(memberIndex);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitMapLiteralExpression(MapLiteralExpression node) {
-
+    public Object visit(NullExpression nullExpr) {
+        pushASTNode(nullExpr);
+        super.visit(nullExpr);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitMemberAccessExpression(MemberAccessExpression node) {
-
+    public Object visit(ParensExpression parensExpr) {
+        pushASTNode(parensExpr);
+        super.visit(parensExpr);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitMemberIndexExpression(MemberIndexExpression node) {
-
+    public Object visit(RangeExpression rangeExpr) {
+        pushASTNode(rangeExpr);
+        super.visit(rangeExpr);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitNullExpression(NullExpression node) {
-
+    public Object visit(StringLiteral stringExpr) {
+        pushASTNode(stringExpr);
+        super.visit(stringExpr);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitNumberLiteralExpression(NumberLiteralExpression node) {
-
+    public Object visit(TernaryExpression ternaryExpr) {
+        pushASTNode(ternaryExpr);
+        super.visit(ternaryExpr);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitParensExpression(ParensExpression node) {
-
+    public Object visit(ThisExpression thisExpr) {
+        pushASTNode(thisExpr);
+        super.visit(thisExpr);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitRangeExpression(RangeExpression node) {
-
+    public Object visit(TypeCastExpression castExpr) {
+        pushASTNode(castExpr);
+        super.visit(castExpr);
+        popASTNode();
+        return null;
     }
 
     @Override
-    public void visitStringLiteralExpression(StringLiteralExpression node) {
-
-    }
-
-    @Override
-    public void visitTernaryExpression(TernaryExpression node) {
-
-    }
-
-    @Override
-    public void visitThisExpression(ThisExpression node) {
-
-    }
-
-    @Override
-    public void visitTypeCastExpression(TypeCastExpression node) {
-
-    }
-
-    @Override
-    public void visitUnaryExpression(UnaryExpression node) {
-
+    public Object visit(UnaryExpression unaryExpr) {
+        pushASTNode(unaryExpr);
+        super.visit(unaryExpr);
+        popASTNode();
+        return null;
     }
 
 }

@@ -1,43 +1,65 @@
 package raylras.zen.ast.stmt;
 
-import raylras.zen.ast.ASTVisitor;
+import org.jetbrains.annotations.NotNull;
+import raylras.zen.ast.BaseNode;
 import raylras.zen.ast.BlockNode;
-import raylras.zen.ast.VariableNode;
+import raylras.zen.ast.Node;
+import raylras.zen.ast.decl.VariableDeclaration;
 import raylras.zen.ast.expr.Expression;
+import raylras.zen.ast.visit.NodeVisitor;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
-public class ForeachStatement extends Statement {
+public final class ForeachStatement extends BaseNode implements Statement {
 
-    private final List<VariableNode> variableNodeList;
+    @NotNull
+    private final List<VariableDeclaration> variables;
+    @NotNull
     private final Expression expr;
+    @NotNull
+    private final BlockNode block;
 
-    private final BlockNode blockNode;
-
-    public ForeachStatement(List<VariableNode> variableNodeList, Expression expr, BlockNode blockNode) {
-        this.variableNodeList = variableNodeList;
+    public ForeachStatement(@NotNull List<VariableDeclaration> variables, @NotNull Expression expr, @NotNull BlockNode block) {
+        this.variables = variables;
         this.expr = expr;
-        this.blockNode = blockNode;
+        this.block = block;
     }
 
-    public List<VariableNode> getVariableNodeList() {
-        return variableNodeList;
+    @NotNull
+    public List<VariableDeclaration> getVariables() {
+        return variables;
     }
 
+    @NotNull
     public Expression getExpr() {
         return expr;
     }
 
-    public BlockNode getBlockNode() {
-        return blockNode;
+    @NotNull
+    public BlockNode getBlock() {
+        return block;
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitForeachStatement(this);
-        variableNodeList.forEach(node -> node.accept(visitor));
-        expr.accept(visitor);
-        blockNode.accept(visitor);
+    public <T> T accept(NodeVisitor<? extends T> visitor) {
+        return visitor.visit(this);
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        ArrayList<Node> children = new ArrayList<>(variables.size() + 2);
+        children.addAll(variables);
+        children.add(expr);
+        children.add(block);
+        return Collections.unmodifiableList(children);
+    }
+
+    @Override
+    public String toString() {
+        return "for " + variables.stream().map(Object::toString).collect(Collectors.joining(", ")) + " in " + expr + " {...}";
     }
 
 }

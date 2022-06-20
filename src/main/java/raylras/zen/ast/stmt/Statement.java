@@ -1,7 +1,7 @@
 package raylras.zen.ast.stmt;
 
-import raylras.zen.ast.ASTNode;
+import raylras.zen.ast.Node;
 
-public abstract class Statement extends ASTNode {
+public interface Statement extends Node {
 
 }

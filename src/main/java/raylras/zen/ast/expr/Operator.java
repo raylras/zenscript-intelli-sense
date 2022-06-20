@@ -1,70 +1,89 @@
 package raylras.zen.ast.expr;
 
+import java.util.Arrays;
+import java.util.List;
+
 public final class Operator {
 
     public enum Unary {
-        NOT, NEG, PLUS
+        LOGIC_NOT("!"), NEG("-");
+
+        private final String op;
+        Unary(String op) {
+            this.op = op;
+        }
+        @Override
+        public String toString() {
+            return op;
+        }
     }
 
     public enum Binary {
-        ADD, SUB, MUL, DIV, MOD, CAT, INSTANCEOF, CONTAINS,
-        LESS, GREATER, EQUALS, NOT_EQUALS, LESS_EQUALS, GREATER_EQUALS,
-        OR, AND, XOR, OR_OR, AND_AND
+        // Arithmetic
+        ADD("+"), SUB("-"), MUL("*"), DIV("/"), MOD("%"),
+
+        // Relational
+        EQUAL("=="), NOT_EQUAL("!="), LESS("<"), GREATER(">"),  LESS_EQUAL("<="), GREATER_EQUAL(">="), INSTANCEOF("instanceof"),
+
+        // Bitwise
+        BIT_AND("&"), BIT_OR("|"), BIT_XOR("^"),
+
+        // Logical
+        LOGIC_OR("||"), LOGIC_AND("&&"),
+
+        // Other
+        CAT("~"), IN("in");
+
+        private final String op;
+        Binary(String op) {
+            this.op = op;
+        }
+
+        public static List<Binary> getComparisons() {
+            return Arrays.asList(EQUAL, NOT_EQUAL, LESS, GREATER, LESS_EQUAL, GREATER_EQUAL);
+        }
+
+        @Override
+        public String toString() {
+            return op;
+        }
     }
 
     public enum Assignment {
-        ASSIGN, ADD_ASSIGN, SUB_ASSIGN, MUL_ASSIGN, DIV_ASSIGN,
-        AND_ASSIGN, OR_ASSIGN, XOR_ASSIGN, MOD_ASSIGN, CAT_ASSIGN
+        ASSIGN("="), ADD_ASSIGN("+="), SUB_ASSIGN("-="), MUL_ASSIGN("*="), DIV_ASSIGN("/="),
+        AND_ASSIGN("&="), OR_ASSIGN("|="), XOR_ASSIGN("^="), MOD_ASSIGN("%="), CAT_ASSIGN("~=");
+        private final String op;
+        Assignment(String op) {
+            this.op = op;
+        }
+        @Override
+        public String toString() {
+            return op;
+        }
     }
 
     public static Operator.Unary getUnary(String operator) {
-        switch (operator) {
-            case "!": return Unary.NOT;
-            case "-": return Unary.NEG;
-            case "+": return Unary.PLUS;
-            default: return null;
+        for (Unary unary : Unary.values()) {
+            if (unary.op.equals(operator)) return unary;
         }
+        return null;
     }
 
     public static Operator.Binary getBinary(String operator) {
-        switch (operator) {
-            case "+": return Binary.ADD;
-            case "-": return Binary.SUB;
-            case "*": return Binary.MUL;
-            case "/": return Binary.DIV;
-            case "%": return Binary.MOD;
-            case "~": return Binary.CAT;
-            case "<": return Binary.LESS;
-            case ">": return Binary.GREATER;
-            case "==": return Binary.EQUALS;
-            case "!=": return Binary.NOT_EQUALS;
-            case "<=": return Binary.LESS_EQUALS;
-            case ">=": return Binary.GREATER_EQUALS;
-            case "|": return Binary.OR;
-            case "&": return Binary.AND;
-            case "^": return Binary.XOR;
-            case "||": return Binary.OR_OR;
-            case "&&": return Binary.AND_AND;
-            case "instanceof": return Binary.INSTANCEOF;
-            case "in": case "has": return Binary.CONTAINS;
-            default: return null;
+        for (Binary binary : Binary.values()) {
+            if (binary.op.equals(operator)) return binary;
         }
+        if ("has".equals(operator)) {
+            return Binary.IN;
+        }
+        return null;
     }
 
     public static Operator.Assignment getAssignment(String operator) {
-        switch (operator) {
-            case "=": return  Assignment.ASSIGN;
-            case "+=": return Assignment.ADD_ASSIGN;
-            case "-=": return Assignment.SUB_ASSIGN;
-            case "*=": return Assignment.MUL_ASSIGN;
-            case "/=": return Assignment.DIV_ASSIGN;
-            case "%/": return Assignment.MOD_ASSIGN;
-            case "~=": return Assignment.CAT_ASSIGN;
-            case "&=": return Assignment.AND_ASSIGN;
-            case "|=": return Assignment.OR_ASSIGN;
-            case "^=": return Assignment.XOR_ASSIGN;
-            default: return null;
+        for (Assignment assignment : Assignment.values()) {
+            if (assignment.op.equals(operator)) return assignment;
         }
+        return null;
     }
 
 }

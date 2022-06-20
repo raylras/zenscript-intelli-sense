@@ -3,16 +3,10 @@ package raylras.zen.lsp;
 import org.eclipse.lsp4j.SemanticTokenModifiers;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
 public enum TokenModifier {
-
-    // if there is no modifier, it means 0 == 0b0.
-    // if there is one modifier, such as [declaration], it means 1 == 0b1.
-    // if there are two modifiers, such as [declaration, readonly], it means 5 == (0b1 | 0b100) == 0b101.
-    // if there are three modifiers, such as [definition, readonly, static], it means 14 == (0b10 | 0b100 | 0b1000) == 0b1110.
 
     Declaration(0b1, SemanticTokenModifiers.Declaration),
     Definition(0b10, SemanticTokenModifiers.Definition),
@@ -20,39 +14,31 @@ public enum TokenModifier {
     Static(0b1000, SemanticTokenModifiers.Static);
 
     private final int id;
-    private final String value;
+    private final String name;
 
-    TokenModifier(int id, String value) {
+    TokenModifier(int id, String name) {
         this.id = id;
-        this.value = value;
+        this.name = name;
     }
 
     public int getId() {
         return id;
     }
 
-    public String getValue() {
-        return value;
+    public String getName() {
+        return name;
     }
 
-    public static int getInt(TokenModifier[] tokenModifiers) {
-        int compressed = 0;
-        for (TokenModifier tokenModifier : tokenModifiers) {
-            compressed = compressed | tokenModifier.id;
+    public static int toBitFlag(TokenModifier... modifiers) {
+        int flag = 0;
+        for (TokenModifier modifier : modifiers) {
+            flag |= modifier.id;
         }
-        return compressed;
+        return flag;
     }
 
-    public static int getInt(Collection<TokenModifier> tokenModifiers) {
-        int compressed = 0;
-        for (TokenModifier tokenModifier : tokenModifiers) {
-            compressed = compressed | tokenModifier.id;
-        }
-        return compressed;
-    }
-
-    public static List<String> getTokenTypeModifiers() {
-        return Arrays.stream(TokenModifier.values()).map(TokenModifier::getValue).collect(Collectors.toList());
+    public static List<String> getTokenModifiers() {
+        return Arrays.stream(TokenModifier.values()).map(TokenModifier::getName).collect(Collectors.toList());
     }
 
 }

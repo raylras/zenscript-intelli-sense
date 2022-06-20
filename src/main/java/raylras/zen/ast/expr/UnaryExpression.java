@@ -1,29 +1,48 @@
 package raylras.zen.ast.expr;
 
-import raylras.zen.ast.ASTVisitor;
+import org.jetbrains.annotations.NotNull;
+import raylras.zen.ast.BaseNode;
+import raylras.zen.ast.Node;
+import raylras.zen.ast.visit.NodeVisitor;
 
-public class UnaryExpression extends Expression {
+import java.util.Collections;
+import java.util.List;
 
+public final class UnaryExpression extends BaseNode implements Expression {
+
+    @NotNull
     private final Expression expr;
+    @NotNull
     private final Operator.Unary operator;
 
-    public UnaryExpression(Expression expr, Operator.Unary operator) {
+    public UnaryExpression(@NotNull Expression expr, @NotNull Operator.Unary operator) {
         this.expr = expr;
         this.operator = operator;
     }
 
+    @NotNull
     public Expression getExpr() {
         return expr;
     }
 
+    @NotNull
     public Operator.Unary getOperator() {
         return operator;
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitUnaryExpression(this);
-        expr.accept(visitor);
+    public <T> T accept(NodeVisitor<? extends T> visitor) {
+        return visitor.visit(this);
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        return Collections.singletonList(expr);
+    }
+
+    @Override
+    public String toString() {
+        return operator.toString() + expr;
     }
 
 }

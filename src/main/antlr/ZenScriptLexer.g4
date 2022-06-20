@@ -1,5 +1,11 @@
 lexer grammar ZenScriptLexer;
 
+channels {
+    WHITE_SPACE_CHANNEL,
+    COMMENTS_CHANNEL,
+    PREPROCESSOR_CHANNEL
+}
+
 // Keywords
 
 VAR:                    'var';
@@ -47,7 +53,6 @@ FRIGGIN_CLASS:          'frigginClass';
 FRIGGIN_CONSTRUCTOR:    'frigginConstructor';
 ZEN_CLASS:              'zenClass';
 ZEN_CONSTRUCTOR:        'zenConstructor';
-SCRIPT:                 'script';
 
 // Separators
 
@@ -125,10 +130,10 @@ IDENTIFIER: Letter LetterOrDigit*;
 
 // Whitespace and comments
 
-WHITE_SPACE: [ \t\r\n]+ -> channel(HIDDEN);
-BLOCK_COMMENT: '/*' .*? '*/' -> channel(HIDDEN);
-LINE_COMMENT: '//' ~[\r\n]* -> channel(HIDDEN);
-Preprocessor: '#' ~[\r\n]* -> channel(HIDDEN);
+WHITE_SPACE: [ \t\r\n]+ -> channel(WHITE_SPACE_CHANNEL);
+BLOCK_COMMENT: '/*' .*? '*/' -> channel(COMMENTS_CHANNEL);
+LINE_COMMENT: '//' ~[\r\n]* -> channel(COMMENTS_CHANNEL);
+Preprocessor: '#' ~[\r\n]* -> channel(PREPROCESSOR_CHANNEL);
 
 // Fragments
 

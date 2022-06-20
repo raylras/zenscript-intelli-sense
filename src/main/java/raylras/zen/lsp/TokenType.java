@@ -8,39 +8,32 @@ import java.util.stream.Collectors;
 
 public enum TokenType {
 
-    Class(0, SemanticTokenTypes.Class),
-    Parameter(1, SemanticTokenTypes.Parameter),
-    Variable(2, SemanticTokenTypes.Variable),
-    Property(3, SemanticTokenTypes.Property),
-    Event(4, SemanticTokenTypes.Event),
-    Function(5, SemanticTokenTypes.Function),
-    Method(6, SemanticTokenTypes.Method),
-    Keyword(7, SemanticTokenTypes.Keyword),
-    Modifier(8, SemanticTokenTypes.Modifier),
-    Comment(9, SemanticTokenTypes.Comment),
-    String(10, SemanticTokenTypes.String),
-    Number(11, SemanticTokenTypes.Number),
-    Regexp(12, SemanticTokenTypes.Regexp),
-    Operator(13, SemanticTokenTypes.Operator);
+    CLASS(SemanticTokenTypes.Class),
+    PARAMETER(SemanticTokenTypes.Parameter),
+    VARIABLE(SemanticTokenTypes.Variable),
+    PROPERTY(SemanticTokenTypes.Property),
+    EVENT(SemanticTokenTypes.Event),
+    FUNCTION(SemanticTokenTypes.Function),
+    METHOD(SemanticTokenTypes.Method),
+    KEYWORD(SemanticTokenTypes.Keyword),
+    MODIFIER(SemanticTokenTypes.Modifier),
+    COMMENT(SemanticTokenTypes.Comment),
+    STRING(SemanticTokenTypes.String),
+    NUMBER(SemanticTokenTypes.Number),
+    OPERATOR(SemanticTokenTypes.Operator);
+    
+    private final String name;
 
-    private final int id;
-    private final String value;
-
-    TokenType(int id, String value) {
-        this.id = id;
-        this.value = value;
+    TokenType(String name) {
+        this.name = name;
     }
 
-    public int getId() {
-        return id;
-    }
-
-    public String getValue() {
-        return value;
+    public String getName() {
+        return name;
     }
 
     public static List<String> getTokenTypes() {
-        return Arrays.stream(TokenType.values()).map(TokenType::getValue).collect(Collectors.toList());
+        return Arrays.stream(TokenType.values()).map(TokenType::getName).collect(Collectors.toList());
     }
 
 }

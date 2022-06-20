@@ -1,8 +1,14 @@
 package raylras.zen.ast.expr;
 
-import raylras.zen.ast.ASTVisitor;
+import raylras.zen.ast.BaseNode;
+import raylras.zen.ast.Node;
+import raylras.zen.ast.visit.NodeVisitor;
 
-public class RangeExpression extends Expression {
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+
+public final class RangeExpression extends BaseNode implements Expression {
 
     private final Expression from;
     private final Expression to;
@@ -21,10 +27,21 @@ public class RangeExpression extends Expression {
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitRangeExpression(this);
-        from.accept(visitor);
-        to.accept(visitor);
+    public <T> T accept(NodeVisitor<? extends T> visitor) {
+        return visitor.visit(this);
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        ArrayList<Node> children = new ArrayList<>();
+        children.add(from);
+        children.add(to);
+        return Collections.unmodifiableList(children);
+    }
+
+    @Override
+    public String toString() {
+        return from + ".." + to;
     }
 
 }

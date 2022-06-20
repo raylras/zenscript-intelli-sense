@@ -1,31 +1,40 @@
 package raylras.zen.ast.expr;
 
-import raylras.zen.ast.ASTVisitor;
-import raylras.zen.ast.TypeNode;
+import org.jetbrains.annotations.NotNull;
+import raylras.zen.ast.BaseNode;
+import raylras.zen.ast.Node;
+import raylras.zen.ast.visit.NodeVisitor;
 
-public class TypeCastExpression extends Expression {
+import java.util.Collections;
+import java.util.List;
 
+public final class TypeCastExpression extends BaseNode implements Expression {
+
+    @NotNull
     private final Expression expr;
-    private final TypeNode typeNode;
 
-    public TypeCastExpression(Expression expr, TypeNode typeNode) {
+    public TypeCastExpression(@NotNull Expression expr) {
         this.expr = expr;
-        this.typeNode = typeNode;
     }
 
+    @NotNull
     public Expression getExpr() {
         return expr;
     }
 
-    public TypeNode getTypeNode() {
-        return typeNode;
+    @Override
+    public <T> T accept(NodeVisitor<? extends T> visitor) {
+        return visitor.visit(this);
     }
 
     @Override
-    public void accept(ASTVisitor visitor) {
-        visitor.visitTypeCastExpression(this);
-        expr.accept(visitor);
-        typeNode.accept(visitor);
+    public List<Node> getChildren() {
+        return Collections.singletonList(expr);
+    }
+
+    @Override
+    public String toString() {
+        return expr + " as " + getType();
     }
 
 }

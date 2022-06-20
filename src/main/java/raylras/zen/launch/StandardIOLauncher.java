@@ -3,8 +3,8 @@ package raylras.zen.launch;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
+import raylras.zen.control.Environment;
 import raylras.zen.lsp.ZenScriptLanguageServer;
-import raylras.zen.verify.Environment;
 
 public class StandardIOLauncher {
 
@@ -15,7 +15,7 @@ public class StandardIOLauncher {
     }
 
     public void launchServer() {
-        ZenScriptLanguageServer server = new ZenScriptLanguageServer(env);
+        ZenScriptLanguageServer server = new ZenScriptLanguageServer();
         Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(server, System.in, System.out);
         server.getServices().setClient(launcher.getRemoteProxy());
         launcher.startListening();

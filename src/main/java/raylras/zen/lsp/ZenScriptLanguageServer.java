@@ -1,38 +1,60 @@
 package raylras.zen.lsp;
 
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.LanguageServer;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
-import raylras.zen.antlr.ASTBuilder;
-import raylras.zen.antlr.ZenScriptLexer;
-import raylras.zen.antlr.ZenScriptParser;
-import raylras.zen.ast.ScriptNode;
-import raylras.zen.verify.Environment;
+import raylras.zen.ast.CompileUnit;
 
-import java.io.IOException;
+import java.io.File;
 import java.net.URI;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Collections;
+import java.util.ArrayDeque;
+import java.util.Queue;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class ZenScriptLanguageServer implements LanguageServer {
 
     private final ZenScriptServices services;
 
-    public ZenScriptLanguageServer(Environment env) {
-        this.services = new ZenScriptServices(env);
+    public ZenScriptLanguageServer() {
+        this.services = new ZenScriptServices();
     }
 
     public ZenScriptServices getServices() {
         return services;
+    }
+
+    private void initScripts(InitializeParams params) {
+        WorkspaceFolder workspace = params.getWorkspaceFolders().get(0);
+        services.setWorkspace(workspace);
+        Path workspacePath = Paths.get(URI.create(workspace.getUri()));
+
+        // find "scripts" dir using BFS
+        Path scripts = null;
+        Queue<File> queue = new ArrayDeque<>();
+        queue.add(workspacePath.toFile());
+        while (!queue.isEmpty()) {
+            File current = queue.poll();
+            if ("scripts".equalsIgnoreCase(current.getName())) {
+                scripts = current.toPath();
+                break;
+            }
+            File[] listFiles = current.listFiles();
+            if (listFiles == null) continue;
+            for (File dir : listFiles) {
+                if (dir.isDirectory()) {
+                    queue.add(dir);
+                }
+            }
+        }
+
+        if (scripts != null) {
+            services.setCompileUnit(CompileUnit.fromPath(scripts));
+        } else {
+            services.info("Could not find \"scripts\" folder under workspace " + workspace);
+        }
     }
 
     @Override
@@ -41,16 +63,15 @@ public class ZenScriptLanguageServer implements LanguageServer {
 
         ServerCapabilities capabilities = new ServerCapabilities();
 //        capabilities.setCompletionProvider(new CompletionOptions());
-//        capabilities.setTextDocumentSync(TextDocumentSyncKind.Full);
-//        capabilities.setDocumentSymbolProvider(true);
+        capabilities.setTextDocumentSync(TextDocumentSyncKind.Full);
+        capabilities.setDocumentSymbolProvider(true);
 //        capabilities.setWorkspaceSymbolProvider(true);
 //        capabilities.setDocumentHighlightProvider(true);
 //        SignatureHelpOptions signatureHelpOptions = new SignatureHelpOptions();
 //        signatureHelpOptions.setTriggerCharacters(Arrays.asList("(", ","));
 //        capabilities.setSignatureHelpProvider(signatureHelpOptions);
-        SemanticTokensWithRegistrationOptions semanticTokensOptions = new SemanticTokensWithRegistrationOptions();
-        semanticTokensOptions.setLegend(new SemanticTokensLegend(TokenType.getTokenTypes(), TokenModifier.getTokenTypeModifiers()));
-        semanticTokensOptions.setFull(true);
+        SemanticTokensWithRegistrationOptions semanticTokensOptions
+                = new SemanticTokensWithRegistrationOptions(new SemanticTokensLegend(TokenType.getTokenTypes(), TokenModifier.getTokenModifiers()), true);
         capabilities.setSemanticTokensProvider(semanticTokensOptions);
 //        capabilities.setReferencesProvider(true);
 //        capabilities.setDefinitionProvider(true);
@@ -62,14 +83,6 @@ public class ZenScriptLanguageServer implements LanguageServer {
     }
 
     @Override
-    public CompletableFuture<Object> shutdown() {
-        return null;
-    }
-
-    @Override
-    public void exit() {}
-
-    @Override
     public TextDocumentService getTextDocumentService() {
         return services;
     }
@@ -79,58 +92,12 @@ public class ZenScriptLanguageServer implements LanguageServer {
         return services;
     }
 
-    private void initScripts(InitializeParams params) {
-
-        // Get the workspace, if there are more than one, only process the first one
-        params.getWorkspaceFolders().stream().findFirst().ifPresent(workspaceFolder -> {
-            services.setWorkspaceFolder(workspaceFolder);
-            CompletableFuture.runAsync(() -> {
-                Path workspace = Paths.get(URI.create(workspaceFolder.getUri()));
-
-                // Recursively find a folder named "scripts" under the workspace
-                try(Stream<Path> pathStream = Files.find(workspace, 10, (path, attributes) -> attributes.isDirectory() && "scripts".equalsIgnoreCase(path.getFileName().toString()))) {
-
-                    // There may be multiple "scripts", only the first one is processed
-                    pathStream.findFirst().ifPresent(scripts -> services.setScriptsFolder(scripts.toUri()));
-
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }).thenApply(unused -> {
-
-                if (services.getScriptsFolder() != null) {
-
-                    // Recursively find all ".zs" files under "scripts"
-                    Path scripts = Paths.get(services.getScriptsFolder());
-                    try(Stream<Path> pathStream = Files.find(scripts, 10, (path, attributes) -> path.getFileName().toString().matches(".*\\.zs"))) {
-                        return pathStream.collect(Collectors.toList());
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                // The "scripts" folder may not be found in the workspace, returning an empty list
-                return Collections.<Path>emptyList();
-
-            }).thenAccept(files -> {
-                for (Path file : files) {
-                    System.out.println(services.getScriptsFolder().relativize(file.toUri()));
-                    try {
-                        CharStream charStream = CharStreams.fromPath(file);
-                        ZenScriptLexer lexer = new ZenScriptLexer(charStream);
-                        CommonTokenStream tokens = new CommonTokenStream(lexer);
-                        ZenScriptParser parser = new ZenScriptParser(tokens);
-                        ZenScriptParser.ScriptUnitContext scriptContext = parser.scriptUnit();
-                        ASTBuilder cstVisitor = new ASTBuilder();
-                        ScriptNode script = cstVisitor.visitScriptUnit(scriptContext);
-                        services.visitor.getAstNodeListByURI().put(file.toUri(), cstVisitor.getAstNodeList());
-                        services.visitor.visitScriptNode(script);
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                }
-            });
-        });
+    @Override
+    public CompletableFuture<Object> shutdown() {
+        return null;
     }
+
+    @Override
+    public void exit() {}
 
 }

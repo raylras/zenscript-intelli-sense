@@ -1,4 +1,4 @@
-// Generated from D:/Projects/Forge/1.12.2/ZenServer/src/main/antlr\ZenScriptParser.g4 by ANTLR 4.10.1
+// Generated from ZenScriptParser.g4 by ANTLR 4.10.1
 package raylras.zen.antlr;
 import org.antlr.v4.runtime.tree.ParseTreeVisitor;
 
@@ -23,23 +23,17 @@ public interface ZenScriptParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitImportDeclaration(ZenScriptParser.ImportDeclarationContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link ZenScriptParser#className}.
+	 * Visit a parse tree produced by {@link ZenScriptParser#reference}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitClassName(ZenScriptParser.ClassNameContext ctx);
+	T visitReference(ZenScriptParser.ReferenceContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link ZenScriptParser#crossScriptReference}.
+	 * Visit a parse tree produced by {@link ZenScriptParser#aliasDeclaration}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitCrossScriptReference(ZenScriptParser.CrossScriptReferenceContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link ZenScriptParser#alias}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitAlias(ZenScriptParser.AliasContext ctx);
+	T visitAliasDeclaration(ZenScriptParser.AliasDeclarationContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link ZenScriptParser#functionDeclaration}.
 	 * @param ctx the parse tree
@@ -70,12 +64,6 @@ public interface ZenScriptParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitConstructorDeclaration(ZenScriptParser.ConstructorDeclarationContext ctx);
-	/**
-	 * Visit a parse tree produced by {@link ZenScriptParser#fieldDeclaration}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitFieldDeclaration(ZenScriptParser.FieldDeclarationContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link ZenScriptParser#block}.
 	 * @param ctx the parse tree
@@ -113,11 +101,11 @@ public interface ZenScriptParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitContinueStatement(ZenScriptParser.ContinueStatementContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link ZenScriptParser#ifStatement}.
+	 * Visit a parse tree produced by {@link ZenScriptParser#ifElseStatement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitIfStatement(ZenScriptParser.IfStatementContext ctx);
+	T visitIfElseStatement(ZenScriptParser.IfElseStatementContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link ZenScriptParser#foreachStatement}.
 	 * @param ctx the parse tree
@@ -131,11 +119,11 @@ public interface ZenScriptParserVisitor<T> extends ParseTreeVisitor<T> {
 	 */
 	T visitWhileStatement(ZenScriptParser.WhileStatementContext ctx);
 	/**
-	 * Visit a parse tree produced by {@link ZenScriptParser#variableDeclarationStatement}.
+	 * Visit a parse tree produced by {@link ZenScriptParser#variableDeclStatement}.
 	 * @param ctx the parse tree
 	 * @return the visitor result
 	 */
-	T visitVariableDeclarationStatement(ZenScriptParser.VariableDeclarationStatementContext ctx);
+	T visitVariableDeclStatement(ZenScriptParser.VariableDeclStatementContext ctx);
 	/**
 	 * Visit a parse tree produced by {@link ZenScriptParser#expressionStatement}.
 	 * @param ctx the parse tree
@@ -184,13 +172,6 @@ public interface ZenScriptParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitArrayLiteralExpression(ZenScriptParser.ArrayLiteralExpressionContext ctx);
-	/**
-	 * Visit a parse tree produced by the {@code identifierExpression}
-	 * labeled alternative in {@link ZenScriptParser#expression}.
-	 * @param ctx the parse tree
-	 * @return the visitor result
-	 */
-	T visitIdentifierExpression(ZenScriptParser.IdentifierExpressionContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code UnaryExpression}
 	 * labeled alternative in {@link ZenScriptParser#expression}.
@@ -254,6 +235,13 @@ public interface ZenScriptParserVisitor<T> extends ParseTreeVisitor<T> {
 	 * @return the visitor result
 	 */
 	T visitAssignmentExpression(ZenScriptParser.AssignmentExpressionContext ctx);
+	/**
+	 * Visit a parse tree produced by the {@code VarAccessExpression}
+	 * labeled alternative in {@link ZenScriptParser#expression}.
+	 * @param ctx the parse tree
+	 * @return the visitor result
+	 */
+	T visitVarAccessExpression(ZenScriptParser.VarAccessExpressionContext ctx);
 	/**
 	 * Visit a parse tree produced by the {@code TrinaryExpression}
 	 * labeled alternative in {@link ZenScriptParser#expression}.

@@ -3,14 +3,13 @@ package raylras.zen.launch;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
+import raylras.zen.control.Environment;
 import raylras.zen.lsp.ZenScriptLanguageServer;
-import raylras.zen.verify.Environment;
 
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
@@ -27,8 +26,8 @@ public class SocketLauncher {
     }
 
     public void launchServer() {
-        CompletableFuture.runAsync(() -> System.out.println("Waiting client..."), executor)
-                .thenRun(() -> {
+        CompletableFuture.runAsync(() -> System.out.println("Waiting language client..."), executor)
+                .thenRunAsync(() -> {
                     try (ServerSocket serverSocket = new ServerSocket(DEFAULT_SOCKET_PORT)) {
                         socket = serverSocket.accept();
                     } catch (IOException ignore) {
@@ -38,18 +37,19 @@ public class SocketLauncher {
                             e.printStackTrace();
                         }
                     }
-                }).thenRun(() -> {
+                }, executor)
+                .thenRunAsync(() -> {
                     System.out.println("Found a language client from " + socket.getRemoteSocketAddress() + ", starting the language server");
-                    ZenScriptLanguageServer server = new ZenScriptLanguageServer(env);
+                    ZenScriptLanguageServer server = new ZenScriptLanguageServer();
                     try {
                         Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(server, socket.getInputStream(), socket.getOutputStream());
                         server.getServices().setClient(launcher.getRemoteProxy());
                         launcher.startListening().get();
-                        if (!socket.isClosed()) { socket.close(); }
-                    } catch (IOException | ExecutionException | InterruptedException ignore) {
-
+                        socket.close();
+                    } catch (Exception ignore) {
                     }
-                }).thenRun(this::launchServer);
+                }, executor)
+                .thenRunAsync(this::launchServer, executor);
     }
 
     public void setEnv(Environment env) {
