@@ -61,7 +61,8 @@ public class ZenScriptServices implements TextDocumentService, WorkspaceService 
 
     @Override
     public void didOpen(DidOpenTextDocumentParams params) {
-
+        compileUnit.compile(URIUtils.create(params.getTextDocument().getUri()), new StringReader(params.getTextDocument().getText()));
+        client.refreshSemanticTokens();
     }
 
     @Override

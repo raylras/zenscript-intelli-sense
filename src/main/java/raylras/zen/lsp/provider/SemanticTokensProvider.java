@@ -257,7 +257,6 @@ public class SemanticTokensProvider {
     @NotNull
     public SemanticTokens provideSemanticTokens(ScriptNode scriptNode) {
         if (scriptNode == null) return new SemanticTokens(Collections.emptyList());
-
         builder.clear();
         visitor.visit(scriptNode);
         builder.build();

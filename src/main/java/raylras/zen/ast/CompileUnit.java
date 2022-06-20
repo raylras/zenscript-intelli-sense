@@ -33,10 +33,12 @@ public final class CompileUnit {
 
     public void compile(URI uri, Reader source) {
         SourceUnit sourceUnit = sourceUnits.get(uri);
-        if (sourceUnit != null) {
-            sourceUnit.parse(source);
-            sourceUnit.convert(builder);
+        if (sourceUnit == null) {
+            sourceUnit = new SourceUnit(uri, errorCollector);
+            sourceUnits.put(uri, sourceUnit);
         }
+        sourceUnit.parse(source);
+        sourceUnit.convert(builder);
     }
 
     public void refresh(URI uri) {
