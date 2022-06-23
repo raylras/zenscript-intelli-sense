@@ -1,100 +1,56 @@
-buildscript {
-    repositories {
-        maven {
-            name = "forge"
-            url = "https://files.minecraftforge.net/maven"
-        }
-    }
-    dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:2.3-SNAPSHOT'
-    }
+plugins {
+    id 'java'
+    id 'idea'
+    id 'antlr'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
 }
 
-apply plugin: 'net.minecraftforge.gradle.forge'
-apply plugin: 'idea'
+group 'raylras'
+version '1.0'
 
-version = "1.1.0"
-group = "raylras"
-archivesBaseName = "zenserver"
-
-sourceCompatibility = targetCompatibility = '1.8'
-compileJava {
-    sourceCompatibility = targetCompatibility = '1.8'
-}
-
-minecraft {
-    version = "1.12.2-14.23.5.2847"
-    runDir = "run"
-    mappings = "snapshot_20171003"
+java {
+    sourceCompatibility = '17'
+    targetCompatibility = '17'
 }
 
 repositories {
     mavenCentral()
-    maven {
-		name = "blamejared"
-		url = 'https://maven.blamejared.com'
-	}
-}
-
-configurations {
-    embed
-    implementation.extendsFrom(embed)
 }
 
 dependencies {
-    implementation 'org.jetbrains:annotations:23.0.0'
-    compile 'org.openjdk.jmh:jmh-core:1.35'
-    compile 'org.openjdk.jmh:jmh-generator-annprocess:1.35'
-    compile "CraftTweaker2:CraftTweaker2-MC1120-Main:1.12-4.1.20.670"
-    compile 'org.eclipse.lsp4j:org.eclipse.lsp4j:0.14.0'
-    compile 'org.antlr:antlr4-runtime:4.10.1'
+    implementation 'org.antlr:antlr4-runtime:4.10.1'
+    implementation 'org.eclipse.lsp4j:org.eclipse.lsp4j:0.14.0'
 
-    embed 'org.eclipse.lsp4j:org.eclipse.lsp4j:0.14.0'
-    embed 'org.antlr:antlr4-runtime:4.10.1'
-
-    testCompile(
-            'org.junit.jupiter:junit-jupiter-api:5.8.2'
-    )
-
-    testRuntime(
-            'org.junit.jupiter:junit-jupiter-engine:5.8.2',
-            'org.junit.vintage:junit-vintage-engine:5.8.2',
-            'org.junit.platform:junit-platform-launcher:1.8.2',
-            'org.junit.platform:junit-platform-runner:1.8.2'
-    )
-
-}
-
-processResources {
-    inputs.property "version", project.version
-    inputs.property "mcversion", project.minecraft.version
-    from(sourceSets.main.resources.srcDirs) {
-        include 'mcmod.info'
-        expand 'version':project.version, 'mcversion':project.minecraft.version
-    }
-    from(sourceSets.main.resources.srcDirs) {
-        exclude 'mcmod.info'
-    }
-}
-
-jar {
-    manifest {
-        attributes 'Main-Class': 'raylras.zen.Main'
-    }
-    from (configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }) {
-        exclude 'META-INF/maven/**', 'META-INF/*.RSA', 'META-INF/*.SF', '*.html', 'module-info.class'
-    }
+    antlr 'org.antlr:antlr4:4.10.1'
+    compileOnly 'org.jetbrains:annotations:23.0.0'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.2'
 }
 
 test {
     useJUnitPlatform()
-    testLogging{
-        events "PASSED", "FAILED", "SKIPPED"
-    }
 }
 
-//sourceSets {
-//    main {
-//        output.resourcesDir = output.classesDir
-//    }
-//}
+generateGrammarSource {
+    maxHeapSize = "64m"
+    arguments += ["-visitor", "-no-listener", "-long-messages", "-package", "raylras.zen.antlr"]
+    outputDirectory = new File(buildDir.toString() + "/generated-src/antlr/main/raylras/zen/antlr")
+}
+
+shadowJar {
+    manifest {
+        attributes 'Main-Class': 'raylras.zen.Main'
+    }
+    dependencies {
+        include(dependency('org.antlr:antlr4-runtime'))
+        include(dependency('org.eclipse.lsp4j:org.eclipse.lsp4j'))
+        include(dependency('org.eclipse.lsp4j:org.eclipse.lsp4j.generator'))
+        include(dependency('org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc'))
+        include(dependency('com.google.code.gson:gson'))
+    }
+    exclude '**/*.java', 'META-INF/maven/**', 'META-INF/*.RSA', 'META-INF/*.SF', '**/*.html'
+    minimize()
+}
+
+jar.enabled = false
+build.dependsOn(shadowJar)

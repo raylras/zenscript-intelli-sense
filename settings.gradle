@@ -1,2 +1,2 @@
-rootProject.name = 'ZenServer'
-include 'ZenScript'
+rootProject.name = 'zenscript-language-server'
+include 'vscode-extension'
