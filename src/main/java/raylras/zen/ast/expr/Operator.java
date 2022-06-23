@@ -62,14 +62,14 @@ public final class Operator {
         }
     }
 
-    public static Operator.Unary getUnary(String operator) {
+    public static Unary getUnary(String operator) {
         for (Unary unary : Unary.values()) {
             if (unary.op.equals(operator)) return unary;
         }
         return null;
     }
 
-    public static Operator.Binary getBinary(String operator) {
+    public static Binary getBinary(String operator) {
         for (Binary binary : Binary.values()) {
             if (binary.op.equals(operator)) return binary;
         }
@@ -79,7 +79,7 @@ public final class Operator {
         return null;
     }
 
-    public static Operator.Assignment getAssignment(String operator) {
+    public static Assignment getAssignment(String operator) {
         for (Assignment assignment : Assignment.values()) {
             if (assignment.op.equals(operator)) return assignment;
         }

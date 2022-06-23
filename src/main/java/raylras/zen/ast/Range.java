@@ -38,10 +38,17 @@ public final class Range {
     }
 
     public boolean contains(@NotNull Position pos) {
-        return this.line <= pos.getLine()
-                && this.lastLine >= pos.getLine()
-                && this.column <= pos.getColumn()
-                && this.lastColumn >= pos.getColumn();
+        int line = pos.getLine();
+        int column = pos.getColumn();
+        if (this.line <= line && line < this.lastLine) {
+            return true;
+        } else if (this.line == line && line == this.lastLine) {
+            if (this.column <= column && column < this.lastColumn) {
+                return true;
+            } else return this.column == column && column == this.lastColumn;
+        } else {
+            return false;
+        }
     }
 
     public boolean contains(@NotNull Range other) {

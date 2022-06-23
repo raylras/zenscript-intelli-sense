@@ -1,9 +1,9 @@
 package raylras.zen.ast;
 
 import raylras.zen.control.ErrorCollector;
+import raylras.zen.util.URIUtils;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.Reader;
 import java.net.URI;
@@ -31,24 +31,35 @@ public final class CompileUnit {
         return root;
     }
 
+    public void compile(String uri, Reader source) {
+        compile(URIUtils.create(uri), source);
+    }
+
     public void compile(URI uri, Reader source) {
         SourceUnit sourceUnit = sourceUnits.get(uri);
         if (sourceUnit == null) {
             sourceUnit = new SourceUnit(uri, errorCollector);
             sourceUnits.put(uri, sourceUnit);
         }
-        sourceUnit.parse(source);
-        sourceUnit.convert(builder);
+        try {
+            sourceUnit.parse(source);
+            sourceUnit.convert(builder);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void refresh(String uri) {
+        refresh(URI.create(uri));
     }
 
     public void refresh(URI uri) {
         SourceUnit sourceUnit = sourceUnits.get(uri);
-        if (sourceUnit != null) {
-            try {
-                sourceUnit.parse(new FileReader(Paths.get(uri).toFile()));
-                sourceUnit.convert(builder);
-            } catch (Exception ignore) {
-            }
+        try {
+            sourceUnit.parse(new FileReader(Paths.get(uri).toFile()));
+            sourceUnit.convert(builder);
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -56,11 +67,15 @@ public final class CompileUnit {
         return sourceUnits.values().stream().sorted(SourceUnit::compareTo).map(SourceUnit::getAst).collect(Collectors.toList());
     }
 
+    public ScriptNode getScriptNode(String uri) {
+        return getScriptNode(URIUtils.create(uri));
+    }
+
     public ScriptNode getScriptNode(URI uri) {
         return sourceUnits.get(uri).getAst();
     }
 
-    public static CompileUnit fromPath(Path root) throws FileNotFoundException {
+    public static CompileUnit fromPath(Path root) {
         CompileUnit compileUnit = new CompileUnit(root.toUri());
 
         // find all "*.zs" file using BFS
