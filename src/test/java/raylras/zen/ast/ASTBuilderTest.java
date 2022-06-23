@@ -39,7 +39,7 @@ class ASTBuilderTest {
 
     static final TestVisitor testVisitor = new TestVisitor();
 
-    @Test
+//    @Test
     void visitScriptUnit() throws IOException {
         Path scriptPath = Paths.get("src/test/resources/scripts/TestScript.zs");
 
@@ -59,7 +59,7 @@ class ASTBuilderTest {
         scriptNode.accept(testVisitor);
     }
 
-    @Test
+//    @Test
     void visitScripts() throws FileNotFoundException {
         Path scriptsPath = Paths.get("src/test/resources/scripts");
         CompileUnit compileUnit = CompileUnit.fromPath(scriptsPath);

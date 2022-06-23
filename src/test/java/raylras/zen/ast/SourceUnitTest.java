@@ -13,7 +13,7 @@ class SourceUnitTest {
     SourceUnit sourceUnit = new SourceUnit(scriptPath.toUri(), null);
     ASTBuilder builder = new ASTBuilder();
 
-    @Test
+//    @Test
     void test() throws FileNotFoundException {
         sourceUnit.parse(new FileReader(scriptPath.toFile()));
         sourceUnit.convert(builder);

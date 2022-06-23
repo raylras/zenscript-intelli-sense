@@ -17,7 +17,7 @@ import java.util.stream.Stream;
 
 class ZenScriptVisitorTest {
 
-    @Test
+//    @Test
     void visitScriptUnit() throws IOException {
         Path script = Paths.get("src/test/resources/TestScript.zs");
 
@@ -38,7 +38,7 @@ class ZenScriptVisitorTest {
         astVisitor.visit(scriptNode);
     }
 
-    @Test
+//    @Test
     void visitScripts() {
         Path scripts = Paths.get("src/test/resources/scripts");
         ZenScriptVisitor visitor = new ZenScriptVisitor();
