@@ -2,6 +2,7 @@ package raylras.zen.util;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
+import org.jetbrains.annotations.Nullable;
 import raylras.zen.ast.Node;
 import raylras.zen.ast.Position;
 import raylras.zen.ast.Range;
@@ -13,7 +14,9 @@ public final class PosUtils {
 
     private PosUtils() {}
 
+    @Nullable
     public static Position toASTPosition(org.eclipse.lsp4j.Position pos) {
+        if (pos == null) return null;
         return new Position(pos.getLine() + 1, pos.getCharacter());
     }
 

@@ -74,13 +74,11 @@ public class ZenScriptLanguageServer implements LanguageServer {
 //        SignatureHelpOptions signatureHelpOptions = new SignatureHelpOptions();
 //        signatureHelpOptions.setTriggerCharacters(Arrays.asList("(", ","));
 //        capabilities.setSignatureHelpProvider(signatureHelpOptions);
-        SemanticTokensWithRegistrationOptions semanticTokensOptions
-                = new SemanticTokensWithRegistrationOptions(new SemanticTokensLegend(TokenType.getTokenTypes(), TokenModifier.getTokenModifiers()), true);
-        capabilities.setSemanticTokensProvider(semanticTokensOptions);
+        capabilities.setSemanticTokensProvider(new SemanticTokensWithRegistrationOptions(new SemanticTokensLegend(TokenType.getTokenTypes(), TokenModifier.getTokenModifiers()), true));
 //        capabilities.setReferencesProvider(true);
 //        capabilities.setDefinitionProvider(true);
 //        capabilities.setTypeDefinitionProvider(true);
-//        capabilities.setHoverProvider(true);
+        capabilities.setHoverProvider(true);
 //        capabilities.setRenameProvider(true);
 
         return CompletableFuture.completedFuture(new InitializeResult(capabilities));
@@ -102,6 +100,8 @@ public class ZenScriptLanguageServer implements LanguageServer {
     }
 
     @Override
-    public void exit() {}
+    public void exit() {
+        System.exit(0);
+    }
 
 }
