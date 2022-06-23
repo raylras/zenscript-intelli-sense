@@ -3,12 +3,9 @@ package raylras.zen.launch;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
-import raylras.zen.control.Environment;
 import raylras.zen.lsp.ZenScriptLanguageServer;
 
 public class StandardIOLauncher {
-
-    private Environment env = new Environment();
 
     public static void start() {
         new StandardIOLauncher().launchServer();
