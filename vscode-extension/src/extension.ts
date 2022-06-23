@@ -51,7 +51,7 @@ function createLanguageServer(context: vscode.ExtensionContext) {
 	const javaPath = findJavaExecutable('java');
 	const args = [
 		'-jar',
-		path.resolve(context.extensionPath, "server", "zenserver-1.1.0.jar"),
+		path.resolve(context.extensionPath, "server", "zenscript-language-server.jar"),
 		'-standard-io'
 	];
 	args.unshift("-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005,quiet=y")
