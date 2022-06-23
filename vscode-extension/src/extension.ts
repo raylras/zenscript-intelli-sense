@@ -1,7 +1,7 @@
 import * as fs from "fs";
 import * as net from 'net';
 import * as path from 'path';
-import * as vscode from 'vscode';
+import {workspace, ExtensionContext} from 'vscode';
 
 import {
 	Executable,
@@ -12,9 +12,9 @@ import {
 } from 'vscode-languageclient/node';
 
 const serverPort = 9865;
-let client: LanguageClient | null;
+let client: LanguageClient;
 
-export function activate(context: vscode.ExtensionContext) {
+export function activate(context: ExtensionContext) {
 	// vscode.commands.registerCommand(
 	// 	"zenscript.restartServer",
 	// 	restartLanguageServer
@@ -23,12 +23,13 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate(): Thenable<void> | undefined {
-	client?.stop();
-	client = null;
-	return;
+	if (!client) {
+		return undefined;
+	}
+	return client.stop();
 }
 
-function startLanguageServer(context: vscode.ExtensionContext){
+function startLanguageServer(context: ExtensionContext){
 	const socket = net.connect({port:serverPort})
 	.on('connect', () => {
 		connectLanguageServer(context, socket);
@@ -39,15 +40,13 @@ function startLanguageServer(context: vscode.ExtensionContext){
 	})
 }
 
-function restartLanguageServer(context: vscode.ExtensionContext) {
-	let oldClient = client;
-	client = null;
-	oldClient?.stop().then(() => {
+function restartLanguageServer(context: ExtensionContext) {
+	client?.stop().then(() => {
 		startLanguageServer(context);
 	});
 }
 
-function createLanguageServer(context: vscode.ExtensionContext) {
+function createLanguageServer(context: ExtensionContext) {
 	const javaPath = findJavaExecutable('java');
 	const args = [
 		'-jar',
@@ -58,24 +57,8 @@ function createLanguageServer(context: vscode.ExtensionContext) {
 	const clientOptions: LanguageClientOptions = {
 		documentSelector: [{ scheme: 'file', language: 'zenscript' }],
 		synchronize: {
-			fileEvents: vscode.workspace.createFileSystemWatcher('**/.clientrc')
-		},
-
-		// Apache Licensed code from: https://github.com/GroovyLanguageServer/groovy-language-server
-		uriConverters: {
-            code2Protocol: (value: vscode.Uri) => {
-              if (/^win32/.test(process.platform)) {
-                //drive letters on Windows are encoded with %3A instead of :
-                //but Java doesn't treat them the same
-                return value.toString().replace("%3A", ":");
-              } else {
-                return value.toString();
-              }
-            },
-            //this is just the default behavior, but we need to define both
-            protocol2Code: (value) => vscode.Uri.parse(value),
+			fileEvents: workspace.createFileSystemWatcher('**/.clientrc')
 		}
-
 	};
 	const executable: Executable = {
 		command: javaPath,
@@ -87,11 +70,10 @@ function createLanguageServer(context: vscode.ExtensionContext) {
 		executable,
 		clientOptions
 	);
-	const disposable = client.start();
-	context.subscriptions.push(disposable);
+	client.start();
 }
 
-function connectLanguageServer(context: vscode.ExtensionContext, socket: net.Socket) {
+function connectLanguageServer(context: ExtensionContext, socket: net.Socket) {
 	const serverOptions: ServerOptions = () => {
 		return new Promise<StreamInfo>((resolve, reject) => {
 			resolve({writer: socket, reader: socket});
@@ -100,24 +82,8 @@ function connectLanguageServer(context: vscode.ExtensionContext, socket: net.Soc
 	const clientOptions: LanguageClientOptions = {
 		documentSelector: [{ scheme: 'file', language: 'zenscript' }],
 		synchronize: {
-			fileEvents: vscode.workspace.createFileSystemWatcher('**/.clientrc')
-		},
-
-		// Apache Licensed code from: https://github.com/GroovyLanguageServer/groovy-language-server
-		uriConverters: {
-            code2Protocol: (value: vscode.Uri) => {
-              if (/^win32/.test(process.platform)) {
-                //drive letters on Windows are encoded with %3A instead of :
-                //but Java doesn't treat them the same
-                return value.toString().replace("%3A", ":");
-              } else {
-                return value.toString();
-              }
-            },
-            //this is just the default behavior, but we need to define both
-            protocol2Code: (value) => vscode.Uri.parse(value),
+			fileEvents: workspace.createFileSystemWatcher('**/.clientrc')
 		}
-
 	};
 	client = new LanguageClient(
 		'zenscript',
@@ -125,8 +91,7 @@ function connectLanguageServer(context: vscode.ExtensionContext, socket: net.Soc
 		serverOptions,
 		clientOptions
 	);
-	const disposable = client.start();
-	context.subscriptions.push(disposable);
+	client.start();
 }
 
 // MIT Licensed code from: https://github.com/georgewfraser/vscode-javac
