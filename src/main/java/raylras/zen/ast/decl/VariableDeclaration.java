@@ -35,7 +35,7 @@ public class VariableDeclaration extends BaseNode implements Declaration, Locata
     }
 
     @Override
-    public List<Node> getChildren() {
+    public List<? extends Node> getChildren() {
         return Collections.emptyList();
     }
 

@@ -29,11 +29,8 @@ public final class ReturnStatement extends BaseNode implements Statement {
     }
 
     @Override
-    public List<Node> getChildren() {
-        if (expr == null) {
-            return Collections.emptyList();
-        }
-        return Collections.singletonList(expr);
+    public List<? extends Node> getChildren() {
+        return expr == null ? Collections.emptyList() : Collections.singletonList(expr);
     }
 
     @Override

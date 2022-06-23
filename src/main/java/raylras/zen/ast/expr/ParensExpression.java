@@ -28,7 +28,7 @@ public final class ParensExpression extends BaseNode implements Expression {
     }
 
     @Override
-    public List<Node> getChildren() {
+    public List<? extends Node> getChildren() {
         return Collections.singletonList(expr);
     }
 

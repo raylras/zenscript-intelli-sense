@@ -4,9 +4,8 @@ import raylras.zen.ast.BaseNode;
 import raylras.zen.ast.Node;
 import raylras.zen.ast.visit.NodeVisitor;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 public final class RangeExpression extends BaseNode implements Expression {
 
@@ -32,11 +31,8 @@ public final class RangeExpression extends BaseNode implements Expression {
     }
 
     @Override
-    public List<Node> getChildren() {
-        ArrayList<Node> children = new ArrayList<>();
-        children.add(from);
-        children.add(to);
-        return Collections.unmodifiableList(children);
+    public List<? extends Node> getChildren() {
+        return Stream.of(from, to).toList();
     }
 
     @Override

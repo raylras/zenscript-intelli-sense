@@ -5,9 +5,8 @@ import raylras.zen.ast.BaseNode;
 import raylras.zen.ast.Node;
 import raylras.zen.ast.visit.NodeVisitor;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 public final class MemberIndexExpression extends BaseNode implements Expression {
 
@@ -37,11 +36,8 @@ public final class MemberIndexExpression extends BaseNode implements Expression 
     }
 
     @Override
-    public List<Node> getChildren() {
-        ArrayList<Node> children = new ArrayList<>(2);
-        children.add(left);
-        children.add(index);
-        return Collections.unmodifiableList(children);
+    public List<? extends Node> getChildren() {
+        return Stream.of(left, index).toList();
     }
 
     @Override

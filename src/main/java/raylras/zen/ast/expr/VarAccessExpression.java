@@ -38,7 +38,7 @@ public final class VarAccessExpression extends BaseNode implements Expression, S
     }
 
     @Override
-    public List<Node> getChildren() {
+    public List<? extends Node> getChildren() {
         return Collections.emptyList();
     }
 

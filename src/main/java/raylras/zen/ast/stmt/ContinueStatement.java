@@ -15,7 +15,7 @@ public final class ContinueStatement extends BaseNode implements Statement {
     }
 
     @Override
-    public List<Node> getChildren() {
+    public List<? extends Node> getChildren() {
         return Collections.emptyList();
     }
 

@@ -50,7 +50,7 @@ public final class ImportDeclaration extends BaseNode implements Declaration, Lo
     }
 
     @Override
-    public List<Node> getChildren() {
+    public List<? extends Node> getChildren() {
         return alias == null ? Collections.emptyList() : Collections.singletonList(alias);
     }
 

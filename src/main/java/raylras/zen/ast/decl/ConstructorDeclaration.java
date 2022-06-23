@@ -6,10 +6,9 @@ import raylras.zen.ast.BlockNode;
 import raylras.zen.ast.Node;
 import raylras.zen.ast.visit.NodeVisitor;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class ConstructorDeclaration extends BaseNode implements Declaration {
 
@@ -39,11 +38,8 @@ public final class ConstructorDeclaration extends BaseNode implements Declaratio
     }
 
     @Override
-    public List<Node> getChildren() {
-        ArrayList<Node> children = new ArrayList<>(parameters.size() + 1);
-        children.addAll(parameters);
-        children.add(block);
-        return Collections.unmodifiableList(children);
+    public List<? extends Node> getChildren() {
+        return Stream.concat(parameters.stream(), Stream.of(block)).toList();
     }
 
     @Override

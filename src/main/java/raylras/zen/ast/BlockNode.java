@@ -27,7 +27,7 @@ public final class BlockNode extends BaseNode implements Statement {
     }
 
     @Override
-    public List<Node> getChildren() {
+    public List<? extends Node> getChildren() {
         return Collections.unmodifiableList(statements);
     }
 

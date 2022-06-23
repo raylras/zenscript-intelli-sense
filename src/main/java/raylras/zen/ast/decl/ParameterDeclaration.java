@@ -6,10 +6,8 @@ import raylras.zen.ast.*;
 import raylras.zen.ast.expr.Expression;
 import raylras.zen.ast.visit.NodeVisitor;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Stream;
 
 public final class ParameterDeclaration extends BaseNode implements Declaration, Variable, LocatableID {
 
@@ -47,14 +45,10 @@ public final class ParameterDeclaration extends BaseNode implements Declaration,
     }
 
     @Override
-    public List<Node> getChildren() {
-        if (typeDecl == null && defaultValue == null) {
-            return Collections.emptyList();
-        }
-        List<Node> children = new ArrayList<>(2);
-        if (typeDecl != null) children.add(typeDecl);
-        if (defaultValue != null) children.add(defaultValue);
-        return Collections.unmodifiableList(children);
+    public List<? extends Node> getChildren() {
+        return Stream.of(typeDecl, defaultValue)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
     @Override

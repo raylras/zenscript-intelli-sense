@@ -41,7 +41,7 @@ public final class AliasDeclaration extends BaseNode implements Declaration, Loc
     }
 
     @Override
-    public List<Node> getChildren() {
+    public List<? extends Node> getChildren() {
         return Collections.emptyList();
     }
 

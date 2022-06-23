@@ -12,10 +12,8 @@ import raylras.zen.ast.expr.Expression;
 import raylras.zen.ast.type.Type;
 import raylras.zen.ast.visit.NodeVisitor;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Stream;
 
 public class VariableDeclStatement extends BaseNode implements Declaration, Statement, LocatableID {
 
@@ -89,14 +87,8 @@ public class VariableDeclStatement extends BaseNode implements Declaration, Stat
     }
 
     @Override
-    public List<Node> getChildren() {
-        if (typeDecl == null && expr == null) {
-            return Collections.emptyList();
-        }
-        List<Node> children = new ArrayList<>(2);
-        if (typeDecl != null) children.add(typeDecl);
-        if (expr != null) children.add(expr);
-        return Collections.unmodifiableList(children);
+    public List<? extends Node> getChildren() {
+        return Stream.of(typeDecl, expr).filter(Objects::nonNull).toList();
     }
 
     @Override

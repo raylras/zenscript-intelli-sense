@@ -7,11 +7,9 @@ import raylras.zen.ast.type.FunctionType;
 import raylras.zen.ast.type.Type;
 import raylras.zen.ast.visit.NodeVisitor;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class FunctionDeclaration extends BaseNode implements Declaration, LocatableID {
 
@@ -67,14 +65,11 @@ public final class FunctionDeclaration extends BaseNode implements Declaration, 
     }
 
     @Override
-    public List<Node> getChildren() {
-        List<Node> children = new ArrayList<>(parameters.size() + (resultType == null ? 0 : 1) + 1);
-        children.addAll(parameters);
-        if (resultType != null) {
-            children.add(resultType);
-        }
-        children.add(block);
-        return Collections.unmodifiableList(children);
+    public List<? extends Node> getChildren() {
+        return Stream.concat(
+                parameters.stream(),
+                Stream.of(resultType, block).filter(Objects::nonNull)
+        ).toList();
     }
 
     @Override

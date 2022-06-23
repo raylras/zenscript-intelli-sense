@@ -29,7 +29,7 @@ public final class ExpressionStatement extends BaseNode implements Statement {
     }
 
     @Override
-    public List<Node> getChildren() {
+    public List<? extends Node> getChildren() {
         return Collections.singletonList(expr);
     }
 

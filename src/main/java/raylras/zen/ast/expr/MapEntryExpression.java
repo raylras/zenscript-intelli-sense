@@ -5,9 +5,8 @@ import raylras.zen.ast.BaseNode;
 import raylras.zen.ast.Node;
 import raylras.zen.ast.visit.NodeVisitor;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 public final class MapEntryExpression extends BaseNode implements Expression {
 
@@ -37,11 +36,8 @@ public final class MapEntryExpression extends BaseNode implements Expression {
     }
 
     @Override
-    public List<Node> getChildren() {
-        ArrayList<Node> children = new ArrayList<>(2);
-        children.add(key);
-        children.add(value);
-        return Collections.unmodifiableList(children);
+    public List<? extends Node> getChildren() {
+        return Stream.of(key, value).toList();
     }
 
     @Override

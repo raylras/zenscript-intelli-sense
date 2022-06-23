@@ -1,5 +1,6 @@
 package raylras.zen.ast;
 
+import org.jetbrains.annotations.NotNull;
 import raylras.zen.ast.decl.FunctionDeclaration;
 import raylras.zen.ast.decl.ImportDeclaration;
 import raylras.zen.ast.decl.ZenClassDeclaration;
@@ -8,39 +9,50 @@ import raylras.zen.ast.stmt.VariableDeclStatement;
 import raylras.zen.ast.visit.NodeVisitor;
 
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class ScriptNode extends BaseNode {
 
+    @NotNull
     private final List<ImportDeclaration> imports;
+    @NotNull
     private final List<FunctionDeclaration> functions;
+    @NotNull
     private final List<ZenClassDeclaration> zenClasses;
+    @NotNull
     private final List<Statement> statements;
 
     private URI uri;
 
-    public ScriptNode(List<ImportDeclaration> imports, List<FunctionDeclaration> functions, List<ZenClassDeclaration> zenClasses, List<Statement> statements) {
+    public ScriptNode(
+            @NotNull List<ImportDeclaration> imports,
+            @NotNull List<FunctionDeclaration> functions,
+            @NotNull List<ZenClassDeclaration> zenClasses,
+            @NotNull List<Statement> statements) {
         this.imports = imports;
         this.functions = functions;
         this.zenClasses = zenClasses;
         this.statements = statements;
     }
 
+    @NotNull
     public List<ImportDeclaration> getImports() {
         return imports;
     }
 
+    @NotNull
     public List<FunctionDeclaration> getFunctions() {
         return functions;
     }
 
+    @NotNull
     public List<ZenClassDeclaration> getZenClasses() {
         return zenClasses;
     }
 
+    @NotNull
     public List<Statement> getStatements() {
         return statements;
     }
@@ -69,19 +81,33 @@ public final class ScriptNode extends BaseNode {
         this.uri = uri;
     }
 
+    public Node getNodeAtPosition(Position pos) {
+        Queue<Node> queue = new ArrayDeque<>(getChildren());
+        List<Node> result = new ArrayList<>();
+        while (!queue.isEmpty()) {
+            Node node = queue.poll();
+            if (node.getRange().contains(pos)) {
+                queue.clear();
+                result.add(node);
+                var children = node.getChildren();
+                if (!children.isEmpty()) {
+                    queue.addAll(children);
+                }
+            }
+        }
+        return result.isEmpty() ? null : result.get(result.size() - 1);
+    }
+
     @Override
     public <T> T accept(NodeVisitor<? extends T> visitor) {
         return visitor.visit(this);
     }
 
     @Override
-    public List<Node> getChildren() {
-        ArrayList<Node> children = new ArrayList<>(imports.size() + functions.size() + zenClasses.size() + statements.size());
-        children.addAll(imports);
-        children.addAll(functions);
-        children.addAll(zenClasses);
-        children.addAll(statements);
-        return Collections.unmodifiableList(children);
+    public List<? extends Node> getChildren() {
+        return Stream.of(imports, functions, zenClasses, statements)
+                .flatMap(Collection::stream)
+                .toList();
     }
 
     @Override

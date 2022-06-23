@@ -31,7 +31,7 @@ public final class TypeDeclaration extends BaseNode implements Declaration, Symb
     }
 
     @Override
-    public List<Node> getChildren() {
+    public List<? extends Node> getChildren() {
         return Collections.emptyList();
     }
 

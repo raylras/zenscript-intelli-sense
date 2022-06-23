@@ -8,10 +8,9 @@ import raylras.zen.ast.decl.VariableDeclaration;
 import raylras.zen.ast.expr.Expression;
 import raylras.zen.ast.visit.NodeVisitor;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class ForeachStatement extends BaseNode implements Statement {
 
@@ -49,12 +48,11 @@ public final class ForeachStatement extends BaseNode implements Statement {
     }
 
     @Override
-    public List<Node> getChildren() {
-        ArrayList<Node> children = new ArrayList<>(variables.size() + 2);
-        children.addAll(variables);
-        children.add(expr);
-        children.add(block);
-        return Collections.unmodifiableList(children);
+    public List<? extends Node> getChildren() {
+        return Stream.concat(
+                variables.stream(),
+                Stream.of(expr, block)
+        ).toList();
     }
 
     @Override

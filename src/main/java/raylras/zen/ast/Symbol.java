@@ -38,7 +38,7 @@ public final class Symbol {
         return uri;
     }
 
-    public List<Node> getReferences() {
+    public List<? extends Node> getReferences() {
         return references;
     }
 

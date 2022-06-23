@@ -29,7 +29,7 @@ public final class MapLiteral extends BaseNode implements Expression {
     }
 
     @Override
-    public List<Node> getChildren() {
+    public List<? extends Node> getChildren() {
         return Collections.unmodifiableList(entries);
     }
 

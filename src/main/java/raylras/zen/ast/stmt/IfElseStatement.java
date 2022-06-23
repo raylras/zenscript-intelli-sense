@@ -7,10 +7,8 @@ import raylras.zen.ast.Node;
 import raylras.zen.ast.expr.Expression;
 import raylras.zen.ast.visit.NodeVisitor;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Stream;
 
 public final class IfElseStatement extends BaseNode implements Statement {
 
@@ -47,14 +45,8 @@ public final class IfElseStatement extends BaseNode implements Statement {
     }
 
     @Override
-    public List<Node> getChildren() {
-        ArrayList<Node> children = new ArrayList<>(2 + (elseStmt == null ? 0 : 1));
-        children.add(condition);
-        children.add(thenStmt);
-        if (elseStmt != null) {
-            children.add(elseStmt);
-        }
-        return Collections.unmodifiableList(children);
+    public List<? extends Node> getChildren() {
+        return Stream.of(condition, elseStmt, thenStmt).filter(Objects::nonNull).toList();
     }
 
     @Override

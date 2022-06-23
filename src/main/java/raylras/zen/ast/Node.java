@@ -17,8 +17,6 @@ public interface Node {
 
     void setType(Type type);
 
-    List<Node> getChildren();
-
-
+    List<? extends Node> getChildren();
 
 }

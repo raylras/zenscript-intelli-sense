@@ -5,10 +5,9 @@ import raylras.zen.ast.BaseNode;
 import raylras.zen.ast.Node;
 import raylras.zen.ast.visit.NodeVisitor;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class ArgumentsExpression extends BaseNode implements Expression {
 
@@ -38,11 +37,11 @@ public final class ArgumentsExpression extends BaseNode implements Expression {
     }
 
     @Override
-    public List<Node> getChildren() {
-        ArrayList<Node> children = new ArrayList<>(1 + arguments.size());
-        children.add(left);
-        children.addAll(arguments);
-        return Collections.unmodifiableList(children);
+    public List<? extends Node> getChildren() {
+        return Stream.concat(
+                Stream.of(left),
+                arguments.stream()
+        ).toList();
     }
 
     @Override

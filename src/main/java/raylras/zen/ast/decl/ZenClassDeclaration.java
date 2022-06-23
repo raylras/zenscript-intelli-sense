@@ -8,9 +8,9 @@ import raylras.zen.ast.Range;
 import raylras.zen.ast.stmt.VariableDeclStatement;
 import raylras.zen.ast.visit.NodeVisitor;
 
-import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.List;
+import java.util.stream.Stream;
 
 public final class ZenClassDeclaration extends BaseNode implements Declaration, LocatableID {
 
@@ -71,12 +71,10 @@ public final class ZenClassDeclaration extends BaseNode implements Declaration, 
     }
 
     @Override
-    public List<Node> getChildren() {
-        ArrayList<Node> children = new ArrayList<>(properties.size() + constructors.size() + functions.size());
-        children.addAll(properties);
-        children.addAll(constructors);
-        children.addAll(functions);
-        return Collections.unmodifiableList(children);
+    public List<? extends Node> getChildren() {
+        return Stream.of(properties, constructors, functions)
+                .flatMap(Collection::stream)
+                .toList();
     }
 
     @Override
