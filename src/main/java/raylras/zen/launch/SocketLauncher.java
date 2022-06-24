@@ -7,42 +7,39 @@ import raylras.zen.lsp.ZenScriptLanguageServer;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
-public class SocketLauncher {
+public class SocketLauncher implements ServerLauncher {
 
     public static final int DEFAULT_SOCKET_PORT = 9865;
-    private Socket socket;
     private final Executor executor = Executors.newSingleThreadExecutor();
 
-    public static void start() {
-        new SocketLauncher().launchServer();
-    }
-
     public void launchServer() {
-        CompletableFuture.runAsync(() -> System.out.println("Waiting language client..."), executor)
-                .thenRunAsync(() -> {
-                    try (ServerSocket serverSocket = new ServerSocket(DEFAULT_SOCKET_PORT)) {
-                        socket = serverSocket.accept();
-                    } catch (IOException e) {
-                        e.printStackTrace();
+        System.out.println("Waiting language client...");
+        CompletableFuture.supplyAsync(() -> {
+                    while (true) {
+                        try (ServerSocket serverSocket = new ServerSocket(DEFAULT_SOCKET_PORT)) {
+                            return serverSocket.accept();
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                            Thread.yield();
+                        }
                     }
                 }, executor)
-                .thenRunAsync(() -> {
+                .thenApply(socket -> {
                     System.out.println("Found a language client from " + socket.getRemoteSocketAddress() + ", starting the language server");
                     ZenScriptLanguageServer server = new ZenScriptLanguageServer();
-                    try {
+                    try(socket) {
                         Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(server, socket.getInputStream(), socket.getOutputStream());
                         server.getServices().setClient(launcher.getRemoteProxy());
                         launcher.startListening().get();
-                        socket.close();
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-                }, executor)
+                    return null;
+                })
                 .thenRunAsync(this::launchServer, executor);
     }
 

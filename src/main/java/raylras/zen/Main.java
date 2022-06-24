@@ -1,5 +1,6 @@
 package raylras.zen;
 
+import raylras.zen.launch.ServerLauncher;
 import raylras.zen.launch.SocketLauncher;
 import raylras.zen.launch.StandardIOLauncher;
 
@@ -7,11 +8,13 @@ import java.util.Arrays;
 
 public class Main {
     public static void main(String[] args) {
+        ServerLauncher launcher;
         if (Arrays.asList(args).contains("-standard-io")) {
-            StandardIOLauncher.start();
+            launcher = new StandardIOLauncher();
         } else {
-            SocketLauncher.start();
+            launcher = new SocketLauncher();
         }
+        launcher.launchServer();
     }
 
 }
