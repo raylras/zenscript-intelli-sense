@@ -56,9 +56,8 @@
 		"compile": "tsc -b",
 		"watch": "tsc -b -w",
 		"yaml2json": "cd ./src && yamljson zenscript.tmLanguage.yaml > ../language/zenscript.tmLanguage.json",
-		"buildServer": "cd .. && gradlew build",
-		"copyServer": "@powershell cp ../build/libs/zenscript-language-server-*-all.jar ./server/zenscript-language-server.jar",
-		"build": "npm install && npm run buildServer && npm run copyServer && npm run yaml2json && vsce package"
+		"buildServer": "cd .. && gradlew build && gradlew copyServer",
+		"build": "npm install && npm run buildServer && npm run yaml2json && vsce package"
 	},
 	"dependencies": {
 		"vscode-languageclient": "^8.0.1"

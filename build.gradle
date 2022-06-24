@@ -65,3 +65,11 @@ shadowJar {
 
 jar.enabled = false
 build.dependsOn(shadowJar)
+
+task copyServer(type: Copy) {
+    from("${getBuildDir()}/libs") {
+        include "${rootProject.name}*.jar"
+    }
+    into './vscode-extension/server'
+    rename(/${rootProject.name}.*\.jar/, "${rootProject.name}.jar")
+}
