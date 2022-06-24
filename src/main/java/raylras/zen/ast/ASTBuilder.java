@@ -140,7 +140,7 @@ public final class ASTBuilder extends ZenScriptParserBaseVisitor<ScriptNode> {
         popScope();
 
         ScriptNode script = new ScriptNode(imports, functions, zenClasses, statements);
-        script.setRange(PosUtils.makeASTRange(ctx));
+        script.setRange(Range.of(ctx));
 
         return script;
     }

@@ -1,5 +1,6 @@
 package raylras.zen.ast;
 
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.jetbrains.annotations.NotNull;
 import raylras.zen.util.PosUtils;
 
@@ -39,8 +40,8 @@ public record Range(int line, int column, int lastLine, int lastColumn) {
         return String.format("<%d:%d-%d:%d>", line, column, lastLine, lastColumn);
     }
 
-    public static void test() {
-        new Range();
+    public static Range of(ParserRuleContext ctx) {
+        return PosUtils.makeASTRange(ctx);
     }
 
 }

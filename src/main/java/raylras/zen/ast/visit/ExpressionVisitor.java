@@ -5,11 +5,11 @@ import raylras.zen.antlr.ZenScriptParser;
 import raylras.zen.antlr.ZenScriptParserBaseVisitor;
 import raylras.zen.ast.ASTBuilder;
 import raylras.zen.ast.BlockNode;
+import raylras.zen.ast.Range;
 import raylras.zen.ast.Symbol;
 import raylras.zen.ast.decl.ParameterDeclaration;
 import raylras.zen.ast.expr.*;
 import raylras.zen.ast.type.*;
-import raylras.zen.util.PosUtils;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -41,7 +41,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
         String right = ctx.Right.getText();
 
         MemberAccess memberAccess = new MemberAccess(left, right);
-        memberAccess.setRange(PosUtils.makeASTRange(ctx.identifier()));
+        memberAccess.setRange(Range.of(ctx.identifier()));
 
         return memberAccess;
     }
@@ -53,7 +53,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
         List<MapEntryExpression> entries = ctx.mapEntry().stream().map(this::visitMapEntry).collect(Collectors.toList());
 
         MapLiteral mapExpr = new MapLiteral(entries);
-        mapExpr.setRange(PosUtils.makeASTRange(ctx));
+        mapExpr.setRange(Range.of(ctx));
 
         return mapExpr;
     }
@@ -65,7 +65,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
         String literal = ctx.getText();
 
         BracketHandler bracketExpr = new BracketHandler(literal);
-        bracketExpr.setRange(PosUtils.makeASTRange(ctx));
+        bracketExpr.setRange(Range.of(ctx));
 
         return bracketExpr;
     }
@@ -77,7 +77,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
         Expression expr = ctx.expression().accept(this);
 
         TypeCastExpression castExpr = new TypeCastExpression(expr);
-        castExpr.setRange(PosUtils.makeASTRange(ctx));
+        castExpr.setRange(Range.of(ctx));
 
         return castExpr;
     }
@@ -109,7 +109,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
         }
         if (literal != null) {
             literal.setType(type);
-            literal.setRange(PosUtils.makeASTRange(ctx.literal()));
+            literal.setRange(Range.of(ctx.literal()));
         }
 
         return literal;
@@ -122,7 +122,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
         List<Expression> elements = ctx.expression().stream().map(this::visitExpression).collect(Collectors.toList());
 
         ArrayLiteral arrayExpr = new ArrayLiteral(elements);
-        arrayExpr.setRange(PosUtils.makeASTRange(ctx));
+        arrayExpr.setRange(Range.of(ctx));
 
         return arrayExpr;
     }
@@ -135,7 +135,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
         Operator.Unary operator = Operator.getUnary(ctx.Operator.getText());
 
         UnaryExpression unary = new UnaryExpression(expr, operator);
-        unary.setRange(PosUtils.makeASTRange(ctx));
+        unary.setRange(Range.of(ctx));
 
         return unary;
     }
@@ -148,7 +148,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
         Expression to = ctx.To.accept(this);
 
         RangeExpression rangeExpr = new RangeExpression(from, to);
-        rangeExpr.setRange(PosUtils.makeASTRange(ctx));
+        rangeExpr.setRange(Range.of(ctx));
 
         return rangeExpr;
     }
@@ -161,7 +161,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
         Expression index = ctx.Index.accept(this);
 
         MemberIndexExpression indexExpr = new MemberIndexExpression(left, index);
-        indexExpr.setRange(PosUtils.makeASTRange(ctx));
+        indexExpr.setRange(Range.of(ctx));
 
         return indexExpr;
     }
@@ -180,7 +180,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
         List<Expression> arguments = ctx.expression().stream().skip(1).map(this::visitExpression).collect(Collectors.toList());
 
         ArgumentsExpression argsExpr = new ArgumentsExpression(left, arguments);
-        argsExpr.setRange(PosUtils.makeASTRange(ctx));
+        argsExpr.setRange(Range.of(ctx));
 
         return argsExpr;
     }
@@ -190,7 +190,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
         if (ctx == null) return null;
 
         ThisExpression thisExpr = new ThisExpression();
-        thisExpr.setRange(PosUtils.makeASTRange(ctx));
+        thisExpr.setRange(Range.of(ctx));
 
         return thisExpr;
     }
@@ -205,7 +205,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
         builder.popScope();
 
         FunctionExpression funcExpr = new FunctionExpression(params, block);
-        funcExpr.setRange(PosUtils.makeASTRange(ctx));
+        funcExpr.setRange(Range.of(ctx));
 
         return funcExpr;
     }
@@ -219,7 +219,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
         Operator.Binary operator = Operator.getBinary(ctx.Operator.getText());
 
         BinaryExpression binary = new BinaryExpression(left, right, operator);
-        binary.setRange(PosUtils.makeASTRange(ctx));
+        binary.setRange(Range.of(ctx));
 
         return binary;
     }
@@ -233,7 +233,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
         Operator.Assignment operator = Operator.getAssignment(ctx.Operator.getText());
 
         AssignmentExpression assignExpr = new AssignmentExpression(left, right, operator);
-        assignExpr.setRange(PosUtils.makeASTRange(ctx));
+        assignExpr.setRange(Range.of(ctx));
 
         return assignExpr;
     }
@@ -246,7 +246,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
 
         VarAccessExpression varAccess = new VarAccessExpression(ctx.identifier().getText());
         varAccess.setSymbol(symbol);
-        varAccess.setRange(PosUtils.makeASTRange(ctx));
+        varAccess.setRange(Range.of(ctx));
 
         return varAccess;
     }
@@ -260,7 +260,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
         Expression elseExpr = ctx.Else.accept(this);
 
         TernaryExpression ternary = new TernaryExpression(condition, thenExpr, elseExpr);
-        ternary.setRange(PosUtils.makeASTRange(ctx));
+        ternary.setRange(Range.of(ctx));
 
         return ternary;
     }
@@ -281,7 +281,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
                     .map(symbol -> ctx.Key.accept(this))
                     .orElseGet(() -> {
                         StringLiteral stringExpr = new StringLiteral(idCtx.getText());
-                        stringExpr.setRange(PosUtils.makeASTRange(idCtx));
+                        stringExpr.setRange(Range.of(idCtx));
                         return stringExpr;
                     });
         } else {
@@ -294,7 +294,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
                     .map(symbol -> ctx.Value.accept(this))
                     .orElseGet(() -> {
                         StringLiteral stringExpr = new StringLiteral(idCtx.getText());
-                        stringExpr.setRange(PosUtils.makeASTRange(idCtx));
+                        stringExpr.setRange(Range.of(idCtx));
                         return stringExpr;
                     });
         } else {
@@ -302,7 +302,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
         }
 
         MapEntryExpression entry = new MapEntryExpression(key, value);
-        entry.setRange(PosUtils.makeASTRange(ctx));
+        entry.setRange(Range.of(ctx));
 
         return entry;
     }

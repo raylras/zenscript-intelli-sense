@@ -5,6 +5,7 @@ import raylras.zen.antlr.ZenScriptParser;
 import raylras.zen.antlr.ZenScriptParserBaseVisitor;
 import raylras.zen.ast.ASTBuilder;
 import raylras.zen.ast.BlockNode;
+import raylras.zen.ast.Range;
 import raylras.zen.ast.decl.TypeDeclaration;
 import raylras.zen.ast.decl.VariableDeclaration;
 import raylras.zen.ast.expr.Expression;
@@ -12,8 +13,6 @@ import raylras.zen.ast.stmt.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static raylras.zen.util.PosUtils.makeASTRange;
 
 public final class StatementVisitor extends ZenScriptParserBaseVisitor<Statement> {
 
@@ -38,7 +37,7 @@ public final class StatementVisitor extends ZenScriptParserBaseVisitor<Statement
         builder.popScope();
 
         BlockNode block = new BlockNode(statements);
-        block.setRange(makeASTRange(ctx));
+        block.setRange(Range.of(ctx));
 
         return block;
     }
@@ -56,7 +55,7 @@ public final class StatementVisitor extends ZenScriptParserBaseVisitor<Statement
         Expression expr = builder.getExprVisitor().visitExpression(ctx.expression());
 
         ReturnStatement returnStmt = new ReturnStatement(expr);
-        returnStmt.setRange(makeASTRange(ctx));
+        returnStmt.setRange(Range.of(ctx));
 
         return returnStmt;
     }
@@ -66,7 +65,7 @@ public final class StatementVisitor extends ZenScriptParserBaseVisitor<Statement
         if (ctx == null) return null;
 
         BreakStatement breakStmt = new BreakStatement();
-        breakStmt.setRange(makeASTRange(ctx));
+        breakStmt.setRange(Range.of(ctx));
 
         return breakStmt;
     }
@@ -76,7 +75,7 @@ public final class StatementVisitor extends ZenScriptParserBaseVisitor<Statement
         if (ctx == null) return null;
 
         ContinueStatement contStmt = new ContinueStatement();
-        contStmt.setRange(makeASTRange(ctx));
+        contStmt.setRange(Range.of(ctx));
 
         return contStmt;
     }
@@ -90,7 +89,7 @@ public final class StatementVisitor extends ZenScriptParserBaseVisitor<Statement
         Statement elseStmt = this.visitStatement(ctx.statement(1));
 
         IfElseStatement ifStmt = new IfElseStatement(condition, thenStmt, elseStmt);
-        ifStmt.setRange(makeASTRange(ctx));
+        ifStmt.setRange(Range.of(ctx));
 
         return ifStmt;
     }
@@ -106,7 +105,7 @@ public final class StatementVisitor extends ZenScriptParserBaseVisitor<Statement
         builder.popScope();
 
         ForeachStatement foreachStmt = new ForeachStatement(varDecls, expr, block);
-        foreachStmt.setRange(makeASTRange(ctx));
+        foreachStmt.setRange(Range.of(ctx));
 
         return foreachStmt;
     }
@@ -119,7 +118,7 @@ public final class StatementVisitor extends ZenScriptParserBaseVisitor<Statement
         BlockNode block = this.visitBlock(ctx.block());
 
         WhileStatement whileStmt = new WhileStatement(condition, block);
-        whileStmt.setRange(makeASTRange(ctx));
+        whileStmt.setRange(Range.of(ctx));
 
         return whileStmt;
     }
@@ -133,8 +132,8 @@ public final class StatementVisitor extends ZenScriptParserBaseVisitor<Statement
         TypeDeclaration typeDecl = builder.getDeclVisitor().visitTypeDeclaration(ctx.type());
 
         VariableDeclStatement varDecl = new VariableDeclStatement(name, typeDecl, expr);
-        varDecl.setRange(makeASTRange(ctx));
-        varDecl.setIdRange(makeASTRange(ctx.identifier()));
+        varDecl.setRange(Range.of(ctx));
+        varDecl.setIdRange(Range.of(ctx.identifier()));
         switch (ctx.Modifier.getType()) {
             case ZenScriptLexer.GLOBAL:
                 varDecl.setGlobal(true);
@@ -156,7 +155,7 @@ public final class StatementVisitor extends ZenScriptParserBaseVisitor<Statement
         Expression expr = builder.getExprVisitor().visitExpression(ctx.expression());
 
         ExpressionStatement exprStmt = new ExpressionStatement(expr);
-        exprStmt.setRange(makeASTRange(ctx));
+        exprStmt.setRange(Range.of(ctx));
 
         return exprStmt;
     }

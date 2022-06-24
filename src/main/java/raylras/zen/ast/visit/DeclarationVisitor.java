@@ -4,6 +4,7 @@ import raylras.zen.antlr.ZenScriptParser;
 import raylras.zen.antlr.ZenScriptParserBaseVisitor;
 import raylras.zen.ast.ASTBuilder;
 import raylras.zen.ast.BlockNode;
+import raylras.zen.ast.Range;
 import raylras.zen.ast.decl.*;
 import raylras.zen.ast.expr.Expression;
 import raylras.zen.ast.stmt.VariableDeclStatement;
@@ -12,8 +13,6 @@ import raylras.zen.ast.type.Type;
 
 import java.util.List;
 import java.util.stream.Collectors;
-
-import static raylras.zen.util.PosUtils.makeASTRange;
 
 public final class DeclarationVisitor extends ZenScriptParserBaseVisitor<Declaration> {
 
@@ -35,8 +34,8 @@ public final class DeclarationVisitor extends ZenScriptParserBaseVisitor<Declara
 
         ImportDeclaration importDecl = new ImportDeclaration(ref, alias);
         importDecl.setType(type);
-        importDecl.setRange(makeASTRange(ctx));
-        importDecl.setIdRange(makeASTRange(ctx.reference()));
+        importDecl.setRange(Range.of(ctx));
+        importDecl.setIdRange(Range.of(ctx.reference()));
 
         builder.addSymbolToCurrentScope(simpleName, importDecl);
 
@@ -50,8 +49,8 @@ public final class DeclarationVisitor extends ZenScriptParserBaseVisitor<Declara
         String name = ctx.identifier().getText();
 
         AliasDeclaration alias = new AliasDeclaration(name);
-        alias.setRange(makeASTRange(ctx));
-        alias.setIdRange(makeASTRange(ctx.identifier()));
+        alias.setRange(Range.of(ctx));
+        alias.setIdRange(Range.of(ctx.identifier()));
 
         builder.addSymbolToCurrentScope(name, alias);
 
@@ -70,8 +69,8 @@ public final class DeclarationVisitor extends ZenScriptParserBaseVisitor<Declara
         builder.popScope();
 
         FunctionDeclaration funcDecl = new FunctionDeclaration(name, params, resultType, block);
-        funcDecl.setRange(makeASTRange(ctx));
-        funcDecl.setIdRange(makeASTRange(ctx.identifier()));
+        funcDecl.setRange(Range.of(ctx));
+        funcDecl.setIdRange(Range.of(ctx.identifier()));
 
         builder.addSymbolToCurrentScope(name, funcDecl);
 
@@ -87,8 +86,8 @@ public final class DeclarationVisitor extends ZenScriptParserBaseVisitor<Declara
         TypeDeclaration typeDecl = this.visitTypeDeclaration(ctx.type());
 
         ParameterDeclaration param = new ParameterDeclaration(name, typeDecl, defaultValue);
-        param.setRange(makeASTRange(ctx));
-        param.setIDRange(makeASTRange(ctx.identifier()));
+        param.setRange(Range.of(ctx));
+        param.setIDRange(Range.of(ctx.identifier()));
 
         builder.addSymbolToCurrentScope(name, param);
 
@@ -107,8 +106,8 @@ public final class DeclarationVisitor extends ZenScriptParserBaseVisitor<Declara
         builder.popScope();
 
         ZenClassDeclaration zenClass = new ZenClassDeclaration(name, propDecls, ctorDecls, funcDecls);
-        zenClass.setRange(makeASTRange(ctx));
-        zenClass.setIDRange(makeASTRange(ctx.identifier()));
+        zenClass.setRange(Range.of(ctx));
+        zenClass.setIDRange(Range.of(ctx.identifier()));
 
         builder.addSymbolToCurrentScope(name, zenClass);
 
@@ -125,7 +124,7 @@ public final class DeclarationVisitor extends ZenScriptParserBaseVisitor<Declara
         builder.popScope();
 
         ConstructorDeclaration ctor = new ConstructorDeclaration(params, block);
-        ctor.setRange(makeASTRange(ctx));
+        ctor.setRange(Range.of(ctx));
 
         return ctor;
     }
@@ -137,7 +136,7 @@ public final class DeclarationVisitor extends ZenScriptParserBaseVisitor<Declara
                 .map(symbol -> {
                     TypeDeclaration decl = new TypeDeclaration(symbol);
                     decl.setType(symbol.getNode().getType());
-                    decl.setRange(makeASTRange(ctx));
+                    decl.setRange(Range.of(ctx));
                     return decl;
                 })
                 .orElse(null);
@@ -148,7 +147,7 @@ public final class DeclarationVisitor extends ZenScriptParserBaseVisitor<Declara
 
         String name = ctx.getText();
         VariableDeclaration varDecl = new VariableDeclaration(name);
-        varDecl.setRange(makeASTRange(ctx));
+        varDecl.setRange(Range.of(ctx));
 
         builder.addSymbolToCurrentScope(name, varDecl);
 
