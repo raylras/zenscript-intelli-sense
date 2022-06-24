@@ -6,7 +6,6 @@ import raylras.zen.ast.Node;
 import raylras.zen.ast.expr.Expression;
 import raylras.zen.ast.visit.NodeVisitor;
 
-import java.util.Collections;
 import java.util.List;
 
 public final class ExpressionStatement extends BaseNode implements Statement {
@@ -30,7 +29,7 @@ public final class ExpressionStatement extends BaseNode implements Statement {
 
     @Override
     public List<? extends Node> getChildren() {
-        return Collections.singletonList(expr);
+        return List.of(expr);
     }
 
     @Override

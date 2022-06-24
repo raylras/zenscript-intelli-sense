@@ -12,9 +12,7 @@ import raylras.zen.control.ErrorCollector;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 public final class SourceUnit implements Comparable<SourceUnit> {
 
@@ -63,11 +61,10 @@ public final class SourceUnit implements Comparable<SourceUnit> {
             ZenScriptParser parser = new ZenScriptParser(tokens);
             this.cst = parser.scriptUnit();
 
-            List<String> preps = tokens.getTokens().stream()
+            preprocessors = tokens.getTokens().stream()
                     .filter(token -> token.getChannel() == ZenScriptLexer.PREPROCESSOR_CHANNEL)
                     .map(Token::getText)
-                    .collect(Collectors.toList());
-            preprocessors = Collections.unmodifiableList(preps);
+                    .toList();
 
             priority = preprocessors.stream()
                     .filter(prep -> prep.startsWith("#priority"))
@@ -85,8 +82,8 @@ public final class SourceUnit implements Comparable<SourceUnit> {
     }
 
     @Override
-    public int compareTo(@NotNull SourceUnit o) {
-        return o.getPriority() - this.getPriority();
+    public int compareTo(@NotNull SourceUnit that) {
+        return that.getPriority() - this.getPriority();
     }
 
 }

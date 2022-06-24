@@ -1,14 +1,10 @@
 package raylras.zen.ast.type;
 
-public final class StringType implements Type {
-
-    public static final StringType INSTANCE = new StringType();
-
-    private StringType() {}
+public record StringType() implements Type {
 
     @Override
-    public boolean equivalent(Type that) {
-        return INSTANCE == that;
+    public boolean equivalent(Type type) {
+        return type instanceof StringType;
     }
 
     @Override

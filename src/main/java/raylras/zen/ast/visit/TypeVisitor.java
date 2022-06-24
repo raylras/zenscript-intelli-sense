@@ -18,44 +18,18 @@ public final class TypeVisitor extends ZenScriptParserBaseVisitor<Type> {
     public Type visitBuiltinType(ZenScriptParser.BuiltinTypeContext ctx) {
         if (ctx == null) return null;
 
-        switch (ctx.getStart().getType()) {
-            case ZenScriptLexer.BOOL:
-            case ZenScriptLexer.BOOL_OBJ:
-                return Types.BOOL;
-
-            case ZenScriptLexer.BYTE:
-            case ZenScriptLexer.BYTE_OBJ:
-                return Types.BYTE;
-
-            case ZenScriptLexer.SHORT:
-            case ZenScriptLexer.SHORT_OBJ:
-                return Types.SHORT;
-
-            case ZenScriptLexer.INT:
-            case ZenScriptLexer.INT_OBJ:
-                return Types.INT;
-
-            case ZenScriptLexer.LONG:
-            case ZenScriptLexer.LONG_OBJ:
-                return Types.LONG;
-
-            case ZenScriptLexer.FLOAT:
-            case ZenScriptLexer.FLOAT_OBJ:
-                return Types.FLOAT;
-
-            case ZenScriptLexer.DOUBLE:
-            case ZenScriptLexer.DOUBLE_OBJ:
-                return Types.DOUBLE;
-
-            case ZenScriptLexer.VOID:
-                return Types.VOID;
-
-            case ZenScriptLexer.STRING:
-                return Types.STRING;
-
-            default:
-                return null;
-        }
+        return switch (ctx.getStart().getType()) {
+            case ZenScriptLexer.BOOL, ZenScriptLexer.BOOL_OBJ -> Types.BOOL;
+            case ZenScriptLexer.BYTE, ZenScriptLexer.BYTE_OBJ -> Types.BYTE;
+            case ZenScriptLexer.SHORT, ZenScriptLexer.SHORT_OBJ -> Types.SHORT;
+            case ZenScriptLexer.INT, ZenScriptLexer.INT_OBJ -> Types.INT;
+            case ZenScriptLexer.LONG, ZenScriptLexer.LONG_OBJ -> Types.LONG;
+            case ZenScriptLexer.FLOAT, ZenScriptLexer.FLOAT_OBJ -> Types.FLOAT;
+            case ZenScriptLexer.DOUBLE, ZenScriptLexer.DOUBLE_OBJ -> Types.DOUBLE;
+            case ZenScriptLexer.VOID -> Types.VOID;
+            case ZenScriptLexer.STRING -> Types.STRING;
+            default -> null;
+        };
     }
 
     @Override

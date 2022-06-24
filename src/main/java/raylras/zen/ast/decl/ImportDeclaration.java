@@ -8,7 +8,6 @@ import raylras.zen.ast.Node;
 import raylras.zen.ast.Range;
 import raylras.zen.ast.visit.NodeVisitor;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -51,7 +50,7 @@ public final class ImportDeclaration extends BaseNode implements Declaration, Lo
 
     @Override
     public List<? extends Node> getChildren() {
-        return alias == null ? Collections.emptyList() : Collections.singletonList(alias);
+        return alias == null ? List.of() : List.of(alias);
     }
 
     @Override

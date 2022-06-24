@@ -1,14 +1,10 @@
 package raylras.zen.ast.type;
 
-public final class ShortType implements Type {
-
-    public static final ShortType INSTANCE = new ShortType();
-
-    private ShortType() {}
+public record ShortType() implements Type {
 
     @Override
-    public boolean equivalent(Type that) {
-        return INSTANCE == that;
+    public boolean equivalent(Type type) {
+        return type instanceof ShortType;
     }
 
     @Override

@@ -1,15 +1,13 @@
 package raylras.zen.ast.type;
 
-public final class ListType implements Type {
+public record ListType(Type base) implements Type {
 
-    private final Type base;
-
-    public ListType(Type base) {
-        this.base = base;
-    }
-
-    public Type getBase() {
-        return base;
+    @Override
+    public boolean equivalent(Type type) {
+        if (type instanceof ListType that) {
+            return this.base.equivalent(that.base);
+        }
+        return false;
     }
 
     @Override

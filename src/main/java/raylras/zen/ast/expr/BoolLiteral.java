@@ -5,7 +5,6 @@ import raylras.zen.ast.Node;
 import raylras.zen.ast.type.Types;
 import raylras.zen.ast.visit.NodeVisitor;
 
-import java.util.Collections;
 import java.util.List;
 
 public final class BoolLiteral extends BaseNode implements Expression {
@@ -28,7 +27,7 @@ public final class BoolLiteral extends BaseNode implements Expression {
 
     @Override
     public List<? extends Node> getChildren() {
-        return Collections.emptyList();
+        return List.of();
     }
 
     @Override

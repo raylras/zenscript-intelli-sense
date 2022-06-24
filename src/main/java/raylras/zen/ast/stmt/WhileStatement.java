@@ -8,7 +8,6 @@ import raylras.zen.ast.expr.Expression;
 import raylras.zen.ast.visit.NodeVisitor;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 public final class WhileStatement extends BaseNode implements Statement {
 
@@ -39,7 +38,7 @@ public final class WhileStatement extends BaseNode implements Statement {
 
     @Override
     public List<? extends Node> getChildren() {
-        return Stream.of(condition, block).toList();
+        return List.of(condition, block);
     }
 
     @Override

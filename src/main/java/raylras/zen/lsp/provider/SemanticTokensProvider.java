@@ -194,7 +194,7 @@ public class SemanticTokensProvider {
             org.eclipse.lsp4j.Range lspRange = PosUtils.toLSPRange(range);
             int line = lspRange.getStart().getLine();
             int column = lspRange.getStart().getCharacter();
-            int length = range.getLastColumn() - range.getColumn();
+            int length = range.lastColumn() - range.column();
             int modifiers = TokenModifier.toBitFlag(tokenModifiers);
             SemanticToken token = new SemanticToken(line, column, length, tokenType, modifiers);
             semanticTokenSet.add(token);
@@ -205,7 +205,7 @@ public class SemanticTokensProvider {
             org.eclipse.lsp4j.Range lspRange = PosUtils.toLSPRange(range);
             int line = lspRange.getStart().getLine();
             int column = lspRange.getStart().getCharacter();
-            int length = range.getLastColumn() - range.getColumn();
+            int length = range.lastColumn() - range.column();
             SemanticToken token = new SemanticToken(line, column, length, tokenType, modifiers);
             semanticTokenSet.add(token);
             return token;

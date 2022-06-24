@@ -8,7 +8,6 @@ import raylras.zen.ast.Symbol;
 import raylras.zen.ast.Symbolized;
 import raylras.zen.ast.visit.NodeVisitor;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -39,7 +38,7 @@ public final class VarAccessExpression extends BaseNode implements Expression, S
 
     @Override
     public List<? extends Node> getChildren() {
-        return Collections.emptyList();
+        return List.of();
     }
 
     @Override

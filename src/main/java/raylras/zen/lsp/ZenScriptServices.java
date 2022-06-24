@@ -9,13 +9,10 @@ import raylras.zen.ast.CompileUnit;
 import raylras.zen.ast.Node;
 import raylras.zen.ast.Position;
 import raylras.zen.ast.ScriptNode;
-import raylras.zen.ast.expr.BracketHandler;
 import raylras.zen.lsp.provider.DocumentSymbolProvider;
 import raylras.zen.lsp.provider.SemanticTokensProvider;
-import raylras.zen.util.PosUtils;
 
 import java.io.StringReader;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -116,14 +113,18 @@ public class ZenScriptServices implements TextDocumentService, WorkspaceService 
     @Override
     public CompletableFuture<Hover> hover(HoverParams params) {
         ScriptNode scriptNode = compileUnit.getScriptNode(params.getTextDocument().getUri());
-        Position pos = PosUtils.toASTPosition(params.getPosition());
-        Node node = scriptNode.getNodeAtPosition(pos);
-        if (node != null && node.getClass() == BracketHandler.class) {
-            String uri = Paths.get("src/main/resources/grass.png").toUri().toString();
-            String content = "![](" + uri + ")";
-            return CompletableFuture.completedFuture(new Hover(new MarkupContent(MarkupKind.MARKDOWN, content)));
-        }
-        return CompletableFuture.completedFuture(null);
+        Position pos = Position.of(params.getPosition());
+        Hover result = scriptNode.getNodeAtPosition(pos)
+                .map(Node::getType)
+                .map(Object::toString)
+                .map(content -> new Hover(new MarkupContent(MarkupKind.MARKDOWN, content)))
+                .orElse(null);
+//        if (node instanceof BracketHandler bh) {
+//            String uri = Paths.get("src/main/resources/grass.png").toUri().toString();
+//            String content = "![](" + uri + ")";
+//            return CompletableFuture.completedFuture(new Hover(new MarkupContent(MarkupKind.MARKDOWN, content)));
+//        }
+        return CompletableFuture.completedFuture(result);
     }
 
     @Override

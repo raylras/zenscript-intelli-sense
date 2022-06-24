@@ -15,7 +15,7 @@ import raylras.zen.ast.visit.NodeVisitor;
 import java.util.*;
 import java.util.stream.Stream;
 
-public class VariableDeclStatement extends BaseNode implements Declaration, Statement, LocatableID {
+public final class VariableDeclStatement extends BaseNode implements Declaration, Statement, LocatableID {
 
     @NotNull
     private final String name;

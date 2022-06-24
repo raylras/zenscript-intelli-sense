@@ -1,23 +1,18 @@
 package raylras.zen.ast.type;
 
-import java.util.Objects;
+public record MapType(Type key, Type value) implements Type {
 
-public final class MapType implements Type {
-
-    private final Type key;
-    private final Type value;
-
-    public MapType(Type key, Type value) {
-        this.key = Objects.requireNonNull(key);
-        this.value = Objects.requireNonNull(value);
-    }
-
-    public Type getKey() {
-        return key;
-    }
-
-    public Type getValue() {
-        return value;
+    @Override
+    public boolean equivalent(Type type) {
+        if (type instanceof MapType that) {
+            // check key type
+            if (!this.key.equivalent(that.key)) {
+                return false;
+            }
+            // check value type
+            return this.value.equivalent(that.value);
+        }
+        return false;
     }
 
     @Override

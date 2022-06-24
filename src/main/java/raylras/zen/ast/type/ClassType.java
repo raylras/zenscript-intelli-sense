@@ -1,25 +1,15 @@
 package raylras.zen.ast.type;
 
-public final class ClassType implements Type {
-
-    private final String className;
-
-    public ClassType(String className) {
-        this.className = className;
-    }
-
-    public String getClassName() {
-        return className;
-    }
+public record ClassType(String className) implements Type {
 
     public String getSimpleName() {
         return className.substring(className.lastIndexOf('.'));
     }
 
     @Override
-    public boolean equivalent(Type that) {
-        if (that != null && that.getClass() == ClassType.class) {
-            return this.className.equals(((ClassType) that).className);
+    public boolean equivalent(Type type) {
+        if (type instanceof ClassType that) {
+            return this.className.equals(that.className);
         }
         return false;
     }

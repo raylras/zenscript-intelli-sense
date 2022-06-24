@@ -3,43 +3,15 @@ package raylras.zen.ast;
 import org.jetbrains.annotations.NotNull;
 import raylras.zen.util.PosUtils;
 
-public final class Range {
-
-    private final int line;
-    private final int column;
-    private final int lastLine;
-    private final int lastColumn;
+public record Range(int line, int column, int lastLine, int lastColumn) {
 
     public Range() {
         this(-1, -1, -1, -1);
     }
 
-    public Range(int line, int column, int lastLine, int lastColumn) {
-        this.line = line;
-        this.column = column;
-        this.lastLine = lastLine;
-        this.lastColumn = lastColumn;
-    }
-
-    public int getLine() {
-        return line;
-    }
-
-    public int getColumn() {
-        return column;
-    }
-
-    public int getLastLine() {
-        return lastLine;
-    }
-
-    public int getLastColumn() {
-        return lastColumn;
-    }
-
     public boolean contains(@NotNull Position pos) {
-        int line = pos.getLine();
-        int column = pos.getColumn();
+        int line = pos.line();
+        int column = pos.column();
         if (this.line <= line && line < this.lastLine) {
             return true;
         } else if (this.line == line && line == this.lastLine) {
@@ -51,11 +23,11 @@ public final class Range {
         }
     }
 
-    public boolean contains(@NotNull Range other) {
-        return this.line <= other.getLine()
-                && this.lastLine >= other.getLastLine()
-                && this.column <= other.getColumn()
-                && this.lastColumn >= other.getLastColumn();
+    public boolean contains(@NotNull Range range) {
+        return this.line <= range.line()
+                && this.lastLine >= range.lastLine()
+                && this.column <= range.column()
+                && this.lastColumn >= range.lastColumn();
     }
 
     public org.eclipse.lsp4j.Range toLSPRange() {
@@ -65,6 +37,10 @@ public final class Range {
     @Override
     public String toString() {
         return String.format("<%d:%d-%d:%d>", line, column, lastLine, lastColumn);
+    }
+
+    public static void test() {
+        new Range();
     }
 
 }

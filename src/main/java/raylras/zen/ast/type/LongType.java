@@ -1,14 +1,10 @@
 package raylras.zen.ast.type;
 
-public final class LongType implements Type {
-
-    public static final LongType INSTANCE = new LongType();
-
-    private LongType() {}
+public record LongType() implements Type {
 
     @Override
-    public boolean equivalent(Type that) {
-        return INSTANCE == that;
+    public boolean equivalent(Type type) {
+        return type instanceof LongType;
     }
 
     @Override

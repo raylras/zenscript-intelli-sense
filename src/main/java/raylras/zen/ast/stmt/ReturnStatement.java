@@ -6,7 +6,6 @@ import raylras.zen.ast.Node;
 import raylras.zen.ast.expr.Expression;
 import raylras.zen.ast.visit.NodeVisitor;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,7 +29,7 @@ public final class ReturnStatement extends BaseNode implements Statement {
 
     @Override
     public List<? extends Node> getChildren() {
-        return expr == null ? Collections.emptyList() : Collections.singletonList(expr);
+        return expr == null ? List.of() : List.of(expr);
     }
 
     @Override

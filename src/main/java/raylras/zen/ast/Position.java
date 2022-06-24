@@ -1,29 +1,13 @@
 package raylras.zen.ast;
 
 import org.jetbrains.annotations.NotNull;
+import raylras.zen.util.PosUtils;
 
-public final class Position implements Comparable<Position> {
-
-    private final int line;
-    private final int column;
+public record Position(int line, int column) implements Comparable<Position> {
 
     public Position() {
         this(-1, -1);
     }
-
-    public Position(int line, int column) {
-        this.line = line;
-        this.column = column;
-    }
-
-    public int getLine() {
-        return line;
-    }
-
-    public int getColumn() {
-        return column;
-    }
-
 
     @Override
     public String toString() {
@@ -33,6 +17,10 @@ public final class Position implements Comparable<Position> {
     @Override
     public int compareTo(@NotNull Position other) {
         return this.line == other.line ? this.column - other.column : this.line - other.line;
+    }
+
+    public static Position of(org.eclipse.lsp4j.Position lspPos) {
+        return PosUtils.toASTPosition(lspPos);
     }
 
 }

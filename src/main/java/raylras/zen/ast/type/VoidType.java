@@ -1,14 +1,10 @@
 package raylras.zen.ast.type;
 
-public final class VoidType implements Type {
-
-    public static final VoidType INSTANCE = new VoidType();
-
-    private VoidType() {}
+public record VoidType() implements Type {
 
     @Override
-    public boolean equivalent(Type that) {
-        return INSTANCE == that;
+    public boolean equivalent(Type type) {
+        return type instanceof VoidType;
     }
 
     @Override

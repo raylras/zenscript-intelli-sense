@@ -1,18 +1,15 @@
 package raylras.zen.ast.type;
 
-public final class DoubleType implements Type {
-
-    public static final DoubleType INSTANCE = new DoubleType();
-
-    private DoubleType() {}
+public record DoubleType() implements Type {
 
     @Override
-    public boolean equivalent(Type that) {
-        return INSTANCE == that;
+    public boolean equivalent(Type type) {
+        return type instanceof DoubleType;
     }
 
     @Override
     public String toString() {
         return "double";
     }
+
 }

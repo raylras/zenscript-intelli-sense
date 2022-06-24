@@ -7,11 +7,10 @@ import raylras.zen.ast.Symbol;
 import raylras.zen.ast.Symbolized;
 import raylras.zen.ast.visit.NodeVisitor;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-public final class TypeDeclaration extends BaseNode implements Declaration, Symbolized {
+public final class  TypeDeclaration extends BaseNode implements Declaration, Symbolized {
 
     @Nullable
     private final Symbol symbol;
@@ -32,7 +31,7 @@ public final class TypeDeclaration extends BaseNode implements Declaration, Symb
 
     @Override
     public List<? extends Node> getChildren() {
-        return Collections.emptyList();
+        return List.of();
     }
 
     @Override

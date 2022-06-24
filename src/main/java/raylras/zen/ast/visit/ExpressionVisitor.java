@@ -89,26 +89,23 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
         Expression literal = null;
         Type type = null;
         switch (ctx.literal().getStart().getType()) {
-            case ZenScriptLexer.BOOLEAN_LITERAL:
+            case ZenScriptLexer.BOOLEAN_LITERAL -> {
                 literal = new BoolLiteral(ctx.getText());
-                type = BoolType.INSTANCE;
-                break;
-            case ZenScriptLexer.DECIMAL_LITERAL:
-            case ZenScriptLexer.HEX_LITERAL:
+                type = Types.BOOL;
+            }
+            case ZenScriptLexer.DECIMAL_LITERAL, ZenScriptLexer.HEX_LITERAL -> {
                 literal = new IntLiteral(ctx.getText());
-                type = IntType.INSTANCE;
-                break;
-            case ZenScriptLexer.FLOATING_LITERAL:
+                type = Types.INT;
+            }
+            case ZenScriptLexer.FLOATING_LITERAL -> {
                 literal = new FloatLiteral(ctx.getText());
-                type = DoubleType.INSTANCE;
-                break;
-            case ZenScriptLexer.STRING_LITERAL:
+                type = Types.FLOAT;
+            }
+            case ZenScriptLexer.STRING_LITERAL -> {
                 literal = new StringLiteral(ctx.getText());
-                type = StringType.INSTANCE;
-                break;
-            case ZenScriptLexer.NULL_LITERAL:
-                literal = new NullExpression();
-                break;
+                type = Types.STRING;
+            }
+            case ZenScriptLexer.NULL_LITERAL -> literal = new NullExpression();
         }
         if (literal != null) {
             literal.setType(type);

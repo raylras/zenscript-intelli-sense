@@ -4,7 +4,6 @@ import raylras.zen.ast.BaseNode;
 import raylras.zen.ast.Node;
 import raylras.zen.ast.visit.NodeVisitor;
 
-import java.util.Collections;
 import java.util.List;
 
 public final class ContinueStatement extends BaseNode implements Statement {
@@ -16,7 +15,7 @@ public final class ContinueStatement extends BaseNode implements Statement {
 
     @Override
     public List<? extends Node> getChildren() {
-        return Collections.emptyList();
+        return List.of();
     }
 
     @Override

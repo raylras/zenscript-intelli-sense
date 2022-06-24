@@ -25,7 +25,7 @@ public final class PosUtils {
     }
 
     public static org.eclipse.lsp4j.Range toLSPRange(Range range) {
-        return new org.eclipse.lsp4j.Range(new org.eclipse.lsp4j.Position(range.getLine() - 1, range.getColumn()), new org.eclipse.lsp4j.Position(range.getLastLine() - 1, range.getLastColumn()));
+        return new org.eclipse.lsp4j.Range(new org.eclipse.lsp4j.Position(range.line() - 1, range.column()), new org.eclipse.lsp4j.Position(range.lastLine() - 1, range.lastColumn()));
     }
 
     public static Position makeASTPosition(ParserRuleContext ctx) {
@@ -57,7 +57,7 @@ public final class PosUtils {
     }
 
     public static org.eclipse.lsp4j.Position makeLSPPos(Node node) {
-        return new org.eclipse.lsp4j.Position(node.getRange().getLine() - 1, node.getRange().getColumn());
+        return new org.eclipse.lsp4j.Position(node.getRange().line() - 1, node.getRange().column());
     }
 
     public static int getLength(Token token) {
@@ -65,7 +65,7 @@ public final class PosUtils {
     }
 
     public static int getLength(Node node) {
-        return node.getRange().getLastColumn() - node.getRange().getColumn();
+        return node.getRange().lastColumn() - node.getRange().column();
     }
 
 }

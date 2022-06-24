@@ -4,7 +4,6 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import raylras.zen.ast.*;
 import raylras.zen.ast.type.FunctionType;
-import raylras.zen.ast.type.Type;
 import raylras.zen.ast.visit.NodeVisitor;
 
 import java.util.*;
@@ -79,9 +78,8 @@ public final class FunctionDeclaration extends BaseNode implements Declaration, 
         builder.append("(");
         builder.append(parameters.stream().map(Object::toString).collect(Collectors.joining(", ")));
         builder.append(")");
-        Type type = getType();
-        if (type != null && type.getClass() == FunctionType.class) {
-            builder.append(" as ").append(((FunctionType) type).getResult());
+        if (getType() instanceof FunctionType type) {
+            builder.append(" as ").append(type.result());
         }
         builder.append(" {...}");
         return builder.toString();

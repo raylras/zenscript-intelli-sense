@@ -42,8 +42,7 @@ public final class Symbol {
         return references;
     }
 
-    public void addReference(Node node) {
-        if (node == null) return;
+    public void addReference(@NotNull Node node) {
         references.add(node);
     }
 

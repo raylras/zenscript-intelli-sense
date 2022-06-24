@@ -10,7 +10,6 @@ import raylras.zen.ast.visit.NodeVisitor;
 
 import java.net.URI;
 import java.util.*;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public final class ScriptNode extends BaseNode {
@@ -59,18 +58,18 @@ public final class ScriptNode extends BaseNode {
 
     public List<VariableDeclStatement> getStatics() {
         return statements.stream()
-                .filter(stmt -> stmt.getClass() == VariableDeclStatement.class)
+                .filter(stmt -> stmt instanceof VariableDeclStatement)
                 .map(stmt -> (VariableDeclStatement) stmt)
                 .filter(VariableDeclStatement::isStatic)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public List<VariableDeclStatement> getGlobals() {
         return statements.stream()
-                .filter(stmt -> stmt.getClass() == VariableDeclStatement.class)
+                .filter(stmt -> stmt instanceof VariableDeclStatement)
                 .map(stmt -> (VariableDeclStatement) stmt)
                 .filter(VariableDeclStatement::isGlobal)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public URI getURI() {
@@ -81,7 +80,7 @@ public final class ScriptNode extends BaseNode {
         this.uri = uri;
     }
 
-    public Node getNodeAtPosition(Position pos) {
+    public Optional<Node> getNodeAtPosition(Position pos) {
         Queue<Node> queue = new ArrayDeque<>(getChildren());
         List<Node> result = new ArrayList<>();
         while (!queue.isEmpty()) {
@@ -95,7 +94,7 @@ public final class ScriptNode extends BaseNode {
                 }
             }
         }
-        return result.isEmpty() ? null : result.get(result.size() - 1);
+        return result.isEmpty() ? Optional.empty() : Optional.of(result.get(result.size() - 1));
     }
 
     @Override

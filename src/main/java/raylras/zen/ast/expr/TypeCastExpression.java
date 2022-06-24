@@ -5,7 +5,6 @@ import raylras.zen.ast.BaseNode;
 import raylras.zen.ast.Node;
 import raylras.zen.ast.visit.NodeVisitor;
 
-import java.util.Collections;
 import java.util.List;
 
 public final class TypeCastExpression extends BaseNode implements Expression {
@@ -29,7 +28,7 @@ public final class TypeCastExpression extends BaseNode implements Expression {
 
     @Override
     public List<? extends Node> getChildren() {
-        return Collections.singletonList(expr);
+        return List.of(expr);
     }
 
     @Override

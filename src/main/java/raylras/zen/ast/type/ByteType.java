@@ -1,14 +1,10 @@
 package raylras.zen.ast.type;
 
-public final class ByteType implements Type {
-
-    public static final ByteType INSTANCE = new ByteType();
-
-    private ByteType() {}
+public record ByteType() implements Type {
 
     @Override
-    public boolean equivalent(Type that) {
-        return INSTANCE == that;
+    public boolean equivalent(Type type) {
+        return type instanceof ByteType;
     }
 
     @Override

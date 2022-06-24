@@ -6,7 +6,6 @@ import raylras.zen.ast.Node;
 import raylras.zen.ast.visit.NodeVisitor;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 public final class MemberIndexExpression extends BaseNode implements Expression {
 
@@ -37,7 +36,7 @@ public final class MemberIndexExpression extends BaseNode implements Expression 
 
     @Override
     public List<? extends Node> getChildren() {
-        return Stream.of(left, index).toList();
+        return List.of(left, index);
     }
 
     @Override

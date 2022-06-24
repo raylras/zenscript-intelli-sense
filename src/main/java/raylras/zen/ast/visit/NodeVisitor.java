@@ -14,10 +14,6 @@ public interface NodeVisitor<T> {
 
     T visit(BlockNode blockNode);
 
-    //
-    // Declaration
-    //
-
     T visit(AliasDeclaration aliasDecl);
 
     T visit(ConstructorDeclaration ctorDecl);
@@ -31,10 +27,6 @@ public interface NodeVisitor<T> {
     T visit(VariableDeclaration varDecl);
 
     T visit(ZenClassDeclaration classDecl);
-
-    //
-    // Statement
-    //
 
     T visit(BreakStatement breakStmt);
 
@@ -51,10 +43,6 @@ public interface NodeVisitor<T> {
     T visit(VariableDeclStatement varDeclStmt);
 
     T visit(WhileStatement whileStmt);
-
-    //
-    // Expression
-    //
 
     T visit(ArgumentsExpression argsExpr);
 
