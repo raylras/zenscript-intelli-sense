@@ -50,7 +50,7 @@ public final class CompileUnit {
     }
 
     public void refresh(String uri) {
-        refresh(URI.create(uri));
+        refresh(URIUtils.create(uri));
     }
 
     public void refresh(URI uri) {
