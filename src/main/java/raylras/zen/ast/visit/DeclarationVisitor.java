@@ -5,6 +5,7 @@ import raylras.zen.antlr.ZenScriptParserBaseVisitor;
 import raylras.zen.ast.ASTBuilder;
 import raylras.zen.ast.BlockNode;
 import raylras.zen.ast.Range;
+import raylras.zen.ast.Symbol;
 import raylras.zen.ast.decl.*;
 import raylras.zen.ast.expr.Expression;
 import raylras.zen.ast.stmt.VariableDeclStatement;
@@ -12,7 +13,6 @@ import raylras.zen.ast.type.ClassType;
 import raylras.zen.ast.type.Type;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public final class DeclarationVisitor extends ZenScriptParserBaseVisitor<Declaration> {
 
@@ -63,7 +63,7 @@ public final class DeclarationVisitor extends ZenScriptParserBaseVisitor<Declara
 
         builder.pushScope();
         String name = ctx.identifier().getText();
-        List<ParameterDeclaration> params = ctx.formalParameter().stream().map(this::visitFormalParameter).collect(Collectors.toList());
+        List<ParameterDeclaration> params = ctx.formalParameter().stream().map(this::visitFormalParameter).toList();
         TypeDeclaration resultType = this.visitTypeDeclaration(ctx.type());
         BlockNode block = builder.getStmtVisitor().visitBlock(ctx.block());
         builder.popScope();
@@ -85,13 +85,18 @@ public final class DeclarationVisitor extends ZenScriptParserBaseVisitor<Declara
         Expression defaultValue = builder.getExprVisitor().visitDefaultValue(ctx.defaultValue());
         TypeDeclaration typeDecl = this.visitTypeDeclaration(ctx.type());
 
-        ParameterDeclaration param = new ParameterDeclaration(name, typeDecl, defaultValue);
-        param.setRange(Range.of(ctx));
-        param.setIDRange(Range.of(ctx.identifier()));
+        ParameterDeclaration paramDecl = new ParameterDeclaration(name, typeDecl, defaultValue);
+        paramDecl.setRange(Range.of(ctx));
+        if (typeDecl != null) {
+            paramDecl.setType(typeDecl.getType());
+        } else {
+            paramDecl.setType(defaultValue.getType());
+        }
+        paramDecl.setIDRange(Range.of(ctx.identifier()));
 
-        builder.addSymbolToCurrentScope(name, param);
+        builder.addSymbolToCurrentScope(name, paramDecl);
 
-        return param;
+        return paramDecl;
     }
 
     @Override
@@ -100,9 +105,9 @@ public final class DeclarationVisitor extends ZenScriptParserBaseVisitor<Declara
 
         builder.pushScope();
         String name = ctx.identifier().getText();
-        List<VariableDeclStatement> propDecls = ctx.variableDeclStatement().stream().map(builder.getStmtVisitor()::visitVariableDeclStatement).collect(Collectors.toList());
-        List<ConstructorDeclaration> ctorDecls = ctx.constructorDeclaration().stream().map(this::visitConstructorDeclaration).collect(Collectors.toList());
-        List<FunctionDeclaration> funcDecls = ctx.functionDeclaration().stream().map(this::visitFunctionDeclaration).collect(Collectors.toList());
+        List<VariableDeclStatement> propDecls = ctx.variableDeclStatement().stream().map(builder.getStmtVisitor()::visitVariableDeclStatement).toList();
+        List<ConstructorDeclaration> ctorDecls = ctx.constructorDeclaration().stream().map(this::visitConstructorDeclaration).toList();
+        List<FunctionDeclaration> funcDecls = ctx.functionDeclaration().stream().map(this::visitFunctionDeclaration).toList();
         builder.popScope();
 
         ZenClassDeclaration zenClass = new ZenClassDeclaration(name, propDecls, ctorDecls, funcDecls);
@@ -119,7 +124,7 @@ public final class DeclarationVisitor extends ZenScriptParserBaseVisitor<Declara
         if (ctx == null) return null;
 
         builder.pushScope();
-        List<ParameterDeclaration> params = ctx.formalParameter().stream().map(this::visitFormalParameter).collect(Collectors.toList());
+        List<ParameterDeclaration> params = ctx.formalParameter().stream().map(this::visitFormalParameter).toList();
         BlockNode block = builder.getStmtVisitor().visitBlock(ctx.block());
         builder.popScope();
 
@@ -132,14 +137,14 @@ public final class DeclarationVisitor extends ZenScriptParserBaseVisitor<Declara
     public TypeDeclaration visitTypeDeclaration(ZenScriptParser.TypeContext ctx) {
         if (ctx == null) return null;
 
-        return builder.findSymbolInCurrentScope(ctx.getText())
-                .map(symbol -> {
-                    TypeDeclaration decl = new TypeDeclaration(symbol);
-                    decl.setType(symbol.getNode().getType());
-                    decl.setRange(Range.of(ctx));
-                    return decl;
-                })
-                .orElse(null);
+        Type type = builder.getTypeVisitor().visitType(ctx);
+        Symbol symbol = builder.findSymbolInCurrentScope(ctx.getText()).orElse(null);
+
+        TypeDeclaration typeDecl = new TypeDeclaration(symbol);
+        typeDecl.setType(type);
+        typeDecl.setRange(Range.of(ctx));
+
+        return typeDecl;
     }
 
     public VariableDeclaration visitVariableDeclaration(ZenScriptParser.IdentifierContext ctx) {

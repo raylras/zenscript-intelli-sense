@@ -3,15 +3,13 @@ package raylras.zen.ast.visit;
 import raylras.zen.antlr.ZenScriptLexer;
 import raylras.zen.antlr.ZenScriptParser;
 import raylras.zen.antlr.ZenScriptParserBaseVisitor;
-import raylras.zen.ast.ASTBuilder;
-import raylras.zen.ast.BlockNode;
-import raylras.zen.ast.Range;
-import raylras.zen.ast.Symbol;
+import raylras.zen.ast.*;
 import raylras.zen.ast.decl.ParameterDeclaration;
 import raylras.zen.ast.expr.*;
 import raylras.zen.ast.type.*;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expression> {
@@ -41,7 +39,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
         String right = ctx.Right.getText();
 
         MemberAccess memberAccess = new MemberAccess(left, right);
-        memberAccess.setRange(Range.of(ctx.identifier()));
+        memberAccess.setRange(Range.of(ctx));
 
         return memberAccess;
     }
@@ -95,11 +93,11 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
             }
             case ZenScriptLexer.DECIMAL_LITERAL, ZenScriptLexer.HEX_LITERAL -> {
                 literal = new IntLiteral(ctx.getText());
-                type = Types.INT;
+                type = ctx.getText().toUpperCase().endsWith("L") ? Types.LONG : Types.INT;
             }
             case ZenScriptLexer.FLOATING_LITERAL -> {
                 literal = new FloatLiteral(ctx.getText());
-                type = Types.FLOAT;
+                type = ctx.getText().toUpperCase().endsWith("F") ? Types.FLOAT : Types.DOUBLE;
             }
             case ZenScriptLexer.STRING_LITERAL -> {
                 literal = new StringLiteral(ctx.getText());
@@ -109,7 +107,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
         }
         if (literal != null) {
             literal.setType(type);
-            literal.setRange(Range.of(ctx.literal()));
+            literal.setRange(Range.of(ctx));
         }
 
         return literal;
@@ -242,10 +240,11 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
     public VarAccessExpression visitVarAccessExpression(ZenScriptParser.VarAccessExpressionContext ctx) {
         if (ctx == null) return null;
 
-        Symbol symbol = builder.findSymbolInCurrentScope(ctx.getText()).orElse(null);
+        Optional<Symbol> symbol = builder.findSymbolInCurrentScope(ctx.getText());
 
         VarAccessExpression varAccess = new VarAccessExpression(ctx.identifier().getText());
-        varAccess.setSymbol(symbol);
+        varAccess.setSymbol(symbol.orElse(null));
+        varAccess.setType(symbol.map(Symbol::getNode).map(Node::getType).orElse(null));
         varAccess.setRange(Range.of(ctx));
 
         return varAccess;

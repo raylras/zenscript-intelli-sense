@@ -133,6 +133,11 @@ public final class StatementVisitor extends ZenScriptParserBaseVisitor<Statement
 
         VariableDeclStatement varDecl = new VariableDeclStatement(name, typeDecl, expr);
         varDecl.setRange(Range.of(ctx));
+        if (typeDecl != null) {
+            varDecl.setType(typeDecl.getType());
+        } else {
+            varDecl.setType(expr.getType());
+        }
         varDecl.setIdRange(Range.of(ctx.identifier()));
         switch (ctx.Modifier.getType()) {
             case ZenScriptLexer.GLOBAL:
