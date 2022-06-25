@@ -98,11 +98,12 @@ expressionStatement
 expression
     : 'function' '(' formalParameter? (',' formalParameter)* ')' ('as' type)? block # FunctionExpression
     | Left=expression '(' expression? (',' expression)* ')' # ArgumentsExpression
-    | Left=expression '.' (identifier | STRING_LITERAL) # MemberAccessExpression
+    | Left=expression '.' Right=identifier # MemberAccessExpression
     | Left=expression '[' Index=expression ']' # MemberIndexExpression
     | expression 'as' type # TypeCastExpression
     | <assoc=right> Operator=('!' | '-' | '+') expression # UnaryExpression
-    | Left=expression Operator=('*' | '/' | '%' | '+' | '-' | '~') Right=expression # BinaryExpression
+    | Left=expression Operator=('*' | '/' | '%') Right=expression # BinaryExpression
+    | Left=expression Operator=('+' | '-' | '~') Right=expression # BinaryExpression
     | Left=expression Operator=('<=' | '>=' | '>' | '<' | '==' | '!=') Right=expression # BinaryExpression
     | Left=expression Operator='instanceof' Right=expression # BinaryExpression
     | Left=expression Operator=('in' | 'has') Right=expression # BinaryExpression

@@ -20,7 +20,7 @@ public final class IntLiteral extends BaseNode implements Expression{
 
     @Override
     public <T> T accept(NodeVisitor<? extends T> visitor) {
-        return null;
+        return visitor.visit(this);
     }
 
     @Override

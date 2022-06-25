@@ -5,10 +5,7 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import raylras.zen.antlr.ZenScriptLexer;
 import raylras.zen.antlr.ZenScriptParser;
-import raylras.zen.ast.expr.BinaryExpression;
-import raylras.zen.ast.expr.Expression;
-import raylras.zen.ast.expr.IntLiteral;
-import raylras.zen.ast.expr.Operator;
+import raylras.zen.ast.expr.*;
 import raylras.zen.ast.visit.DefaultVisitor;
 import raylras.zen.ast.visit.ExpressionVisitor;
 
@@ -19,10 +16,10 @@ import java.util.function.BiFunction;
 public class Evaluator extends DefaultVisitor<BigDecimal> {
 
     public static void main(String[] args) {
-        System.out.println(eval("1 + 2"));
+        System.out.println(eval("1 + 2 - 3 * 4 / 5"));
     }
 
-    private static Map<Operator.Binary, BiFunction<BigDecimal,BigDecimal,BigDecimal>> operations = Map.of(
+    private static final Map<Operator.Binary, BiFunction<BigDecimal,BigDecimal,BigDecimal>> operations = Map.of(
             Operator.Binary.ADD, BigDecimal::add,
             Operator.Binary.SUB, BigDecimal::subtract,
             Operator.Binary.MUL, BigDecimal::multiply,
@@ -35,16 +32,23 @@ public class Evaluator extends DefaultVisitor<BigDecimal> {
     }
 
     @Override
-    public BigDecimal visit(BinaryExpression binaryExpr) {
-        return operations.get(binaryExpr.getOperator()).apply(
-                binaryExpr.getLeft().accept(this),
-                binaryExpr.getRight().accept(this)
-        );
+    public BigDecimal visit(BinaryExpression expr) {
+        BigDecimal result = operations.get(expr.getOperator()).apply(
+                        expr.getLeft().accept(this),
+                        expr.getRight().accept(this)
+                );
+        System.out.println(expr.getLeft().toString() + expr.getOperator() + expr.getRight() + " = " + result);
+        return result;
     }
 
     @Override
     public BigDecimal visit(IntLiteral intExpr) {
         return new BigDecimal(intExpr.getValue());
+    }
+
+    @Override
+    public BigDecimal visit(FloatLiteral floatExpr) {
+        return new BigDecimal(floatExpr.getValue());
     }
 
     private static ZenScriptParser.ExpressionContext parse(String source) {

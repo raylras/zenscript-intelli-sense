@@ -20,12 +20,17 @@ public final class FloatLiteral extends BaseNode implements Expression {
 
     @Override
     public <T> T accept(NodeVisitor<? extends T> visitor) {
-        return null;
+        return visitor.visit(this);
     }
 
     @Override
     public List<? extends Node> getChildren() {
         return List.of();
+    }
+
+    @Override
+    public String toString() {
+        return value;
     }
 
 }
