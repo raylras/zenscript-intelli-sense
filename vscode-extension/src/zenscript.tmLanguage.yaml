@@ -342,7 +342,7 @@ repository:
         match: '(?<!\.)\b(0|([1-9][0-9]*))[Ll]?\b(?!\.)'
 
       - name: constant.numeric.hex.zenscript
-        match: '(?<!\.)\b(0[Xx][A-Fa-f0-9]+)\b(?!\.)'
+        match: '(?<!\.)\b(0[Xx][A-Fa-f0-9]+)[Ll]?\b(?!\.)'
 
       - name: constant.numeric.floating.zenscript
         match: '(?<!\.)\b\d+(\.\d+[fFdD]?)?\b(?!\.)'

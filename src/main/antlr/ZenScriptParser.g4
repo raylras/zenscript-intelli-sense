@@ -98,7 +98,7 @@ expressionStatement
 expression
     : 'function' '(' formalParameter? (',' formalParameter)* ')' ('as' type)? block # FunctionExpression
     | Left=expression '(' expression? (',' expression)* ')' # ArgumentsExpression
-    | Left=expression '.' Right=identifier # MemberAccessExpression
+    | Left=expression '.' (identifier | STRING_LITERAL) # MemberAccessExpression
     | Left=expression '[' Index=expression ']' # MemberIndexExpression
     | expression 'as' type # TypeCastExpression
     | <assoc=right> Operator=('!' | '-' | '+') expression # UnaryExpression

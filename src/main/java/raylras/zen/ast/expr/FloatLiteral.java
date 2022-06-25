@@ -2,21 +2,19 @@ package raylras.zen.ast.expr;
 
 import raylras.zen.ast.BaseNode;
 import raylras.zen.ast.Node;
-import raylras.zen.ast.type.Types;
 import raylras.zen.ast.visit.NodeVisitor;
 
 import java.util.List;
 
 public final class FloatLiteral extends BaseNode implements Expression {
 
-    private final double value;
+    private final String value;
 
     public FloatLiteral(String value) {
-        this.value = Double.parseDouble(value);
-        super.setType(Types.FLOAT);
+        this.value = value;
     }
 
-    public double getValue() {
+    public String getValue() {
         return value;
     }
 

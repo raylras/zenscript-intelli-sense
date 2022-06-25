@@ -2,21 +2,19 @@ package raylras.zen.ast.expr;
 
 import raylras.zen.ast.BaseNode;
 import raylras.zen.ast.Node;
-import raylras.zen.ast.type.Types;
 import raylras.zen.ast.visit.NodeVisitor;
 
 import java.util.List;
 
 public final class IntLiteral extends BaseNode implements Expression{
 
-    private final long value;
+    private final String value;
 
     public IntLiteral(String value) {
-        this.value = Long.decode(value);
-        super.setType(Types.INT);
+        this.value = value;
     }
 
-    public long getValue() {
+    public String getValue() {
         return value;
     }
 
@@ -32,7 +30,7 @@ public final class IntLiteral extends BaseNode implements Expression{
 
     @Override
     public String toString() {
-        return String.valueOf(value);
+        return value;
     }
 
 }
