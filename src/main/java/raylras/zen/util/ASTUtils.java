@@ -1,7 +1,7 @@
 package raylras.zen.util;
 
 import raylras.zen.ast.stmt.VariableDeclStatement;
-import raylras.zen.lsp.TokenModifier;
+import raylras.zen.ls.TokenModifier;
 
 public class ASTUtils {
 

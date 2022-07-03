@@ -80,21 +80,43 @@ public final class ScriptNode extends BaseNode {
         this.uri = uri;
     }
 
-    public Optional<Node> getNodeAtPosition(Position pos) {
-        Queue<Node> queue = new ArrayDeque<>(getChildren());
-        List<Node> result = new ArrayList<>();
+    public List<Node> getNodeAtPosition(Position pos) {
+        Queue<Node> queue = new ArrayDeque<>();
+        findAtLine(pos).ifPresent(queue::add);
+        Deque<Node> result = new ArrayDeque<>();
         while (!queue.isEmpty()) {
             Node node = queue.poll();
             if (node.getRange().contains(pos)) {
+                result.addFirst(node);
                 queue.clear();
-                result.add(node);
-                var children = node.getChildren();
-                if (!children.isEmpty()) {
-                    queue.addAll(children);
-                }
+                queue.addAll(node.getChildren());
             }
         }
-        return result.isEmpty() ? Optional.empty() : Optional.of(result.get(result.size() - 1));
+        return result.stream().toList();
+    }
+
+    // Binary search, find the first node on the specified line.
+    // If no node is found, return Optional.empty().
+    private Optional<Node> findAtLine(Position pos) {
+        List<? extends Node> nodeList = getChildren();
+        Node result = null;
+        int start = 0;
+        int end = nodeList.size() - 1;
+        while (start <= end) {
+            int mid = (start + end) / 2;
+            Node midNode = nodeList.get(mid);
+            if (midNode.getRange().line() <= pos.line()) {
+                if (midNode.getRange().lastLine() >= pos.line()) {
+                    result = midNode;
+                    break;
+                } else {
+                    start = mid + 1;
+                }
+            } else {
+                end = mid - 1;
+            }
+        }
+        return Optional.ofNullable(result);
     }
 
     @Override
@@ -106,6 +128,7 @@ public final class ScriptNode extends BaseNode {
     public List<? extends Node> getChildren() {
         return Stream.of(imports, functions, zenClasses, statements)
                 .flatMap(Collection::stream)
+                .sorted()
                 .toList();
     }
 

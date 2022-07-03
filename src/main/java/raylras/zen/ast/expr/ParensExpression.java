@@ -5,7 +5,6 @@ import raylras.zen.ast.BaseNode;
 import raylras.zen.ast.Node;
 import raylras.zen.ast.visit.NodeVisitor;
 
-import java.util.Collections;
 import java.util.List;
 
 public final class ParensExpression extends BaseNode implements Expression {

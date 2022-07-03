@@ -5,6 +5,7 @@ import raylras.zen.antlr.ZenScriptParser;
 import raylras.zen.antlr.ZenScriptParserBaseVisitor;
 import raylras.zen.ast.ASTBuilder;
 import raylras.zen.ast.BlockNode;
+import raylras.zen.ast.IDNode;
 import raylras.zen.ast.Range;
 import raylras.zen.ast.decl.TypeDeclaration;
 import raylras.zen.ast.decl.VariableDeclaration;
@@ -127,18 +128,17 @@ public final class StatementVisitor extends ZenScriptParserBaseVisitor<Statement
     public VariableDeclStatement visitVariableDeclStatement(ZenScriptParser.VariableDeclStatementContext ctx) {
         if (ctx == null) return null;
 
-        String name = ctx.identifier().getText();
+        IDNode id = IDNode.of(ctx.identifier());
         Expression expr = builder.getExprVisitor().visitExpression(ctx.expression());
         TypeDeclaration typeDecl = builder.getDeclVisitor().visitTypeDeclaration(ctx.type());
 
-        VariableDeclStatement varDecl = new VariableDeclStatement(name, typeDecl, expr);
+        VariableDeclStatement varDecl = new VariableDeclStatement(id, typeDecl, expr);
         varDecl.setRange(Range.of(ctx));
         if (typeDecl != null) {
             varDecl.setType(typeDecl.getType());
         } else {
             varDecl.setType(expr.getType());
         }
-        varDecl.setIdRange(Range.of(ctx.identifier()));
         switch (ctx.Modifier.getType()) {
             case ZenScriptLexer.GLOBAL:
                 varDecl.setGlobal(true);
@@ -147,8 +147,9 @@ public final class StatementVisitor extends ZenScriptParserBaseVisitor<Statement
             case ZenScriptLexer.VAL:
                 varDecl.setFinal(true);
         }
+        id.setType(varDecl.getType());
 
-        builder.addSymbolToCurrentScope(name, varDecl);
+        builder.addSymbolToCurrentScope(id.getName(), varDecl);
 
         return varDecl;
     }

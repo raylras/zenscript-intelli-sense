@@ -5,6 +5,7 @@ import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 import raylras.zen.antlr.ZenScriptLexer;
 import raylras.zen.antlr.ZenScriptParser;
 import raylras.zen.control.ErrorCollector;
@@ -16,27 +17,33 @@ import java.util.List;
 
 public final class SourceUnit implements Comparable<SourceUnit> {
 
+    @Nullable
     private final URI uri;
+    @Nullable
     private ZenScriptParser.ScriptUnitContext cst;
+    @Nullable
     private ScriptNode ast;
     private final ErrorCollector errorCollector;
 
     private List<String> preprocessors;
     private int priority = 0;
 
-    public SourceUnit(URI uri, ErrorCollector errorCollector) {
+    public SourceUnit(@Nullable URI uri, ErrorCollector errorCollector) {
         this.uri = uri;
         this.errorCollector = errorCollector;
     }
 
+    @Nullable
     public URI getUri() {
         return uri;
     }
 
+    @Nullable
     public ZenScriptParser.ScriptUnitContext getCst() {
         return cst;
     }
 
+    @Nullable
     public ScriptNode getAst() {
         return ast;
     }
@@ -73,6 +80,7 @@ public final class SourceUnit implements Comparable<SourceUnit> {
                     .map(Integer::valueOf)
                     .orElse(0);
         } catch (IOException e) {
+            // errorCollector.addError(e.getMessage(), uri);
             throw new RuntimeException(e);
         }
     }
@@ -84,6 +92,10 @@ public final class SourceUnit implements Comparable<SourceUnit> {
     @Override
     public int compareTo(@NotNull SourceUnit that) {
         return that.getPriority() - this.getPriority();
+    }
+
+    public static SourceUnit create(URI root, URI absolute, ErrorCollector errorCollector) {
+        return new SourceUnit(root.relativize(absolute), errorCollector);
     }
 
 }

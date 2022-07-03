@@ -1,7 +1,6 @@
 package raylras.zen.ast;
 
 import raylras.zen.control.ErrorCollector;
-import raylras.zen.util.URIUtils;
 
 import java.io.File;
 import java.io.FileReader;
@@ -10,7 +9,6 @@ import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public final class CompileUnit {
 
@@ -24,22 +22,22 @@ public final class CompileUnit {
     public CompileUnit(URI root) {
         this.root = root;
         this.errorCollector = new ErrorCollector();
-        this.builder = new ASTBuilder(this);
+        this.builder = new ASTBuilder();
     }
 
     public URI getRoot() {
         return root;
     }
 
-    public void compile(String uri, Reader source) {
-        compile(URIUtils.create(uri), source);
+    public void compile(String absolute, Reader source) {
+        compile(URI.create(absolute), source);
     }
 
-    public void compile(URI uri, Reader source) {
-        SourceUnit sourceUnit = sourceUnits.get(uri);
+    public void compile(URI absolute, Reader source) {
+        SourceUnit sourceUnit = getSourceUnit(absolute);
         if (sourceUnit == null) {
-            sourceUnit = new SourceUnit(uri, errorCollector);
-            sourceUnits.put(uri, sourceUnit);
+            sourceUnit = SourceUnit.create(root, absolute, errorCollector);
+            addSourceUnit(sourceUnit);
         }
         try {
             sourceUnit.parse(source);
@@ -49,14 +47,14 @@ public final class CompileUnit {
         }
     }
 
-    public void refresh(String uri) {
-        refresh(URIUtils.create(uri));
+    public void refresh(String absolute) {
+        refresh(URI.create(absolute));
     }
 
-    public void refresh(URI uri) {
-        SourceUnit sourceUnit = sourceUnits.get(uri);
+    public void refresh(URI absolute) {
+        SourceUnit sourceUnit = getSourceUnit(absolute);
         try {
-            sourceUnit.parse(new FileReader(Paths.get(uri).toFile()));
+            sourceUnit.parse(new FileReader(Paths.get(absolute).toFile()));
             sourceUnit.convert(builder);
         } catch (Exception e) {
             throw new RuntimeException(e);
@@ -64,15 +62,22 @@ public final class CompileUnit {
     }
 
     public List<ScriptNode> getScriptNodes() {
-        return sourceUnits.values().stream().sorted(SourceUnit::compareTo).map(SourceUnit::getAst).collect(Collectors.toList());
+        return sourceUnits.values().stream()
+                .map(SourceUnit::getAst)
+                .filter(Objects::nonNull)
+                .toList();
     }
 
-    public ScriptNode getScriptNode(String uri) {
-        return getScriptNode(URIUtils.create(uri));
+    public ScriptNode getScriptNode(String absolute) {
+        return getScriptNode(URI.create(absolute));
     }
 
-    public ScriptNode getScriptNode(URI uri) {
-        return sourceUnits.get(uri).getAst();
+    public ScriptNode getScriptNode(URI absolute) {
+        return getSourceUnit(absolute).getAst();
+    }
+
+    private SourceUnit getSourceUnit(URI absolute) {
+        return sourceUnits.get(root.relativize(absolute));
     }
 
     public static CompileUnit fromPath(Path root) {
@@ -85,8 +90,7 @@ public final class CompileUnit {
             File current = queue.poll();
             if (current.isFile()) {
                 if (current.getName().endsWith(ZEN_SCRIPT_FILE_EXTENSION)) {
-                    URI uri = current.toURI();
-                    compileUnit.sourceUnits.put(uri, new SourceUnit(uri, compileUnit.errorCollector));
+                    compileUnit.addSourceUnit(SourceUnit.create(root.toUri(), current.toURI(), compileUnit.errorCollector));
                 }
             } else {
                 File[] listFiles = current.listFiles();
@@ -99,13 +103,18 @@ public final class CompileUnit {
             URI uri = entry.getKey();
             SourceUnit sourceUnit = entry.getValue();
             try {
-                sourceUnit.parse(new FileReader(Paths.get(uri).toFile()));
+                sourceUnit.parse(new FileReader(Paths.get(URI.create(compileUnit.root.toString() + uri)).toFile()));
                 sourceUnit.convert(compileUnit.builder);
-            } catch (Throwable ignored) {
+            } catch (Throwable e) {
+                e.printStackTrace();
             }
         }
 
         return compileUnit;
+    }
+
+    private void addSourceUnit(SourceUnit sourceUnit) {
+        sourceUnits.put(sourceUnit.getUri(), sourceUnit);
     }
 
 }

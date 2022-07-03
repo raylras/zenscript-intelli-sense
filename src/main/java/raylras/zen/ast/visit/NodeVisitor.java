@@ -1,6 +1,7 @@
 package raylras.zen.ast.visit;
 
 import raylras.zen.ast.BlockNode;
+import raylras.zen.ast.IDNode;
 import raylras.zen.ast.ScriptNode;
 import raylras.zen.ast.decl.*;
 import raylras.zen.ast.expr.*;
@@ -9,6 +10,8 @@ import raylras.zen.ast.stmt.*;
 public interface NodeVisitor<T> {
 
     T visit(ScriptNode scriptNode);
+
+    T visit(IDNode idNode);
 
     T visit(TypeDeclaration typeDecl);
 
@@ -43,6 +46,8 @@ public interface NodeVisitor<T> {
     T visit(VariableDeclStatement varDeclStmt);
 
     T visit(WhileStatement whileStmt);
+
+    T visit(Expression expr);
 
     T visit(ArgumentsExpression argsExpr);
 

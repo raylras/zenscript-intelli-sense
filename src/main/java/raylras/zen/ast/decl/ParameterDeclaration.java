@@ -9,26 +9,24 @@ import raylras.zen.ast.visit.NodeVisitor;
 import java.util.*;
 import java.util.stream.Stream;
 
-public final class ParameterDeclaration extends BaseNode implements Declaration, Variable, LocatableID {
+public final class ParameterDeclaration extends BaseNode implements Declaration, Variable {
 
     @NotNull
-    private final String name;
+    private final IDNode id;
     @Nullable
     private final TypeDeclaration typeDecl;
     @Nullable
     private final Expression defaultValue;
 
-    private Range idRange;
-
-    public ParameterDeclaration(@NotNull String name, @Nullable TypeDeclaration typeDecl, @Nullable Expression defaultValue) {
-        this.name = name;
+    public ParameterDeclaration(@NotNull IDNode id, @Nullable TypeDeclaration typeDecl, @Nullable Expression defaultValue) {
+        this.id = id;
         this.typeDecl = typeDecl;
         this.defaultValue = defaultValue;
     }
 
     @NotNull
-    public String getName() {
-        return name;
+    public IDNode getId() {
+        return id;
     }
 
     public Optional<TypeDeclaration> getTypeDecl() {
@@ -46,24 +44,15 @@ public final class ParameterDeclaration extends BaseNode implements Declaration,
 
     @Override
     public List<? extends Node> getChildren() {
-        return Stream.of(typeDecl, defaultValue)
+        return Stream.of(id, typeDecl, defaultValue)
                 .filter(Objects::nonNull)
                 .toList();
     }
 
     @Override
-    public Range getIdRange() {
-        return idRange;
-    }
-
-    public void setIDRange(Range idRange) {
-        this.idRange = idRange;
-    }
-
-    @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append(name);
+        builder.append(id);
         if (getType() != null) {
             builder.append(" as ").append(getType());
         }

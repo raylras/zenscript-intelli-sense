@@ -2,6 +2,7 @@ package raylras.zen.ast.type;
 
 public final class Types {
 
+    public static final AnyType ANY = new AnyType();
     public static final BoolType BOOL = new BoolType();
     public static final ByteType BYTE = new ByteType();
     public static final DoubleType DOUBLE = new DoubleType();

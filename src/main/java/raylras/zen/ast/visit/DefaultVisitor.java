@@ -1,6 +1,7 @@
 package raylras.zen.ast.visit;
 
 import raylras.zen.ast.BlockNode;
+import raylras.zen.ast.IDNode;
 import raylras.zen.ast.ScriptNode;
 import raylras.zen.ast.decl.*;
 import raylras.zen.ast.expr.*;
@@ -10,6 +11,7 @@ public class DefaultVisitor<T> implements NodeVisitor<T> {
 
     @Override
     public T visit(AliasDeclaration aliasDecl) {
+        aliasDecl.getId().accept(this);
         return null;
     }
 
@@ -28,6 +30,7 @@ public class DefaultVisitor<T> implements NodeVisitor<T> {
 
     @Override
     public T visit(FunctionDeclaration funcDecl) {
+        funcDecl.getId().accept(this);
         funcDecl.getParameters().forEach(param -> param.accept(this));
         funcDecl.getBlock().accept(this);
         return null;
@@ -35,18 +38,21 @@ public class DefaultVisitor<T> implements NodeVisitor<T> {
 
     @Override
     public T visit(ImportDeclaration importDecl) {
+        importDecl.getReference().accept(this);
         importDecl.getAlias().ifPresent(alias -> alias.accept(this));
         return null;
     }
 
     @Override
     public T visit(ParameterDeclaration paramDecl) {
+        paramDecl.getId().accept(this);
         paramDecl.getDefaultValue().ifPresent(expr -> expr.accept(this));
         return null;
     }
 
     @Override
     public T visit(VariableDeclaration varDecl) {
+        varDecl.getId().accept(this);
         return null;
     }
 
@@ -60,12 +66,18 @@ public class DefaultVisitor<T> implements NodeVisitor<T> {
     }
 
     @Override
+    public T visit(IDNode idNode) {
+        return null;
+    }
+
+    @Override
     public T visit(TypeDeclaration typeDecl) {
         return null;
     }
 
     @Override
     public T visit(ZenClassDeclaration classDecl) {
+        classDecl.getId().accept(this);
         classDecl.getProperties().forEach(prop -> prop.accept(this));
         classDecl.getConstructors().forEach(ctor -> ctor.accept(this));
         classDecl.getFunctions().forEach(func -> func.accept(this));
@@ -120,6 +132,12 @@ public class DefaultVisitor<T> implements NodeVisitor<T> {
     public T visit(WhileStatement whileStmt) {
         whileStmt.getCondition().accept(this);
         whileStmt.getBlock().accept(this);
+        return null;
+    }
+
+    @Override
+    public T visit(Expression expr) {
+        expr.getChildren().forEach(child -> child.accept(this));
         return null;
     }
 

@@ -3,7 +3,6 @@ package raylras.zen.ast;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.junit.jupiter.api.Test;
 import raylras.zen.antlr.ZenScriptLexer;
 import raylras.zen.antlr.ZenScriptParser;
 import raylras.zen.ast.decl.FunctionDeclaration;
@@ -53,7 +52,7 @@ class ASTBuilderTest {
         ZenScriptParser.ScriptUnitContext cst = parser.scriptUnit();
 
         // get an AST
-        ASTBuilder astBuilder = new ASTBuilder(new CompileUnit(null));
+        ASTBuilder astBuilder = new ASTBuilder();
         ScriptNode scriptNode = astBuilder.lower(scriptPath.toUri(), cst);
 
         scriptNode.accept(testVisitor);

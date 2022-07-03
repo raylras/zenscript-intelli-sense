@@ -1,5 +1,6 @@
 package raylras.zen.ast;
 
+import org.jetbrains.annotations.NotNull;
 import raylras.zen.ast.type.Type;
 
 public abstract class BaseNode implements Node {
@@ -25,6 +26,11 @@ public abstract class BaseNode implements Node {
     @Override
     public void setType(Type type) {
         this.type = type;
+    }
+
+    @Override
+    public int compareTo(@NotNull Node other) {
+        return this.range.compareTo(other.getRange());
     }
 
 }

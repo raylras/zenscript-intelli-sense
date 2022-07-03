@@ -5,7 +5,7 @@ import raylras.zen.ast.visit.NodeVisitor;
 
 import java.util.List;
 
-public interface Node {
+public interface Node extends Comparable<Node> {
 
     <T> T accept(NodeVisitor<? extends T> visitor);
 

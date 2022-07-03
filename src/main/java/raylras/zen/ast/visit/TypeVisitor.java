@@ -68,4 +68,9 @@ public final class TypeVisitor extends ZenScriptParserBaseVisitor<Type> {
         return new MapType(key, value);
     }
 
+    @Override
+    public Type visitFunctionDeclaration(ZenScriptParser.FunctionDeclarationContext ctx) {
+        return super.visitFunctionDeclaration(ctx);
+    }
+
 }

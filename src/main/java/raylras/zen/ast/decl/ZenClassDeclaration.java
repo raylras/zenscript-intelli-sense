@@ -1,10 +1,7 @@
 package raylras.zen.ast.decl;
 
 import org.jetbrains.annotations.NotNull;
-import raylras.zen.ast.BaseNode;
-import raylras.zen.ast.LocatableID;
-import raylras.zen.ast.Node;
-import raylras.zen.ast.Range;
+import raylras.zen.ast.*;
 import raylras.zen.ast.stmt.VariableDeclStatement;
 import raylras.zen.ast.visit.NodeVisitor;
 
@@ -12,10 +9,10 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Stream;
 
-public final class ZenClassDeclaration extends BaseNode implements Declaration, LocatableID {
+public final class ZenClassDeclaration extends BaseNode implements Declaration {
 
     @NotNull
-    private final String name;
+    private final IDNode id;
     @NotNull
     private final List<VariableDeclStatement> properties;
     @NotNull
@@ -23,22 +20,20 @@ public final class ZenClassDeclaration extends BaseNode implements Declaration, 
     @NotNull
     private final List<FunctionDeclaration> functions;
 
-    private Range idRange;
-
     public ZenClassDeclaration(
-            @NotNull String name,
+            @NotNull IDNode id,
             @NotNull List<VariableDeclStatement> properties,
             @NotNull List<ConstructorDeclaration> constructors,
             @NotNull List<FunctionDeclaration> functions) {
-        this.name = name;
+        this.id = id;
         this.properties = properties;
         this.constructors = constructors;
         this.functions = functions;
     }
 
     @NotNull
-    public String getName() {
-        return name;
+    public IDNode getId() {
+        return id;
     }
 
     @NotNull
@@ -57,29 +52,26 @@ public final class ZenClassDeclaration extends BaseNode implements Declaration, 
     }
 
     @Override
-    public Range getIdRange() {
-        return idRange;
-    }
-
-    public void setIDRange(Range idRange) {
-        this.idRange = idRange;
-    }
-
-    @Override
     public <T> T accept(NodeVisitor<? extends T> visitor) {
         return visitor.visit(this);
     }
 
     @Override
     public List<? extends Node> getChildren() {
-        return Stream.of(properties, constructors, functions)
-                .flatMap(Collection::stream)
+        return Stream.of(id, properties, constructors, functions)
+                .<Node>mapMulti((obj, consumer) -> {
+                    if (obj instanceof Collection<?> c) {
+                        c.forEach(element -> consumer.accept((Node) element));
+                    } else {
+                        consumer.accept((Node) obj);
+                    }
+                })
                 .toList();
     }
 
     @Override
     public String toString() {
-        return "zenClass " + name + " {...}";
+        return "zenClass " + id + " {...}";
     }
 
 }

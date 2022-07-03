@@ -244,7 +244,7 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
 
         VarAccessExpression varAccess = new VarAccessExpression(ctx.identifier().getText());
         varAccess.setSymbol(symbol.orElse(null));
-        varAccess.setType(symbol.map(Symbol::getNode).map(Node::getType).orElse(null));
+        varAccess.setType(symbol.map(Symbol::node).map(Node::getType).orElse(null));
         varAccess.setRange(Range.of(ctx));
 
         return varAccess;

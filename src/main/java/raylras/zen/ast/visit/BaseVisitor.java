@@ -1,6 +1,7 @@
 package raylras.zen.ast.visit;
 
 import raylras.zen.ast.BlockNode;
+import raylras.zen.ast.IDNode;
 import raylras.zen.ast.ScriptNode;
 import raylras.zen.ast.decl.*;
 import raylras.zen.ast.expr.*;
@@ -10,6 +11,11 @@ public class BaseVisitor<T> implements NodeVisitor<T> {
 
     @Override
     public T visit(ScriptNode scriptNode) {
+        return null;
+    }
+
+    @Override
+    public T visit(IDNode idNode) {
         return null;
     }
 
@@ -95,6 +101,11 @@ public class BaseVisitor<T> implements NodeVisitor<T> {
 
     @Override
     public T visit(WhileStatement whileStmt) {
+        return null;
+    }
+
+    @Override
+    public T visit(Expression expr) {
         return null;
     }
 

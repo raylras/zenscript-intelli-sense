@@ -1,37 +1,23 @@
 package raylras.zen.ast.decl;
 
 import org.jetbrains.annotations.NotNull;
-import raylras.zen.ast.BaseNode;
-import raylras.zen.ast.LocatableID;
-import raylras.zen.ast.Node;
-import raylras.zen.ast.Range;
+import raylras.zen.ast.*;
 import raylras.zen.ast.visit.NodeVisitor;
 
 import java.util.List;
 
-public final class AliasDeclaration extends BaseNode implements Declaration, LocatableID {
+public final class AliasDeclaration extends BaseNode implements Declaration {
 
     @NotNull
-    private final String name;
+    private final IDNode id;
 
-    private Range idRange;
-
-    public AliasDeclaration(@NotNull String name) {
-        this.name = name;
+    public AliasDeclaration(@NotNull IDNode id) {
+        this.id = id;
     }
 
     @NotNull
-    public String getName() {
-        return name;
-    }
-
-    @Override
-    public Range getIdRange() {
-        return idRange;
-    }
-
-    public void setIdRange(Range idRange) {
-        this.idRange = idRange;
+    public IDNode getId() {
+        return id;
     }
 
     @Override
@@ -41,13 +27,12 @@ public final class AliasDeclaration extends BaseNode implements Declaration, Loc
 
     @Override
     public List<? extends Node> getChildren() {
-        return List.of();
+        return List.of(id);
     }
-
 
     @Override
     public String toString() {
-        return name;
+        return id.toString();
     }
 
 }

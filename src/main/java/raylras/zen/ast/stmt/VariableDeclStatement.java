@@ -3,10 +3,9 @@ package raylras.zen.ast.stmt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import raylras.zen.ast.BaseNode;
-import raylras.zen.ast.LocatableID;
 import raylras.zen.ast.Node;
-import raylras.zen.ast.Range;
 import raylras.zen.ast.decl.Declaration;
+import raylras.zen.ast.IDNode;
 import raylras.zen.ast.decl.TypeDeclaration;
 import raylras.zen.ast.expr.Expression;
 import raylras.zen.ast.type.Type;
@@ -15,29 +14,27 @@ import raylras.zen.ast.visit.NodeVisitor;
 import java.util.*;
 import java.util.stream.Stream;
 
-public final class VariableDeclStatement extends BaseNode implements Declaration, Statement, LocatableID {
+public final class VariableDeclStatement extends BaseNode implements Declaration, Statement {
 
     @NotNull
-    private final String name;
+    private final IDNode id;
     @Nullable
     private final TypeDeclaration typeDecl;
     @Nullable
     private final Expression expr;
-
-    private Range idRange;
     private boolean isFinal;
     private boolean isStatic;
     private boolean isGlobal;
 
-    public VariableDeclStatement(@NotNull String name, @Nullable TypeDeclaration typeDecl, @Nullable Expression expr) {
-        this.name = name;
+    public VariableDeclStatement(@NotNull IDNode id, @Nullable TypeDeclaration typeDecl, @Nullable Expression expr) {
+        this.id = id;
         this.typeDecl = typeDecl;
         this.expr = expr;
     }
 
     @NotNull
-    public String getName() {
-        return name;
+    public IDNode getId() {
+        return id;
     }
 
     public Optional<TypeDeclaration> getTypeDecl() {
@@ -46,15 +43,6 @@ public final class VariableDeclStatement extends BaseNode implements Declaration
 
     public Optional<Expression> getExpr() {
         return Optional.ofNullable(expr);
-    }
-
-    @Override
-    public Range getIdRange() {
-        return idRange;
-    }
-
-    public void setIdRange(Range idRange) {
-        this.idRange = idRange;
     }
 
     public boolean isFinal() {
@@ -88,7 +76,7 @@ public final class VariableDeclStatement extends BaseNode implements Declaration
 
     @Override
     public List<? extends Node> getChildren() {
-        return Stream.of(typeDecl, expr).filter(Objects::nonNull).toList();
+        return Stream.of(id, typeDecl, expr).filter(Objects::nonNull).toList();
     }
 
     @Override
@@ -103,7 +91,7 @@ public final class VariableDeclStatement extends BaseNode implements Declaration
         } else {
             builder.append("var ");
         }
-        builder.append(name);
+        builder.append(id);
         Type type = getType();
         if (type != null) {
             builder.append(" as ").append(type);

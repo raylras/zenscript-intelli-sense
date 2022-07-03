@@ -10,29 +10,27 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class FunctionDeclaration extends BaseNode implements Declaration, LocatableID {
+public final class FunctionDeclaration extends BaseNode implements Declaration {
 
     @NotNull
-    private final String name;
+    private final IDNode id;
     @NotNull
     private final List<ParameterDeclaration> parameters;
     @Nullable
-    private final TypeDeclaration resultType;
+    private final TypeDeclaration resultDecl;
     @NotNull
     private final BlockNode block;
 
-    private Range idRange;
-
-    public FunctionDeclaration(@NotNull String name, @NotNull List<ParameterDeclaration> parameters, @Nullable TypeDeclaration resultType, @NotNull BlockNode block) {
-        this.name = name;
+    public FunctionDeclaration(@NotNull IDNode id, @NotNull List<ParameterDeclaration> parameters, @Nullable TypeDeclaration resultDecl, @NotNull BlockNode block) {
+        this.id = id;
         this.parameters = parameters;
-        this.resultType = resultType;
+        this.resultDecl = resultDecl;
         this.block = block;
     }
 
     @NotNull
-    public String getName() {
-        return name;
+    public IDNode getId() {
+        return id;
     }
 
     @NotNull
@@ -40,22 +38,13 @@ public final class FunctionDeclaration extends BaseNode implements Declaration, 
         return parameters;
     }
 
-    public Optional<TypeDeclaration> getResultType() {
-        return Optional.ofNullable(resultType);
+    public Optional<TypeDeclaration> getResultDecl() {
+        return Optional.ofNullable(resultDecl);
     }
 
     @NotNull
     public BlockNode getBlock() {
         return block;
-    }
-
-    @Override
-    public Range getIdRange() {
-        return idRange;
-    }
-
-    public void setIdRange(Range idRange) {
-        this.idRange = idRange;
     }
 
     @Override
@@ -65,16 +54,22 @@ public final class FunctionDeclaration extends BaseNode implements Declaration, 
 
     @Override
     public List<? extends Node> getChildren() {
-        return Stream.concat(
-                parameters.stream(),
-                Stream.of(resultType, block).filter(Objects::nonNull)
-        ).toList();
+        return Stream.of(id, parameters, resultDecl, block)
+                .filter(Objects::nonNull)
+                .<Node>mapMulti((obj, consumer) -> {
+                    if (obj instanceof Collection<?> c) {
+                        c.forEach(element -> consumer.accept((Node) element));
+                    } else {
+                        consumer.accept((Node) obj);
+                    }
+                })
+                .toList();
     }
 
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("function ").append(name);
+        builder.append("function ").append(id.getName());
         builder.append("(");
         builder.append(parameters.stream().map(Object::toString).collect(Collectors.joining(", ")));
         builder.append(")");

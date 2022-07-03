@@ -35,8 +35,7 @@ public class Evaluator extends DefaultVisitor<BigDecimal> {
     public BigDecimal visit(BinaryExpression expr) {
         BigDecimal result = operations.get(expr.getOperator()).apply(
                         expr.getLeft().accept(this),
-                        expr.getRight().accept(this)
-                );
+                        expr.getRight().accept(this));
         System.out.println(expr.getLeft().toString() + expr.getOperator() + expr.getRight() + " = " + result);
         return result;
     }
@@ -49,6 +48,12 @@ public class Evaluator extends DefaultVisitor<BigDecimal> {
     @Override
     public BigDecimal visit(FloatLiteral floatExpr) {
         return new BigDecimal(floatExpr.getValue());
+    }
+
+    @Override
+    public BigDecimal visit(ThisExpression thisExpr) {
+
+        return super.visit(thisExpr);
     }
 
     private static ZenScriptParser.ExpressionContext parse(String source) {

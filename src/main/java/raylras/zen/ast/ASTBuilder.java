@@ -10,11 +10,9 @@ import raylras.zen.ast.visit.DeclarationVisitor;
 import raylras.zen.ast.visit.ExpressionVisitor;
 import raylras.zen.ast.visit.StatementVisitor;
 import raylras.zen.ast.visit.TypeVisitor;
-import raylras.zen.util.PosUtils;
 
 import java.net.URI;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public final class ASTBuilder extends ZenScriptParserBaseVisitor<ScriptNode> {
 
@@ -41,10 +39,11 @@ public final class ASTBuilder extends ZenScriptParserBaseVisitor<ScriptNode> {
 
             Symbol same = currentScope.get(name);
             if (same != null) {
+                // errorCollector.add(new DuplicateSymbolError(name, uri, same.getUri(), same.getLine(), same.getColumn()));
                 return null;
             }
 
-            Symbol symbol = new Symbol(name, node, uri);
+            Symbol symbol = Symbol.create(name, node, uri);
             currentScope.put(name, symbol);
             return symbol;
         }
@@ -74,20 +73,9 @@ public final class ASTBuilder extends ZenScriptParserBaseVisitor<ScriptNode> {
     private final StatementVisitor stmtVisitor = new StatementVisitor(this);
     private final ExpressionVisitor exprVisitor = new ExpressionVisitor(this);
     private final TypeVisitor typeVisitor = new TypeVisitor();
-
-    private final CompileUnit compileUnit;
     private final SymbolTable symbolTable = new SymbolTable();
 
     private URI currentURI;
-
-    public ASTBuilder() {
-        this.compileUnit = new CompileUnit(null);
-    }
-
-    public ASTBuilder(CompileUnit compileUnit) {
-        this.compileUnit = compileUnit;
-    }
-
 
     public ScriptNode lower(URI uri, ZenScriptParser.ScriptUnitContext ctx) {
         currentURI = uri;
@@ -133,10 +121,10 @@ public final class ASTBuilder extends ZenScriptParserBaseVisitor<ScriptNode> {
         if (ctx == null) return null;
 
         pushScope();
-        List<ImportDeclaration> imports = ctx.importDeclaration().stream().map(declVisitor::visitImportDeclaration).collect(Collectors.toList());
-        List<FunctionDeclaration> functions = ctx.functionDeclaration().stream().map(declVisitor::visitFunctionDeclaration).collect(Collectors.toList());
-        List<ZenClassDeclaration> zenClasses = ctx.zenClassDeclaration().stream().map(declVisitor::visitZenClassDeclaration).collect(Collectors.toList());
-        List<Statement> statements = ctx.statement().stream().map(stmtVisitor::visitStatement).collect(Collectors.toList());
+        List<ImportDeclaration> imports = ctx.importDeclaration().stream().map(declVisitor::visitImportDeclaration).toList();
+        List<FunctionDeclaration> functions = ctx.functionDeclaration().stream().map(declVisitor::visitFunctionDeclaration).toList();
+        List<ZenClassDeclaration> zenClasses = ctx.zenClassDeclaration().stream().map(declVisitor::visitZenClassDeclaration).toList();
+        List<Statement> statements = ctx.statement().stream().map(stmtVisitor::visitStatement).toList();
         popScope();
 
         ScriptNode script = new ScriptNode(imports, functions, zenClasses, statements);

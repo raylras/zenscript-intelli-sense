@@ -6,7 +6,6 @@ import raylras.zen.ast.Node;
 import raylras.zen.ast.visit.NodeVisitor;
 
 import java.util.List;
-import java.util.stream.Stream;
 
 public final class RangeExpression extends BaseNode implements Expression {
 
