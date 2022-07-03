@@ -4,21 +4,21 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.jetbrains.annotations.NotNull;
 import raylras.zen.util.PosUtils;
 
-public record Range(int line, int column, int lastLine, int lastColumn) {
+public record Range(int line, int column, int lastLine, int lastColumn) implements Comparable<Range> {
 
     public Range() {
         this(-1, -1, -1, -1);
     }
 
     public boolean contains(@NotNull Position pos) {
-        int line = pos.line();
-        int column = pos.column();
-        if (this.line <= line && line < this.lastLine) {
+        if (this.line < pos.line() && pos.line() < this.lastLine) {
             return true;
-        } else if (this.line == line && line == this.lastLine) {
-            if (this.column <= column && column < this.lastColumn) {
-                return true;
-            } else return this.column == column && column == this.lastColumn;
+        } else if (this.line == pos.line() && this.lastLine == pos.line()) {
+            return this.column <= pos.column() && pos.column() <= this.lastColumn;
+        } else if (this.line == pos.line()) {
+            return this.column <= pos.column();
+        } else if (this.lastLine == pos.line()) {
+            return pos.column() <= this.lastColumn;
         } else {
             return false;
         }
@@ -35,13 +35,24 @@ public record Range(int line, int column, int lastLine, int lastColumn) {
         return PosUtils.toLSPRange(this);
     }
 
+    public static Range of(ParserRuleContext ctx) {
+        return PosUtils.makeASTRange(ctx);
+    }
+
     @Override
     public String toString() {
         return String.format("<%d:%d-%d:%d>", line, column, lastLine, lastColumn);
     }
 
-    public static Range of(ParserRuleContext ctx) {
-        return PosUtils.makeASTRange(ctx);
+    @Override
+    public int compareTo(@NotNull Range other) {
+        if (this.line < other.line) {
+            return -1;
+        } else if (this.line > other.line) {
+            return 1;
+        } else {
+            return Integer.compare(this.column, other.column);
+        }
     }
 
 }
