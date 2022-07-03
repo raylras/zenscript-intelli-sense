@@ -1,4 +1,4 @@
-package raylras.zen.lsp;
+package raylras.zen.ls;
 
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
@@ -6,17 +6,13 @@ import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
 import raylras.zen.ast.CompileUnit;
-import raylras.zen.ast.Node;
-import raylras.zen.ast.Position;
-import raylras.zen.ast.ScriptNode;
-import raylras.zen.lsp.provider.DocumentSymbolProvider;
-import raylras.zen.lsp.provider.SemanticTokensProvider;
+import raylras.zen.ls.provider.*;
 
 import java.io.StringReader;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
-public class ZenScriptServices implements TextDocumentService, WorkspaceService {
+public class ZenScriptService implements TextDocumentService, WorkspaceService {
 
     private ZenScriptLanguageServer server;
     private LanguageClient client;
@@ -67,7 +63,6 @@ public class ZenScriptServices implements TextDocumentService, WorkspaceService 
         } catch (Exception e) {
             info(e.getMessage());
         }
-        client.refreshSemanticTokens();
     }
 
     @Override
@@ -107,56 +102,74 @@ public class ZenScriptServices implements TextDocumentService, WorkspaceService 
 
     @Override
     public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
-        return CompletableFuture.completedFuture(null);
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return new CompletionProvider().provideCompletion(params, compileUnit);
+            } catch (Exception e) {
+                info(e.getMessage());
+                return null;
+            }
+        });
     }
 
     @Override
     public CompletableFuture<Hover> hover(HoverParams params) {
-        ScriptNode scriptNode = compileUnit.getScriptNode(params.getTextDocument().getUri());
-        Position pos = Position.of(params.getPosition());
-        Hover result = scriptNode.getNodeAtPosition(pos)
-                .map(Node::getType)
-                .map(Object::toString)
-                .map(content -> new Hover(new MarkupContent(MarkupKind.MARKDOWN, content)))
-                .orElse(null);
-//        if (node instanceof BracketHandler bh) {
-//            String uri = Paths.get("src/main/resources/grass.png").toUri().toString();
-//            String content = "![](" + uri + ")";
-//            return CompletableFuture.completedFuture(new Hover(new MarkupContent(MarkupKind.MARKDOWN, content)));
-//        }
-        return CompletableFuture.completedFuture(result);
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return new HoverProvider().provideHover(params, compileUnit);
+            } catch (Exception e) {
+                info(e.getMessage());
+                return null;
+            }
+        });
     }
 
     @Override
     public CompletableFuture<SignatureHelp> signatureHelp(SignatureHelpParams params) {
-        return CompletableFuture.completedFuture(null);
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return new SignatureHelpProvider().provideSignatureHelp(params, compileUnit);
+            } catch (Exception e) {
+                info(e.getMessage());
+                return null;
+            }
+        });
     }
 
     @Override
     public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> definition(DefinitionParams params) {
-        return CompletableFuture.completedFuture(null);
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return new DefinitionProvider().provideDefinition(params, compileUnit);
+            } catch (Exception e) {
+                info(e.getMessage());
+                return null;
+            }
+        });
     }
 
     @Override
     public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(DocumentSymbolParams params) {
-        try {
-            ScriptNode scriptNode = compileUnit.getScriptNode(params.getTextDocument().getUri());
-            return CompletableFuture.completedFuture(new DocumentSymbolProvider().provideDocumentSymbol(scriptNode));
-        } catch (Exception e) {
-            info(e.getMessage());
-            return CompletableFuture.completedFuture(null);
-        }
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return new DocumentSymbolProvider().provideDocumentSymbol(params, compileUnit);
+            } catch (Exception e) {
+                info(e.getMessage());
+                return null;
+            }
+        });
     }
 
     @Override
     public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
-        try {
-            ScriptNode scriptNode = compileUnit.getScriptNode(params.getTextDocument().getUri());
-            return CompletableFuture.completedFuture(new SemanticTokensProvider().provideSemanticTokens(scriptNode));
-        } catch (Exception e) {
-            info(e.getMessage());
-            return CompletableFuture.completedFuture(null);
-        }
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return new SemanticTokensProvider().provideSemanticTokens(params, compileUnit);
+            } catch (Exception e) {
+                info(e.getMessage());
+                return null;
+            }
+        });
     }
 
 }

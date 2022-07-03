@@ -1,9 +1,12 @@
-package raylras.zen.lsp.provider;
+package raylras.zen.ls.provider;
 
 import org.eclipse.lsp4j.DocumentSymbol;
+import org.eclipse.lsp4j.DocumentSymbolParams;
 import org.eclipse.lsp4j.SymbolInformation;
 import org.eclipse.lsp4j.SymbolKind;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.jetbrains.annotations.NotNull;
+import raylras.zen.ast.CompileUnit;
 import raylras.zen.ast.Range;
 import raylras.zen.ast.ScriptNode;
 import raylras.zen.ast.decl.ConstructorDeclaration;
@@ -27,7 +30,7 @@ public class DocumentSymbolProvider {
             return scriptNode.getChildren().stream()
                     .map(node -> node.accept(this))
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                    .toList();
         }
 
         @Override
@@ -36,48 +39,48 @@ public class DocumentSymbolProvider {
             List<DocumentSymbol> children = ctorDecl.getChildren().stream()
                     .map(node -> node.accept(this))
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                    .toList();
             symbol.setChildren(children);
             return symbol;
         }
 
         @Override
         public DocumentSymbol visit(FunctionDeclaration funcDecl) {
-            DocumentSymbol symbol = new DocumentSymbol(funcDecl.getName(), SymbolKind.Function, toModifiedRange(funcDecl.getRange()), toLSPRange(funcDecl.getIdRange()));
+            DocumentSymbol symbol = new DocumentSymbol(funcDecl.getId().getName(), SymbolKind.Function, toModifiedRange(funcDecl.getRange()), toLSPRange(funcDecl.getId().getRange()));
             List<DocumentSymbol> children = funcDecl.getBlock().getStatements().stream()
                     .map(node -> node.accept(this))
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                    .toList();
             symbol.setChildren(children);
             return symbol;
         }
 
         @Override
         public DocumentSymbol visit(ZenClassDeclaration classDecl) {
-            DocumentSymbol symbol = new DocumentSymbol(classDecl.getName(), SymbolKind.Class, toModifiedRange(classDecl.getRange()), toLSPRange(classDecl.getIdRange()));
+            DocumentSymbol symbol = new DocumentSymbol(classDecl.getId().getName(), SymbolKind.Class, toModifiedRange(classDecl.getRange()), toLSPRange(classDecl.getId().getRange()));
             List<DocumentSymbol> children = classDecl.getChildren().stream()
                     .map(node -> node.accept(this))
                     .filter(Objects::nonNull)
-                    .collect(Collectors.toList());
+                    .toList();
             symbol.setChildren(children);
             return symbol;
         }
 
         @Override
         public DocumentSymbol visit(VariableDeclStatement varDeclStmt) {
-            return new DocumentSymbol(varDeclStmt.getName(), SymbolKind.Variable, toModifiedRange(varDeclStmt.getRange()), toLSPRange(varDeclStmt.getIdRange()));
+            return new DocumentSymbol(varDeclStmt.getId().getName(), SymbolKind.Variable, toModifiedRange(varDeclStmt.getRange()), toLSPRange(varDeclStmt.getId().getRange()));
         }
     }
 
-    public List<Either<SymbolInformation, DocumentSymbol>> provideDocumentSymbol(ScriptNode scriptNode) {
-        if (scriptNode == null) return Collections.emptyList();
+    public List<Either<SymbolInformation, DocumentSymbol>> provideDocumentSymbol(@NotNull DocumentSymbolParams params, @NotNull CompileUnit compileUnit) {
+        ScriptNode scriptNode = compileUnit.getScriptNode(params.getTextDocument().getUri());
         List<DocumentSymbol> documentSymbols = new DocumentSymbolVisitor().getDocumentSymbols(scriptNode);
-        return documentSymbols.stream().map(Either::<SymbolInformation, DocumentSymbol>forRight).collect(Collectors.toList());
+        return documentSymbols.stream().map(Either::<SymbolInformation, DocumentSymbol>forRight).toList();
     }
 
     private static org.eclipse.lsp4j.Range toModifiedRange(Range range) {
         org.eclipse.lsp4j.Range lspRange = toLSPRange(range);
-        lspRange.getEnd().setCharacter(lspRange.getEnd().getCharacter() - 1); // columns that without last token, such as ';' or '}'
+        lspRange.getEnd().setCharacter(lspRange.getEnd().getCharacter() - 1); // ranges that without last token, such as ';' or '}'
         return lspRange;
     }
 

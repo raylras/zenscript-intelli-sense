@@ -1,4 +1,4 @@
-package raylras.zen.lsp;
+package raylras.zen.ls;
 
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.LanguageServer;
@@ -16,13 +16,13 @@ import java.util.concurrent.CompletableFuture;
 
 public class ZenScriptLanguageServer implements LanguageServer {
 
-    private final ZenScriptServices services;
+    private final ZenScriptService services;
 
     public ZenScriptLanguageServer() {
-        this.services = new ZenScriptServices();
+        this.services = new ZenScriptService();
     }
 
-    public ZenScriptServices getServices() {
+    public ZenScriptService getServices() {
         return services;
     }
 
@@ -30,6 +30,8 @@ public class ZenScriptLanguageServer implements LanguageServer {
         WorkspaceFolder workspace = params.getWorkspaceFolders().get(0);
         services.setWorkspace(workspace);
         Path workspacePath = Paths.get(URI.create(workspace.getUri()));
+
+
 
         // find "scripts" dir using BFS
         Path scripts = null;

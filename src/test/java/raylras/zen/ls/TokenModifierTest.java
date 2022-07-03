@@ -1,7 +1,6 @@
-package raylras.zen.lsp;
+package raylras.zen.ls;
 
 import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.Test;
 
 class TokenModifierTest {
 

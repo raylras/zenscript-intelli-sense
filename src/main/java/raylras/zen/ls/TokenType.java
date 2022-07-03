@@ -1,4 +1,4 @@
-package raylras.zen.lsp;
+package raylras.zen.ls;
 
 import org.eclipse.lsp4j.SemanticTokenTypes;
 

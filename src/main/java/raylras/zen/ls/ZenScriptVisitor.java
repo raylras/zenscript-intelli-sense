@@ -1,4 +1,4 @@
-package raylras.zen.lsp;
+package raylras.zen.ls;
 
 import raylras.zen.ast.BlockNode;
 import raylras.zen.ast.Node;

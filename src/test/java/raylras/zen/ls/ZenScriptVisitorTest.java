@@ -1,9 +1,8 @@
-package raylras.zen.lsp;
+package raylras.zen.ls;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.junit.jupiter.api.Test;
 import raylras.zen.antlr.ZenScriptLexer;
 import raylras.zen.antlr.ZenScriptParser;
 import raylras.zen.ast.ASTBuilder;

@@ -1,7 +1,9 @@
-package raylras.zen.lsp.provider;
+package raylras.zen.ls.provider;
 
 import org.eclipse.lsp4j.SemanticTokens;
+import org.eclipse.lsp4j.SemanticTokensParams;
 import org.jetbrains.annotations.NotNull;
+import raylras.zen.ast.CompileUnit;
 import raylras.zen.ast.Range;
 import raylras.zen.ast.ScriptNode;
 import raylras.zen.ast.Symbol;
@@ -9,45 +11,51 @@ import raylras.zen.ast.decl.*;
 import raylras.zen.ast.expr.*;
 import raylras.zen.ast.stmt.VariableDeclStatement;
 import raylras.zen.ast.visit.DefaultVisitor;
-import raylras.zen.lsp.TokenModifier;
-import raylras.zen.lsp.TokenType;
+import raylras.zen.ls.TokenModifier;
+import raylras.zen.ls.TokenType;
 import raylras.zen.util.PosUtils;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class SemanticTokensProvider {
 
-    private final class SemanticVisitor extends DefaultVisitor<SemanticToken> {
+    private static final class SemanticVisitor extends DefaultVisitor<SemanticToken> {
+
+        private final SemanticDataBuilder builder;
+
+        public SemanticVisitor(SemanticDataBuilder builder) {
+            this.builder = builder;
+        }
+
         @Override
         public SemanticToken visit(AliasDeclaration aliasDecl) {
-            return builder.push(aliasDecl.getIdRange(), TokenType.CLASS);
+            return builder.push(aliasDecl.getId().getRange(), TokenType.CLASS);
         }
 
         @Override
         public SemanticToken visit(FunctionDeclaration funcDecl) {
-            SemanticToken token = builder.push(funcDecl.getIdRange(), TokenType.FUNCTION);
+            SemanticToken token = builder.push(funcDecl.getId().getRange(), TokenType.FUNCTION);
             super.visit(funcDecl);
             return token;
         }
 
         @Override
         public SemanticToken visit(ImportDeclaration importDecl) {
-            SemanticToken token = builder.push(importDecl.getIdRange(), TokenType.CLASS);
+            SemanticToken token = builder.push(importDecl.getReference().getRange(), TokenType.CLASS);
             super.visit(importDecl);
             return token;
         }
 
         @Override
         public SemanticToken visit(ParameterDeclaration paramDecl) {
-            SemanticToken token = builder.push(paramDecl.getIdRange(), TokenType.PARAMETER);
+            SemanticToken token = builder.push(paramDecl.getId().getRange(), TokenType.PARAMETER);
             super.visit(paramDecl);
             return token;
         }
 
         @Override
         public SemanticToken visit(VariableDeclaration varDecl) {
-            SemanticToken token = builder.push(varDecl.getIdRange(), TokenType.VARIABLE);
+            SemanticToken token = builder.push(varDecl.getId().getRange(), TokenType.VARIABLE);
             super.visit(varDecl);
             return token;
         }
@@ -59,7 +67,7 @@ public class SemanticTokensProvider {
 
         @Override
         public SemanticToken visit(ZenClassDeclaration classDecl) {
-            SemanticToken token = builder.push(classDecl.getIdRange(), TokenType.CLASS);
+            SemanticToken token = builder.push(classDecl.getId().getRange(), TokenType.CLASS);
             super.visit(classDecl);
             return token;
         }
@@ -76,7 +84,7 @@ public class SemanticTokensProvider {
             if (varDeclStmt.isGlobal()) {
                 modifiers |= TokenModifier.Static.getId();
             }
-            SemanticToken token = builder.push(varDeclStmt.getIdRange(), TokenType.VARIABLE, modifiers);
+            SemanticToken token = builder.push(varDeclStmt.getId().getRange(), TokenType.VARIABLE, modifiers);
             super.visit(varDeclStmt);
             return token;
         }
@@ -114,7 +122,7 @@ public class SemanticTokensProvider {
         @Override
         public SemanticToken visit(VarAccessExpression varAccess) {
             SemanticToken token = varAccess.getSymbol()
-                    .map(Symbol::getNode)
+                    .map(Symbol::node)
                     .map(node -> {
                         SemanticToken semanticToken = node.accept(this);
                         return builder.push(varAccess.getRange(), semanticToken.tokenType, semanticToken.modifiers);
@@ -152,32 +160,6 @@ public class SemanticTokensProvider {
         @Override
         public SemanticToken visit(TypeCastExpression castExpr) {
             return super.visit(castExpr);
-        }
-    }
-
-    private static final class SemanticToken implements Comparable<SemanticToken> {
-        private final int line;
-        private final int column;
-        private final int length;
-        private final int modifiers;
-        private final TokenType tokenType;
-
-        public SemanticToken(int line, int column, int length, TokenType tokenType, int modifiers) {
-            this.line = line;
-            this.column = column;
-            this.length = length;
-            this.tokenType = tokenType;
-            this.modifiers = modifiers;
-        }
-
-        @Override
-        public int compareTo(SemanticToken other) {
-            return this.line == other.line ? this.column - other.column : this.line - other.line;
-        }
-
-        @Override
-        public String toString() {
-            return String.format("%s<%d:%d>",tokenType.getName(), line, column);
         }
     }
 
@@ -241,7 +223,7 @@ public class SemanticTokensProvider {
             dataUnit[3] = token.tokenType.ordinal();
             dataUnit[4] = token.modifiers;
 
-            return Arrays.stream(dataUnit).boxed().collect(Collectors.toList());
+            return Arrays.stream(dataUnit).boxed().toList();
         }
 
         private void clear() {
@@ -251,12 +233,30 @@ public class SemanticTokensProvider {
 
     }
 
-    private final SemanticVisitor visitor = new SemanticVisitor();
-    private final SemanticDataBuilder builder = new SemanticDataBuilder();
+    private record SemanticToken(int line, int column, int length, TokenType tokenType, int modifiers)
+            implements Comparable<SemanticToken> {
 
-    @NotNull
-    public SemanticTokens provideSemanticTokens(ScriptNode scriptNode) {
-        if (scriptNode == null) return new SemanticTokens(Collections.emptyList());
+        @Override
+        public int compareTo(SemanticToken other) {
+            return this.line == other.line ? this.column - other.column : this.line - other.line;
+        }
+
+        @Override
+        public String toString() {
+            return String.format("%s<%d:%d>", tokenType.getName(), line, column);
+        }
+    }
+
+    private final SemanticDataBuilder builder;
+    private final SemanticVisitor visitor;
+
+    public SemanticTokensProvider() {
+        this.builder = new SemanticDataBuilder();
+        this.visitor = new SemanticVisitor(builder);
+    }
+
+    public SemanticTokens provideSemanticTokens(@NotNull SemanticTokensParams params, @NotNull CompileUnit compileUnit) {
+        ScriptNode scriptNode = compileUnit.getScriptNode(params.getTextDocument().getUri());
         builder.clear();
         visitor.visit(scriptNode);
         builder.build();
