@@ -7,11 +7,13 @@ import org.eclipse.lsp4j.MarkupKind;
 import org.jetbrains.annotations.NotNull;
 import raylras.zen.ast.*;
 import raylras.zen.ast.decl.FunctionDeclaration;
-import raylras.zen.ast.expr.Expression;
+import raylras.zen.ast.expr.VarAccessExpression;
+import raylras.zen.ast.type.Type;
 import raylras.zen.ast.type.Types;
 import raylras.zen.ast.visit.BaseVisitor;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class HoverProvider {
@@ -20,30 +22,30 @@ public class HoverProvider {
 
         @Override
         public Hover visit(FunctionDeclaration funcDecl) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("function ");
-            sb.append(funcDecl.getId().getName());
-            sb.append("(");
-            sb.append(funcDecl.getParameters().stream()
-                    .map(param -> param.getId().getName()
-                            + " as " + (param.getType() == null ? "any" : param.getType()))
-                    .collect(Collectors.joining(", "))
-            );
-            sb.append(")");
-            sb.append(" as ");
-            sb.append(funcDecl.getResultDecl().map(BaseNode::getType).orElse(Types.ANY));
-            Hover hover = new Hover(new MarkupContent(MarkupKind.MARKDOWN, sb.toString()));
-            hover.setRange(funcDecl.getId().getRange().toLSPRange());
-            return hover;
+            String name = funcDecl.getId().getName();
+            String args = funcDecl.getParameters().stream()
+                    .map(param -> param.getId().getName() + " as " +  param.getType())
+                    .collect(Collectors.joining(", "));
+            Type result = funcDecl.getResultDecl().map(BaseNode::getType).orElse(Types.ANY);
+            String content = """
+            ```zenscript
+            function %s(%s) as %s
+            ```
+            """.formatted(name, args, result);
+            return new Hover(new MarkupContent(MarkupKind.MARKDOWN, content), funcDecl.getId().getRange().toLSPRange());
         }
 
         @Override
-        public Hover visit(Expression expr) {
-            Hover hover = new Hover(new MarkupContent(MarkupKind.MARKDOWN, expr.toString()));
-            hover.setRange(expr.getRange().toLSPRange());
-            return hover;
+        public Hover visit(VarAccessExpression varAccess) {
+            Optional<Hover> hover = varAccess.getSymbol()
+                    .map(Symbol::node)
+                    .map(node -> node.accept(this))
+                    .map(hover1 -> {
+                        hover1.setRange(varAccess.getRange().toLSPRange());
+                        return hover1;
+                    });
+            return hover.orElse(null);
         }
-
     }
 
     public Hover provideHover(@NotNull HoverParams params, @NotNull CompileUnit compileUnit) {
