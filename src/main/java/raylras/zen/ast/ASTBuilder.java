@@ -6,10 +6,7 @@ import raylras.zen.ast.decl.FunctionDeclaration;
 import raylras.zen.ast.decl.ImportDeclaration;
 import raylras.zen.ast.decl.ZenClassDeclaration;
 import raylras.zen.ast.stmt.Statement;
-import raylras.zen.ast.visit.DeclarationVisitor;
-import raylras.zen.ast.visit.ExpressionVisitor;
-import raylras.zen.ast.visit.StatementVisitor;
-import raylras.zen.ast.visit.TypeVisitor;
+import raylras.zen.ast.visit.*;
 
 import java.net.URI;
 import java.util.*;

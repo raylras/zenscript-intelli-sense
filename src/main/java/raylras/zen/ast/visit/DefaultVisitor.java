@@ -38,7 +38,7 @@ public class DefaultVisitor<T> implements NodeVisitor<T> {
 
     @Override
     public T visit(ImportDeclaration importDecl) {
-        importDecl.getReference().accept(this);
+        importDecl.getId().accept(this);
         importDecl.getAlias().ifPresent(alias -> alias.accept(this));
         return null;
     }

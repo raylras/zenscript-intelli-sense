@@ -6,7 +6,7 @@ import raylras.zen.ast.visit.NodeVisitor;
 
 import java.util.List;
 
-public final class AliasDeclaration extends BaseNode implements Declaration {
+public final class AliasDeclaration extends BaseNode implements Declaration, HasID {
 
     @NotNull
     private final IDNode id;
@@ -16,6 +16,7 @@ public final class AliasDeclaration extends BaseNode implements Declaration {
     }
 
     @NotNull
+    @Override
     public IDNode getId() {
         return id;
     }

@@ -13,6 +13,14 @@ public record Symbol(String name, Node node, URI uri, LinkedList<Node> reference
         references.add(node);
     }
 
+    public Range getRange() {
+        return node.getRange();
+    }
+
+    public Range getIdRange() {
+        return node instanceof HasID hasID ? hasID.getId().getRange() : getRange();
+    }
+
     public static Symbol create(String name, Node node, URI uri) {
         return new Symbol(name, node, uri, new LinkedList<>());
     }

@@ -10,7 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-public final class FunctionDeclaration extends BaseNode implements Declaration {
+public final class FunctionDeclaration extends BaseNode implements Declaration, HasID {
 
     @NotNull
     private final IDNode id;
@@ -29,6 +29,7 @@ public final class FunctionDeclaration extends BaseNode implements Declaration {
     }
 
     @NotNull
+    @Override
     public IDNode getId() {
         return id;
     }

@@ -10,21 +10,22 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-public final class ImportDeclaration extends BaseNode implements Declaration {
+public final class ImportDeclaration extends BaseNode implements Declaration, HasID {
 
     @NotNull
-    private final IDNode reference;
+    private final IDNode id;
     @Nullable
     private final AliasDeclaration alias;
 
     public ImportDeclaration(@NotNull IDNode ref, @Nullable AliasDeclaration alias) {
-        this.reference = ref;
+        this.id = ref;
         this.alias = alias;
     }
 
     @NotNull
-    public IDNode getReference() {
-        return reference;
+    @Override
+    public IDNode getId() {
+        return id;
     }
 
     public Optional<AliasDeclaration> getAlias() {
@@ -38,13 +39,13 @@ public final class ImportDeclaration extends BaseNode implements Declaration {
 
     @Override
     public List<? extends Node> getChildren() {
-        return Stream.of(reference, alias).filter(Objects::nonNull).toList();
+        return Stream.of(id, alias).filter(Objects::nonNull).toList();
     }
 
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("import ").append(reference);
+        builder.append("import ").append(id);
         if (alias != null) {
             builder.append(" as ").append(alias);
         }

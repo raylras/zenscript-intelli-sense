@@ -3,6 +3,7 @@ package raylras.zen.ast.stmt;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import raylras.zen.ast.BaseNode;
+import raylras.zen.ast.HasID;
 import raylras.zen.ast.Node;
 import raylras.zen.ast.decl.Declaration;
 import raylras.zen.ast.IDNode;
@@ -14,7 +15,7 @@ import raylras.zen.ast.visit.NodeVisitor;
 import java.util.*;
 import java.util.stream.Stream;
 
-public final class VariableDeclStatement extends BaseNode implements Declaration, Statement {
+public final class VariableDeclStatement extends BaseNode implements Declaration, Statement, HasID {
 
     @NotNull
     private final IDNode id;
@@ -33,6 +34,7 @@ public final class VariableDeclStatement extends BaseNode implements Declaration
     }
 
     @NotNull
+    @Override
     public IDNode getId() {
         return id;
     }

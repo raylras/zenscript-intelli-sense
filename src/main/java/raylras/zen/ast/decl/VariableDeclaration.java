@@ -11,7 +11,7 @@ import java.util.List;
  * This is not a statement. It is the variable declaration of the foreach statement.
  * @see VariableDeclStatement
  */
-public class VariableDeclaration extends BaseNode implements Declaration {
+public class VariableDeclaration extends BaseNode implements Declaration, HasID {
 
     @NotNull
     private final IDNode id;
@@ -21,6 +21,7 @@ public class VariableDeclaration extends BaseNode implements Declaration {
     }
 
     @NotNull
+    @Override
     public IDNode getId() {
         return id;
     }

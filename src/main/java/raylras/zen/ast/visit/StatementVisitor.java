@@ -11,6 +11,7 @@ import raylras.zen.ast.decl.TypeDeclaration;
 import raylras.zen.ast.decl.VariableDeclaration;
 import raylras.zen.ast.expr.Expression;
 import raylras.zen.ast.stmt.*;
+import raylras.zen.ast.type.*;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -104,6 +105,30 @@ public final class StatementVisitor extends ZenScriptParserBaseVisitor<Statement
         Expression expr = builder.getExprVisitor().visitExpression(ctx.expression());
         BlockNode block = this.visitBlock(ctx.block());
         builder.popScope();
+
+        VariableDeclaration index = varDecls.size() > 1 ? varDecls.get(0) : null;
+        VariableDeclaration element = varDecls.size() > 1 ? varDecls.get(1) : varDecls.get(0);
+        Type exprType = expr.getType();
+        if (exprType instanceof ArrayType arrayType) {
+            if (index != null) {
+                index.setType(Types.INT);
+            }
+            element.setType(arrayType.base());
+        } else if (exprType instanceof ListType listType) {
+            if (index != null) {
+                index.setType(Types.INT);
+            }
+            element.setType(listType.base());
+        } else if (exprType instanceof MapType mapType) {
+            if (index != null) {
+                index.setType(mapType.key());
+            }
+            element.setType(mapType.value());
+        } else {
+            for (VariableDeclaration varDecl : varDecls) {
+                varDecl.setType(Types.ANY);
+            }
+        }
 
         ForeachStatement foreachStmt = new ForeachStatement(varDecls, expr, block);
         foreachStmt.setRange(Range.of(ctx));

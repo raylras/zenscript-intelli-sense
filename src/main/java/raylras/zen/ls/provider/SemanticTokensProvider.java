@@ -41,7 +41,7 @@ public class SemanticTokensProvider {
 
         @Override
         public SemanticToken visit(ImportDeclaration importDecl) {
-            SemanticToken token = builder.push(importDecl.getReference().getRange(), TokenType.CLASS);
+            SemanticToken token = builder.push(importDecl.getId().getRange(), TokenType.CLASS);
             super.visit(importDecl);
             return token;
         }
@@ -121,7 +121,7 @@ public class SemanticTokensProvider {
 
         @Override
         public SemanticToken visit(VarAccessExpression varAccess) {
-            SemanticToken token = varAccess.getSymbol()
+            SemanticToken token = Optional.ofNullable(varAccess.getSymbol())
                     .map(Symbol::node)
                     .map(node -> {
                         SemanticToken semanticToken = node.accept(this);
@@ -153,7 +153,7 @@ public class SemanticTokensProvider {
 
         @Override
         public SemanticToken visit(StringLiteral stringExpr) {
-            builder.push(stringExpr.getRange(), TokenType.STRING);
+//            builder.push(stringExpr.getRange(), TokenType.STRING);
             return super.visit(stringExpr);
         }
 
@@ -164,103 +164,79 @@ public class SemanticTokensProvider {
     }
 
     private static final class SemanticDataBuilder {
-        private final List<Integer> semanticData = new ArrayList<>();
-        private final Set<SemanticToken> semanticTokenSet = new TreeSet<>();
+        private final Set<SemanticToken> semanticTokens = new TreeSet<>();
         private SemanticToken prevToken;
 
-        public List<Integer> getSemanticData() {
-            return semanticData;
+        public SemanticToken push(Range range, int tokenType, int modifiers) {
+            org.eclipse.lsp4j.Range lspRange = PosUtils.toLSPRange(range);
+            int line = lspRange.getStart().getLine();
+            int column = lspRange.getStart().getCharacter();
+            int length = range.lastColumn() - range.column();
+            SemanticToken token = new SemanticToken(line, column, length, tokenType, modifiers);
+            semanticTokens.add(token);
+            return token;
         }
 
         public SemanticToken push(Range range, TokenType tokenType, TokenModifier... tokenModifiers) {
-            org.eclipse.lsp4j.Range lspRange = PosUtils.toLSPRange(range);
-            int line = lspRange.getStart().getLine();
-            int column = lspRange.getStart().getCharacter();
-            int length = range.lastColumn() - range.column();
-            int modifiers = TokenModifier.toBitFlag(tokenModifiers);
-            SemanticToken token = new SemanticToken(line, column, length, tokenType, modifiers);
-            semanticTokenSet.add(token);
-            return token;
+            return push(range, tokenType.ordinal(), TokenModifier.toInt(tokenModifiers));
         }
 
         public SemanticToken push(Range range, TokenType tokenType, int modifiers) {
-            org.eclipse.lsp4j.Range lspRange = PosUtils.toLSPRange(range);
-            int line = lspRange.getStart().getLine();
-            int column = lspRange.getStart().getCharacter();
-            int length = range.lastColumn() - range.column();
-            SemanticToken token = new SemanticToken(line, column, length, tokenType, modifiers);
-            semanticTokenSet.add(token);
-            return token;
+            return push(range, tokenType.ordinal(), modifiers);
         }
 
-        private void build() {
-            prevToken = new SemanticToken(0, 0, 0, null, 0); // first position of LSP4J
-            semanticTokenSet.forEach(this::collectData);
+        private List<Integer> build() {
+            prevToken = new SemanticToken(0, 0, 0, 0, 0);
+            return semanticTokens.stream()
+                    .map(this::convert)
+                    .flatMap(List::stream)
+                    .toList();
         }
 
-        private void collectData(SemanticToken token) {
-            semanticData.addAll(convertToDataUnit(token));
-            prevToken = token;
-        }
-
-        private List<Integer> convertToDataUnit(SemanticToken token) {
-            // index:     0     1       2       3           4
-            // tokenData: line  column  length  tokenType   modifiers
-            int[] dataUnit = new int[5];
+        private List<Integer> convert(SemanticToken token) {
+            // see https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_semanticTokens
+            int line;
+            int column;
+            int length;
+            int tokenType;
+            int modifiers;
 
             // the token's line is always relative to the previous token's line
-            dataUnit[0] = token.line - prevToken.line;
+            line = token.line - prevToken.line;
 
+            // use relative colum when in the same line
             if (token.line == prevToken.line) {
-                // use relative colum when in the same line
-                dataUnit[1] = token.column - prevToken.column;
+                column = token.column - prevToken.column;
             } else {
-                // otherwise use absolute column
-                dataUnit[1] = token.column;
+                // otherwise, use absolute column
+                column = token.column;
             }
 
-            dataUnit[2] = token.length;
-            dataUnit[3] = token.tokenType.ordinal();
-            dataUnit[4] = token.modifiers;
+            length = token.length;
+            tokenType = token.tokenType;
+            modifiers = token.modifiers;
 
-            return Arrays.stream(dataUnit).boxed().toList();
-        }
+            prevToken = token;
 
-        private void clear() {
-            semanticData.clear();
-            semanticTokenSet.clear();
+            return List.of(line, column, length, tokenType, modifiers);
         }
 
     }
 
-    private record SemanticToken(int line, int column, int length, TokenType tokenType, int modifiers)
+    private record SemanticToken(int line, int column, int length, int tokenType, int modifiers)
             implements Comparable<SemanticToken> {
 
         @Override
         public int compareTo(SemanticToken other) {
             return this.line == other.line ? this.column - other.column : this.line - other.line;
         }
-
-        @Override
-        public String toString() {
-            return String.format("%s<%d:%d>", tokenType.getName(), line, column);
-        }
-    }
-
-    private final SemanticDataBuilder builder;
-    private final SemanticVisitor visitor;
-
-    public SemanticTokensProvider() {
-        this.builder = new SemanticDataBuilder();
-        this.visitor = new SemanticVisitor(builder);
     }
 
     public SemanticTokens provideSemanticTokens(@NotNull SemanticTokensParams params, @NotNull CompileUnit compileUnit) {
         ScriptNode scriptNode = compileUnit.getScriptNode(params.getTextDocument().getUri());
-        builder.clear();
-        visitor.visit(scriptNode);
-        builder.build();
-        return new SemanticTokens(builder.getSemanticData());
+        SemanticDataBuilder builder = new SemanticDataBuilder();
+        new SemanticVisitor(builder).visit(scriptNode);
+        return new SemanticTokens(builder.build());
     }
 
 }

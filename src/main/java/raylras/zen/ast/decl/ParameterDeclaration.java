@@ -9,7 +9,7 @@ import raylras.zen.ast.visit.NodeVisitor;
 import java.util.*;
 import java.util.stream.Stream;
 
-public final class ParameterDeclaration extends BaseNode implements Declaration, Variable {
+public final class ParameterDeclaration extends BaseNode implements Declaration, Variable, HasID {
 
     @NotNull
     private final IDNode id;
@@ -25,6 +25,7 @@ public final class ParameterDeclaration extends BaseNode implements Declaration,
     }
 
     @NotNull
+    @Override
     public IDNode getId() {
         return id;
     }

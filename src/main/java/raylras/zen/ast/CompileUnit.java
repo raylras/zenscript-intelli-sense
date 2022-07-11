@@ -90,7 +90,7 @@ public final class CompileUnit {
             File current = queue.poll();
             if (current.isFile()) {
                 if (current.getName().endsWith(ZEN_SCRIPT_FILE_EXTENSION)) {
-                    compileUnit.addSourceUnit(SourceUnit.create(root.toUri(), current.toURI(), compileUnit.errorCollector));
+                    compileUnit.addSourceUnit(SourceUnit.create(compileUnit.root, current.toURI(), compileUnit.errorCollector));
                 }
             } else {
                 File[] listFiles = current.listFiles();

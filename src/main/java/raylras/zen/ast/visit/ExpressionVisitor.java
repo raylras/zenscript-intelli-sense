@@ -73,8 +73,11 @@ public final class ExpressionVisitor extends ZenScriptParserBaseVisitor<Expressi
         if (ctx == null) return null;
 
         Expression expr = ctx.expression().accept(this);
+        Type type = builder.getTypeVisitor().visitType(ctx.type());
 
         TypeCastExpression castExpr = new TypeCastExpression(expr);
+        expr.setType(type);
+        castExpr.setType(type);
         castExpr.setRange(Range.of(ctx));
 
         return castExpr;

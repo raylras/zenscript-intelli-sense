@@ -31,8 +31,6 @@ public class ZenScriptLanguageServer implements LanguageServer {
         services.setWorkspace(workspace);
         Path workspacePath = Paths.get(URI.create(workspace.getUri()));
 
-
-
         // find "scripts" dir using BFS
         Path scripts = null;
         Queue<File> queue = new ArrayDeque<>();
@@ -78,7 +76,7 @@ public class ZenScriptLanguageServer implements LanguageServer {
 //        capabilities.setSignatureHelpProvider(signatureHelpOptions);
         capabilities.setSemanticTokensProvider(new SemanticTokensWithRegistrationOptions(new SemanticTokensLegend(TokenType.getTokenTypes(), TokenModifier.getTokenModifiers()), true));
 //        capabilities.setReferencesProvider(true);
-//        capabilities.setDefinitionProvider(true);
+        capabilities.setDefinitionProvider(true);
 //        capabilities.setTypeDefinitionProvider(true);
         capabilities.setHoverProvider(true);
 //        capabilities.setRenameProvider(true);

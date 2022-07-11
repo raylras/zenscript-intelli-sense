@@ -29,7 +29,7 @@ public enum TokenModifier {
         return name;
     }
 
-    public static int toBitFlag(TokenModifier... modifiers) {
+    public static int toInt(TokenModifier... modifiers) {
         int flag = 0;
         for (TokenModifier modifier : modifiers) {
             flag |= modifier.id;

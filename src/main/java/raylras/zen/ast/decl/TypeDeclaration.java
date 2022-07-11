@@ -4,13 +4,12 @@ import org.jetbrains.annotations.Nullable;
 import raylras.zen.ast.BaseNode;
 import raylras.zen.ast.Node;
 import raylras.zen.ast.Symbol;
-import raylras.zen.ast.Symbolized;
+import raylras.zen.ast.HasSymbol;
 import raylras.zen.ast.visit.NodeVisitor;
 
 import java.util.List;
-import java.util.Optional;
 
-public final class  TypeDeclaration extends BaseNode implements Declaration, Symbolized {
+public final class  TypeDeclaration extends BaseNode implements Declaration, HasSymbol {
 
     @Nullable
     private final Symbol symbol;
@@ -19,9 +18,10 @@ public final class  TypeDeclaration extends BaseNode implements Declaration, Sym
         this.symbol = symbol;
     }
 
+    @Nullable
     @Override
-    public Optional<Symbol> getSymbol() {
-        return Optional.ofNullable(symbol);
+    public Symbol getSymbol() {
+        return symbol;
     }
 
     @Override

@@ -13,6 +13,7 @@ import raylras.zen.control.ErrorCollector;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URI;
+import java.util.Comparator;
 import java.util.List;
 
 public final class SourceUnit implements Comparable<SourceUnit> {
@@ -26,7 +27,6 @@ public final class SourceUnit implements Comparable<SourceUnit> {
     private final ErrorCollector errorCollector;
 
     private List<String> preprocessors;
-    private int priority = 0;
 
     public SourceUnit(@Nullable URI uri, ErrorCollector errorCollector) {
         this.uri = uri;
@@ -57,7 +57,12 @@ public final class SourceUnit implements Comparable<SourceUnit> {
     }
 
     public int getPriority() {
-        return priority;
+        return preprocessors.stream()
+                .filter(prep -> prep.startsWith("#priority"))
+                .findFirst()
+                .map(prep -> prep.split(" ")[1])
+                .map(Integer::valueOf)
+                .orElse(0);
     }
 
     public void parse(Reader source) {
@@ -72,13 +77,6 @@ public final class SourceUnit implements Comparable<SourceUnit> {
                     .filter(token -> token.getChannel() == ZenScriptLexer.PREPROCESSOR_CHANNEL)
                     .map(Token::getText)
                     .toList();
-
-            priority = preprocessors.stream()
-                    .filter(prep -> prep.startsWith("#priority"))
-                    .findFirst()
-                    .map(prep -> prep.split(" ")[1])
-                    .map(Integer::valueOf)
-                    .orElse(0);
         } catch (IOException e) {
             // errorCollector.addError(e.getMessage(), uri);
             throw new RuntimeException(e);
@@ -91,11 +89,13 @@ public final class SourceUnit implements Comparable<SourceUnit> {
 
     @Override
     public int compareTo(@NotNull SourceUnit that) {
-        return that.getPriority() - this.getPriority();
+        return PRIORITY_COMPARATOR.compare(this, that);
     }
 
     public static SourceUnit create(URI root, URI absolute, ErrorCollector errorCollector) {
         return new SourceUnit(root.relativize(absolute), errorCollector);
     }
+
+    public static final Comparator<SourceUnit> PRIORITY_COMPARATOR = Comparator.comparingInt(SourceUnit::getPriority);
 
 }
