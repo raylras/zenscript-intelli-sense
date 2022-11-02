@@ -1,0 +1,521 @@
+name: ZenScript
+scopeName: source.zenscript
+fileTypes:
+  - zs
+
+patterns:
+  - include: '#preprocessor'
+  - include: '#comment'
+  - include: '#import-declaration'
+  - include: '#class-declaration'
+  - include: '#statement'
+  - include: '#expression'
+
+repository:
+
+  preprocessor:
+    name: meta.preprocessor.zenscript
+    match: '^\s*(#)(\w+)\b(?:\s+(.*))?$'
+    captures:
+      '1':
+        name: punctuation.definition.preprocessor.zenscript
+      '2':
+        name: entity.name.preprocessor.zenscript
+      '3':
+        name: string.unquoted.zenscript
+    end: \n
+
+# Declaration
+
+  import-declaration:
+    name: meta.import.zenscript
+    match: '\b(import)\s+(\w+(?:\.\w+)*\.(\w+))\b(?:\s+(as)\s+(\w+))?\s*(;)'
+    captures:
+      '1':
+        name: keyword.other.import.zenscript
+      '2':
+        name: support.class.zenscript
+      '4':
+        name: keyword.other.as.zenscript
+      '5':
+        name: variable.other.alias.zenscript
+      '6':
+        name: punctuation.terminator.zenscript
+
+  class-declaration:
+    name: meta.declaration.class.zenscript
+    begin: '(?=\b(zenClass)\b)'
+    beginCaptures:
+      '1':
+        name: keyword.other.zenClass.zenscript
+    end: '(?<=\})'
+    patterns:
+      - name: support.class.zenscript
+        match: '(?:\bzenClass\b)(?:\s+)([a-zA-Z_][a-zA-Z0-9_]*)'
+      - include: '#class-body'
+
+  class-constructor:
+    name: meta.declaration.class.constructor.zenscript
+    begin: '(?=\b(zenConstructor)\b)'
+    beginCaptures:
+      '1':
+        name: keyword.other.zenConstructor.zenscript
+    end: '(?<=\})'
+    patterns:
+      - include: '#formal-parameter'
+      - include: '#class-body'
+
+  class-body:
+    name: meta.class.body.zenscript
+    begin: '{'
+    beginCaptures:
+      '0':
+        name: meta.block.begin.zenscript
+    end: '}'
+    endCaptures:
+      '0':
+        name: meta.block.end.zenscript
+    patterns:
+      - include: '#comment'
+      - include: '#class-constructor'
+      - include: '#statement'
+      - include: '#keyword'
+      - include: '#identifier'
+
+  block:
+    name: meta.block.zenscript
+    begin: '{'
+    beginCaptures: 
+      '0':
+        name: meta.block.begin.zenscript
+    end: '}'
+    endCaptures:
+      '0':
+        name: meta.block.end.zenscript
+    patterns:
+      - include: '#comment'
+      - include: '#statement'
+      - include: '#expression'
+      - include: '#keyword'
+
+  readwrite-variable-declaration:
+    name: meta.declaration.variable.readwrite.zenscript
+    begin: '(?=\b(var)\b)'
+    beginCaptures:
+      '1':
+        name: keyword.other.var.zenscript
+    end: ';'
+    endCaptures:
+      '0':
+        name: punctuation.terminator.zenscript
+    patterns:
+      - match: '\b(?:var)\b\s+([a-zA-Z_][a-zA-Z0-9_]*)\b'
+        captures:
+          '1': 
+            name: variable.other.definition.zenscript
+      - include: '#function-declaration'
+      - include: '#keyword'
+      - include: '#expression'
+
+  const-variable-declaration:
+    name: meta.definition.variable.zenscript
+    begin: '(?=\b(val)|(static)|(global)\b)'
+    beginCaptures:
+      '1':
+        name: keyword.other.val.zenscript
+      '2':
+        name: keyword.other.static.zenscript
+      '3':
+        name: keyword.other.global.zenscript
+    end: ';'
+    endCaptures:
+      '0':
+        name: punctuation.terminator.zenscript
+    patterns:
+      - match: '\b(?:val|static|global)\b\s+([a-zA-Z_][a-zA-Z0-9_]*)\b'
+        captures:
+          '1': 
+            name: variable.other.constant.zenscript
+      - include: '#function-declaration'
+      - include: '#keyword'
+      - include: '#expression'
+
+  function-declaration:
+    name: meta.definition.function.zenscript
+    begin: '(?=\b(function)\b)'
+    beginCaptures:
+      "1":
+        name: keyword.other.function.zenscript
+    end: '(?<=\})'
+    patterns:
+      - match: '(?:\bfunction\b)(?:\s+)([a-zA-Z_][a-zA-Z0-9_]*)'
+        captures:
+          '1':
+            name: entity.name.function.zenscript
+      - include: '#comment'
+      - include: '#keyword'
+      - include: '#formal-parameter-list'
+      - include: '#function-return-type'
+      - include: '#function-body'
+
+  function-return-type:
+    name: meta.function.return-type
+    begin: '(?=as)'
+    end: '(?<=\w|\])(?=\s|{)'
+    patterns:
+      - include: '#type-assertion'
+
+  function-body:
+    name: meta.function.body.zenscript
+    patterns:
+      - include: '#block'
+
+  formal-parameter-list:
+    name: meta.parameter-list.zenscript
+    begin: '\('
+    beginCaptures:
+      '0':
+        name: punctuation.definition.parameter-list.begin.zenscript
+    end: '\)'
+    endCaptures:
+      '0':
+        name: punctuation.definition.parameter-list.end.zenscript
+    patterns:
+      - name: punctuation.separator.parameter.zenscript
+        match: ','
+      - include: '#formal-parameter'
+      - include: '#comment'
+
+  formal-parameter:
+    name: meta.parameter.zenscript
+    begin: '[_a-zA-Z][_a-zA-Z0-9]*'
+    beginCaptures:
+      '0':
+        name: variable.parameter.zenscript
+    end: '(?=,|\))'
+    patterns:
+      - include: '#type-assertion'
+
+# Statement
+
+  statement:
+    patterns:
+      - include: '#comment'
+      - include: '#function-declaration'
+      - include: '#const-variable-declaration'
+      - include: '#readwrite-variable-declaration'
+      - include: '#if-statement'
+      - include: '#while-statement'
+      - include: '#block'
+
+  if-statement:
+    name: meta.statement.if.zenscript
+    patterns:
+      - begin: '\b(?=if)\b'
+        end: '(?<=;|\})'
+        patterns:
+          - name: keyword.control.if.zenscript
+            match: '\b(if)\b'
+          - name: meta.brace.round.zenscript
+            begin: '\('
+            end: '\)'
+            patterns: 
+              - include: '#expression'
+          - include: '#statement'
+          - include: '#expression'
+      - include: '#else-part'
+
+  else-part: 
+    begin: '(?<!\.)\b(else)\b'
+    beginCaptures: 
+      '1': 
+        name: keyword.control.else.zenscript
+    end: '(?<=\})|(?=;)'
+    patterns:
+      - include: '#statement'
+      - include: '#expression'
+
+  while-statement:
+    name: meta.statement.while.zenscript
+    patterns:
+      - begin: '\b(?=while)\b'
+        end: '(?<=;|\})'
+        patterns:
+          - name: keyword.control.while.zenscript
+            match: '\b(while)\b'
+          - name: meta.brace.round.zenscript
+            begin: '\('
+            end: '\)'
+            patterns: 
+              - include: '#expression'
+          - include: '#keyword'
+          - include: '#block'
+          - include: '#comment'
+
+# Expression
+
+  expression:
+    patterns:
+      - include: '#comment'
+      - include: '#bracket-handler'
+      - include: '#type-assertion'
+      - include: '#keyword'
+      - include: '#literal'
+      - include: '#function-call'
+      - include: '#member-call'
+      - include: '#identifier'
+
+  type-assertion:
+    name: meta.type-assertion.zenscript
+    begin: '\b(as)\b'
+    beginCaptures:
+      '1':
+        name: keyword.other.as.zenscript
+    end: '(?=(?:\s*)(?:,|\)|=|{|}|;))'
+    patterns:
+      - include: '#type'
+
+  type:
+    patterns:
+      - include: '#primitive-type'
+      - include: '#reference-type'
+  
+  primitive-type:
+    name: support.type.primitive.zenscript
+    match: '\b(any|bool|byte|short|int|long|float|double|string|void)\b'
+
+  reference-type:
+    patterns:
+      - name: support.type.reference.zenscript
+        match: '\b([a-zA-Z_][a-zA-Z0-9_\.]*)\b'
+
+  array:
+    name: meta.literal.array.zenscript
+    begin: '\['
+    beginCaptures:
+      '0':
+        name: punctuation.definition.array.begin.zenscript
+    end: '\]'
+    endCaptures:
+      '0':
+        name: punctuation.definition.array.end.zenscript
+    patterns:
+      - name: punctuation.separator.comma.array.zenscript
+        match: ','
+      - include: '#expression'
+
+  map:
+    name: meta.literal.map.zenscript
+    begin: '{'
+    beginCaptures:
+      '0':
+        name: punctuation.definition.map.begin.zenscript
+    end: '}'
+    endCaptures:
+      '0':
+        name: punctuation.definition.map.end.zenscript
+    patterns:
+      - include: '#comment'
+      - name: punctuation.separator.comma.map.zenscript
+        match: ','
+      - include: '#map-entry'
+
+  map-entry:
+    begin: '(?<={|,|\s)(?=(?:\b\w|\[|{|<|")(?:[\s\w\[\]{}<>"]*):)'
+    end: '(?=,|\s*})'
+    patterns:
+      - name: punctuation.separator.comma.map.key-value.zenscript
+        match: ':'
+      - include: '#expression'
+
+  function-call:
+    name: meta.function-call.zenscript
+    begin: '([A-Za-z_$][\w$]*)\s*(\()'
+    beginCaptures: 
+      '1':
+        name: entity.name.function.zenscript
+      '2':
+        name: punctuation.definition.parameters.begin.zenscript
+    end: '\)'
+    endCaptures:
+      '0':
+        name: punctuation.definition.parameters.end.zenscript
+    patterns:
+      - name: punctuation.separator.comma.parameter.zenscript
+        match: ','
+      - include: '#comment'
+      - include: '#function-declaration'
+      - include: '#expression'
+
+  member-call:
+    name: meta.member-call.zenscript
+    begin: '(?<=\.)\b([a-zA-Z_][a-zA-Z0-9_]*)\b(?!\()'
+    beginCaptures:
+      '1':
+        name: variable.other.member.zenscript
+    end: '(?=\.|\[|\]|\)|;|\s|\b)'
+
+  identifier:
+    name: variable.other.zenscript
+    match: '(?<!\.)\b([a-zA-Z_][a-zA-Z0-9_]*)\b'
+
+  bracket-handler:
+    name: variable.other.bracket-handler.zenscript
+    match: '(<)([^\n:>]*)([^\n>]*)(>)'
+    captures:
+      '1':
+        name: storage.type.bracket-handler.zenscript punctuation.definition.bracket-handler.begin.zenscript
+      '2':
+        name: variable.other.constant.bracket-handler.name.zenscript
+      '3':
+        patterns:
+          - include: '#number'
+          - name: storage.type.bracket-handler.zenscript punctuation.separator.colon.bracket-handler.zenscript
+            match: ':' 
+      '4':
+        name: storage.type.bracket-handler.zenscript punctuation.definition.bracket-handler.end.zenscript
+
+  literal:
+    patterns:
+      - include: '#number'
+      - include: '#bool'
+      - include: '#string'
+      - include: '#array'
+      - include: '#map'
+      - include: '#null'
+
+  number:
+    patterns:
+      - name: constant.numeric.binary.zenscript #invalid.illegal.not_supported.zenscript
+        match: (?<!\.)\b0[bB]\d+\b(?!\.)
+
+      - name: constant.numeric.octal.zenscript #invalid.illegal.not_supported.zenscript
+        match: '(?<!\.)\b0[oO]?\d+\b(?!\.)'
+      
+      - name: constant.numeric.decimal.zenscript
+        match: '(?<!\.)\b(0|([1-9][0-9]*))[Ll]?\b(?!\.)'
+
+      - name: constant.numeric.hex.zenscript
+        match: '(?<!\.)\b(0[Xx][A-Fa-f0-9]+)[Ll]?\b(?!\.)'
+
+      - name: constant.numeric.floating.zenscript
+        match: '(?<!\.)\b\d+(\.\d+[fFdD]?)?\b(?!\.)'
+
+  bool:
+    patterns:
+      - name: constant.bool.true.zenscript
+        match: '\b(true)\b'
+      - name: constant.bool.false.zenscript
+        match: '\b(false)\b'
+
+  string:
+    patterns:
+      - include: '#double-quoted-string'
+      - include: '#single-quoted-string'
+
+  double-quoted-string:
+    name: string.quoted.double.zenscript
+    begin: '"'
+    beginCaptures:
+      '0':
+        name: punctuation.definition.string.begin.zenscript
+    end: '(")|((?:[^\\\n])$)'
+    endCaptures:
+      '1':
+        name: punctuation.definition.string.end.zenscript
+      '2':
+        name: invalid.illegal.newline.zenscript
+    patterns:
+      - include: '#string-character-escape'
+  
+  single-quoted-string:
+    name: string.quoted.single.zenscript
+    begin: ''''
+    beginCaptures:
+      '0':
+        name: punctuation.definition.string.begin.zenscript
+    end: '(\'')|((?:[^\\\n])$)'
+    endCaptures:
+      '1':
+        name: punctuation.definition.string.end.zenscript
+      '2':
+        name: invalid.illegal.newline.zenscript
+    patterns:
+      - include: '#string-character-escape'
+  
+  string-character-escape:
+    name: constant.character.escape.zenscript
+    match: '\\([uU][0-9a-fA-F]{4}|.)'
+  
+  null:
+    name: constant.language.null.zenscript
+    match: '\b(null)\b'
+
+# Comment
+
+  comment:
+    patterns:
+      - include: '#line-comment'
+      - include: '#bolck-comment'
+
+  line-comment:
+    name: comment.line.zenscript
+    begin: '//|#'
+    beginCaptures:
+      '0':
+        name: punctuation.definition.comment.zenscript
+    end: '\n'
+
+  bolck-comment:
+    name: comment.block.zenscript
+    begin: '\/\*'
+    beginCaptures:
+      '0':
+        name: punctuation.definition.comment.zenscript
+    end: '\*\/'
+    endCaptures:
+      '0':
+        name: punctuation.definition.comment.zenscript
+
+# Keyword
+
+  keyword:
+    patterns:
+      - name: keyword.operator.ternary.zenscript
+        match: '\?|:'
+
+      - name: keyword.control.zenscript
+        match: '\b(return|break|continue|do|while|for|if|else)\b'
+
+      - name: keyword.other.zenscript
+        match: '\b(import|function|var|val|in|has|global|static|this|zenClass|zenConstructor|frigginClass|frigginConstructor)\b'
+
+      - name: keyword.operator.range.zenscript
+        match: '\b(to|\.\.)\b'
+
+      - name: keyword.operator.instanceof.zenscript
+        match: '\b(instanceof)\b'
+
+      - name: keyword.operator.comparison.zenscript
+        match: '(==|!=|<=|>=|<|>)'
+
+      - name: keyword.operator.assignment.arithmetic.zenscript
+        match: '([\+\-\*\/\%\~]=)'
+
+      - name: keyword.operator.assignment.zenscript
+        match: '(=)'
+
+      - name: keyword.operator.arithmetic.zenscript
+        match: '(\-|\+|\*|\/|\%|\~)'
+        
+      - name: keyword.operator.logical.zenscript
+        match: '(!|&&?|\|\|?)'
+
+      - name: punctuation.separator.period.zenscript
+        match: '(?<!\.)\.(?!\.)'
+
+      - name: punctuation.separator.comma.zenscript
+        match: ','
+
+      - name: punctuation.terminator.zenscript
+        match: ';'

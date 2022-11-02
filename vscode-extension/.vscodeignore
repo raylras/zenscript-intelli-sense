@@ -1,0 +1,8 @@
+# Ignore
+**
+
+# Keep
+!LICENSE.md
+!out/**/*.js
+!out/**/*.js.map
+!*.jar

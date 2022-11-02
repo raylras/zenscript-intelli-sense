@@ -1,0 +1,82 @@
+{
+	"name": "zenscript-language-server",
+	"displayName": "ZenScript Language Server",
+	"description": "ZenScript Language Server",
+	"author": "raylras",
+	"license": "MIT",
+	"version": "1.0.0",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Raylras/zenscript-language-server"
+	},
+	"publisher": "raylras",
+	"categories": [
+		"Programming Languages"
+	],
+	"keywords": [
+		""
+	],
+	"engines": {
+		"vscode": "^1.63.0"
+	},
+	"activationEvents": [
+		"onLanguage:zenscript"
+	],
+	"main": "./out/extension",
+	"contributes": {
+		"languages": [
+			{
+				"id": "zenscript",
+				"aliases": [
+					"zenscript",
+					"ZenScript"
+				],
+				"extensions": [
+					".zs"
+				],
+				"configuration": "./language/language-configuration.json"
+			}
+		],
+		"grammars": [
+			{
+				"language": "zenscript",
+				"scopeName": "source.zenscript",
+				"path": "./language/zenscript.tmLanguage.json"
+			}
+		],
+		"configuration": {
+			"type": "object",
+			"title": "ZenScript Language Server",
+			"properties": {
+				"zenscript.languageServer.debug": {
+					"type": "boolean",
+					"default": false,
+					"description": "Running the language server in debug mode"
+				},
+				"zenscript.languageServer.javaBin": {
+					"type": "string",
+					"description": "Path to the java bin"
+				}
+			}
+		}
+	},
+	"scripts": {
+		"vscode:prepublish": "npm run compile",
+		"compile": "tsc -p ./",
+		"watch": "tsc -w -p ./",
+		"yaml2json": "cd ./src && yamljson zenscript.tmLanguage.yaml > ../language/zenscript.tmLanguage.json",
+		"package": "vsce package",
+		"build": "npm run compile && npm run yaml2json && npm run package"
+	},
+	"dependencies": {
+		"vscode-languageclient": "^8.0.1"
+	},
+	"devDependencies": {
+		"@types/node": "^16.11.7",
+		"@types/vscode": "^1.56.0",
+		"ts-loader": "^9.2.6",
+		"typescript": "^4.7.2",
+		"vsce": "^2.9.2",
+		"yamljson": "^1.0.70"
+	}
+}

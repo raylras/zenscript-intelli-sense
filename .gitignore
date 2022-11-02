@@ -1,0 +1,31 @@
+# eclipse
+bin
+*.launch
+.settings
+.metadata
+.classpath
+.project
+
+# idea
+out
+*.ipr
+*.iws
+*.iml
+.idea
+
+# gradle
+build
+.gradle
+
+# other
+eclipse
+run
+
+# vscode-extension
+/vscode-extension/*.jar
+/vscode-extension/out
+/vscode-extension/node_modules
+/vscode-extension/.vscode-test
+/vscode-extension/*.vsix
+/vscode-extension/node_modules/
+/vscode-extension/language/zenscript.tmLanguage.json

@@ -1,0 +1,77 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id 'antlr'
+    id 'com.github.johnrengelman.shadow' version '7.1.2'
+}
+
+group 'raylras.zenls'
+ext.moduleName = 'raylras.zenls'
+
+java {
+    sourceCompatibility = '17'
+    targetCompatibility = '17'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.antlr:antlr4-runtime:4.11.1'
+    implementation 'org.eclipse.lsp4j:org.eclipse.lsp4j:0.17.0'
+
+    antlr 'org.antlr:antlr4:4.11.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+compileJava {
+    inputs.property('moduleName', moduleName)
+    doFirst {
+        options.compilerArgs = [
+                '--module-path', classpath.asPath
+        ]
+        classpath = files()
+    }
+}
+
+sourceSets {
+    generated {
+        java.srcDir 'generated-src/antlr/main'
+    }
+}
+
+shadowJar {
+    manifest {
+        attributes 'Main-Class': 'raylras.zen.Main'
+    }
+    dependencies {
+        include(dependency('org.antlr:antlr4-runtime'))
+        include(dependency('org.eclipse.lsp4j:org.eclipse.lsp4j'))
+        include(dependency('org.eclipse.lsp4j:org.eclipse.lsp4j.generator'))
+        include(dependency('org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc'))
+        include(dependency('com.google.code.gson:gson'))
+    }
+    exclude '**/*.java', 'META-INF/**', '**/*.html'
+    minimize()
+}
+
+task copyArtifacts(type: Copy) {
+    dependsOn 'shadowJar'
+    from "${buildDir}/libs/${project.name}-${project.version}-all.jar"
+    into './vscode-extension'
+}
+
+generateGrammarSource {
+    maxHeapSize = '64m'
+    arguments += ['-visitor', '-listener', '-long-messages', '-package', 'raylras.zen.cst']
+    outputDirectory = new File(buildDir.toString() + '/generated-src/antlr/main/raylras/zen/cst')
+}
+
+jar.enabled = false
+build.finalizedBy(copyArtifacts)
