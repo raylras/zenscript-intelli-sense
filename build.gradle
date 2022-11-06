@@ -20,6 +20,7 @@ repositories {
 dependencies {
     implementation 'org.antlr:antlr4-runtime:4.11.1'
     implementation 'org.eclipse.lsp4j:org.eclipse.lsp4j:0.17.0'
+    implementation 'org.tomlj:tomlj:1.1.0'
 
     antlr 'org.antlr:antlr4:4.11.1'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
@@ -56,6 +57,7 @@ shadowJar {
         include(dependency('org.eclipse.lsp4j:org.eclipse.lsp4j.generator'))
         include(dependency('org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc'))
         include(dependency('com.google.code.gson:gson'))
+        include(dependency('org.tomlj:tomlj'))
     }
     exclude '**/*.java', 'META-INF/**', '**/*.html'
     minimize()
