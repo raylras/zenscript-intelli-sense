@@ -5,20 +5,18 @@ import org.eclipse.lsp4j.services.*;
 
 import java.util.concurrent.CompletableFuture;
 
-public class ZenScriptLanguageServer implements LanguageServer, LanguageClientAware {
+public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 
     private LanguageClient languageClient;
     private final LanguageServerContext serverContext;
     private final TextDocumentService textDocumentService;
     private final WorkspaceService workspaceService;
-    private final ZenScriptWorkspaceManager workspaceManager;
     private int shutdown = 1;
 
-    public ZenScriptLanguageServer() {
+    public ZenLanguageServer() {
         this.serverContext = new LanguageServerContext();
-        this.textDocumentService = new ZenScriptTextDocumentService(this, this.serverContext);
-        this.workspaceService = new ZenScriptWorkspaceService(this, this.serverContext);
-        this.workspaceManager = new ZenScriptWorkspaceManager(this.serverContext);
+        this.textDocumentService = new ZenTextDocumentService(this, this.serverContext);
+        this.workspaceService = new ZenWorkspaceService(this, this.serverContext);
     }
 
     @Override

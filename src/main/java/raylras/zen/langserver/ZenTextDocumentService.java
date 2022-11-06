@@ -8,17 +8,18 @@ import org.eclipse.lsp4j.services.TextDocumentService;
 
 public class ZenScriptTextDocumentService implements TextDocumentService {
 
-    private final ZenScriptLanguageServer languageServer;
+public class ZenTextDocumentService implements TextDocumentService {
+
+    private final ZenLanguageServer languageServer;
     private final LanguageServerContext serverContext;
     private final LanguageClientLogger clientLogger;
 
-    public ZenScriptTextDocumentService(ZenScriptLanguageServer languageServer,
-                                        LanguageServerContext serverContext) {
+    public ZenTextDocumentService(ZenLanguageServer languageServer,
+                                  LanguageServerContext serverContext) {
         this.languageServer = languageServer;
         this.serverContext = serverContext;
         this.clientLogger = LanguageClientLogger.getInstance(serverContext);
     }
-
 
     @Override
     public void didOpen(DidOpenTextDocumentParams params) {
