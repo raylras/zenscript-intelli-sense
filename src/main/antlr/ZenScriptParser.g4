@@ -106,44 +106,26 @@ expressionStatement
 expression
     : 'function' '(' parameterList? ')' ('as' type)? block # FunctionExpression
     | Left=expression '(' expression? (',' expression)* ')' # ArgumentsExpression
-    | Left=expression Op='.' Right=IDENTIFIER # MemberAccessExpression
+    | Left=expression Operator='.' Right=IDENTIFIER # MemberAccessExpression
     | Left=expression '[' Index=expression ']' # MemberIndexExpression
     | expression 'as' type # TypeAssertionExpression
-    | <assoc=right> Op='!' expression # UnaryExpression
-    | <assoc=right> Op='-' expression # UnaryExpression
-    | <assoc=right> Op='+' expression # UnaryExpression
-    | Left=expression Op='*' Right=expression # BinaryExpression
-    | Left=expression Op='/' Right=expression # BinaryExpression
-    | Left=expression Op='%' Right=expression # BinaryExpression
-    | Left=expression Op='+' Right=expression # BinaryExpression
-    | Left=expression Op='-' Right=expression # BinaryExpression
-    | Left=expression Op='~' Right=expression # BinaryExpression
-    | Left=expression Op='<=' Right=expression # BinaryExpression
-    | Left=expression Op='>=' Right=expression # BinaryExpression
-    | Left=expression Op='>' Right=expression # BinaryExpression
-    | Left=expression Op='<' Right=expression # BinaryExpression
-    | Left=expression Op='==' Right=expression # BinaryExpression
-    | Left=expression Op='!=' Right=expression # BinaryExpression
-    | Left=expression Op='instanceof' Right=expression # BinaryExpression
-    | Left=expression Op=('in' | 'has') Right=expression # BinaryExpression
-    | Left=expression Op='&' Right=expression # BinaryExpression
-    | Left=expression Op='|' Right=expression # BinaryExpression
-    | Left=expression Op='^'Right=expression # BinaryExpression
-    | Left=expression Op='&&' Right=expression # BinaryExpression
-    | Left=expression Op='||' Right=expression # BinaryExpression
+    | <assoc=right> Operator=('!' | '-' | '+') expression # UnaryExpression
+    | Left=expression Operator=('*' | '/' | '%') Right=expression # BinaryExpression
+    | Left=expression Operator=('+' | '-') Right=expression # BinaryExpression
+    | Left=expression Operator='~' Right=expression # BinaryExpression
+    | Left=expression Operator=('<' | '<=' | '>' | '>=') Right=expression # BinaryExpression
+    | Left=expression Operator=('==' | '!=') Right=expression # BinaryExpression
+    | Left=expression Operator='instanceof' Right=expression # BinaryExpression
+    | Left=expression Operator=('in' | 'has') Right=expression # BinaryExpression
+    | Left=expression Operator='&' Right=expression # BinaryExpression
+    | Left=expression Operator='|' Right=expression # BinaryExpression
+    | Left=expression Operator='^'Right=expression # BinaryExpression
+    | Left=expression Operator='&&' Right=expression # BinaryExpression
+    | Left=expression Operator='||' Right=expression # BinaryExpression
     | <assoc=right> Condition=expression '?' Then=expression ':' Else=expression # TrinaryExpression
-    | <assoc=right> Left=expression Operator='=' Right=expression # AssignmentExpression
-    | <assoc=right> Left=expression Operator='+=' Right=expression # AssignmentExpression
-    | <assoc=right> Left=expression Operator='-=' Right=expression # AssignmentExpression
-    | <assoc=right> Left=expression Operator='*='Right=expression # AssignmentExpression
-    | <assoc=right> Left=expression Operator='/=' Right=expression # AssignmentExpression
-    | <assoc=right> Left=expression Operator='%=' Right=expression # AssignmentExpression
-    | <assoc=right> Left=expression Operator='~='Right=expression # AssignmentExpression
-    | <assoc=right> Left=expression Operator='&=' Right=expression # AssignmentExpression
-    | <assoc=right> Left=expression Operator='|=' Right=expression # AssignmentExpression
-    | <assoc=right> Left=expression Operator='^=' Right=expression # AssignmentExpression
+    | <assoc=right> Left=expression Operator=('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '~=' | '&=' | '|=' | '^=') Right=expression # AssignmentExpression
     | '<' (~'>')*? '>' # BracketHandlerExpression
-    | From=expression Op=('..' | 'to') To=expression # RangeExpression
+    | From=expression Operator=('..' | 'to') To=expression # RangeExpression
     | 'this' # ThisExpression
     | '[' expression? (',' expression)* ','? ']' # ArrayLiteralExpression
     | '{' mapEntry? (',' mapEntry)* ','? '}' # MapLiteralExpression
