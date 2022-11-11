@@ -24,7 +24,7 @@ alias
     ;
 
 functionDeclaration
-    : 'function' IDENTIFIER '(' parameterList? ')' ('as' type)? block
+    : 'function' IDENTIFIER '(' parameterList? ')' ('as' typeAnnotation)? block
     ;
 
 parameterList
@@ -32,11 +32,15 @@ parameterList
     ;
 
 parameter
-    : IDENTIFIER ('as' type)? ('=' defaultValue)?
+    : IDENTIFIER ('as' typeAnnotation)? ('=' defaultValue)?
     ;
 
 defaultValue
     : expression
+    ;
+
+typeAnnotation
+    : typeName
     ;
 
 zenClassDeclaration
@@ -52,7 +56,7 @@ block
     ;
 
 variableDeclaration
-    : Declarator=('var' | 'val' | 'static' | 'global') IDENTIFIER ('as' type)? ('=' initializer)? ';'
+    : Declarator=('var' | 'val' | 'static' | 'global') IDENTIFIER ('as' typeAnnotation)? ('=' initializer)? ';'
     ;
 
 initializer
@@ -88,7 +92,7 @@ continueStatement
     ;
 
 ifElseStatement
-    : 'if' expression (statement | block) ('else' (statement | block))?
+    : 'if' expression statement ('else' statement)?
     ;
 
 foreachStatement
@@ -104,11 +108,11 @@ expressionStatement
     ;
 
 expression
-    : 'function' '(' parameterList? ')' ('as' type)? block # FunctionExpression
+    : 'function' '(' parameterList? ')' ('as' typeAnnotation)? block # FunctionExpression
     | Left=expression '(' expression? (',' expression)* ')' # ArgumentsExpression
     | Left=expression Operator='.' Right=IDENTIFIER # MemberAccessExpression
     | Left=expression '[' Index=expression ']' # MemberIndexExpression
-    | expression 'as' type # TypeAssertionExpression
+    | expression 'as' typeName # TypeAssertionExpression
     | <assoc=right> Operator=('!' | '-' | '+') expression # UnaryExpression
     | Left=expression Operator=('*' | '/' | '%') Right=expression # BinaryExpression
     | Left=expression Operator=('+' | '-') Right=expression # BinaryExpression
@@ -138,26 +142,26 @@ mapEntry
     : Key=expression ':' Value=expression
     ;
 
-type
-    : reference # ReferenceType
-    | 'function' '(' typeList? ')' ReturnType=type # FunctionType
-    | '[' BaseType=type ']' # ListType
-    | BaseType=type '['']' # ArrayType
-    | ValueType=type '[' KeyType=type ']' # MapType
-    | ANY # AnyType
-    | BYTE # ByteType
-    | SHORT # ShortType
-    | INT # IntType
-    | LONG # LongType
-    | FLOAT # FloatType
-    | DOUBLE # DoubleType
-    | BOOL # BoolType
-    | VOID # VoidType
-    | STRING # StringType
+typeName
+    : reference
+    | 'function' '(' typeList? ')' ReturnType=typeName
+    | '[' BaseType=typeName ']'
+    | BaseType=typeName '['']'
+    | ValueType=typeName '[' KeyType=typeName ']'
+    | ANY
+    | BYTE
+    | SHORT
+    | INT
+    | LONG
+    | FLOAT
+    | DOUBLE
+    | BOOL
+    | VOID
+    | STRING
     ;
 
 typeList
-    : type (',' type)*
+    : typeName (',' typeName)*
     ;
 
 literal
