@@ -18,6 +18,8 @@ public interface ASTNodeVisitor<T> {
 
     T visit(ImportDeclarationNode node);
 
+    T visit(AliasNode node);
+
     T visit(ParameterDeclarationNode node);
 
     T visit(VariableDeclarationNode node);
@@ -60,7 +62,7 @@ public interface ASTNodeVisitor<T> {
 
     T visit(MapLiteralExpressionNode node);
 
-    T visit(MemberAccess node);
+    T visit(MemberAccessExpressionNode node);
 
     T visit(MemberIndexExpressionNode node);
 
@@ -74,10 +76,10 @@ public interface ASTNodeVisitor<T> {
 
     T visit(ThisExpressionNode node);
 
-    T visit(TypeAnnotationExpressionNode node);
+    T visit(TypeAssertionExpressionNode node);
 
     T visit(UnaryExpressionNode node);
 
-    T visit(VarAccessExpressionNode node);
+    T visit(TypeNameNode node);
 
 }

@@ -11,6 +11,10 @@ public class NullLiteralExpressionNode extends ASTNode implements LiteralExpress
     }
 
     @Override
+    public void addChild(ASTNode node) {
+    }
+
+    @Override
     public String toString() {
         return "null";
     }

@@ -31,7 +31,8 @@ public enum Operator {
     STRING_CONNECT_ASSIGN("~="),
     STRING_CONNECT("~"),
     IN("in"),
-    HAS("has");
+    HAS("has"),
+    INVALID("INVALID");
     private final String value;
 
     Operator(String value) {
@@ -40,6 +41,15 @@ public enum Operator {
 
     public String getValue() {
         return value;
+    }
+
+    public static Operator of(String literal) {
+        for (Operator operator : Operator.values()) {
+            if (operator.getValue().equals(literal)) {
+                return operator;
+            }
+        }
+        return INVALID;
     }
 
     @Override

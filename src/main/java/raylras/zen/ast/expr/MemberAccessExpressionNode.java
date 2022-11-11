@@ -4,22 +4,23 @@ import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
 
 /**
- * arr[1]
+ * A.b
+ * a.b.c()
  */
-public class MemberIndexExpressionNode extends ASTNode implements ExpressionNode {
+public class MemberAccessExpressionNode extends ASTNode implements ExpressionNode {
 
     private ExpressionNode left;
-    private ExpressionNode index;
+    private ExpressionNode right;
 
-    public MemberIndexExpressionNode() {
+    public MemberAccessExpressionNode() {
     }
 
     public ExpressionNode getLeft() {
         return left;
     }
 
-    public ExpressionNode getIndex() {
-        return index;
+    public ExpressionNode getRight() {
+        return right;
     }
 
     @Override
@@ -32,15 +33,15 @@ public class MemberIndexExpressionNode extends ASTNode implements ExpressionNode
         if (node instanceof ExpressionNode) {
             if (left == null) {
                 left = (ExpressionNode) node;
-            } else if (index == null) {
-                index = (ExpressionNode) node;
+            } else if (right == null) {
+                right = (ExpressionNode) node;
             }
         }
     }
 
     @Override
     public String toString() {
-        return left + "[" + index + "]";
+        return left + "." + right;
     }
 
 }

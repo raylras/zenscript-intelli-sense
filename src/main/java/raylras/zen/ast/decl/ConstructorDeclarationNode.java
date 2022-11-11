@@ -4,6 +4,7 @@ import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.BlockNode;
 import raylras.zen.ast.ASTNodeVisitor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -12,12 +13,10 @@ import java.util.stream.Collectors;
  */
 public class ConstructorDeclarationNode extends ASTNode implements DeclarationNode {
 
-    private final List<ParameterDeclarationNode> parameters;
-    private final BlockNode block;
+    private List<ParameterDeclarationNode> parameters;
+    private BlockNode block;
 
-    public ConstructorDeclarationNode(List<ParameterDeclarationNode> parameters, BlockNode block) {
-        this.parameters = parameters;
-        this.block = block;
+    public ConstructorDeclarationNode() {;
     }
 
     public List<ParameterDeclarationNode> getParameters() {
@@ -34,8 +33,29 @@ public class ConstructorDeclarationNode extends ASTNode implements DeclarationNo
     }
 
     @Override
+    public void addChild(ASTNode node) {
+        if (node.getClass() == ParameterDeclarationNode.class) {
+            if (parameters == null) {
+                parameters = new ArrayList<>();
+            }
+            parameters.add((ParameterDeclarationNode) node);
+        } else if (node.getClass() == BlockNode.class) {
+            if (block == null) {
+                block = (BlockNode) node;
+            }
+        }
+    }
+
+    @Override
     public String toString() {
-        return "zenConstructor(" + parameters.stream().map(Object::toString).collect(Collectors.joining(", ")) + ")" + " {...}";
+        StringBuilder builder = new StringBuilder();
+        builder.append("zenConstructor");
+        builder.append("(");
+        builder.append(parameters.stream().map(Object::toString).collect(Collectors.joining(", ")));
+        builder.append(")");
+        builder.append(" ");
+        builder.append(block);
+        return builder.toString();
     }
 
 }

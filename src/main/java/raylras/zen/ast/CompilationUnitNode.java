@@ -1,48 +1,38 @@
 package raylras.zen.ast;
 
-import raylras.zen.ast.decl.FunctionDeclarationNode;
-import raylras.zen.ast.decl.ImportDeclarationNode;
-import raylras.zen.ast.decl.ZenClassDeclarationNode;
-import raylras.zen.ast.stmt.StatementNode;
-
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class CompilationUnitNode extends ASTNode {
 
-    private final List<ImportDeclarationNode> imports;
-    private final List<FunctionDeclarationNode> functions;
-    private final List<ZenClassDeclarationNode> zenClasses;
-    private final List<StatementNode> statements;
+    private List<ASTNode> children;
 
-    public CompilationUnitNode(List<ImportDeclarationNode> imports,
-                               List<FunctionDeclarationNode> functions,
-                               List<ZenClassDeclarationNode> zenClasses,
-                               List<StatementNode> statements) {
-        this.imports = imports;
-        this.functions = functions;
-        this.zenClasses = zenClasses;
-        this.statements = statements;
+    public CompilationUnitNode() {
     }
 
-    public List<ImportDeclarationNode> getImports() {
-        return imports;
-    }
-
-    public List<FunctionDeclarationNode> getFunctions() {
-        return functions;
-    }
-
-    public List<ZenClassDeclarationNode> getZenClasses() {
-        return zenClasses;
-    }
-
-    public List<StatementNode> getStatements() {
-        return statements;
+    public List<ASTNode> getChildren() {
+        return children == null ? Collections.emptyList() : children;
     }
 
     @Override
     public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public void addChild(ASTNode child) {
+        if (children == null) {
+            children = new ArrayList<>();
+        }
+        children.add(child);
+    }
+
+    @Override
+    public String toString() {
+        return children.stream().map(Objects::toString).collect(Collectors.joining("\n"));
     }
 
 }

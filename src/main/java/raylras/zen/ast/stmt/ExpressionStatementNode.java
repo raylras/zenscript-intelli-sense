@@ -6,10 +6,9 @@ import raylras.zen.ast.ASTNodeVisitor;
 
 public class ExpressionStatementNode extends ASTNode implements StatementNode {
 
-    private final ExpressionNode expr;
+    private ExpressionNode expr;
 
-    public ExpressionStatementNode(ExpressionNode expr) {
-        this.expr = expr;
+    public ExpressionStatementNode() {
     }
 
     public ExpressionNode getExpr() {
@@ -19,6 +18,15 @@ public class ExpressionStatementNode extends ASTNode implements StatementNode {
     @Override
     public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public void addChild(ASTNode node) {
+        if (node instanceof ExpressionNode) {
+            if (expr == null) {
+                expr = (ExpressionNode) node;
+            }
+        }
     }
 
     @Override

@@ -8,16 +8,11 @@ import raylras.zen.ast.ASTNodeVisitor;
  */
 public class TernaryExpressionNode extends ASTNode implements ExpressionNode {
 
-    private final ExpressionNode expr;
-    private final ExpressionNode thenExpr;
-    private final ExpressionNode elseExpr;
+    private ExpressionNode expr;
+    private ExpressionNode thenExpr;
+    private ExpressionNode elseExpr;
 
-    public TernaryExpressionNode(ExpressionNode expr,
-                                 ExpressionNode thenExpr,
-                                 ExpressionNode elseExpr) {
-        this.expr = expr;
-        this.thenExpr = thenExpr;
-        this.elseExpr = elseExpr;
+    public TernaryExpressionNode() {
     }
 
     public ExpressionNode getExpr() {
@@ -35,6 +30,19 @@ public class TernaryExpressionNode extends ASTNode implements ExpressionNode {
     @Override
     public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public void addChild(ASTNode node) {
+        if (node instanceof ExpressionNode) {
+            if (expr == null) {
+                expr = (ExpressionNode) node;
+            } else if (thenExpr == null) {
+                thenExpr = (ExpressionNode) node;
+            } else if (elseExpr == null) {
+                elseExpr = (ExpressionNode) node;
+            }
+        }
     }
 
     @Override

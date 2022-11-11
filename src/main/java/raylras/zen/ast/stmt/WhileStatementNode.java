@@ -10,12 +10,10 @@ import raylras.zen.ast.ASTNodeVisitor;
  */
 public class WhileStatementNode extends ASTNode implements StatementNode {
 
-    private final ExpressionNode expr;
-    private final BlockNode block;
+    private ExpressionNode expr;
+    private BlockNode block;
 
-    public WhileStatementNode(ExpressionNode expr, BlockNode block) {
-        this.expr = expr;
-        this.block = block;
+    public WhileStatementNode() {
     }
 
     public ExpressionNode getExpr() {
@@ -32,8 +30,21 @@ public class WhileStatementNode extends ASTNode implements StatementNode {
     }
 
     @Override
+    public void addChild(ASTNode node) {
+        if (node instanceof ExpressionNode) {
+            if (expr == null) {
+                expr = (ExpressionNode) node;
+            }
+        } else if (node.getClass() == BlockNode.class) {
+            if (block == null) {
+                block = (BlockNode) node;
+            }
+        }
+    }
+
+    @Override
     public String toString() {
-        return "while " + expr + " {...}";
+        return "while " + expr + " " + block;
     }
 
 }

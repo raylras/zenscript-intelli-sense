@@ -9,12 +9,10 @@ import raylras.zen.ast.ASTNodeVisitor;
  */
 public class IntRangeExpressionNode extends ASTNode implements ExpressionNode {
 
-    private final ExpressionNode from;
-    private final ExpressionNode to;
+    private ExpressionNode from;
+    private ExpressionNode to;
 
-    public IntRangeExpressionNode(ExpressionNode from, ExpressionNode to) {
-        this.from = from;
-        this.to = to;
+    public IntRangeExpressionNode() {
     }
 
     public ExpressionNode getFrom() {
@@ -28,6 +26,17 @@ public class IntRangeExpressionNode extends ASTNode implements ExpressionNode {
     @Override
     public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public void addChild(ASTNode node) {
+        if (node instanceof ExpressionNode) {
+            if (from == null) {
+                from = (ExpressionNode) node;
+            } else if (to == null) {
+                to = (ExpressionNode) node;
+            }
+        }
     }
 
     @Override

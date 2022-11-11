@@ -14,16 +14,11 @@ import java.util.*;
  */
 public class VariableDeclarationNode extends ASTNode implements DeclarationNode, StatementNode, TopLevelNode {
 
-    private final IdentifierNode identifier;
-    private final TypeAnnotationNode typeAnnotation;
-    private final ExpressionNode expr;
+    private IdentifierNode identifier;
+    private TypeAnnotationNode typeAnnotation;
+    private ExpressionNode initializer;
 
-    public VariableDeclarationNode(IdentifierNode identifier,
-                                   TypeAnnotationNode typeAnnotation,
-                                   ExpressionNode expr) {
-        this.identifier = identifier;
-        this.typeAnnotation = typeAnnotation;
-        this.expr = expr;
+    public VariableDeclarationNode() {
     }
 
     public IdentifierNode getIdentifier() {
@@ -34,8 +29,8 @@ public class VariableDeclarationNode extends ASTNode implements DeclarationNode,
         return Optional.ofNullable(typeAnnotation);
     }
 
-    public Optional<ExpressionNode> getExpr() {
-        return Optional.ofNullable(expr);
+    public Optional<ExpressionNode> getInitializer() {
+        return Optional.ofNullable(initializer);
     }
 
     @Override
@@ -44,8 +39,39 @@ public class VariableDeclarationNode extends ASTNode implements DeclarationNode,
     }
 
     @Override
+    public void addChild(ASTNode node) {
+        Class<? extends ASTNode> clazz = node.getClass();
+        if (clazz == IdentifierNode.class) {
+            if (identifier == null) {
+                identifier = (IdentifierNode) node;
+            }
+        } else if (clazz == TypeAnnotationNode.class) {
+            if (typeAnnotation == null) {
+                typeAnnotation = (TypeAnnotationNode) node;
+            }
+        } else if (node instanceof ExpressionNode) {
+            if (initializer == null) {
+                initializer = (ExpressionNode) node;
+            }
+        }
+    }
+
+    @Override
     public String toString() {
-        return identifier.getId();
+        StringBuilder builder = new StringBuilder();
+        builder.append("var");
+        builder.append(" ");
+        builder.append(identifier);
+        if (typeAnnotation != null) {
+            builder.append(" as ");
+            builder.append(typeAnnotation);
+        }
+        if (initializer != null) {
+            builder.append(" = ");
+            builder.append(initializer);
+        }
+        builder.append(";");
+        return builder.toString();
     }
 
 }

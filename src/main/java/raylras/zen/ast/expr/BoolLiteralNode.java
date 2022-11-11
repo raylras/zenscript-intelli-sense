@@ -16,4 +16,13 @@ public class BoolLiteralNode extends ASTNode implements LiteralExpressionNode {
         return visitor.visit(this);
     }
 
+    @Override
+    public void addChild(ASTNode node) {
+    }
+
+    @Override
+    public String toString() {
+        return literal;
+    }
+
 }

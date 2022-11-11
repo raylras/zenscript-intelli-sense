@@ -8,14 +8,14 @@ import raylras.zen.ast.ASTNodeVisitor;
  */
 public class BracketHandlerExpressionNode extends ASTNode implements ExpressionNode {
 
-    private final String content;
+    private final String literal;
 
-    public BracketHandlerExpressionNode(String content) {
-        this.content = content;
+    public BracketHandlerExpressionNode(String literal) {
+        this.literal = literal;
     }
 
-    public String getContent() {
-        return content;
+    public String getLiteral() {
+        return literal;
     }
 
     @Override
@@ -24,8 +24,12 @@ public class BracketHandlerExpressionNode extends ASTNode implements ExpressionN
     }
 
     @Override
+    public void addChild(ASTNode node) {
+    }
+
+    @Override
     public String toString() {
-        return "<" + content + ">";
+        return literal;
     }
 
 }

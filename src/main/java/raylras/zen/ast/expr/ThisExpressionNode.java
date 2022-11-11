@@ -11,6 +11,10 @@ public class ThisExpressionNode extends ASTNode implements ExpressionNode {
     }
 
     @Override
+    public void addChild(ASTNode node) {
+    }
+
+    @Override
     public String toString() {
         return "this";
     }

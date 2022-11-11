@@ -26,6 +26,10 @@ public class NumericLiteralNode extends ASTNode implements LiteralExpressionNode
     }
 
     @Override
+    public void addChild(ASTNode node) {
+    }
+
+    @Override
     public String toString() {
         return literal;
     }

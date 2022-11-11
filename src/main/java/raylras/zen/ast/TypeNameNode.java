@@ -1,12 +1,10 @@
 package raylras.zen.ast;
 
-import raylras.zen.ast.expr.ExpressionNode;
-
-public class IdentifierNode extends ASTNode implements ExpressionNode {
+public class TypeNameNode extends ASTNode {
 
     private final String value;
 
-    public IdentifierNode(String value) {
+    public TypeNameNode(String value) {
         this.value = value;
     }
 

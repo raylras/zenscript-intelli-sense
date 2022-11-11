@@ -3,6 +3,7 @@ package raylras.zen.ast.expr;
 import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -11,10 +12,9 @@ import java.util.stream.Collectors;
  */
 public class ArrayLiteralExpressionNode extends ASTNode implements LiteralExpressionNode {
 
-    private final List<ExpressionNode> elements;
+    private List<ExpressionNode> elements;
 
-    public ArrayLiteralExpressionNode(List<ExpressionNode> elements) {
-        this.elements = elements;
+    public ArrayLiteralExpressionNode() {
     }
 
     public List<ExpressionNode> getElements() {
@@ -24,6 +24,16 @@ public class ArrayLiteralExpressionNode extends ASTNode implements LiteralExpres
     @Override
     public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public void addChild(ASTNode node) {
+        if (node instanceof ExpressionNode) {
+            if (elements == null) {
+                elements = new ArrayList<>();
+            }
+            elements.add((ExpressionNode) node);
+        }
     }
 
     @Override

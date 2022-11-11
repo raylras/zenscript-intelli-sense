@@ -10,15 +10,11 @@ import raylras.zen.ast.ASTNodeVisitor;
  */
 public class BinaryExpressionNode extends ASTNode implements ExpressionNode {
 
-    private final ExpressionNode left;
-    private final ExpressionNode right;
-    private final Operator operator;
+    private ExpressionNode left;
+    private ExpressionNode right;
+    private Operator operator;
 
-    public BinaryExpressionNode(ExpressionNode left,
-                                ExpressionNode right,
-                                Operator operator) {
-        this.left = left;
-        this.right = right;
+    public BinaryExpressionNode(Operator operator) {
         this.operator = operator;
     }
 
@@ -37,6 +33,17 @@ public class BinaryExpressionNode extends ASTNode implements ExpressionNode {
     @Override
     public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public void addChild(ASTNode node) {
+        if (node instanceof ExpressionNode) {
+            if (left == null) {
+                left = (ExpressionNode) node;
+            } else if (right == null) {
+                right = (ExpressionNode) node;
+            }
+        }
     }
 
     @Override

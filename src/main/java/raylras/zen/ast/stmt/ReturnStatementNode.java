@@ -8,10 +8,9 @@ import java.util.Optional;
 
 public class ReturnStatementNode extends ASTNode implements StatementNode {
 
-    private final ExpressionNode expr;
+    private ExpressionNode expr;
 
-    public ReturnStatementNode(ExpressionNode expr) {
-        this.expr = expr;
+    public ReturnStatementNode() {
     }
 
     public Optional<ExpressionNode> getExpr() {
@@ -24,11 +23,21 @@ public class ReturnStatementNode extends ASTNode implements StatementNode {
     }
 
     @Override
+    public void addChild(ASTNode node) {
+        if (node instanceof ExpressionNode) {
+            if (expr == null) {
+                expr = (ExpressionNode) node;
+            }
+        }
+    }
+
+    @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
         builder.append("return");
         if (expr != null) {
-            builder.append(" ").append(expr);
+            builder.append(" ");
+            builder.append(expr);
         }
         builder.append(";");
         return builder.toString();

@@ -5,12 +5,10 @@ import raylras.zen.ast.ASTNodeVisitor;
 
 public class MapEntryExpressionNode extends ASTNode implements ExpressionNode {
 
-    private final ExpressionNode key;
-    private final ExpressionNode value;
+    private ExpressionNode key;
+    private ExpressionNode value;
 
-    public MapEntryExpressionNode(ExpressionNode key, ExpressionNode value) {
-        this.key = key;
-        this.value = value;
+    public MapEntryExpressionNode() {
     }
 
     public ExpressionNode getKey() {
@@ -24,6 +22,17 @@ public class MapEntryExpressionNode extends ASTNode implements ExpressionNode {
     @Override
     public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
         return visitor.visit(this);
+    }
+
+    @Override
+    public void addChild(ASTNode node) {
+        if (node instanceof ExpressionNode) {
+            if (key == null) {
+                key = (ExpressionNode) node;
+            } else if (value == null) {
+                value = (ExpressionNode) node;
+            }
+        }
     }
 
     @Override

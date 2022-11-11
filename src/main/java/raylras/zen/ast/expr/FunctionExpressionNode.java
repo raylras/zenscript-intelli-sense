@@ -5,23 +5,25 @@ import raylras.zen.ast.BlockNode;
 import raylras.zen.ast.decl.ParameterDeclarationNode;
 import raylras.zen.ast.ASTNodeVisitor;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * function (a, b) { stmt; }
  */
 public class FunctionExpressionNode extends ASTNode implements ExpressionNode {
 
-    private final List<ParameterDeclarationNode> parameters;
-    private final BlockNode block;
+    private List<ParameterDeclarationNode> parameters;
+    private BlockNode block;
 
-    public FunctionExpressionNode(List<ParameterDeclarationNode> parameters, BlockNode block) {
-        this.parameters = parameters;
-        this.block = block;
+    public FunctionExpressionNode() {
     }
 
     public List<ParameterDeclarationNode> getParameters() {
-        return parameters;
+        return parameters == null ? Collections.emptyList() : parameters;
     }
 
     public BlockNode getBlock() {
@@ -34,8 +36,29 @@ public class FunctionExpressionNode extends ASTNode implements ExpressionNode {
     }
 
     @Override
+    public void addChild(ASTNode node) {
+        Class<? extends ASTNode> clazz = node.getClass();
+        if (clazz == ParameterDeclarationNode.class) {
+            if (parameters == null) {
+                parameters = new ArrayList<>();
+            }
+            parameters.add((ParameterDeclarationNode) node);
+        } else if (clazz == BlockNode.class) {
+            if (block == null) {
+                block = (BlockNode) node;
+            }
+        }
+    }
+
+    @Override
     public String toString() {
-        return "function";
+        StringBuilder builder = new StringBuilder();
+        builder.append("function");
+        builder.append("(");
+        builder.append(parameters.stream().map(Objects::toString).collect(Collectors.joining(", ")));
+        builder.append(")");
+        builder.append(block);
+        return builder.toString();
     }
 
 }

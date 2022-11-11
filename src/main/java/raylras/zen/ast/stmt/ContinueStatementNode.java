@@ -11,6 +11,10 @@ public class ContinueStatementNode extends ASTNode implements StatementNode {
     }
 
     @Override
+    public void addChild(ASTNode node) {
+    }
+
+    @Override
     public String toString() {
         return "continue;";
     }

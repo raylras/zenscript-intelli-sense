@@ -10,21 +10,14 @@ import java.util.stream.Collectors;
 /**
  * function fn(a, b) as int { stmt; }
  */
-public final class FunctionDeclarationNode extends ASTNode implements DeclarationNode, TopLevelNode {
+public class FunctionDeclarationNode extends ASTNode implements DeclarationNode, TopLevelNode {
 
-    private final IdentifierNode identifier;
-    private final List<ParameterDeclarationNode> parameters;
-    private final TypeAnnotationNode typeAnnotation;
-    private final BlockNode block;
+    private IdentifierNode identifier;
+    private List<ParameterDeclarationNode> parameters;
+    private TypeAnnotationNode typeAnnotation;
+    private BlockNode block;
 
-    public FunctionDeclarationNode(IdentifierNode identifier,
-                                   List<ParameterDeclarationNode> parameters,
-                                   TypeAnnotationNode typeAnnotation,
-                                   BlockNode block) {
-        this.identifier = identifier;
-        this.parameters = parameters;
-        this.typeAnnotation = typeAnnotation;
-        this.block = block;
+    public FunctionDeclarationNode() {
     }
 
     public IdentifierNode getIdentifier() {
@@ -32,7 +25,7 @@ public final class FunctionDeclarationNode extends ASTNode implements Declaratio
     }
 
     public List<ParameterDeclarationNode> getParameters() {
-        return parameters;
+        return parameters == null ? Collections.emptyList() : parameters;
     }
 
     public Optional<TypeAnnotationNode> getTypeAnnotation() {
@@ -49,13 +42,43 @@ public final class FunctionDeclarationNode extends ASTNode implements Declaratio
     }
 
     @Override
+    public void addChild(ASTNode node) {
+        Class<? extends ASTNode> clazz = node.getClass();
+        if (clazz == IdentifierNode.class) {
+            if (identifier == null) {
+                identifier = (IdentifierNode) node;
+            }
+        } else if (clazz == ParameterDeclarationNode.class) {
+            if (parameters == null) {
+                parameters = new ArrayList<>();
+            }
+            parameters.add((ParameterDeclarationNode) node);
+        } else if (clazz == TypeAnnotationNode.class) {
+            if (typeAnnotation == null) {
+                typeAnnotation = (TypeAnnotationNode) node;
+            }
+        } else if (clazz == BlockNode.class) {
+            if (block == null) {
+                block = (BlockNode) node;
+            }
+        }
+    }
+
+    @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("function ").append(identifier);
+        builder.append("function");
+        builder.append(" ");
+        builder.append(identifier);
         builder.append("(");
-        builder.append(parameters.stream().map(Object::toString).collect(Collectors.joining(", ")));
+        builder.append(getParameters().stream().map(Object::toString).collect(Collectors.joining(", ")));
         builder.append(")");
-        builder.append(" {...}");
+        if (typeAnnotation != null) {
+            builder.append(" as ");
+            builder.append(typeAnnotation);
+        }
+        builder.append(" ");
+        builder.append(block);
         return builder.toString();
     }
 

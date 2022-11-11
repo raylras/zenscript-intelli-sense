@@ -2,14 +2,16 @@ package raylras.zen.ast;
 
 import raylras.zen.ast.stmt.StatementNode;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class BlockNode extends ASTNode implements StatementNode {
 
-    private final List<StatementNode> statements;
+    private List<StatementNode> statements;
 
-    public BlockNode(List<StatementNode> statements) {
-        this.statements = statements;
+    public BlockNode() {
     }
 
     public List<StatementNode> getStatements() {
@@ -22,8 +24,18 @@ public class BlockNode extends ASTNode implements StatementNode {
     }
 
     @Override
+    public void addChild(ASTNode node) {
+        if (node instanceof StatementNode) {
+            if (statements == null) {
+                statements = new ArrayList<>();
+            }
+            statements.add((StatementNode) node);
+        }
+    }
+
+    @Override
     public String toString() {
-        return "{...}";
+        return "{" + "\n" + statements.stream().map(Objects::toString).collect(Collectors.joining("\n")) + "\n" + "}";
     }
 
 }

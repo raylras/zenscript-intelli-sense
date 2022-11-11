@@ -11,6 +11,10 @@ public class BreakStatementNode extends ASTNode implements StatementNode {
     }
 
     @Override
+    public void addChild(ASTNode node) {
+    }
+
+    @Override
     public String toString() {
         return "break;";
     }
