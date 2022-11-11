@@ -122,10 +122,10 @@ expression
     | Left=expression Operator='^'Right=expression # BinaryExpression
     | Left=expression Operator='&&' Right=expression # BinaryExpression
     | Left=expression Operator='||' Right=expression # BinaryExpression
-    | <assoc=right> Condition=expression '?' Then=expression ':' Else=expression # TrinaryExpression
+    | <assoc=right> Condition=expression '?' Then=expression ':' Else=expression # TernaryExpression
     | <assoc=right> Left=expression Operator=('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '~=' | '&=' | '|=' | '^=') Right=expression # AssignmentExpression
     | '<' (~'>')*? '>' # BracketHandlerExpression
-    | From=expression Operator=('..' | 'to') To=expression # RangeExpression
+    | From=expression Operator=('..' | 'to') To=expression # IntRangeExpression
     | 'this' # ThisExpression
     | '[' expression? (',' expression)* ','? ']' # ArrayLiteralExpression
     | '{' mapEntry? (',' mapEntry)* ','? '}' # MapLiteralExpression
