@@ -109,7 +109,7 @@ expressionStatement
 
 expression
     : 'function' '(' parameterList? ')' ('as' typeAnnotation)? block # FunctionExpression
-    | Left=expression '(' expression? (',' expression)* ')' # ArgumentsExpression
+    | Left=expression '(' expression? (',' expression)* ')' # CallExpression
     | Left=expression Operator='.' Right=IDENTIFIER # MemberAccessExpression
     | Left=expression '[' Index=expression ']' # MemberIndexExpression
     | expression 'as' typeName # TypeAssertionExpression
