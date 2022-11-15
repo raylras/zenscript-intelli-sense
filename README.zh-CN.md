@@ -5,7 +5,7 @@
 ## 目录
 
 - [构建](#构建)
-- [开发工具](#开发工具)
+- [开发](#开发)
 - [调试](#调试)
   - [调试客户端插件](#调试客户端插件)
   - [调试语言服务器](#调试语言服务器)
@@ -17,7 +17,7 @@
 
 ## 构建
 
-1. 安装 [JDK17](https://mirrors.tuna.tsinghua.edu.cn/Adoptium/17/jdk/) 和 [Node.js](https://nodejs.org/)
+1. 安装 [JDK1.8](https://mirrors.tuna.tsinghua.edu.cn/Adoptium/8/jdk/) 和 [Node.js](https://nodejs.org/)
 
 2. 克隆本项目
 
@@ -51,13 +51,29 @@
    ```
    >过程中可能会询问是否继续，输入`y`回车确认即可
 
-## 开发工具
+## 开发
 
-- [IDEA](https://www.jetbrains.com/idea/) 编写和调试服务端部分的代码
-- [VS Code](https://code.visualstudio.com/) 编写和调试插件部分的代码
-- [Node.js](https://nodejs.org/) 插件开发环境
-- [JDK17](https://mirrors.tuna.tsinghua.edu.cn/Adoptium/17/jdk/) 服务端开发环境
-- [ANTLR v4](https://plugins.jetbrains.com/plugin/7358-antlr-v4) IDEA的插件，编写和调试 ZenScript 的 ANTLR4 语法文件
+1. 工具
+   - [IDEA](https://www.jetbrains.com/idea/) 服务端开发
+   - [VS Code](https://code.visualstudio.com/) 插件端开发
+   - [Node.js](https://nodejs.org/) 插件端开发环境
+   - [JDK1.8](https://mirrors.tuna.tsinghua.edu.cn/Adoptium/8/jdk/) 服务端开发环境
+   - [ANTLR v4](https://plugins.jetbrains.com/plugin/7358-antlr-v4) IDEA的插件，编写和调试 ANTLR4 的`.g4`语法文件
+
+2. 克隆本项目
+
+   ```shell
+   git clone https://github.com/raylras/zenscript-language-server.git
+   ```
+
+3. 使用 IDE 打开项目目录`zenscript-language-server`
+
+4. 运行 Gradle 任务`generateGrammarSource`生成cst包的代码
+
+   ```shell
+   ./gradlew generateGrammarSource
+   ```
+   > 每次修改`.g4`文件后都应该运行该任务重新生成java代码
 
 ## 调试
 
@@ -69,7 +85,7 @@
 
 ### 调试语言服务器
 
-在扩展开发宿主的设置里搜索 `ZenScript Language Server`，打开 `以调试模式运行语言服务器` 选项，重启扩展宿主后其将等待调试器连接。在`IDEA`，`运行`，`编辑配置`，`添加新配置` 创建一个 `远程 JVM 调试` 的新配置，名称可以为debug，创建后选择该配置并点击调试按钮即可连接到调试实例
+在扩展开发宿主的设置里搜索 `ZenScript Language Server`，打开 `以调试模式运行语言服务器` 选项，扩展宿主重启后等待调试器连接。在`IDEA`，`运行`，`编辑配置`，`添加新配置` 创建一个 `远程 JVM 调试` 的新配置，名称可以为debug，选择该配置并点击调试按钮即可连接到调试实例
 
 > 可在扩展开发宿主的`面板` ，`输出` ， `ZenScript Language Server` 通道上查看客户端插件和服务端的运行日志
 
@@ -77,21 +93,13 @@
 
 启用`VS Code`， `查看`， `命令面板`， `开发人员:检查编辑器标记和作用域` 选项即可调试作用域信息
 
-> TextMate 语法高亮是基于正则匹配的，其优先级比语言服务器要低且不需要语言服务器即可工作
-
-> `zenscript.tmLanguage.yaml` 为源文件，其对应的 json 文件不应该直接编辑，源文件修改后可以运行 npm 任务 `yaml2json` 生成
->
-> ```shell
-> npm run yaml2json
-> ```
-
 ## 额外部分
 
-- CST 解析使用 ANTLR4 库实现，修改`.g4`文件后可以运行 Gradle 任务 `generateGrammarSource` 重新生成源码
-
-  ```shell
-  ./gradlew generateGrammarSource
-  ```
+- TextMate 语法高亮基于正则匹配，其优先级比语言服务器要低且不需要语言服务器即可工作
+    > `zenscript.tmLanguage.yaml` 为源文件，其对应的 json 文件不应该直接编辑，源文件修改后可以运行 npm 任务 `yaml2json` 生成
+    > ```shell
+    > npm run yaml2json
+    > ```
 
 ## 参考
 
