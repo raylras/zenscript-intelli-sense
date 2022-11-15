@@ -9,8 +9,8 @@ group 'raylras.zenls'
 ext.moduleName = 'raylras.zenls'
 
 java {
-    sourceCompatibility = '17'
-    targetCompatibility = '17'
+    sourceCompatibility = '8'
+    targetCompatibility = '8'
 }
 
 repositories {
@@ -31,15 +31,15 @@ test {
     useJUnitPlatform()
 }
 
-compileJava {
-    inputs.property('moduleName', moduleName)
-    doFirst {
-        options.compilerArgs = [
-                '--module-path', classpath.asPath
-        ]
-        classpath = files()
-    }
-}
+//compileJava {
+//    inputs.property('moduleName', moduleName)
+//    doFirst {
+//        options.compilerArgs = [
+//                '--module-path', classpath.asPath
+//        ]
+//        classpath = files()
+//    }
+//}
 
 sourceSets {
     generated {

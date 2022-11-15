@@ -3,6 +3,7 @@ package raylras.zen.langserver;
 import org.eclipse.lsp4j.SemanticTokenTypes;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public enum TokenType {
@@ -32,7 +33,7 @@ public enum TokenType {
     }
 
     public static List<String> getTokenTypes() {
-        return Stream.of(TokenType.values()).map(TokenType::getName).toList();
+        return Stream.of(TokenType.values()).map(TokenType::getName).collect(Collectors.toList());
     }
 
 }

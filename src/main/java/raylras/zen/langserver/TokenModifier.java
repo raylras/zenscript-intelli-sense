@@ -3,6 +3,7 @@ package raylras.zen.langserver;
 import org.eclipse.lsp4j.SemanticTokenModifiers;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public enum TokenModifier {
@@ -37,7 +38,7 @@ public enum TokenModifier {
     }
 
     public static List<String> getTokenModifiers() {
-        return Stream.of(TokenModifier.values()).map(TokenModifier::getName).toList();
+        return Stream.of(TokenModifier.values()).map(TokenModifier::getName).collect(Collectors.toList());
     }
 
 }
