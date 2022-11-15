@@ -1,38 +1,48 @@
 package raylras.zen.ast;
 
+import raylras.zen.ast.type.TopLevel;
+
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 public class CompilationUnitNode extends ASTNode {
 
-    private List<ASTNode> children;
+    private String uri;
+    private List<TopLevel> members;
 
-    public CompilationUnitNode() {
+    public CompilationUnitNode(String uri) {
+        this.uri = uri;
     }
 
-    public List<ASTNode> getChildren() {
-        return children == null ? Collections.emptyList() : children;
+    public String getUri() {
+        return uri;
+    }
+
+    public void setUri(String uri) {
+        this.uri = uri;
+    }
+
+    public List<TopLevel> getMembers() {
+        return members;
+    }
+
+    public void setMembers(List<TopLevel> members) {
+        this.members = members;
+    }
+
+    @Override
+    public void addChild(ASTNode node) {
+        if (node instanceof TopLevel) {
+            if (members == null) {
+                members = new ArrayList<>();
+            }
+            members.add((TopLevel) node);
+        }
     }
 
     @Override
     public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
         return visitor.visit(this);
-    }
-
-    @Override
-    public void addChild(ASTNode child) {
-        if (children == null) {
-            children = new ArrayList<>();
-        }
-        children.add(child);
-    }
-
-    @Override
-    public String toString() {
-        return children.stream().map(Objects::toString).collect(Collectors.joining("\n"));
     }
 
 }

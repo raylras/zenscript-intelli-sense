@@ -1,74 +1,68 @@
 package raylras.zen.ast.decl;
 
-import raylras.zen.ast.*;
-import raylras.zen.ast.expr.ExpressionNode;
+import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
-import raylras.zen.ast.IdentifierNode;
-
-import java.util.*;
+import raylras.zen.ast.type.*;
 
 /**
  * a as int = 1
  * full view:
  * function fn(a as int = 1, b as int = 2) { stmt; }
  */
-public class ParameterDeclarationNode extends ASTNode implements DeclarationNode, VariableNode {
+public class ParameterDeclarationNode extends ASTNode implements Parameter, Variable, Declaration {
 
-    private IdentifierNode identifier;
-    private TypeAnnotationNode typeAnnotation;
-    private ExpressionNode defaultValue;
+    private Identifier identifier;
+    private TypeAnnotation typeAnnotation;
+    private Expression initializer;
 
     public ParameterDeclarationNode() {
     }
 
-    public IdentifierNode getIdentifier() {
+    public Declarator getDeclarator() {
+        return Declarator.NONE;
+    }
+
+    public void setDeclarator(Declarator declarator) {
+    }
+
+    public Identifier getIdentifier() {
         return identifier;
     }
 
-    public Optional<TypeAnnotationNode> getTypeAnnotation() {
-        return Optional.ofNullable(typeAnnotation);
+    public void setIdentifier(Identifier identifier) {
+        this.identifier = identifier;
     }
 
-    public Optional<ExpressionNode> getDefaultValue() {
-        return Optional.ofNullable(defaultValue);
+    public TypeAnnotation getTypeAnnotation() {
+        return typeAnnotation;
+    }
+
+    public void setTypeAnnotation(TypeAnnotation typeAnnotation) {
+        this.typeAnnotation = typeAnnotation;
+    }
+
+    public Expression getInitializer() {
+        return initializer;
+    }
+
+    public void setInitializer(Expression initializer) {
+        this.initializer = initializer;
+    }
+
+    @Override
+    public void addChild(ASTNode node) {
+        if (node instanceof Identifier) {
+            identifier = (Identifier) node;
+        } else if (node instanceof TypeAnnotation) {
+            typeAnnotation = (TypeAnnotation) node;
+        } else if (node instanceof Expression) {
+            initializer = (Expression) node;
+        }
     }
 
     @Override
     public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
         return visitor.visit(this);
-    }
-
-    @Override
-    public void addChild(ASTNode node) {
-        Class<? extends ASTNode> clazz = node.getClass();
-        if (clazz == IdentifierNode.class) {
-            if (identifier == null) {
-                identifier = (IdentifierNode) node;
-            }
-        } else if (clazz == TypeAnnotationNode.class) {
-            if (typeAnnotation == null) {
-                typeAnnotation = (TypeAnnotationNode) node;
-            }
-        } else if (node instanceof ExpressionNode) {
-            if (defaultValue == null) {
-                defaultValue = (ExpressionNode) node;
-            }
-        }
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append(identifier);
-        if (typeAnnotation != null) {
-            builder.append(" as ");
-            builder.append(typeAnnotation);
-        }
-        if (defaultValue != null) {
-            builder.append(" = ");
-            builder.append(defaultValue);
-        }
-        return builder.toString();
     }
 
 }

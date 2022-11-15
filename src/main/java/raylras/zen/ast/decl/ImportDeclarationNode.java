@@ -1,67 +1,54 @@
 package raylras.zen.ast.decl;
 
-import raylras.zen.ast.*;
-import raylras.zen.ast.IdentifierNode;
-import raylras.zen.ast.stmt.StatementNode;
+import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
+import raylras.zen.ast.type.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 /**
  * import a.b.C as d;
  */
-public class ImportDeclarationNode extends ASTNode implements DeclarationNode, StatementNode, TopLevelNode {
+public class ImportDeclarationNode extends ASTNode implements Declaration, Statement, TopLevel {
 
-    private List<IdentifierNode> packages;
-    private AliasNode alias;
+    private List<Identifier> packages;
+    private Alias alias;
 
     public ImportDeclarationNode() {
     }
 
-    public List<IdentifierNode> getPackages() {
-        return packages == null ? Collections.emptyList() : packages;
+    public List<Identifier> getPackages() {
+        return packages;
     }
 
-    public Optional<AliasNode> getAlias() {
-        return Optional.ofNullable(alias);
+    public void setPackages(List<Identifier> packages) {
+        this.packages = packages;
+    }
+
+    public Alias getAlias() {
+        return alias;
+    }
+
+    public void setAlias(Alias alias) {
+        this.alias = alias;
+    }
+
+    @Override
+    public void addChild(ASTNode node) {
+        if (node instanceof Identifier) {
+            if (packages == null) {
+                packages = new ArrayList<>();
+            }
+            packages.add((Identifier) node);
+        } else if (node instanceof Alias) {
+            alias = (Alias) node;
+        }
     }
 
     @Override
     public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
         return visitor.visit(this);
-    }
-
-    @Override
-    public void addChild(ASTNode node) {
-        Class<? extends ASTNode> clazz = node.getClass();
-        if (clazz == IdentifierNode.class) {
-            if (packages == null) {
-                packages = new ArrayList<>();
-            }
-            packages.add((IdentifierNode) node);
-        } else if (clazz == AliasNode.class) {
-            if (alias == null) {
-                alias = (AliasNode) node;
-            }
-        }
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("import");
-        builder.append(" ");
-        builder.append(getPackages().stream().map(IdentifierNode::getValue).collect(Collectors.joining(".")));
-        if (alias != null) {
-            builder.append(" as ");
-            builder.append(alias);
-        }
-        builder.append(";");
-        return builder.toString();
     }
 
 }

@@ -3,12 +3,11 @@ package raylras.zen.ast;
 import raylras.zen.ast.decl.*;
 import raylras.zen.ast.expr.*;
 import raylras.zen.ast.stmt.*;
+import raylras.zen.ast.type.Expression;
 
 public interface ASTNodeVisitor<T> {
 
     T visit(CompilationUnitNode node);
-
-    T visit(BlockNode node);
 
     T visit(TypeAnnotationNode node);
 
@@ -23,6 +22,8 @@ public interface ASTNodeVisitor<T> {
     T visit(ParameterDeclarationNode node);
 
     T visit(VariableDeclarationNode node);
+
+    T visit(BlockStatementNode node);
 
     T visit(ZenClassDeclarationNode node);
 
@@ -40,25 +41,25 @@ public interface ASTNodeVisitor<T> {
 
     T visit(WhileStatementNode node);
 
-    T visit(ExpressionNode node);
+    T visit(Expression node);
 
-    T visit(ArgumentsExpressionNode node);
+    T visit(CallExpressionNode node);
 
     T visit(ArrayLiteralExpressionNode node);
 
     T visit(BinaryExpressionNode node);
 
-    T visit(NumericLiteralNode node);
+    T visit(NumericLiteralExpressionNode node);
 
     T visit(BoolLiteralNode node);
 
-    T visit(StringLiteralNode node);
+    T visit(StringLiteralExpressionNode node);
 
     T visit(BracketHandlerExpressionNode node);
 
     T visit(FunctionExpressionNode node);
 
-    T visit(MapEntryExpressionNode node);
+    T visit(MapEntryNode node);
 
     T visit(MapLiteralExpressionNode node);
 

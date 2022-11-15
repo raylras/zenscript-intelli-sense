@@ -1,28 +1,30 @@
 package raylras.zen.ast;
 
-public class AliasNode extends ASTNode {
+import raylras.zen.ast.type.Alias;
+import raylras.zen.ast.type.Identifier;
 
-    private IdentifierNode identifier;
+public class AliasNode extends ASTNode implements Alias {
 
-    public IdentifierNode getIdentifier() {
+    private Identifier identifier;
+
+    public Identifier getIdentifier() {
         return identifier;
+    }
+
+    public void setIdentifier(Identifier identifier) {
+        this.identifier = identifier;
+    }
+
+    @Override
+    public void addChild(ASTNode node) {
+        if (node instanceof Identifier) {
+            identifier = (Identifier) node;
+        }
     }
 
     @Override
     public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
         return visitor.visit(this);
-    }
-
-    @Override
-    public void addChild(ASTNode node) {
-        if (node.getClass() == IdentifierNode.class) {
-            identifier = (IdentifierNode) node;
-        }
-    }
-
-    @Override
-    public String toString() {
-        return identifier.toString();
     }
 
 }

@@ -3,15 +3,13 @@ package raylras.zen.ast.expr;
 import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
 import raylras.zen.ast.type.Expression;
+import raylras.zen.ast.type.Literal;
 
-/**
- * &lt;item:dirt&gt;
- */
-public class BracketHandlerExpressionNode extends ASTNode implements Expression {
+public class StringLiteralExpressionNode extends ASTNode implements Literal, Expression {
 
     private String literal;
 
-    public BracketHandlerExpressionNode(String literal) {
+    public StringLiteralExpressionNode(String literal) {
         this.literal = literal;
     }
 

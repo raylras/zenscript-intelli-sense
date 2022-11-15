@@ -1,68 +1,63 @@
 package raylras.zen.ast.stmt;
 
 import raylras.zen.ast.ASTNode;
-import raylras.zen.ast.expr.ExpressionNode;
 import raylras.zen.ast.ASTNodeVisitor;
-
-import java.util.*;
+import raylras.zen.ast.type.Expression;
+import raylras.zen.ast.type.Statement;
+import raylras.zen.ast.type.TopLevel;
 
 /**
  * if (expr) { thenStmt; } else { elseStmt; }
  */
-public class IfElseStatementNode extends ASTNode implements StatementNode {
+public class IfElseStatementNode extends ASTNode implements Statement, TopLevel {
 
-    private ExpressionNode expr;
-    private StatementNode thenStmt;
-    private StatementNode elseStmt;
+    private Expression expr;
+    private Statement thenStmt;
+    private Statement elseStmt;
 
     public IfElseStatementNode() {
     }
 
-    public ExpressionNode getExpr() {
+    public Expression getExpr() {
         return expr;
     }
 
-    public StatementNode getThenStmt() {
+    public void setExpr(Expression expr) {
+        this.expr = expr;
+    }
+
+    public Statement getThenStmt() {
         return thenStmt;
     }
 
-    public Optional<StatementNode> getElseStmt() {
-        return Optional.ofNullable(elseStmt);
+    public void setThenStmt(Statement thenStmt) {
+        this.thenStmt = thenStmt;
+    }
+
+    public Statement getElseStmt() {
+        return elseStmt;
+    }
+
+    public void setElseStmt(Statement elseStmt) {
+        this.elseStmt = elseStmt;
+    }
+
+    @Override
+    public void addChild(ASTNode node) {
+        if (node instanceof Expression) {
+            expr = (Expression) node;
+        } else if (node instanceof Statement) {
+            if (thenStmt == null) {
+                thenStmt = (Statement) node;
+            } else if (elseStmt == null) {
+                elseStmt = (Statement) node;
+            }
+        }
     }
 
     @Override
     public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
         return visitor.visit(this);
-    }
-
-    @Override
-    public void addChild(ASTNode node) {
-        if (node instanceof ExpressionNode) {
-            if (expr == null) {
-                expr = (ExpressionNode) node;
-            }
-        } else if (node instanceof StatementNode) {
-            if (thenStmt == null) {
-                thenStmt = (StatementNode) node;
-            } else if (elseStmt == null) {
-                elseStmt = (StatementNode) node;
-            }
-        }
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("if");
-        builder.append(" ");
-        builder.append(expr);
-        builder.append(" ");
-        builder.append(thenStmt);
-        if (elseStmt != null) {
-            builder.append(" else ");
-            builder.append(elseStmt);
-        }
-        return builder.toString();
     }
 
 }

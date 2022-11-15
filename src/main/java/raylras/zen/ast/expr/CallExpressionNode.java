@@ -4,19 +4,19 @@ import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
 import raylras.zen.ast.type.Expression;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
- * a + b
- * a = b
- * a += b
+ * fn(1, 2)
+ * getFn()(1,2)
  */
-public class BinaryExpressionNode extends ASTNode implements Expression {
+public class CallExpressionNode extends ASTNode implements Expression {
 
     private Expression left;
-    private Expression right;
-    private Operator operator;
+    private List<Expression> arguments;
 
-    public BinaryExpressionNode(Operator operator) {
-        this.operator = operator;
+    public CallExpressionNode() {
     }
 
     public Expression getLeft() {
@@ -27,20 +27,12 @@ public class BinaryExpressionNode extends ASTNode implements Expression {
         this.left = left;
     }
 
-    public Expression getRight() {
-        return right;
+    public List<Expression> getArguments() {
+        return arguments;
     }
 
-    public void setRight(Expression right) {
-        this.right = right;
-    }
-
-    public Operator getOperator() {
-        return operator;
-    }
-
-    public void setOperator(Operator operator) {
-        this.operator = operator;
+    public void setArguments(List<Expression> arguments) {
+        this.arguments = arguments;
     }
 
     @Override
@@ -48,8 +40,11 @@ public class BinaryExpressionNode extends ASTNode implements Expression {
         if (node instanceof Expression) {
             if (left == null) {
                 left = (Expression) node;
-            } else if (right == null) {
-                right = (Expression) node;
+            } else {
+                if (arguments == null) {
+                    arguments = new ArrayList<>();
+                }
+                arguments.add((Expression) node);
             }
         }
     }

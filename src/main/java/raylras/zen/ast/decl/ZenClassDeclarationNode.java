@@ -1,75 +1,54 @@
 package raylras.zen.ast.decl;
 
 import raylras.zen.ast.ASTNode;
-import raylras.zen.ast.IdentifierNode;
-import raylras.zen.ast.TopLevelNode;
 import raylras.zen.ast.ASTNodeVisitor;
+import raylras.zen.ast.type.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * zenClass MyClass { var a; zenConstructor(){ stmt; } function fn(){ stmt;} }
  */
-public class ZenClassDeclarationNode extends ASTNode implements DeclarationNode, TopLevelNode {
+public class ZenClassDeclarationNode extends ASTNode implements Declaration, TopLevel {
 
-    private IdentifierNode identifier;
-    private List<ASTNode> children;
+    private Identifier identifier;
+    private List<ASTNode> members;
 
     public ZenClassDeclarationNode() {
     }
 
-    public IdentifierNode getIdentifier() {
+    public Identifier getIdentifier() {
         return identifier;
     }
 
-    public List<ASTNode> getChildren() {
-        return children == null ? Collections.emptyList() : children;
+    public void setIdentifier(Identifier identifier) {
+        this.identifier = identifier;
+    }
+
+    public List<ASTNode> getMembers() {
+        return members;
+    }
+
+    public void setMembers(List<ASTNode> members) {
+        this.members = members;
+    }
+
+    @Override
+    public void addChild(ASTNode node) {
+        if (node instanceof Identifier) {
+            identifier = (Identifier) node;
+        } else if (node instanceof Variable || node instanceof Constructor || node instanceof Function) {
+            if (members == null) {
+                members = new ArrayList<>();
+            }
+            members.add(node);
+        }
     }
 
     @Override
     public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
         return visitor.visit(this);
-    }
-
-    @Override
-    public void addChild(ASTNode node) {
-        Class<? extends ASTNode> clazz = node.getClass();
-        if (clazz == IdentifierNode.class) {
-            if (identifier == null) {
-                identifier = (IdentifierNode) node;
-            }
-        } else if (clazz == VariableDeclarationNode.class) {
-            add(node);
-        } else if (clazz == ConstructorDeclarationNode.class) {
-            add(node);
-        } else if (clazz == FunctionDeclarationNode.class) {
-            add(node);
-        }
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("zenClass");
-        builder.append(" ");
-        builder.append(identifier);
-        builder.append(" ");
-        builder.append("{");
-        builder.append("\n");
-        builder.append(children.stream().map(Objects::toString).collect(Collectors.joining("\n")));
-        builder.append("}");
-        return builder.toString();
-    }
-
-    private void add(ASTNode node) {
-        if (children == null) {
-            children = new ArrayList<>();
-        }
-        children.add(node);
     }
 
 }

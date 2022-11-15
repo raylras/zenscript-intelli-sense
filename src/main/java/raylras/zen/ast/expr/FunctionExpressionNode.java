@@ -1,64 +1,75 @@
 package raylras.zen.ast.expr;
 
 import raylras.zen.ast.ASTNode;
-import raylras.zen.ast.BlockNode;
-import raylras.zen.ast.decl.ParameterDeclarationNode;
 import raylras.zen.ast.ASTNodeVisitor;
+import raylras.zen.ast.type.*;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * function (a, b) { stmt; }
  */
-public class FunctionExpressionNode extends ASTNode implements ExpressionNode {
+public class FunctionExpressionNode extends ASTNode implements Function, Expression {
 
-    private List<ParameterDeclarationNode> parameters;
-    private BlockNode block;
+    private List<Parameter> parameters;
+    private TypeAnnotation typeAnnotation;
+    private List<Statement> statements;
 
     public FunctionExpressionNode() {
     }
 
-    public List<ParameterDeclarationNode> getParameters() {
-        return parameters == null ? Collections.emptyList() : parameters;
+    public Identifier getIdentifier() {
+        return null;
     }
 
-    public BlockNode getBlock() {
-        return block;
+    public void setIdentifier(Identifier identifier) {
+    }
+
+    public List<Parameter> getParameters() {
+        return parameters;
+    }
+
+    public void setParameters(List<Parameter> parameters) {
+        this.parameters = parameters;
+    }
+
+    public TypeAnnotation getTypeAnnotation() {
+        return typeAnnotation;
+    }
+
+    public void setTypeAnnotation(TypeAnnotation typeAnnotation) {
+        this.typeAnnotation = typeAnnotation;
+    }
+
+    public List<Statement> getStatements() {
+        return statements;
+    }
+
+    public void setStatements(List<Statement> statements) {
+        this.statements = statements;
+    }
+
+    @Override
+    public void addChild(ASTNode node) {
+        if (node instanceof Parameter) {
+            if (parameters == null) {
+                parameters = new ArrayList<>();
+            }
+            parameters.add((Parameter) node);
+        } else if (node instanceof TypeAnnotation) {
+            typeAnnotation = (TypeAnnotation) node;
+        } else if (node instanceof Statement) {
+            if (statements == null) {
+                statements = new ArrayList<>();
+            }
+            statements.add((Statement) node);
+        }
     }
 
     @Override
     public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
         return visitor.visit(this);
-    }
-
-    @Override
-    public void addChild(ASTNode node) {
-        Class<? extends ASTNode> clazz = node.getClass();
-        if (clazz == ParameterDeclarationNode.class) {
-            if (parameters == null) {
-                parameters = new ArrayList<>();
-            }
-            parameters.add((ParameterDeclarationNode) node);
-        } else if (clazz == BlockNode.class) {
-            if (block == null) {
-                block = (BlockNode) node;
-            }
-        }
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("function");
-        builder.append("(");
-        builder.append(parameters.stream().map(Objects::toString).collect(Collectors.joining(", ")));
-        builder.append(")");
-        builder.append(block);
-        return builder.toString();
     }
 
 }

@@ -2,41 +2,43 @@ package raylras.zen.ast.expr;
 
 import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
+import raylras.zen.ast.type.Expression;
 
-public class UnaryExpressionNode extends ASTNode implements ExpressionNode {
+public class UnaryExpressionNode extends ASTNode implements Expression {
 
-    private ExpressionNode expr;
+    private Expression expr;
     private Operator operator;
 
     public UnaryExpressionNode(Operator operator) {
         this.operator = operator;
     }
 
-    public ExpressionNode getExpr() {
+    public Expression getExpr() {
         return expr;
+    }
+
+    public void setExpr(Expression expr) {
+        this.expr = expr;
     }
 
     public Operator getOperator() {
         return operator;
     }
 
-    @Override
-    public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
-        return visitor.visit(this);
+    public void setOperator(Operator operator) {
+        this.operator = operator;
     }
 
     @Override
     public void addChild(ASTNode node) {
-        if (node instanceof ExpressionNode) {
-            if (expr == null) {
-                expr = (ExpressionNode) node;
-            }
+        if (node instanceof Expression) {
+            expr = (Expression) node;
         }
     }
 
     @Override
-    public String toString() {
-        return operator.toString() + expr;
+    public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
+        return visitor.visit(this);
     }
 
 }

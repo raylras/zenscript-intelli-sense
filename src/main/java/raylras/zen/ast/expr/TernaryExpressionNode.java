@@ -2,52 +2,60 @@ package raylras.zen.ast.expr;
 
 import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
+import raylras.zen.ast.type.Expression;
 
 /**
  * expr ? thenExpr : elseExpr
  */
-public class TernaryExpressionNode extends ASTNode implements ExpressionNode {
+public class TernaryExpressionNode extends ASTNode implements Expression {
 
-    private ExpressionNode expr;
-    private ExpressionNode thenExpr;
-    private ExpressionNode elseExpr;
+    private Expression expr;
+    private Expression thenExpr;
+    private Expression elseExpr;
 
     public TernaryExpressionNode() {
     }
 
-    public ExpressionNode getExpr() {
+    public Expression getExpr() {
         return expr;
     }
 
-    public ExpressionNode getThenExpr() {
+    public void setExpr(Expression expr) {
+        this.expr = expr;
+    }
+
+    public Expression getThenExpr() {
         return thenExpr;
     }
 
-    public ExpressionNode getElseExpr() {
+    public void setThenExpr(Expression thenExpr) {
+        this.thenExpr = thenExpr;
+    }
+
+    public Expression getElseExpr() {
         return elseExpr;
     }
 
-    @Override
-    public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
-        return visitor.visit(this);
+    public void setElseExpr(Expression elseExpr) {
+        this.elseExpr = elseExpr;
     }
 
     @Override
     public void addChild(ASTNode node) {
-        if (node instanceof ExpressionNode) {
+        if (node instanceof Expression) {
             if (expr == null) {
-                expr = (ExpressionNode) node;
+                expr = (Expression) node;
             } else if (thenExpr == null) {
-                thenExpr = (ExpressionNode) node;
+                thenExpr = (Expression) node;
             } else if (elseExpr == null) {
-                elseExpr = (ExpressionNode) node;
+                elseExpr = (Expression) node;
             }
         }
     }
 
     @Override
-    public String toString() {
-        return expr + " ? " + thenExpr + " : " + elseExpr;
+    public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
+        return visitor.visit(this);
     }
 
 }

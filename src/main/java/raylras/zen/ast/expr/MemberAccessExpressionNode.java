@@ -2,46 +2,50 @@ package raylras.zen.ast.expr;
 
 import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
+import raylras.zen.ast.type.Expression;
 
 /**
  * A.b
  * a.b.c()
  */
-public class MemberAccessExpressionNode extends ASTNode implements ExpressionNode {
+public class MemberAccessExpressionNode extends ASTNode implements Expression {
 
-    private ExpressionNode left;
-    private ExpressionNode right;
+    private Expression left;
+    private Expression right;
 
     public MemberAccessExpressionNode() {
     }
 
-    public ExpressionNode getLeft() {
+    public Expression getLeft() {
         return left;
     }
 
-    public ExpressionNode getRight() {
+    public void setLeft(Expression left) {
+        this.left = left;
+    }
+
+    public Expression getRight() {
         return right;
     }
 
-    @Override
-    public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
-        return visitor.visit(this);
+    public void setRight(Expression right) {
+        this.right = right;
     }
 
     @Override
     public void addChild(ASTNode node) {
-        if (node instanceof ExpressionNode) {
+        if (node instanceof Expression) {
             if (left == null) {
-                left = (ExpressionNode) node;
+                left = (Expression) node;
             } else if (right == null) {
-                right = (ExpressionNode) node;
+                right = (Expression) node;
             }
         }
     }
 
     @Override
-    public String toString() {
-        return left + "." + right;
+    public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
+        return visitor.visit(this);
     }
 
 }

@@ -1,22 +1,27 @@
 package raylras.zen.ast;
 
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import raylras.zen.ast.decl.*;
 import raylras.zen.ast.expr.*;
 import raylras.zen.ast.stmt.*;
+import raylras.zen.ast.type.Declarator;
 import raylras.zen.cst.ZenScriptLexer;
 import raylras.zen.cst.ZenScriptParser;
 import raylras.zen.cst.ZenScriptParserBaseListener;
 import raylras.zen.util.ArrayStack;
+import raylras.zen.util.CommonUtils;
 import raylras.zen.util.Stack;
 
 public class ASTBuilder extends ZenScriptParserBaseListener {
 
+    private final String uri;
     private final Stack<ASTNode> nodeStack;
     private CompilationUnitNode compilationUnit;
 
-    public ASTBuilder() {
+    public ASTBuilder(String uri) {
+        this.uri = uri;
         this.nodeStack = new ArrayStack<>();
     }
 
@@ -24,11 +29,20 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
         return compilationUnit;
     }
 
-    private void push(ASTNode child) {
+    private void push(ASTNode node, ParserRuleContext ctx) {
+        node.setTextRange(CommonUtils.getTextRange(ctx));
         ASTNode parent = nodeStack.peek();
-        child.setParent(parent);
-        parent.addChild(child);
-        nodeStack.push(child);
+        node.setParent(parent);
+        parent.addChild(node);
+        nodeStack.push(node);
+    }
+
+    private void push(ASTNode node, Token token) {
+        node.setTextRange(CommonUtils.getTextRange(token));
+        ASTNode parent = nodeStack.peek();
+        node.setParent(parent);
+        parent.addChild(node);
+        nodeStack.push(node);
     }
 
     private void pop() {
@@ -37,7 +51,8 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterCompilationUnit(ZenScriptParser.CompilationUnitContext ctx) {
-        compilationUnit = new CompilationUnitNode();
+        compilationUnit = new CompilationUnitNode(uri);
+        compilationUnit.setTextRange(CommonUtils.getTextRange(ctx));
         nodeStack.push(compilationUnit);
     }
 
@@ -48,7 +63,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterImportDeclaration(ZenScriptParser.ImportDeclarationContext ctx) {
-        push(new ImportDeclarationNode());
+        push(new ImportDeclarationNode(), ctx);
     }
 
     @Override
@@ -58,7 +73,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterAlias(ZenScriptParser.AliasContext ctx) {
-        push(new AliasNode());
+        push(new AliasNode(), ctx);
     }
 
     @Override
@@ -68,7 +83,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterFunctionDeclaration(ZenScriptParser.FunctionDeclarationContext ctx) {
-        push(new FunctionDeclarationNode());
+        push(new FunctionDeclarationNode(), ctx);
     }
 
     @Override
@@ -78,7 +93,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterParameter(ZenScriptParser.ParameterContext ctx) {
-        push(new ParameterDeclarationNode());
+        push(new ParameterDeclarationNode(), ctx);
     }
 
     @Override
@@ -88,7 +103,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterTypeAnnotation(ZenScriptParser.TypeAnnotationContext ctx) {
-        push(new TypeAnnotationNode());
+        push(new TypeAnnotationNode(), ctx);
     }
 
     @Override
@@ -98,7 +113,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterZenClassDeclaration(ZenScriptParser.ZenClassDeclarationContext ctx) {
-        push(new ZenClassDeclarationNode());
+        push(new ZenClassDeclarationNode(), ctx);
     }
 
     @Override
@@ -108,7 +123,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterConstructorDeclaration(ZenScriptParser.ConstructorDeclarationContext ctx) {
-        push(new ConstructorDeclarationNode());
+        push(new ConstructorDeclarationNode(), ctx);
     }
 
     @Override
@@ -117,18 +132,26 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
     }
 
     @Override
-    public void enterBlock(ZenScriptParser.BlockContext ctx) {
-        push(new BlockNode());
-    }
-
-    @Override
-    public void exitBlock(ZenScriptParser.BlockContext ctx) {
-        pop();
-    }
-
-    @Override
     public void enterVariableDeclaration(ZenScriptParser.VariableDeclarationContext ctx) {
-        push(new VariableDeclarationNode());
+        VariableDeclarationNode node = new VariableDeclarationNode();
+        switch (ctx.Declarator.getType()) {
+            case ZenScriptLexer.VAR:
+                node.setDeclarator(Declarator.VAR);
+                break;
+            case ZenScriptLexer.VAL:
+                node.setDeclarator(Declarator.VAL);
+                break;
+            case ZenScriptLexer.GLOBAL:
+                node.setDeclarator(Declarator.GLOBAL);
+                break;
+            case ZenScriptLexer.STATIC:
+                node.setDeclarator(Declarator.STATIC);
+                break;
+            default:
+                node.setDeclarator(Declarator.NONE);
+                break;
+        }
+        push(node, ctx);
     }
 
     @Override
@@ -138,7 +161,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterBlockStatement(ZenScriptParser.BlockStatementContext ctx) {
-        push(new BreakStatementNode());
+        push(new BlockStatementNode(), ctx);
     }
 
     @Override
@@ -148,7 +171,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterReturnStatement(ZenScriptParser.ReturnStatementContext ctx) {
-        push(new ReturnStatementNode());
+        push(new ReturnStatementNode(), ctx);
     }
 
     @Override
@@ -158,7 +181,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterBreakStatement(ZenScriptParser.BreakStatementContext ctx) {
-        push(new BreakStatementNode());
+        push(new BreakStatementNode(), ctx);
     }
 
     @Override
@@ -168,7 +191,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterContinueStatement(ZenScriptParser.ContinueStatementContext ctx) {
-        push(new ContinueStatementNode());
+        push(new ContinueStatementNode(), ctx);
     }
 
     @Override
@@ -178,7 +201,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterIfElseStatement(ZenScriptParser.IfElseStatementContext ctx) {
-        push(new IfElseStatementNode());
+        push(new IfElseStatementNode(), ctx);
     }
 
     @Override
@@ -188,7 +211,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterForeachStatement(ZenScriptParser.ForeachStatementContext ctx) {
-        push(new ForeachStatementNode());
+        push(new ForeachStatementNode(), ctx);
     }
 
     @Override
@@ -198,7 +221,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterWhileStatement(ZenScriptParser.WhileStatementContext ctx) {
-        push(new WhileStatementNode());
+        push(new WhileStatementNode(), ctx);
     }
 
     @Override
@@ -208,7 +231,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterExpressionStatement(ZenScriptParser.ExpressionStatementContext ctx) {
-        push(new ExpressionStatementNode());
+        push(new ExpressionStatementNode(), ctx);
     }
 
     @Override
@@ -218,7 +241,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterMemberAccessExpression(ZenScriptParser.MemberAccessExpressionContext ctx) {
-        push(new MemberAccessExpressionNode());
+        push(new MemberAccessExpressionNode(), ctx);
     }
 
     @Override
@@ -228,7 +251,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterMapLiteralExpression(ZenScriptParser.MapLiteralExpressionContext ctx) {
-        push(new MapLiteralExpressionNode());
+        push(new MapLiteralExpressionNode(), ctx);
     }
 
     @Override
@@ -238,7 +261,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterBracketHandlerExpression(ZenScriptParser.BracketHandlerExpressionContext ctx) {
-        push(new BracketHandlerExpressionNode(ctx.getText()));
+        push(new BracketHandlerExpressionNode(ctx.getText()), ctx);
     }
 
     @Override
@@ -248,7 +271,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterArrayLiteralExpression(ZenScriptParser.ArrayLiteralExpressionContext ctx) {
-        push(new ArrayLiteralExpressionNode());
+        push(new ArrayLiteralExpressionNode(), ctx);
     }
 
     @Override
@@ -258,7 +281,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterUnaryExpression(ZenScriptParser.UnaryExpressionContext ctx) {
-        push(new UnaryExpressionNode(Operator.of(ctx.Operator.getText())));
+        push(new UnaryExpressionNode(Operator.of(ctx.Operator.getText())), ctx);
     }
 
     @Override
@@ -268,7 +291,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterIntRangeExpression(ZenScriptParser.IntRangeExpressionContext ctx) {
-        push(new IntRangeExpressionNode());
+        push(new IntRangeExpressionNode(), ctx);
     }
 
     @Override
@@ -278,7 +301,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterMemberIndexExpression(ZenScriptParser.MemberIndexExpressionContext ctx) {
-        push(new MemberIndexExpressionNode());
+        push(new MemberIndexExpressionNode(), ctx);
     }
 
     @Override
@@ -288,7 +311,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterParensExpression(ZenScriptParser.ParensExpressionContext ctx) {
-        push(new ParensExpressionNode());
+        push(new ParensExpressionNode(), ctx);
     }
 
     @Override
@@ -297,18 +320,18 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
     }
 
     @Override
-    public void enterArgumentsExpression(ZenScriptParser.ArgumentsExpressionContext ctx) {
-        push(new ArgumentsExpressionNode());
+    public void enterCallExpression(ZenScriptParser.CallExpressionContext ctx) {
+        push(new CallExpressionNode(), ctx);
     }
 
     @Override
-    public void exitArgumentsExpression(ZenScriptParser.ArgumentsExpressionContext ctx) {
+    public void exitCallExpression(ZenScriptParser.CallExpressionContext ctx) {
         pop();
     }
 
     @Override
     public void enterThisExpression(ZenScriptParser.ThisExpressionContext ctx) {
-        push(new ThisExpressionNode());
+        push(new ThisExpressionNode(), ctx);
     }
 
     @Override
@@ -318,7 +341,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterTypeAssertionExpression(ZenScriptParser.TypeAssertionExpressionContext ctx) {
-        push(new TypeAssertionExpressionNode());
+        push(new TypeAssertionExpressionNode(), ctx);
     }
 
     @Override
@@ -328,7 +351,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterFunctionExpression(ZenScriptParser.FunctionExpressionContext ctx) {
-        push(new FunctionExpressionNode());
+        push(new FunctionExpressionNode(), ctx);
     }
 
     @Override
@@ -338,7 +361,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterBinaryExpression(ZenScriptParser.BinaryExpressionContext ctx) {
-        push(new BinaryExpressionNode(Operator.of(ctx.Operator.getText())));
+        push(new BinaryExpressionNode(Operator.of(ctx.Operator.getText())), ctx);
     }
 
     @Override
@@ -348,7 +371,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterAssignmentExpression(ZenScriptParser.AssignmentExpressionContext ctx) {
-        push(new BinaryExpressionNode(Operator.of(ctx.Operator.getText())));
+        push(new BinaryExpressionNode(Operator.of(ctx.Operator.getText())), ctx);
     }
 
     @Override
@@ -358,7 +381,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterTernaryExpression(ZenScriptParser.TernaryExpressionContext ctx) {
-        push(new TernaryExpressionNode());
+        push(new TernaryExpressionNode(), ctx);
     }
 
     @Override
@@ -368,7 +391,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterMapEntry(ZenScriptParser.MapEntryContext ctx) {
-        push(new MapEntryExpressionNode());
+        push(new MapEntryNode(), ctx);
     }
 
     @Override
@@ -378,7 +401,7 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterTypeName(ZenScriptParser.TypeNameContext ctx) {
-        push(new TypeNameNode(ctx.getText()));
+        push(new TypeNameNode(ctx.getText()), ctx);
     }
 
     @Override
@@ -389,25 +412,40 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
     @Override
     public void visitTerminal(TerminalNode terminal) {
         Token token = terminal.getSymbol();
-        if (token.getType() == ZenScriptLexer.IDENTIFIER) {
-            IdentifierNode node = new IdentifierNode(token.getText());
-            push(node);
-            pop();
-        } else if (token.getType() == ZenScriptLexer.INT_LITERAL
-                || token.getType() == ZenScriptLexer.LONG_LITERAL
-                || token.getType() == ZenScriptLexer.HEX_LITERAL
-                || token.getType() == ZenScriptLexer.FLOAT_LITERAL
-                || token.getType() == ZenScriptLexer.DOUBLE_LITERAL) {
-            NumericLiteralNode node = new NumericLiteralNode(token.getText());
-            push(node);
-            pop();
-        } else if (token.getType() == ZenScriptLexer.BOOL_LITERAL) {
-            BoolLiteralNode node = new BoolLiteralNode(token.getText());
-            push(node);
-            pop();
-        } else if (token.getType() == ZenScriptLexer.STRING_LITERAL) {
-            StringLiteralNode node = new StringLiteralNode(token.getText());
-            push(node);
+        ASTNode node;
+        switch (token.getType()) {
+            case ZenScriptLexer.IDENTIFIER:
+                node = new IdentifierNode(token.getText());
+                break;
+            case ZenScriptLexer.INT_LITERAL:
+            case ZenScriptLexer.HEX_LITERAL:
+                node = new NumericLiteralExpressionNode(token.getText());
+                ((NumericLiteralExpressionNode)node).setNumericKind(NumericKind.INT);
+                break;
+            case ZenScriptLexer.LONG_LITERAL:
+                node = new NumericLiteralExpressionNode(token.getText());
+                ((NumericLiteralExpressionNode)node).setNumericKind(NumericKind.LONG);
+                break;
+            case ZenScriptLexer.FLOAT_LITERAL:
+                node = new NumericLiteralExpressionNode(token.getText());
+                ((NumericLiteralExpressionNode)node).setNumericKind(NumericKind.FLOAT);
+                break;
+            case ZenScriptLexer.DOUBLE_LITERAL:
+                node = new NumericLiteralExpressionNode(token.getText());
+                ((NumericLiteralExpressionNode)node).setNumericKind(NumericKind.DOUBLE);
+                break;
+            case ZenScriptLexer.BOOL_LITERAL:
+                node = new BoolLiteralNode(token.getText());
+                break;
+            case ZenScriptLexer.STRING_LITERAL:
+                node = new StringLiteralExpressionNode(token.getText());
+                break;
+            default:
+                node = null;
+                break;
+        }
+        if (node != null) {
+            push(node, token);
             pop();
         }
     }

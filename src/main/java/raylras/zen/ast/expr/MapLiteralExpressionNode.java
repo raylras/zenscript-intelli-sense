@@ -2,41 +2,41 @@ package raylras.zen.ast.expr;
 
 import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
+import raylras.zen.ast.type.Expression;
+import raylras.zen.ast.type.Literal;
+import raylras.zen.ast.type.MapEntry;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
-public class MapLiteralExpressionNode extends ASTNode implements LiteralExpressionNode {
+public class MapLiteralExpressionNode extends ASTNode implements Literal, Expression {
 
-    private List<MapEntryExpressionNode> entries;
+    private List<MapEntry> entries;
 
     public MapLiteralExpressionNode() {
     }
 
-    public List<MapEntryExpressionNode> getEntries() {
-        return entries == null ? Collections.emptyList() : entries;
+    public List<MapEntry> getEntries() {
+        return entries;
+    }
+
+    public void setEntries(List<MapEntry> entries) {
+        this.entries = entries;
+    }
+
+    @Override
+    public void addChild(ASTNode node) {
+        if (node instanceof MapEntry) {
+            if (entries == null) {
+                entries = new ArrayList<>();
+            }
+            entries.add((MapEntry) node);
+        }
     }
 
     @Override
     public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
         return visitor.visit(this);
-    }
-
-    @Override
-    public void addChild(ASTNode node) {
-        if (node.getClass() == MapEntryExpressionNode.class) {
-            if (entries == null) {
-                entries = new ArrayList<>();
-            }
-            entries.add((MapEntryExpressionNode) node);
-        }
-    }
-
-    @Override
-    public String toString() {
-        return "{" + entries.stream().map(Object::toString).collect(Collectors.joining(", ")) + "}";
     }
 
 }

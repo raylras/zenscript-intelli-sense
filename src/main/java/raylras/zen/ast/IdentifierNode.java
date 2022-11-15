@@ -1,10 +1,11 @@
 package raylras.zen.ast;
 
-import raylras.zen.ast.expr.ExpressionNode;
+import raylras.zen.ast.type.Expression;
+import raylras.zen.ast.type.Identifier;
 
-public class IdentifierNode extends ASTNode implements ExpressionNode {
+public class IdentifierNode extends ASTNode implements Identifier, Expression {
 
-    private final String value;
+    private String value;
 
     public IdentifierNode(String value) {
         this.value = value;
@@ -14,9 +15,8 @@ public class IdentifierNode extends ASTNode implements ExpressionNode {
         return value;
     }
 
-    @Override
-    public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
-        return visitor.visit(this);
+    public void setValue(String value) {
+        this.value = value;
     }
 
     @Override
@@ -24,8 +24,8 @@ public class IdentifierNode extends ASTNode implements ExpressionNode {
     }
 
     @Override
-    public String toString() {
-        return value;
+    public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
+        return visitor.visit(this);
     }
 
 }

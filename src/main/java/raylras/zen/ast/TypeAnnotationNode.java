@@ -1,33 +1,33 @@
 package raylras.zen.ast;
 
-public class TypeAnnotationNode extends ASTNode {
+import raylras.zen.ast.type.TypeAnnotation;
+import raylras.zen.ast.type.TypeName;
 
-    private TypeNameNode typeName;
+public class TypeAnnotationNode extends ASTNode implements TypeAnnotation {
+
+    private TypeName typeName;
 
     public TypeAnnotationNode() {
     }
 
-    public TypeNameNode getTypeName() {
+    public TypeName getTypeName() {
         return typeName;
+    }
+
+    public void setTypeName(TypeName typeName) {
+        this.typeName = typeName;
+    }
+
+    @Override
+    public void addChild(ASTNode node) {
+        if (node instanceof TypeName) {
+            typeName = (TypeName) node;
+        }
     }
 
     @Override
     public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
         return visitor.visit(this);
-    }
-
-    @Override
-    public void addChild(ASTNode node) {
-        if (node.getClass() == TypeNameNode.class) {
-            if (typeName == null) {
-                typeName = (TypeNameNode) node;
-            }
-        }
-    }
-
-    @Override
-    public String toString() {
-        return typeName.toString();
     }
 
 }

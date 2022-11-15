@@ -1,85 +1,79 @@
 package raylras.zen.ast.decl;
 
-import raylras.zen.ast.*;
+import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
-import raylras.zen.ast.IdentifierNode;
+import raylras.zen.ast.type.*;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * function fn(a, b) as int { stmt; }
  */
-public class FunctionDeclarationNode extends ASTNode implements DeclarationNode, TopLevelNode {
+public class FunctionDeclarationNode extends ASTNode implements Function, Declaration, TopLevel {
 
-    private IdentifierNode identifier;
-    private List<ParameterDeclarationNode> parameters;
-    private TypeAnnotationNode typeAnnotation;
-    private BlockNode block;
+    private Identifier identifier;
+    private List<Parameter> parameters;
+    private TypeAnnotation typeAnnotation;
+    private List<Statement> statements;
 
     public FunctionDeclarationNode() {
     }
 
-    public IdentifierNode getIdentifier() {
+    public Identifier getIdentifier() {
         return identifier;
     }
 
-    public List<ParameterDeclarationNode> getParameters() {
-        return parameters == null ? Collections.emptyList() : parameters;
+    public void setIdentifier(Identifier identifier) {
+        this.identifier = identifier;
     }
 
-    public Optional<TypeAnnotationNode> getTypeAnnotation() {
-        return Optional.ofNullable(typeAnnotation);
+    public List<Parameter> getParameters() {
+        return parameters;
     }
 
-    public BlockNode getBlock() {
-        return block;
+    public void setParameters(List<Parameter> parameters) {
+        this.parameters = parameters;
+    }
+
+    public TypeAnnotation getTypeAnnotation() {
+        return typeAnnotation;
+    }
+
+    public void setTypeAnnotation(TypeAnnotation typeAnnotation) {
+        this.typeAnnotation = typeAnnotation;
+    }
+
+    public List<Statement> getStatements() {
+        return statements;
+    }
+
+    public void setStatements(List<Statement> statements) {
+        this.statements = statements;
+    }
+
+    @Override
+    public void addChild(ASTNode node) {
+        if (node instanceof Identifier) {
+            identifier = (Identifier) node;
+        } else if (node instanceof Parameter) {
+            if (parameters == null) {
+                parameters = new ArrayList<>();
+            }
+            parameters.add((Parameter) node);
+        } else if (node instanceof TypeAnnotation) {
+            typeAnnotation = (TypeAnnotation) node;
+        } else if (node instanceof Statement) {
+            if (statements == null) {
+                statements = new ArrayList<>();
+            }
+            statements.add((Statement) node);
+        }
     }
 
     @Override
     public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
         return visitor.visit(this);
-    }
-
-    @Override
-    public void addChild(ASTNode node) {
-        Class<? extends ASTNode> clazz = node.getClass();
-        if (clazz == IdentifierNode.class) {
-            if (identifier == null) {
-                identifier = (IdentifierNode) node;
-            }
-        } else if (clazz == ParameterDeclarationNode.class) {
-            if (parameters == null) {
-                parameters = new ArrayList<>();
-            }
-            parameters.add((ParameterDeclarationNode) node);
-        } else if (clazz == TypeAnnotationNode.class) {
-            if (typeAnnotation == null) {
-                typeAnnotation = (TypeAnnotationNode) node;
-            }
-        } else if (clazz == BlockNode.class) {
-            if (block == null) {
-                block = (BlockNode) node;
-            }
-        }
-    }
-
-    @Override
-    public String toString() {
-        StringBuilder builder = new StringBuilder();
-        builder.append("function");
-        builder.append(" ");
-        builder.append(identifier);
-        builder.append("(");
-        builder.append(getParameters().stream().map(Object::toString).collect(Collectors.joining(", ")));
-        builder.append(")");
-        if (typeAnnotation != null) {
-            builder.append(" as ");
-            builder.append(typeAnnotation);
-        }
-        builder.append(" ");
-        builder.append(block);
-        return builder.toString();
     }
 
 }

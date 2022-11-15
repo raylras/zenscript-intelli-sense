@@ -39,13 +39,9 @@ public enum Operator {
         this.value = value;
     }
 
-    public String getValue() {
-        return value;
-    }
-
     public static Operator of(String literal) {
         for (Operator operator : Operator.values()) {
-            if (operator.getValue().equals(literal)) {
+            if (operator.toString().equals(literal)) {
                 return operator;
             }
         }

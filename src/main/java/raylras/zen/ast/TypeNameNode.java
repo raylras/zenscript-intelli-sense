@@ -1,8 +1,10 @@
 package raylras.zen.ast;
 
-public class TypeNameNode extends ASTNode {
+import raylras.zen.ast.type.TypeName;
 
-    private final String value;
+public class TypeNameNode extends ASTNode implements TypeName {
+
+    private String value;
 
     public TypeNameNode(String value) {
         this.value = value;
@@ -12,9 +14,8 @@ public class TypeNameNode extends ASTNode {
         return value;
     }
 
-    @Override
-    public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
-        return visitor.visit(this);
+    public void setValue(String value) {
+        this.value = value;
     }
 
     @Override
@@ -22,8 +23,8 @@ public class TypeNameNode extends ASTNode {
     }
 
     @Override
-    public String toString() {
-        return value;
+    public <T> T accept(ASTNodeVisitor<? extends T> visitor) {
+        return visitor.visit(this);
     }
 
 }

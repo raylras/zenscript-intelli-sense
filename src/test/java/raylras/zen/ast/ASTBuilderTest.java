@@ -8,15 +8,14 @@ import org.junit.jupiter.api.Test;
 import raylras.zen.cst.ZenScriptLexer;
 import raylras.zen.cst.ZenScriptParser;
 
-import static org.junit.jupiter.api.Assertions.*;
-
 class ASTBuilderTest {
 
-    private static final String SOURCE = "var func as function(int,int)int = function(a as int = 0, b as int) as int {" +
-            "var integer as int = 1;" +
-            "var map as string[int] = {1:\"1\", 2:\"2\"};" +
-            "a.b[c]*d();" +
-            "}";
+    private static final String SOURCE =
+            "var func as function(int,int)int = function(a as int = 0, b as int) as int {" +
+                    "var integer as int = 1;" +
+                    "var map as string[int] = {1:\"1\", 2:\"2\"};" +
+                    "a.b[c]*d();" +
+            "};";
 
     @Test
     void compilationUnit() {
@@ -25,9 +24,9 @@ class ASTBuilderTest {
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         ZenScriptParser parser = new ZenScriptParser(tokens);
         ZenScriptParser.CompilationUnitContext cst = parser.compilationUnit();
-        ASTBuilder astBuilder = new ASTBuilder();
+        ASTBuilder astBuilder = new ASTBuilder("test source");
         ParseTreeWalker.DEFAULT.walk(astBuilder, cst);
-        System.out.println(astBuilder.compilationUnit());
+        CompilationUnitNode compilationUnitNode = astBuilder.compilationUnit();
     }
 
 }
