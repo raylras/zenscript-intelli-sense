@@ -2,6 +2,7 @@ package raylras.zen.langserver;
 
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.services.*;
+import raylras.zen.langserver.provider.SemanticTokensProvider;
 
 import java.util.concurrent.CompletableFuture;
 
@@ -30,7 +31,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 //        SignatureHelpOptions signatureHelpOptions = new SignatureHelpOptions();
 //        signatureHelpOptions.setTriggerCharacters(Arrays.asList("(", ","));
 //        capabilities.setSignatureHelpProvider(signatureHelpOptions);
-//        capabilities.setSemanticTokensProvider(new SemanticTokensWithRegistrationOptions(new SemanticTokensLegend(TokenType.getTokenTypes(), TokenModifier.getTokenModifiers()), true));
+        capabilities.setSemanticTokensProvider(new SemanticTokensWithRegistrationOptions(SemanticTokensProvider.Semantic_Tokens_Legend, true));
 //        capabilities.setReferencesProvider(true);
 //        capabilities.setDefinitionProvider(true);
 //        capabilities.setTypeDefinitionProvider(true);

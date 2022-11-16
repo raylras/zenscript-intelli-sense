@@ -14,4 +14,22 @@ public class ZenProject {
         this.documents = new HashMap<>();
     }
 
+    public Path getProjectRoot() {
+        return projectRoot;
+    }
+
+    public ZenDocument getDocument(Path path) {
+        if (documents.containsKey(path)) {
+            return documents.get(path);
+        } else {
+            ZenDocument document = new ZenDocument();
+            documents.put(path, document);
+            return document;
+        }
+    }
+
+    public void addDocument(Path path, ZenDocument document) {
+        documents.put(path, document);
+    }
+
 }

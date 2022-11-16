@@ -401,7 +401,11 @@ public class ASTBuilder extends ZenScriptParserBaseListener {
 
     @Override
     public void enterTypeName(ZenScriptParser.TypeNameContext ctx) {
-        push(new TypeNameNode(ctx.getText()), ctx);
+        if (ctx.start.equals(ctx.stop)) {
+            push(new TypeNameNode(ctx.getText()), ctx.start);
+        } else {
+            push(new TypeNameNode(ctx.getText()), ctx);
+        }
     }
 
     @Override

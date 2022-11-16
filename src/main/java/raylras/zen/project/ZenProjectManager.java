@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 public class ZenProjectManager {
 
@@ -26,19 +25,27 @@ public class ZenProjectManager {
             projectManager = new ZenProjectManager(serverContext);
             serverContext.put(ZenProjectManager.class, projectManager);
         }
-
         return projectManager;
     }
 
-    public Optional<ZenProject> getProject(Path path) {
+    public ZenDocument getDocument(Path path) {
+        ZenProject project = getProject(path);
+        if (project == null) {
+            return null;
+        } else {
+            return project.getDocument(path);
+        }
+    }
+
+    public ZenProject getProject(Path path) {
         Path projectRoot = findProjectRoot(path);
         if (projectRoot == null) {
-            return Optional.empty();
+            return null;
         }
         if (projects.containsKey(projectRoot)) {
-            return Optional.of(projects.get(projectRoot));
+            return projects.get(projectRoot);
         } else {
-            return Optional.of(buildProject(projectRoot));
+            return buildProject(projectRoot);
         }
     }
 
