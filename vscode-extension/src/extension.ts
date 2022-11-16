@@ -16,7 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
 		let classpath: string = path.join(__dirname, '..', '*');
 		let args: string[] = ['-cp', classpath];
 		let main = 'raylras.zen.Main';
-		let debug = '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=*:5005,quiet=y';
+		let debug = '-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005,quiet=y';
 
 		logChannel.appendLine(`Java Bin: ${javabin}`);
 		logChannel.appendLine(`Class Path: ${classpath}`)
