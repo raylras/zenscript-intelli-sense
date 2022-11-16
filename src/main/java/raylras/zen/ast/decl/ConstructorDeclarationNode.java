@@ -2,10 +2,8 @@ package raylras.zen.ast.decl;
 
 import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
-import raylras.zen.ast.type.Constructor;
-import raylras.zen.ast.type.Declaration;
-import raylras.zen.ast.type.Parameter;
-import raylras.zen.ast.type.Statement;
+import raylras.zen.ast.type.*;
+import raylras.zen.util.CommonUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -50,6 +48,11 @@ public class ConstructorDeclarationNode extends ASTNode implements Constructor, 
             }
             statements.add((Statement) node);
         }
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        return CommonUtils.toChildrenList(parameters, statements);
     }
 
     @Override

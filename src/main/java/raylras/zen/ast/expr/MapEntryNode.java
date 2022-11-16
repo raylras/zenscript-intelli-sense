@@ -4,6 +4,10 @@ import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
 import raylras.zen.ast.type.Expression;
 import raylras.zen.ast.type.MapEntry;
+import raylras.zen.ast.type.Node;
+import raylras.zen.util.CommonUtils;
+
+import java.util.List;
 
 public class MapEntryNode extends ASTNode implements MapEntry {
 
@@ -38,6 +42,11 @@ public class MapEntryNode extends ASTNode implements MapEntry {
                 value = (Expression) node;
             }
         }
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        return CommonUtils.toChildrenList(key, value);
     }
 
     @Override

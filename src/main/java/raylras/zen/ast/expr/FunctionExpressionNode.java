@@ -3,6 +3,7 @@ package raylras.zen.ast.expr;
 import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
 import raylras.zen.ast.type.*;
+import raylras.zen.util.CommonUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -65,6 +66,11 @@ public class FunctionExpressionNode extends ASTNode implements Function, Express
             }
             statements.add((Statement) node);
         }
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        return CommonUtils.toChildrenList(parameters, typeAnnotation, statements);
     }
 
     @Override

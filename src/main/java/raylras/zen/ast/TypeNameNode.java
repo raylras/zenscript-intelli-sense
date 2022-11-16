@@ -1,6 +1,10 @@
 package raylras.zen.ast;
 
+import raylras.zen.ast.type.Node;
 import raylras.zen.ast.type.TypeName;
+
+import java.util.Collections;
+import java.util.List;
 
 public class TypeNameNode extends ASTNode implements TypeName {
 
@@ -20,6 +24,11 @@ public class TypeNameNode extends ASTNode implements TypeName {
 
     @Override
     public void addChild(ASTNode node) {
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        return Collections.emptyList();
     }
 
     @Override

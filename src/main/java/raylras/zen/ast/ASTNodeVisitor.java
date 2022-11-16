@@ -4,10 +4,13 @@ import raylras.zen.ast.decl.*;
 import raylras.zen.ast.expr.*;
 import raylras.zen.ast.stmt.*;
 import raylras.zen.ast.type.Expression;
+import raylras.zen.ast.type.TopLevel;
 
 public interface ASTNodeVisitor<T> {
 
     T visit(CompilationUnitNode node);
+
+    T visit(TopLevel node);
 
     T visit(TypeAnnotationNode node);
 

@@ -1,6 +1,8 @@
 package raylras.zen.ast;
 
+import raylras.zen.ast.type.Node;
 import raylras.zen.ast.type.TopLevel;
+import raylras.zen.util.CommonUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,6 +40,11 @@ public class CompilationUnitNode extends ASTNode {
             }
             members.add((TopLevel) node);
         }
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        return CommonUtils.toChildrenList(members);
     }
 
     @Override

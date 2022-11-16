@@ -1,7 +1,11 @@
 package raylras.zen.ast;
 
+import raylras.zen.ast.type.Node;
 import raylras.zen.ast.type.TypeAnnotation;
 import raylras.zen.ast.type.TypeName;
+import raylras.zen.util.CommonUtils;
+
+import java.util.List;
 
 public class TypeAnnotationNode extends ASTNode implements TypeAnnotation {
 
@@ -23,6 +27,11 @@ public class TypeAnnotationNode extends ASTNode implements TypeAnnotation {
         if (node instanceof TypeName) {
             typeName = (TypeName) node;
         }
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        return CommonUtils.toChildrenList(typeName);
     }
 
     @Override

@@ -3,8 +3,12 @@ package raylras.zen.ast.stmt;
 import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
 import raylras.zen.ast.type.Expression;
+import raylras.zen.ast.type.Node;
 import raylras.zen.ast.type.Statement;
 import raylras.zen.ast.type.TopLevel;
+import raylras.zen.util.CommonUtils;
+
+import java.util.List;
 
 /**
  * if (expr) { thenStmt; } else { elseStmt; }
@@ -53,6 +57,11 @@ public class IfElseStatementNode extends ASTNode implements Statement, TopLevel 
                 elseStmt = (Statement) node;
             }
         }
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        return CommonUtils.toChildrenList(expr, thenStmt, elseStmt);
     }
 
     @Override

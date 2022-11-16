@@ -2,6 +2,10 @@ package raylras.zen.ast;
 
 import raylras.zen.ast.type.Alias;
 import raylras.zen.ast.type.Identifier;
+import raylras.zen.ast.type.Node;
+import raylras.zen.util.CommonUtils;
+
+import java.util.List;
 
 public class AliasNode extends ASTNode implements Alias {
 
@@ -20,6 +24,11 @@ public class AliasNode extends ASTNode implements Alias {
         if (node instanceof Identifier) {
             identifier = (Identifier) node;
         }
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        return CommonUtils.toChildrenList(identifier);
     }
 
     @Override

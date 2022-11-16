@@ -3,6 +3,7 @@ package raylras.zen.ast.decl;
 import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
 import raylras.zen.ast.type.*;
+import raylras.zen.util.CommonUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +45,11 @@ public class ImportDeclarationNode extends ASTNode implements Declaration, State
         } else if (node instanceof Alias) {
             alias = (Alias) node;
         }
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        return CommonUtils.toChildrenList(packages, alias);
     }
 
     @Override

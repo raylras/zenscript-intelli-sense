@@ -2,6 +2,8 @@ package raylras.zen.ast;
 
 import raylras.zen.ast.type.Node;
 
+import java.util.List;
+
 public abstract class ASTNode implements Node {
 
     protected ASTNode parent;
@@ -15,6 +17,7 @@ public abstract class ASTNode implements Node {
         this.parent = parent;
     }
 
+    @Override
     public TextRange getTextRange() {
         return textRange;
     }
@@ -24,6 +27,8 @@ public abstract class ASTNode implements Node {
     }
 
     public abstract void addChild(ASTNode node);
+
+    public abstract List<Node> getChildren();
 
     public abstract <T> T accept(ASTNodeVisitor<? extends T> visitor);
 

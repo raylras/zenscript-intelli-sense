@@ -3,7 +3,11 @@ package raylras.zen.ast.expr;
 import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
 import raylras.zen.ast.type.Expression;
+import raylras.zen.ast.type.Node;
 import raylras.zen.ast.type.TypeName;
+import raylras.zen.util.CommonUtils;
+
+import java.util.List;
 
 public class TypeAssertionExpressionNode extends ASTNode implements Expression {
 
@@ -36,6 +40,11 @@ public class TypeAssertionExpressionNode extends ASTNode implements Expression {
         } else if (node instanceof TypeName) {
             typeName = (TypeName) node;
         }
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        return CommonUtils.toChildrenList(typeName);
     }
 
     @Override

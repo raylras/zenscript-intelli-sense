@@ -4,11 +4,20 @@ import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
 import raylras.zen.ast.type.Expression;
 import raylras.zen.ast.type.Literal;
+import raylras.zen.ast.type.Node;
+
+import java.util.Collections;
+import java.util.List;
 
 public class NullLiteralExpressionNode extends ASTNode implements Literal, Expression {
 
     @Override
     public void addChild(ASTNode node) {
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        return Collections.emptyList();
     }
 
     @Override

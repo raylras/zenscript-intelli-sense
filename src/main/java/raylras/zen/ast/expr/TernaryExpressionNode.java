@@ -3,6 +3,10 @@ package raylras.zen.ast.expr;
 import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
 import raylras.zen.ast.type.Expression;
+import raylras.zen.ast.type.Node;
+import raylras.zen.util.CommonUtils;
+
+import java.util.List;
 
 /**
  * expr ? thenExpr : elseExpr
@@ -51,6 +55,11 @@ public class TernaryExpressionNode extends ASTNode implements Expression {
                 elseExpr = (Expression) node;
             }
         }
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        return CommonUtils.toChildrenList(expr, thenExpr, elseExpr);
     }
 
     @Override

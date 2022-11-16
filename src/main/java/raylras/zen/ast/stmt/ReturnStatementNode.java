@@ -3,7 +3,11 @@ package raylras.zen.ast.stmt;
 import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
 import raylras.zen.ast.type.Expression;
+import raylras.zen.ast.type.Node;
 import raylras.zen.ast.type.Statement;
+import raylras.zen.util.CommonUtils;
+
+import java.util.List;
 
 public class ReturnStatementNode extends ASTNode implements Statement {
 
@@ -25,6 +29,11 @@ public class ReturnStatementNode extends ASTNode implements Statement {
         if (node instanceof Expression) {
             expr = (Expression) node;
         }
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        return CommonUtils.toChildrenList(expr);
     }
 
     @Override

@@ -3,10 +3,13 @@ package raylras.zen.util;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import raylras.zen.ast.TextRange;
+import raylras.zen.ast.type.Node;
 
 import java.net.URI;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 
 public final class CommonUtils {
 
@@ -30,6 +33,22 @@ public final class CommonUtils {
         int startColumn = token.getCharPositionInLine();
         int endColumn = startColumn + token.getText().length();
         return new TextRange(startLine, startColumn, startLine, endColumn);
+    }
+
+    public static List<Node> toChildrenList(Object... children) {
+        List<Node> childrenList = new ArrayList<>();
+        for (Object child : children) {
+            if (child instanceof Node) {
+                childrenList.add((Node) child);
+            } else if (child instanceof List<?>) {
+                for (Object o : ((List<?>) child)) {
+                    if (o instanceof Node) {
+                        childrenList.add((Node) o);
+                    }
+                }
+            }
+        }
+        return childrenList;
     }
 
 }

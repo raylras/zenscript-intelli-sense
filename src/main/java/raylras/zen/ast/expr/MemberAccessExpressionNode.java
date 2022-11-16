@@ -3,6 +3,10 @@ package raylras.zen.ast.expr;
 import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
 import raylras.zen.ast.type.Expression;
+import raylras.zen.ast.type.Node;
+import raylras.zen.util.CommonUtils;
+
+import java.util.List;
 
 /**
  * A.b
@@ -41,6 +45,11 @@ public class MemberAccessExpressionNode extends ASTNode implements Expression {
                 right = (Expression) node;
             }
         }
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        return CommonUtils.toChildrenList(left, right);
     }
 
     @Override

@@ -3,6 +3,7 @@ package raylras.zen.ast.decl;
 import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
 import raylras.zen.ast.type.*;
+import raylras.zen.util.CommonUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -44,6 +45,11 @@ public class ZenClassDeclarationNode extends ASTNode implements Declaration, Top
             }
             members.add(node);
         }
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        return CommonUtils.toChildrenList(identifier, members);
     }
 
     @Override

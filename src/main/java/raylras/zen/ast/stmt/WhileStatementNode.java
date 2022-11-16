@@ -3,8 +3,10 @@ package raylras.zen.ast.stmt;
 import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
 import raylras.zen.ast.type.Expression;
+import raylras.zen.ast.type.Node;
 import raylras.zen.ast.type.Statement;
 import raylras.zen.ast.type.TopLevel;
+import raylras.zen.util.CommonUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +50,11 @@ public class WhileStatementNode extends ASTNode implements Statement, TopLevel {
             }
             statements.add((Statement) node);
         }
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        return CommonUtils.toChildrenList(expr, statements);
     }
 
     @Override

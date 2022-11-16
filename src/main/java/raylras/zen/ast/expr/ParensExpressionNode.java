@@ -3,6 +3,10 @@ package raylras.zen.ast.expr;
 import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
 import raylras.zen.ast.type.Expression;
+import raylras.zen.ast.type.Node;
+import raylras.zen.util.CommonUtils;
+
+import java.util.List;
 
 /**
  * (a + b)
@@ -27,6 +31,11 @@ public class ParensExpressionNode extends ASTNode implements Expression {
         if (node instanceof Expression) {
             expr = (Expression) node;
         }
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        return CommonUtils.toChildrenList(expr);
     }
 
     @Override

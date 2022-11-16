@@ -3,6 +3,10 @@ package raylras.zen.ast.expr;
 import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
 import raylras.zen.ast.type.Expression;
+import raylras.zen.ast.type.Node;
+import raylras.zen.util.CommonUtils;
+
+import java.util.List;
 
 /**
  * arr[1]
@@ -40,6 +44,11 @@ public class MemberIndexExpressionNode extends ASTNode implements Expression {
                 index = (Expression) node;
             }
         }
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        return CommonUtils.toChildrenList(left, index);
     }
 
     @Override

@@ -3,6 +3,9 @@ package raylras.zen.ast.decl;
 import raylras.zen.ast.ASTNode;
 import raylras.zen.ast.ASTNodeVisitor;
 import raylras.zen.ast.type.*;
+import raylras.zen.util.CommonUtils;
+
+import java.util.List;
 
 /**
  * var a = 1;
@@ -59,6 +62,11 @@ public class VariableDeclarationNode extends ASTNode implements Variable, Declar
         } else if (node instanceof Expression) {
             initializer = (Expression) node;
         }
+    }
+
+    @Override
+    public List<Node> getChildren() {
+        return CommonUtils.toChildrenList(identifier, typeAnnotation, initializer);
     }
 
     @Override
