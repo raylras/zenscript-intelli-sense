@@ -4,6 +4,7 @@
 
 ## 目录
 
+- [运行](#运行)
 - [构建](#构建)
 - [开发](#开发)
 - [调试](#调试)
@@ -15,9 +16,13 @@
 - [如何贡献](#如何贡献)
 - [使用许可](#使用许可)
 
+## 运行
+
+系统需要安装 Java 8 或更高版本，并且配置有环境变量
+
 ## 构建
 
-1. 安装 [JDK1.8](https://mirrors.tuna.tsinghua.edu.cn/Adoptium/8/jdk/) 和 [Node.js](https://nodejs.org/)
+1. 安装 [JDK11](https://mirrors.tuna.tsinghua.edu.cn/Adoptium/11/jdk/) 和 [Node.js](https://nodejs.org/)
 
 2. 克隆本项目
 
@@ -57,7 +62,7 @@
    - [IDEA](https://www.jetbrains.com/idea/) 服务端开发
    - [VS Code](https://code.visualstudio.com/) 插件端开发
    - [Node.js](https://nodejs.org/) 插件端开发环境
-   - [JDK1.8](https://mirrors.tuna.tsinghua.edu.cn/Adoptium/8/jdk/) 服务端开发环境
+   - [JDK11](https://mirrors.tuna.tsinghua.edu.cn/Adoptium/11/jdk/) 服务端开发环境
    - [ANTLR v4](https://plugins.jetbrains.com/plugin/7358-antlr-v4) IDEA的插件，编写和调试 ANTLR4 的`.g4`语法文件
 
 2. 克隆本项目
@@ -68,7 +73,9 @@
 
 3. 使用 IDE 打开项目目录`zenscript-language-server`
 
-4. 运行 Gradle 任务`generateGrammarSource`生成cst包的代码
+4. 检查 `项目结构` `SDK` 是否为 Java 11， 语言级别是否为 Java 8
+
+5. 运行 Gradle 任务`generateGrammarSource`生成cst包的代码
 
    ```shell
    ./gradlew generateGrammarSource
