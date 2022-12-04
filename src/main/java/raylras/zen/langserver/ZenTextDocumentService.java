@@ -26,14 +26,11 @@ public class ZenTextDocumentService implements TextDocumentService {
         clientLogger.logMessage("Opened: " + params.getTextDocument().getUri());
         ZenProjectManager projectManager = ZenProjectManager.getInstance(serverContext);
         ZenDocument document = projectManager.getDocument(CommonUtils.toPath(params.getTextDocument().getUri()));
-        document.update(params.getTextDocument().getText());
     }
 
     @Override
     public void didChange(DidChangeTextDocumentParams params) {
         ZenProjectManager projectManager = ZenProjectManager.getInstance(serverContext);
-        ZenDocument document = projectManager.getDocument(CommonUtils.toPath(params.getTextDocument().getUri()));
-        document.update(params.getContentChanges().get(0).getText());
     }
 
     @Override
@@ -44,8 +41,6 @@ public class ZenTextDocumentService implements TextDocumentService {
     @Override
     public void didSave(DidSaveTextDocumentParams params) {
         ZenProjectManager projectManager = ZenProjectManager.getInstance(serverContext);
-        ZenDocument document = projectManager.getDocument(CommonUtils.toPath(params.getTextDocument().getUri()));
-        document.update(params.getText());
     }
 
     @Override
