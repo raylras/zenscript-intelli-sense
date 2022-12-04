@@ -3,6 +3,9 @@ package raylras.zen.langserver;
 import org.eclipse.lsp4j.DidChangeConfigurationParams;
 import org.eclipse.lsp4j.DidChangeWatchedFilesParams;
 import org.eclipse.lsp4j.services.WorkspaceService;
+import raylras.zen.util.CommonUtils;
+
+import java.util.stream.Collectors;
 
 public class ZenWorkspaceService implements WorkspaceService {
 
@@ -24,7 +27,10 @@ public class ZenWorkspaceService implements WorkspaceService {
 
     @Override
     public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
-
+        logger.logMessage("workspace/didChangeWatchedFiles: "
+                + params.getChanges().stream()
+                .map(event -> CommonUtils.getFileName(event.getUri()))
+                .collect(Collectors.toList()));
     }
 
 }

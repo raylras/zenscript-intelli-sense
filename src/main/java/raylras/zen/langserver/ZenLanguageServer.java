@@ -1,9 +1,15 @@
 package raylras.zen.langserver;
 
 import org.eclipse.lsp4j.*;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.*;
 import raylras.zen.langserver.provider.SemanticTokensProvider;
+import raylras.zen.project.ZenDocument;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
@@ -44,6 +50,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
     @Override
     public void initialized(InitializedParams params) {
         languageClient.logMessage(new MessageParams(MessageType.Log, "ZenScript Language Server initialized"));
+        startListeningFileChanges();
     }
 
     @Override
@@ -59,7 +66,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
     @Override
     public CompletableFuture<Object> shutdown() {
         shutdown = 0;
-        return CompletableFuture.completedFuture(new Object());
+        return CompletableFuture.completedFuture(Boolean.TRUE);
     }
 
     @Override
@@ -69,11 +76,20 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 
     @Override
     public void connect(LanguageClient client) {
-        // initialize the context
         this.languageClient = client;
         this.serverContext.put(LanguageClient.class, client);
-        LanguageClientLogger clientLogger = LanguageClientLogger.getInstance(this.serverContext);
-        clientLogger.connect(client);
+        LanguageClientLogger logger = LanguageClientLogger.getInstance(this.serverContext);
+        logger.connect(client);
+    }
+
+    private void startListeningFileChanges() {
+        LanguageClient client = serverContext.languageClient();
+        List<FileSystemWatcher> watchers = new ArrayList<>();
+        watchers.add(new FileSystemWatcher(Either.forLeft("**/*" + ZenDocument.DOCUMENT_EXTENSION), WatchKind.Create + WatchKind.Change + WatchKind.Delete));
+        watchers.add(new FileSystemWatcher(Either.forLeft("**/zenproject.toml"), WatchKind.Create + WatchKind.Change + WatchKind.Delete));
+        DidChangeWatchedFilesRegistrationOptions opts = new DidChangeWatchedFilesRegistrationOptions(watchers);
+        Registration registration = new Registration(UUID.randomUUID().toString(), "workspace/didChangeWatchedFiles", opts);
+        client.registerCapability(new RegistrationParams(Collections.singletonList(registration)));
     }
 
 }
