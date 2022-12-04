@@ -6,10 +6,10 @@ import java.util.Map;
 
 public class ZenProject {
 
-    private final Path projectRoot;
-    private final Map<Path, ZenDocument> documents;
+    private Path projectRoot;
+    private Map<Path, ZenDocument> documents;
 
-    public ZenProject(Path projectRoot) {
+    ZenProject(Path projectRoot) {
         this.projectRoot = projectRoot;
         this.documents = new HashMap<>();
     }
@@ -18,18 +18,18 @@ public class ZenProject {
         return projectRoot;
     }
 
-    public ZenDocument getDocument(Path path) {
-        if (documents.containsKey(path)) {
-            return documents.get(path);
-        } else {
-            ZenDocument document = new ZenDocument();
-            documents.put(path, document);
-            return document;
-        }
+    public ZenDocument getDocument(Path documentPath) {
+        return documents.get(documentPath);
     }
 
-    public void addDocument(Path path, ZenDocument document) {
-        documents.put(path, document);
+    Map<Path, ZenDocument> getDocuments() {
+        return documents;
+    }
+
+    ZenDocument buildDocument(Path documentPath) {
+        ZenDocument document = new ZenDocument(documentPath, this);
+        documents.put(documentPath, document);
+        return document;
     }
 
 }

@@ -11,13 +11,13 @@ public class ZenWorkspaceService implements WorkspaceService {
 
     private final ZenLanguageServer languageServer;
     private final LanguageServerContext serverContext;
-    private final LanguageClientLogger clientLogger;
+    private final LanguageClientLogger logger;
 
     public ZenWorkspaceService(ZenLanguageServer languageServer,
                                LanguageServerContext serverContext) {
         this.languageServer = languageServer;
         this.serverContext = serverContext;
-        this.clientLogger = LanguageClientLogger.getInstance(serverContext);
+        this.logger = LanguageClientLogger.getInstance(serverContext);
     }
 
     @Override

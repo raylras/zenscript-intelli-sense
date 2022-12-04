@@ -1,68 +1,215 @@
 package raylras.zen.langserver.provider;
 
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.TokenStream;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.eclipse.lsp4j.*;
+import raylras.zen.cst.ZenScriptLexer;
+import raylras.zen.cst.ZenScriptParser;
+import raylras.zen.cst.ZenScriptParserBaseListener;
 import raylras.zen.langserver.LanguageServerContext;
-import raylras.zen.project.ZenDocument;
 import raylras.zen.project.ZenProjectManager;
+import raylras.zen.semantic.AnnotatedTree;
+import raylras.zen.semantic.symbol.*;
 import raylras.zen.util.CommonUtils;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
+import java.util.TreeMap;
 
-public class SemanticTokensProvider {
+public class SemanticTokensProvider extends ZenScriptParserBaseListener {
 
-    public enum TokenType {
-        CLASS(0, SemanticTokenTypes.Class),
-        PARAMETER(1, SemanticTokenTypes.Parameter),
-        VARIABLE(2, SemanticTokenTypes.Variable),
-        PROPERTY(3, SemanticTokenTypes.Property),
-        FUNCTION(4, SemanticTokenTypes.Function),
-        METHOD(5, SemanticTokenTypes.Method),
-        STRING(6, SemanticTokenTypes.String),
-        NUMBER(7, SemanticTokenTypes.Number);
+    private final AnnotatedTree annotatedTree;
+    private final TokenStream tokenStream;
+    private final List<Integer> data;
+    private int prevLine;
+    private int prevColumn;
 
-        public final int ID;
-        public final String NAME;
-        TokenType(int ID, String NAME) {
-            this.ID = ID;
-            this.NAME = NAME;
+    public SemanticTokensProvider(AnnotatedTree annotatedTree, TokenStream tokenStream) {
+        this.annotatedTree = annotatedTree;
+        this.tokenStream = tokenStream;
+        this.data = new ArrayList<>();
+        this.prevLine = 1;
+        this.prevColumn = 0;
+    }
+
+    public static SemanticTokens semanticTokensFull(LanguageServerContext serverContext, SemanticTokensParams params) {
+        ZenProjectManager projectManager = ZenProjectManager.getInstance(serverContext);
+        return projectManager.getDocument(CommonUtils.toPath(params.getTextDocument().getUri()))
+                .map(document -> {
+                    SemanticTokensProvider provider = new SemanticTokensProvider(document.getAnnotatedTree(), document.getTokenStream());
+                    ParseTreeWalker.DEFAULT.walk(provider, document.getAnnotatedTree().getParseTree());
+                    return new SemanticTokens(provider.data);
+                }).orElseGet(SemanticTokens::new);
+    }
+
+    private void push(TerminalNode node, int tokenType, int modifiers) {
+        push(node.getSymbol(), tokenType, modifiers);
+    }
+
+    private void push(Token token, int tokenType, int modifiers) {
+        int line = token.getLine() - prevLine;
+        int column = token.getLine() == prevLine ? token.getCharPositionInLine() - prevColumn : token.getCharPositionInLine();
+        int length = token.getText().length();
+        prevLine = token.getLine();
+        prevColumn = token.getCharPositionInLine();
+        data.add(line);
+        data.add(column);
+        data.add(length);
+        data.add(tokenType);
+        data.add(modifiers);
+    }
+
+    @Override
+    public void enterPackageName(ZenScriptParser.PackageNameContext ctx) {
+        for (TerminalNode id : ctx.IDENTIFIER()) {
+            push(id, TokenType.CLASS, 0);
         }
     }
 
-    public enum TokenModifiers {
-        Declaration(1<<0, SemanticTokenModifiers.Declaration),
-        Definition(1<<1, SemanticTokenModifiers.Definition),
-        Readonly(1<<2, SemanticTokenModifiers.Readonly),
-        Static(1<<3, SemanticTokenModifiers.Static);
+    @Override
+    public void enterAlias(ZenScriptParser.AliasContext ctx) {
+        push(ctx.IDENTIFIER(), TokenType.CLASS, 0);
+    }
 
-        public final int ID;
-        public final String NAME;
-        TokenModifiers(int ID, String NAME) {
-            this.ID = ID;
-            this.NAME = NAME;
+    @Override
+    public void enterFunctionDeclaration(ZenScriptParser.FunctionDeclarationContext ctx) {
+        push(ctx.IDENTIFIER(), TokenType.FUNCTION, 0);
+    }
+
+    @Override
+    public void enterParameter(ZenScriptParser.ParameterContext ctx) {
+        push(ctx.IDENTIFIER(), TokenType.PARAMETER, 0);
+    }
+
+    @Override
+    public void enterClassDeclaration(ZenScriptParser.ClassDeclarationContext ctx) {
+        push(ctx.IDENTIFIER(), TokenType.CLASS, 0);
+    }
+
+    @Override
+    public void enterConstructorDeclaration(ZenScriptParser.ConstructorDeclarationContext ctx) {
+        push(ctx.ZEN_CONSTRUCTOR(), TokenType.METHOD, 0);
+    }
+
+    @Override
+    public void enterVariableDeclaration(ZenScriptParser.VariableDeclarationContext ctx) {
+        Symbol symbol = annotatedTree.findSymbolInNode(ctx.IDENTIFIER(), ctx.IDENTIFIER().getText());
+        if (symbol != null) {
+            int modifiers = 0;
+            if (symbol instanceof VariableSymbol) {
+                switch (((VariableSymbol) symbol).getModifier()) {
+                    case VariableModifier.GLOBAL:
+                    case VariableModifier.STATIC:
+                        modifiers |= TokenModifier.STATIC;
+                    case VariableModifier.VAL:
+                        modifiers |= TokenModifier.READONLY;
+                    case VariableModifier.VAR:
+                        modifiers |= TokenModifier.DECLARATION;
+                }
+                push(ctx.IDENTIFIER(), TokenType.VARIABLE, modifiers);
+            } else if (symbol instanceof FunctionSymbol) {
+                push(ctx.IDENTIFIER(), TokenType.FUNCTION, modifiers);
+            }
         }
     }
-    public static final SemanticTokensLegend Semantic_Tokens_Legend;
+
+    @Override
+    public void enterIDExpression(ZenScriptParser.IDExpressionContext ctx) {
+        Symbol symbol = annotatedTree.findSymbolInNode(ctx, ctx.getText());
+        if (symbol instanceof ClassSymbol) {
+            push(ctx.IDENTIFIER(), TokenType.CLASS, 0);
+        } else if (symbol instanceof FunctionSymbol) {
+            push(ctx.IDENTIFIER(), TokenType.FUNCTION, 0);
+        } else if (symbol instanceof VariableSymbol) {
+            int modifiers = 0;
+            switch (((VariableSymbol) symbol).getModifier()) {
+                case VariableModifier.GLOBAL:
+                case VariableModifier.STATIC:
+                    modifiers |= TokenModifier.STATIC;
+                case VariableModifier.VAL:
+                    modifiers |= TokenModifier.READONLY;
+                case VariableModifier.VAR:
+                    modifiers |= TokenModifier.DECLARATION;
+            }
+            push(ctx.IDENTIFIER(), TokenType.VARIABLE, modifiers);
+        }
+    }
+
+    @Override
+    public void enterPrimitiveType(ZenScriptParser.PrimitiveTypeContext ctx) {
+        push(ctx.start, TokenType.CLASS, 0);
+    }
+
+    @Override
+    public void enterCallExpression(ZenScriptParser.CallExpressionContext ctx) {
+        // dirty implementation
+        // let something like mods.foo.Bar.baz() be marked with class
+        // in fact, the class name could start with anything
+        String text = ctx.start.getText();
+        if (text.equals("mods") || text.equals("crafttweaker")) {
+            List<Token> tokens = new ArrayList<>();
+            Token token = ctx.start;
+            while (token.getType() != ZenScriptLexer.PAREN_OPEN) {
+                if (token.getType() == ZenScriptLexer.IDENTIFIER) {
+                    tokens.add(token);
+                }
+                token = tokenStream.get(token.getTokenIndex() + 1);
+            }
+
+            Token funcID = tokens.remove(tokens.size() - 1);
+            for (Token t : tokens) {
+                push(t, TokenType.CLASS, 0);
+            }
+            push(funcID, TokenType.FUNCTION, 0);
+        }
+    }
+
+    @Override
+    public void enterMapEntry(ZenScriptParser.MapEntryContext ctx) {
+        if (ctx.Key.getClass() == ZenScriptParser.IDExpressionContext.class) {
+            TerminalNode id = ((ZenScriptParser.IDExpressionContext) ctx.Key).IDENTIFIER();
+            Symbol symbol = annotatedTree.findSymbolInNode(ctx, id.getText());
+            if (symbol == null) {
+                push(id, TokenType.STRING, 0);
+            }
+        }
+    }
+
+    public static final class TokenType {
+        public static final int CLASS = 0;
+        public static final int PARAMETER = 1;
+        public static final int VARIABLE = 2;
+        public static final int FUNCTION = 3;
+        public static final int METHOD = 4;
+        public static final int STRING = 5;
+    }
+
+    public static final class TokenModifier {
+        public static final int DECLARATION = 1;
+        public static final int READONLY = 2;
+        public static final int STATIC = 4;
+    }
+
+    public static final SemanticTokensLegend SEMANTIC_TOKENS_LEGEND;
 
     static {
-        List<String> tokenTypes = Arrays.stream(TokenType.values()).map(tokenType -> tokenType.NAME).collect(Collectors.toList());
-        List<String> tokenModifiers = Arrays.stream(TokenModifiers.values()).map(modifier -> modifier.NAME).collect(Collectors.toList());
-        Semantic_Tokens_Legend =  new SemanticTokensLegend(tokenTypes, tokenModifiers);
-    }
+        Map<Integer, String> tokenTypes = new TreeMap<>();
+        tokenTypes.put(TokenType.CLASS, SemanticTokenTypes.Class);
+        tokenTypes.put(TokenType.PARAMETER, SemanticTokenTypes.Parameter);
+        tokenTypes.put(TokenType.VARIABLE, SemanticTokenTypes.Variable);
+        tokenTypes.put(TokenType.FUNCTION, SemanticTokenTypes.Function);
+        tokenTypes.put(TokenType.METHOD, SemanticTokenTypes.Method);
+        tokenTypes.put(TokenType.STRING, SemanticTokenTypes.String);
 
-    private final List<Integer> data;
+        Map<Integer, String> tokenModifiers = new TreeMap<>();
+        tokenModifiers.put(TokenModifier.DECLARATION, SemanticTokenModifiers.Declaration);
+        tokenModifiers.put(TokenModifier.READONLY, SemanticTokenModifiers.Readonly);
+        tokenModifiers.put(TokenModifier.STATIC, SemanticTokenModifiers.Static);
 
-    public SemanticTokensProvider() {
-        this.data = new ArrayList<>();
-    }
-
-    public static SemanticTokens semanticTokensFull(LanguageServerContext context, SemanticTokensParams params) {
-        ZenProjectManager projectManager = ZenProjectManager.getInstance(context);
-        ZenDocument document = projectManager.getDocument(CommonUtils.toPath(params.getTextDocument().getUri()));
-        SemanticTokensProvider provider = new SemanticTokensProvider();
-        return new SemanticTokens(provider.data);
+        SEMANTIC_TOKENS_LEGEND = new SemanticTokensLegend(new ArrayList<>(tokenTypes.values()), new ArrayList<>(tokenModifiers.values()));
     }
 
 }

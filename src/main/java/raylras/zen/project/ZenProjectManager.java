@@ -4,23 +4,27 @@ import org.tomlj.Toml;
 import org.tomlj.TomlParseResult;
 import raylras.zen.langserver.LanguageServerContext;
 
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 public class ZenProjectManager {
 
     private final Map<Path, ZenProject> projects;
+    private final LanguageServerContext serverContext;
 
     private ZenProjectManager(LanguageServerContext serverContext) {
         this.projects = new HashMap<>();
+        this.serverContext = serverContext;
     }
 
     public static ZenProjectManager getInstance(LanguageServerContext serverContext) {
-        ZenProjectManager projectManager = serverContext.get(ZenProjectManager.class);
+        ZenProjectManager projectManager = serverContext.projectManager();
         if (projectManager == null) {
             projectManager = new ZenProjectManager(serverContext);
             serverContext.put(ZenProjectManager.class, projectManager);
@@ -28,36 +32,46 @@ public class ZenProjectManager {
         return projectManager;
     }
 
-    public ZenDocument getDocument(Path path) {
-        ZenProject project = getProject(path);
-        if (project == null) {
-            return null;
-        } else {
-            return project.getDocument(path);
+    public void openDocument(Path documentPath) {
+        if (getProject(documentPath).isPresent()) {
+            return;
         }
+        buildProject(findProjectRoot(documentPath));
     }
 
-    public ZenProject getProject(Path path) {
-        Path projectRoot = findProjectRoot(path);
-        if (projectRoot == null) {
-            return null;
-        }
-        if (projects.containsKey(projectRoot)) {
-            return projects.get(projectRoot);
-        } else {
-            return buildProject(projectRoot);
-        }
+    public void updateDocument(Path documentPath, Reader source) {
+        getDocument(documentPath).ifPresent(document -> document.parse(source));
     }
 
-    private ZenProject buildProject(Path projectRoot) {
+    public Optional<ZenDocument> getDocument(Path documentPath) {
+        return getProject(documentPath).map(project -> project.getDocument(documentPath));
+    }
+
+    public Optional<ZenProject> getProject(Path documentPath) {
+        for (ZenProject project : projects.values()) {
+            if (documentPath.toString().startsWith(project.getProjectRoot().toString())) {
+                return Optional.of(project);
+            }
+        }
+        return Optional.empty();
+    }
+
+    private void buildProject(Path projectRoot) {
         ZenProject project = new ZenProject(projectRoot);
+        // build all source files
+        try (Stream<Path> paths = Files.walk(projectRoot)) {
+            paths.filter(Files::isRegularFile)
+                    .filter(path -> path.toString().endsWith(ZenDocument.DOCUMENT_EXTENSION))
+                    .forEach(project::buildDocument);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         projects.put(projectRoot, project);
-        return project;
     }
 
-    private Path findProjectRoot(Path path) {
+    private Path findProjectRoot(Path documentPath) {
         try {
-            Path tomlPath = findZenProjectToml(path);
+            Path tomlPath = findZenProjectToml(documentPath);
             TomlParseResult toml = Toml.parse(tomlPath);
             Object o = toml.get("project.root");
             Path projectRoot = Paths.get(String.valueOf(tomlPath.getParent()), String.valueOf(o)).normalize();
