@@ -5,17 +5,17 @@ options { tokenVocab = ZenScriptLexer; }
 compilationUnit
     :   ( importDeclaration
         | functionDeclaration
-        | zenClassDeclaration
+        | classDeclaration
         | statement
         )*
         EOF
     ;
 
 importDeclaration
-    : 'import' reference ('as' alias)? ';'
+    : 'import' packageName ('as' alias)? ';'
     ;
 
-reference
+packageName
     : IDENTIFIER ('.' IDENTIFIER)*
     ;
 
@@ -24,7 +24,7 @@ alias
     ;
 
 functionDeclaration
-    : 'function' IDENTIFIER '(' parameterList? ')' ('as' typeAnnotation)? block
+    : 'function' IDENTIFIER '(' parameterList? ')' ('as' typeAnnotation)? functionBody
     ;
 
 parameterList
@@ -43,15 +43,31 @@ typeAnnotation
     : typeName
     ;
 
-zenClassDeclaration
-    : 'zenClass' IDENTIFIER '{' (variableDeclaration | constructorDeclaration | functionDeclaration)* '}'
+functionBody
+    : '{' statement* '}'
+    ;
+
+classDeclaration
+    : 'zenClass' IDENTIFIER classBody
+    ;
+
+classBody
+    : '{' (fieldDeclaration | constructorDeclaration | methodDeclaration)* '}'
+    ;
+
+fieldDeclaration
+    : Declarator=('var' | 'val' | 'static') IDENTIFIER ('as' typeAnnotation)? ('=' initializer)? ';'
     ;
 
 constructorDeclaration
-    : 'zenConstructor' '(' parameterList? ')' block
+    : 'zenConstructor' '(' parameterList? ')' constructorBody
     ;
 
-block
+methodDeclaration
+    : 'function' IDENTIFIER '(' parameterList? ')' ('as' typeAnnotation)? functionBody
+    ;
+
+constructorBody
     : '{' statement* '}'
     ;
 
@@ -76,7 +92,7 @@ statement
     ;
 
 blockStatement
-    : block
+    : '{' statement* '}'
     ;
 
 returnStatement
@@ -92,15 +108,31 @@ continueStatement
     ;
 
 ifElseStatement
-    : 'if' expression statement ('else' statement)?
+    : 'if' expression ifBody ('else' elseBody)?
+    ;
+
+ifBody
+    : statement
+    ;
+
+elseBody
+    : statement
     ;
 
 foreachStatement
-    : 'for' IDENTIFIER (',' IDENTIFIER)* 'in' expression block
+    : 'for' IDENTIFIER (',' IDENTIFIER)* 'in' expression foreachBody
+    ;
+
+foreachBody
+    : '{' statement* '}'
     ;
 
 whileStatement
-    : 'while' '(' expression ')' block
+    : 'while' '(' expression ')' whileBody
+    ;
+
+whileBody
+    : '{' statement* '}'
     ;
 
 expressionStatement
@@ -108,7 +140,7 @@ expressionStatement
     ;
 
 expression
-    : 'function' '(' parameterList? ')' ('as' typeAnnotation)? block # FunctionExpression
+    : 'function' '(' parameterList? ')' ('as' typeAnnotation)? functionBody # FunctionExpression
     | Left=expression '(' expression? (',' expression)* ')' # CallExpression
     | Left=expression Operator='.' Right=IDENTIFIER # MemberAccessExpression
     | Left=expression '[' Index=expression ']' # MemberIndexExpression
@@ -143,21 +175,21 @@ mapEntry
     ;
 
 typeName
-    : reference
-    | 'function' '(' typeList? ')' ReturnType=typeName
-    | '[' BaseType=typeName ']'
-    | BaseType=typeName '['']'
-    | ValueType=typeName '[' KeyType=typeName ']'
-    | ANY
-    | BYTE
-    | SHORT
-    | INT
-    | LONG
-    | FLOAT
-    | DOUBLE
-    | BOOL
-    | VOID
-    | STRING
+    : packageName # ClassType
+    | 'function' '(' typeList? ')' ReturnType=typeName # FunctionType
+    | '[' BaseType=typeName ']' # ListType
+    | BaseType=typeName '['']' # ArrayType
+    | ValueType=typeName '[' KeyType=typeName ']' # MapType
+    | ANY # PrimitiveType
+    | BYTE # PrimitiveType
+    | SHORT # PrimitiveType
+    | INT # PrimitiveType
+    | LONG # PrimitiveType
+    | FLOAT # PrimitiveType
+    | DOUBLE # PrimitiveType
+    | BOOL # PrimitiveType
+    | VOID # PrimitiveType
+    | STRING # PrimitiveType
     ;
 
 typeList
