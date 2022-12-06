@@ -12,6 +12,8 @@ import raylras.zen.langserver.LanguageServerContext;
 import raylras.zen.project.ZenProjectManager;
 import raylras.zen.semantic.AnnotatedTree;
 import raylras.zen.semantic.symbol.*;
+import raylras.zen.semantic.symbol.ClassSymbol;
+import raylras.zen.semantic.type.FunctionType;
 import raylras.zen.util.CommonUtils;
 
 import java.util.ArrayList;
@@ -36,7 +38,7 @@ public class SemanticTokensProvider extends ZenScriptParserBaseListener {
     }
 
     public static SemanticTokens semanticTokensFull(LanguageServerContext serverContext, SemanticTokensParams params) {
-        ZenProjectManager projectManager = ZenProjectManager.getInstance(serverContext);
+        ZenProjectManager projectManager = serverContext.get(ZenProjectManager.class);
         return projectManager.getDocument(CommonUtils.toPath(params.getTextDocument().getUri()))
                 .map(document -> {
                     SemanticTokensProvider provider = new SemanticTokensProvider(document.getAnnotatedTree(), document.getTokenStream());
@@ -46,7 +48,9 @@ public class SemanticTokensProvider extends ZenScriptParserBaseListener {
     }
 
     private void push(TerminalNode node, int tokenType, int modifiers) {
-        push(node.getSymbol(), tokenType, modifiers);
+        if (node != null) {
+            push(node.getSymbol(), tokenType, modifiers);
+        }
     }
 
     private void push(Token token, int tokenType, int modifiers) {
@@ -66,6 +70,13 @@ public class SemanticTokensProvider extends ZenScriptParserBaseListener {
     public void enterPackageName(ZenScriptParser.PackageNameContext ctx) {
         for (TerminalNode id : ctx.IDENTIFIER()) {
             push(id, TokenType.CLASS, 0);
+        }
+    }
+
+    @Override
+    public void enterForeachStatement(ZenScriptParser.ForeachStatementContext ctx) {
+        for (TerminalNode id : ctx.IDENTIFIER()) {
+            push(id, TokenType.VARIABLE, 0);
         }
     }
 
@@ -96,45 +107,59 @@ public class SemanticTokensProvider extends ZenScriptParserBaseListener {
 
     @Override
     public void enterVariableDeclaration(ZenScriptParser.VariableDeclarationContext ctx) {
-        Symbol symbol = annotatedTree.findSymbolInNode(ctx.IDENTIFIER(), ctx.IDENTIFIER().getText());
-        if (symbol != null) {
-            int modifiers = 0;
-            if (symbol instanceof VariableSymbol) {
-                switch (((VariableSymbol) symbol).getModifier()) {
-                    case VariableModifier.GLOBAL:
-                    case VariableModifier.STATIC:
-                        modifiers |= TokenModifier.STATIC;
-                    case VariableModifier.VAL:
-                        modifiers |= TokenModifier.READONLY;
-                    case VariableModifier.VAR:
-                        modifiers |= TokenModifier.DECLARATION;
-                }
-                push(ctx.IDENTIFIER(), TokenType.VARIABLE, modifiers);
-            } else if (symbol instanceof FunctionSymbol) {
-                push(ctx.IDENTIFIER(), TokenType.FUNCTION, modifiers);
-            }
+        if (ctx.IDENTIFIER() == null) {
+            return;
         }
+        Symbol<?> symbol = annotatedTree.findSymbolOfNode(ctx.IDENTIFIER(), ctx.IDENTIFIER().getText());
+        if (symbol instanceof VariableSymbol) {
+            int modifiers = 0;
+            switch (((VariableSymbol) symbol).getModifier()) {
+                case VariableSymbol.Modifier.GLOBAL:
+                case VariableSymbol.Modifier.STATIC:
+                    modifiers |= TokenModifier.STATIC;
+                case VariableSymbol.Modifier.VAL:
+                    modifiers |= TokenModifier.READONLY;
+                case VariableSymbol.Modifier.VAR:
+                    modifiers |= TokenModifier.DECLARATION;
+            }
+            int tokenType;
+            if (symbol.getType() instanceof FunctionType) {
+                tokenType = TokenType.FUNCTION;
+            } else {
+                tokenType = TokenType.VARIABLE;
+            }
+            push(ctx.IDENTIFIER(), tokenType, modifiers);
+        }
+
     }
 
     @Override
     public void enterIDExpression(ZenScriptParser.IDExpressionContext ctx) {
-        Symbol symbol = annotatedTree.findSymbolInNode(ctx, ctx.getText());
-        if (symbol instanceof ClassSymbol) {
+        Symbol<?> symbol = annotatedTree.findSymbolOfNode(ctx, ctx.getText());
+        if (symbol instanceof ImportSymbol) {
+            push(ctx.IDENTIFIER(), TokenType.CLASS, 0);
+        } else if (symbol instanceof ClassSymbol) {
             push(ctx.IDENTIFIER(), TokenType.CLASS, 0);
         } else if (symbol instanceof FunctionSymbol) {
             push(ctx.IDENTIFIER(), TokenType.FUNCTION, 0);
         } else if (symbol instanceof VariableSymbol) {
             int modifiers = 0;
             switch (((VariableSymbol) symbol).getModifier()) {
-                case VariableModifier.GLOBAL:
-                case VariableModifier.STATIC:
+                case VariableSymbol.Modifier.GLOBAL:
+                case VariableSymbol.Modifier.STATIC:
                     modifiers |= TokenModifier.STATIC;
-                case VariableModifier.VAL:
+                case VariableSymbol.Modifier.VAL:
                     modifiers |= TokenModifier.READONLY;
-                case VariableModifier.VAR:
+                case VariableSymbol.Modifier.VAR:
                     modifiers |= TokenModifier.DECLARATION;
             }
-            push(ctx.IDENTIFIER(), TokenType.VARIABLE, modifiers);
+            int tokenType;
+            if (symbol.getType() instanceof FunctionType) {
+                tokenType = TokenType.FUNCTION;
+            } else {
+                tokenType = TokenType.VARIABLE;
+            }
+            push(ctx.IDENTIFIER(), tokenType, modifiers);
         }
     }
 
@@ -171,7 +196,7 @@ public class SemanticTokensProvider extends ZenScriptParserBaseListener {
     public void enterMapEntry(ZenScriptParser.MapEntryContext ctx) {
         if (ctx.Key.getClass() == ZenScriptParser.IDExpressionContext.class) {
             TerminalNode id = ((ZenScriptParser.IDExpressionContext) ctx.Key).IDENTIFIER();
-            Symbol symbol = annotatedTree.findSymbolInNode(ctx, id.getText());
+            Symbol symbol = annotatedTree.findSymbolOfNode(ctx, id.getText());
             if (symbol == null) {
                 push(id, TokenType.STRING, 0);
             }

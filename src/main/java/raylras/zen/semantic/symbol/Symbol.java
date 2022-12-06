@@ -4,33 +4,23 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.semantic.scope.Scope;
 import raylras.zen.semantic.type.Type;
 
-public abstract class Symbol {
+public abstract class Symbol<T extends Type> {
 
-    private String name;
-    private Type type;
-    private Scope parentScope;
-    private ParseTree node;
+    protected Scope parentScope;
+    protected ParseTree node;
 
-    public Symbol(ParseTree node, String name) {
+    public Symbol(Scope parentScope, ParseTree node) {
+        this.parentScope = parentScope;
         this.node = node;
-        this.name = name;
     }
 
-    public String getName() {
-        return name;
-    }
+    public abstract String getName();
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    public abstract void setName(String name);
 
-    public Type getType() {
-        return type;
-    }
+    public abstract T getType();
 
-    public void setType(Type type) {
-        this.type = type;
-    }
+    public abstract void setType(T type);
 
     public Scope getParentScope() {
         return parentScope;

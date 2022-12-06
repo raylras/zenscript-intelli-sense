@@ -5,7 +5,7 @@ import raylras.zen.cst.ZenScriptParserBaseListener;
 import raylras.zen.semantic.symbol.Symbol;
 
 /**
- * The second scan, records all references to defined symbols to the annotated tree.
+ * The third scan, records all references to defined symbols to the annotated tree.
  */
 public class ReferenceResolver extends ZenScriptParserBaseListener {
 
@@ -17,7 +17,7 @@ public class ReferenceResolver extends ZenScriptParserBaseListener {
 
     @Override
     public void enterIDExpression(ZenScriptParser.IDExpressionContext ctx) {
-        Symbol symbol = annotatedTree.findSymbolInNode(ctx.IDENTIFIER(), ctx.IDENTIFIER().getText());
+        Symbol<?> symbol = annotatedTree.findSymbolOfNode(ctx.IDENTIFIER(), ctx.IDENTIFIER().getText());
         if (symbol!= null) {
             annotatedTree.bindNodeToSymbol(ctx.IDENTIFIER(), symbol);
         }

@@ -10,6 +10,7 @@ import raylras.zen.cst.ZenScriptParser;
 import raylras.zen.semantic.DeclarationResolver;
 import raylras.zen.semantic.ReferenceResolver;
 import raylras.zen.semantic.AnnotatedTree;
+import raylras.zen.semantic.TypeResolver;
 import raylras.zen.util.CommonUtils;
 
 import java.io.FileNotFoundException;
@@ -67,6 +68,8 @@ public class ZenDocument {
             this.annotatedTree = new AnnotatedTree(fileName, parser.compilationUnit());
             DeclarationResolver declResolver = new DeclarationResolver(annotatedTree);
             ParseTreeWalker.DEFAULT.walk(declResolver, annotatedTree.getParseTree());
+            TypeResolver typeResolver = new TypeResolver(annotatedTree);
+            ParseTreeWalker.DEFAULT.walk(typeResolver, annotatedTree.getParseTree());
             ReferenceResolver refResolver = new ReferenceResolver(annotatedTree);
             ParseTreeWalker.DEFAULT.walk(refResolver, annotatedTree.getParseTree());
         } catch (IOException e) {

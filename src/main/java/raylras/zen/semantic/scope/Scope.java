@@ -3,67 +3,26 @@ package raylras.zen.semantic.scope;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.semantic.symbol.Symbol;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public class Scope {
+public interface Scope {
 
-    private String name;
-    private List<Symbol> symbols;
-    private Scope parentScope;
-    private ParseTree node;
+    void addSymbol(Symbol<?> symbol);
 
-    public Scope(String name, Scope parentScope) {
-        this.name = name;
-        this.symbols = new ArrayList<>();
-        this.parentScope = parentScope;
-    }
+    Symbol<?> findSymbol(String name);
 
-    public void addSymbol(Symbol symbol) {
-        symbol.setParentScope(this);
-        symbols.add(symbol);
-    }
+    List<Symbol<?>> getSymbols();
 
-    public Symbol findSymbol(String name) {
-        Scope scopeToFind = this;
-        while (scopeToFind != null) {
-            for (Symbol symbol : scopeToFind.symbols) {
-                if (symbol.getName().equals(name)) {
-                    return symbol;
-                }
-            }
-            scopeToFind = scopeToFind.parentScope;
-        }
-        return null;
-    }
+    Scope getParentScope();
 
-    public String getName() {
-        return name;
-    }
+    void setParentScope(Scope parentScope);
 
-    public void setName(String name) {
-        this.name = name;
-    }
+    ParseTree getNode();
 
-    public Scope getParentScope() {
-        return parentScope;
-    }
+    void setNode(ParseTree node);
 
-    public void setParentScope(Scope parentScope) {
-        this.parentScope = parentScope;
-    }
+    String getName();
 
-    public ParseTree getNode() {
-        return node;
-    }
-
-    public void setNode(ParseTree node) {
-        this.node = node;
-    }
-
-    @Override
-    public String toString() {
-        return name;
-    }
+    void setName(String name);
 
 }
