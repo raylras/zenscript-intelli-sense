@@ -77,13 +77,13 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
     @Override
     public void connect(LanguageClient client) {
         this.languageClient = client;
-        this.serverContext.put(LanguageClient.class, client);
-        LanguageClientLogger logger = LanguageClientLogger.getInstance(this.serverContext);
+        serverContext.put(LanguageClient.class, client);
+        LanguageClientLogger logger = LanguageClientLogger.getInstance(serverContext);
         logger.connect(client);
     }
 
     private void startListeningFileChanges() {
-        LanguageClient client = serverContext.languageClient();
+        LanguageClient client = serverContext.get(LanguageClient.class);
         List<FileSystemWatcher> watchers = new ArrayList<>();
         watchers.add(new FileSystemWatcher(Either.forLeft("**/*" + ZenDocument.DOCUMENT_EXTENSION), WatchKind.Create + WatchKind.Change + WatchKind.Delete));
         watchers.add(new FileSystemWatcher(Either.forLeft("**/zenproject.toml"), WatchKind.Create + WatchKind.Change + WatchKind.Delete));

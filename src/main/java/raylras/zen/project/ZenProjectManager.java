@@ -24,7 +24,7 @@ public class ZenProjectManager {
     }
 
     public static ZenProjectManager getInstance(LanguageServerContext serverContext) {
-        ZenProjectManager projectManager = serverContext.projectManager();
+        ZenProjectManager projectManager = serverContext.get(ZenProjectManager.class);
         if (projectManager == null) {
             projectManager = new ZenProjectManager(serverContext);
             serverContext.put(ZenProjectManager.class, projectManager);

@@ -1,13 +1,10 @@
 package raylras.zen.langserver;
 
-import org.eclipse.lsp4j.services.LanguageClient;
-import raylras.zen.project.ZenProjectManager;
-
 import java.util.HashMap;
 import java.util.Map;
 
 /**
- * place to store contexts for global access
+ * Place to store all global objects.
  */
 public class LanguageServerContext {
 
@@ -20,18 +17,6 @@ public class LanguageServerContext {
     @SuppressWarnings("unchecked")
     public <V> V get(Class<V> clazz) {
         return (V) objects.get(clazz);
-    }
-
-    public ZenProjectManager projectManager() {
-        return ZenProjectManager.getInstance(this);
-    }
-
-    public LanguageClientLogger clientLogger() {
-        return LanguageClientLogger.getInstance(this);
-    }
-
-    public LanguageClient languageClient() {
-        return get(LanguageClient.class);
     }
 
 }
