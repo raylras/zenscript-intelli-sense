@@ -97,11 +97,9 @@ DOT_DOT:                '..';
 
 // Literal
 
-INT_LITERAL: ('0' | [1-9] [0-9]*);
+INT_LITERAL: ('0' | [1-9] [0-9]* ) | ('0' [xX] HexDigits);
 
-LONG_LITERAL: ('0' | [1-9] [0-9]*) [lL];
-
-HEX_LITERAL: '0' [xX] HexDigits [lL]?;
+LONG_LITERAL: ('0' | [1-9] [0-9]*) | ('0' [xX] HexDigits) [lL];
 
 FLOAT_LITERAL
     : Digits '.' Digits ([eE] Digits)? [fF]

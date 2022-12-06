@@ -24,11 +24,11 @@ alias
     ;
 
 functionDeclaration
-    : 'function' IDENTIFIER '(' parameterList? ')' ('as' typeAnnotation)? functionBody
+    : 'function' IDENTIFIER '(' parameterList ')' ('as' typeAnnotation)? functionBody
     ;
 
 parameterList
-    : parameter (',' parameter)*
+    : parameter? (',' parameter)*
     ;
 
 parameter
@@ -60,11 +60,11 @@ fieldDeclaration
     ;
 
 constructorDeclaration
-    : 'zenConstructor' '(' parameterList? ')' constructorBody
+    : 'zenConstructor' '(' parameterList ')' constructorBody
     ;
 
 methodDeclaration
-    : 'function' IDENTIFIER '(' parameterList? ')' ('as' typeAnnotation)? functionBody
+    : 'function' IDENTIFIER '(' parameterList ')' ('as' typeAnnotation)? functionBody
     ;
 
 constructorBody
@@ -140,7 +140,7 @@ expressionStatement
     ;
 
 expression
-    : 'function' '(' parameterList? ')' ('as' typeAnnotation)? functionBody # FunctionExpression
+    : 'function' '(' parameterList ')' ('as' typeAnnotation)? functionBody # FunctionExpression
     | Left=expression '(' expression? (',' expression)* ')' # CallExpression
     | Left=expression Operator='.' Right=IDENTIFIER # MemberAccessExpression
     | Left=expression '[' Index=expression ']' # MemberIndexExpression
@@ -176,7 +176,7 @@ mapEntry
 
 typeName
     : packageName # ClassType
-    | 'function' '(' typeList? ')' ReturnType=typeName # FunctionType
+    | 'function' '(' typeList ')' ReturnType=typeName # FunctionType
     | '[' BaseType=typeName ']' # ListType
     | BaseType=typeName '['']' # ArrayType
     | ValueType=typeName '[' KeyType=typeName ']' # MapType
@@ -193,13 +193,13 @@ typeName
     ;
 
 typeList
-    : typeName (',' typeName)*
+    :
+    | typeName (',' typeName)*
     ;
 
 literal
     : INT_LITERAL
     | LONG_LITERAL
-    | HEX_LITERAL
     | FLOAT_LITERAL
     | DOUBLE_LITERAL
     | STRING_LITERAL
