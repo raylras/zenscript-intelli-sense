@@ -5,11 +5,7 @@ import java.util.Deque;
 
 public class ArrayStack<E> implements Stack<E> {
 
-    private final Deque<E> deque;
-
-    public ArrayStack() {
-        this.deque = new ArrayDeque<>();
-    }
+    private final Deque<E> deque = new ArrayDeque<>();
 
     @Override
     public void push(E e) {

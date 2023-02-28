@@ -84,9 +84,9 @@ EQUAL:                  '==';
 NOT_EQUAL:              '!=';
 LESS_EQUAL:             '<=';
 GREATER_EQUAL:          '>=';
-PLUS_ASSIGN:            '+=';
-MINUS_ASSIGN:           '-=';
-STAR_ASSIGN:            '*=';
+ADD_ASSIGN:             '+=';
+SUB_ASSIGN:             '-=';
+MUL_ASSIGN:             '*=';
 DIV_ASSIGN:             '/=';
 MOD_ASSIGN:             '%=';
 XOR_ASSIGN:             '^=';
@@ -109,9 +109,12 @@ DOUBLE_LITERAL
     : Digits '.' Digits ([eE] Digits)? [dD]?
     ;
 
-BOOL_LITERAL
+TRUE_LITERAL
     : 'true'
-    | 'false'
+    ;
+
+FALSE_LITERAL
+    : 'false'
     ;
 
 STRING_LITERAL

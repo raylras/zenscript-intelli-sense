@@ -12,10 +12,10 @@ compilationUnit
     ;
 
 importDeclaration
-    : 'import' packageName ('as' alias)? ';'
+    : 'import' className ('as' alias)? ';'
     ;
 
-packageName
+className
     : IDENTIFIER ('.' IDENTIFIER)*
     ;
 
@@ -24,23 +24,19 @@ alias
     ;
 
 functionDeclaration
-    : 'function' IDENTIFIER '(' parameterList ')' ('as' typeAnnotation)? functionBody
+    : 'function' IDENTIFIER '(' parameterList? ')' ('as' typeLiteral)? functionBody
     ;
 
 parameterList
-    : parameter? (',' parameter)*
+    : parameter (',' parameter)*
     ;
 
 parameter
-    : IDENTIFIER ('as' typeAnnotation)? ('=' defaultValue)?
+    : IDENTIFIER ('as' typeLiteral)? ('=' defaultValue)?
     ;
 
 defaultValue
     : expression
-    ;
-
-typeAnnotation
-    : typeName
     ;
 
 functionBody
@@ -48,23 +44,11 @@ functionBody
     ;
 
 classDeclaration
-    : 'zenClass' IDENTIFIER classBody
-    ;
-
-classBody
-    : '{' (fieldDeclaration | constructorDeclaration | methodDeclaration)* '}'
-    ;
-
-fieldDeclaration
-    : Declarator=('var' | 'val' | 'static') IDENTIFIER ('as' typeAnnotation)? ('=' initializer)? ';'
+    : 'zenClass' IDENTIFIER '{' (variableDeclaration | constructorDeclaration | functionDeclaration)* '}'
     ;
 
 constructorDeclaration
-    : 'zenConstructor' '(' parameterList ')' constructorBody
-    ;
-
-methodDeclaration
-    : 'function' IDENTIFIER '(' parameterList ')' ('as' typeAnnotation)? functionBody
+    : 'zenConstructor' '(' parameterList? ')' constructorBody
     ;
 
 constructorBody
@@ -72,7 +56,7 @@ constructorBody
     ;
 
 variableDeclaration
-    : Declarator=('var' | 'val' | 'static' | 'global') IDENTIFIER ('as' typeAnnotation)? ('=' initializer)? ';'
+    : Declarator=('var' | 'val' | 'static' | 'global') IDENTIFIER ('as' typeLiteral)? ('=' initializer)? ';'
     ;
 
 initializer
@@ -84,7 +68,7 @@ statement
     | returnStatement
     | breakStatement
     | continueStatement
-    | ifElseStatement
+    | ifStatement
     | foreachStatement
     | whileStatement
     | variableDeclaration
@@ -107,11 +91,11 @@ continueStatement
     : 'continue' ';'
     ;
 
-ifElseStatement
-    : 'if' expression ifBody ('else' elseBody)?
+ifStatement
+    : 'if' expression thenBody ('else' elseBody)?
     ;
 
-ifBody
+thenBody
     : statement
     ;
 
@@ -120,7 +104,11 @@ elseBody
     ;
 
 foreachStatement
-    : 'for' IDENTIFIER (',' IDENTIFIER)* 'in' expression foreachBody
+    : 'for' simpleVariableDeclarations 'in' expression foreachBody
+    ;
+
+simpleVariableDeclarations
+    : IDENTIFIER (',' IDENTIFIER)*
     ;
 
 foreachBody
@@ -128,11 +116,7 @@ foreachBody
     ;
 
 whileStatement
-    : 'while' '(' expression ')' whileBody
-    ;
-
-whileBody
-    : '{' statement* '}'
+    : 'while' '(' expression ')' statement
     ;
 
 expressionStatement
@@ -140,46 +124,61 @@ expressionStatement
     ;
 
 expression
-    : 'function' '(' parameterList ')' ('as' typeAnnotation)? functionBody # FunctionExpression
-    | Left=expression '(' expression? (',' expression)* ')' # CallExpression
-    | Left=expression Operator='.' Right=IDENTIFIER # MemberAccessExpression
-    | Left=expression '[' Index=expression ']' # MemberIndexExpression
-    | expression 'as' typeName # TypeAssertionExpression
-    | <assoc=right> Operator=('!' | '-' | '+') expression # UnaryExpression
-    | Left=expression Operator=('*' | '/' | '%') Right=expression # BinaryExpression
-    | Left=expression Operator=('+' | '-') Right=expression # BinaryExpression
-    | Left=expression Operator='~' Right=expression # BinaryExpression
-    | Left=expression Operator=('<' | '<=' | '>' | '>=') Right=expression # BinaryExpression
-    | Left=expression Operator=('==' | '!=') Right=expression # BinaryExpression
-    | Left=expression Operator='instanceof' Right=expression # BinaryExpression
-    | Left=expression Operator=('in' | 'has') Right=expression # BinaryExpression
-    | Left=expression Operator='&' Right=expression # BinaryExpression
-    | Left=expression Operator='|' Right=expression # BinaryExpression
-    | Left=expression Operator='^'Right=expression # BinaryExpression
-    | Left=expression Operator='&&' Right=expression # BinaryExpression
-    | Left=expression Operator='||' Right=expression # BinaryExpression
-    | <assoc=right> Condition=expression '?' Then=expression ':' Else=expression # TernaryExpression
-    | <assoc=right> Left=expression Operator=('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '~=' | '&=' | '|=' | '^=') Right=expression # AssignmentExpression
-    | '<' (~'>')*? '>' # BracketHandlerExpression
-    | From=expression Operator=('..' | 'to') To=expression # IntRangeExpression
-    | 'this' # ThisExpression
-    | '[' expression? (',' expression)* ','? ']' # ArrayLiteralExpression
-    | '{' mapEntry? (',' mapEntry)* ','? '}' # MapLiteralExpression
-    | literal # LiteralExpression
-    | '(' expression ')' # ParensExpression
-    | IDENTIFIER # IDExpression
+    : 'function' '(' parameterList? ')' ('as' typeLiteral)? functionBody # FunctionExpr
+    | Left=expression '(' expressionList? ')' # CallExpr
+    | Left=expression Op='.' IDENTIFIER # MemberAccessExpr
+    | Left=expression '[' Index=expression ']' # ArrayIndexExpr
+    | expression 'as' typeLiteral # TypeCastExpr
+    | <assoc=right> Op=('!' | '-' | '+') expression # UnaryExpr
+    | Left=expression Op=('*' | '/' | '%') Right=expression # BinaryExpr
+    | Left=expression Op=('+' | '-') Right=expression # BinaryExpr
+    | Left=expression Op='~' Right=expression # BinaryExpr
+    | Left=expression Op=('<' | '<=' | '>' | '>=') Right=expression # BinaryExpr
+    | Left=expression Op=('==' | '!=') Right=expression # BinaryExpr
+    | Left=expression Op='instanceof' Right=expression # BinaryExpr
+    | Left=expression Op=('in' | 'has') Right=expression # BinaryExpr
+    | Left=expression Op='&' Right=expression # BinaryExpr
+    | Left=expression Op='|' Right=expression # BinaryExpr
+    | Left=expression Op='^'Right=expression # BinaryExpr
+    | Left=expression Op='&&' Right=expression # BinaryExpr
+    | Left=expression Op='||' Right=expression # BinaryExpr
+    | <assoc=right> Condition=expression '?' TruePart=expression ':' FalsePart=expression # TernaryExpr
+    | <assoc=right> Left=expression Op=('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '~=' | '&=' | '|=' | '^=') Right=expression # AssignmentExpr
+    | '<' (~'>')*? '>' # BracketHandlerExpr
+    | From=expression Op=('..' | 'to') To=expression # IntRangeExpr
+    | '[' expressionList? ','? ']' # ArrayLiteralExpr
+    | '{' mapEntryList? ','? '}' # MapLiteralExpr
+    | '(' expression ')' # ParensExpr
+    | 'this' # ThisExpr
+    | INT_LITERAL # IntExpr
+    | LONG_LITERAL # LongExpr
+    | FLOAT_LITERAL # FloatExpr
+    | DOUBLE_LITERAL # DoubleExpr
+    | STRING_LITERAL # StringExpr
+    | TRUE_LITERAL # TrueExpr
+    | FALSE_LITERAL # FalseExpr
+    | NULL_LITERAL # NullExpr
+    | IDENTIFIER # IDExpr
+    ;
+
+expressionList
+    : expression (',' expression)*
     ;
 
 mapEntry
-    : Key=expression ':' Value=expression
+    : K=expression ':' V=expression
     ;
 
-typeName
-    : packageName # ClassType
-    | 'function' '(' typeList ')' ReturnType=typeName # FunctionType
-    | '[' BaseType=typeName ']' # ListType
-    | BaseType=typeName '['']' # ArrayType
-    | ValueType=typeName '[' KeyType=typeName ']' # MapType
+mapEntryList
+    : mapEntry (',' mapEntry)*
+    ;
+
+typeLiteral
+    : className # ClassType
+    | 'function' '(' typeLiteralList? ')' R=typeLiteral # FunctionType
+    | '[' typeLiteral ']' # ListType
+    | typeLiteral '['']' # ArrayType
+    | V=typeLiteral '[' K=typeLiteral ']' # MapType
     | ANY # PrimitiveType
     | BYTE # PrimitiveType
     | SHORT # PrimitiveType
@@ -192,17 +191,6 @@ typeName
     | STRING # PrimitiveType
     ;
 
-typeList
-    :
-    | typeName (',' typeName)*
-    ;
-
-literal
-    : INT_LITERAL
-    | LONG_LITERAL
-    | FLOAT_LITERAL
-    | DOUBLE_LITERAL
-    | STRING_LITERAL
-    | BOOL_LITERAL
-    | NULL_LITERAL
+typeLiteralList
+    : typeLiteral (',' typeLiteral)*
     ;

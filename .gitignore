@@ -20,6 +20,7 @@ build
 # other
 eclipse
 run
+src/main/gen
 
 # vscode-extension
 /vscode-extension/*.jar
@@ -28,4 +29,4 @@ run
 /vscode-extension/.vscode-test
 /vscode-extension/*.vsix
 /vscode-extension/node_modules/
-/vscode-extension/language/zenscript.tmLanguage.json
+/vscode-extension/language/*.tmLanguage.json
