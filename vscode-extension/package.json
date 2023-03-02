@@ -17,7 +17,7 @@
 		""
 	],
 	"engines": {
-		"vscode": "^1.63.0"
+		"vscode": "^1.76.0"
 	},
 	"activationEvents": [
 		"onLanguage:zenscript"
@@ -67,15 +67,14 @@
 		"package": "vsce package"
 	},
 	"dependencies": {
-		"@vscode/vsce": "^2.18.0",
-		"vscode-languageclient": "^8.0.1"
+		"vscode-languageclient": "^8.1.0"
 	},
 	"devDependencies": {
-		"@types/node": "^16.11.7",
-		"@types/vscode": "^1.56.0",
-		"ts-loader": "^9.2.6",
-		"typescript": "^4.7.2",
-		"vsce": "^2.15.0",
+		"@types/node": "^18.14.4",
+		"@types/vscode": "^1.76.0",
+		"@vscode/vsce": "^2.18.0",
+		"ts-loader": "^9.4.2",
+		"typescript": "^4.9.5",
 		"yamljson": "^1.0.70"
 	}
 }
