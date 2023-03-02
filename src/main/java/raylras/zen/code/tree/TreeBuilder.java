@@ -518,6 +518,13 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     }
 
     @Override
+    public Super visitSuperExpr(ZenScriptParser.SuperExprContext ctx) {
+        if (ctx == null) return null;
+        Range range = getRange(ctx);
+        return new Super(range);
+    }
+
+    @Override
     public ConstantExpr visitTrueExpr(ZenScriptParser.TrueExprContext ctx) {
         if (ctx == null) return null;
         Range range = getRange(ctx);

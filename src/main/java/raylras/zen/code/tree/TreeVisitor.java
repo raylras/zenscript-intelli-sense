@@ -60,6 +60,8 @@ public interface TreeVisitor<R> {
 
     R visitThis(This node);
 
+    R visitSuper(Super node);
+
     R visitTypeCast(TypeCast node);
 
     R visitUnary(Unary node);
@@ -85,5 +87,4 @@ public interface TreeVisitor<R> {
     R visitWhile(While node);
 
     R visitTreeNode(TreeNode node);
-
 }

@@ -20,6 +20,7 @@ IN:                     'in';
 HAS:                    'has';
 INSTANCEOF:             'instanceof';
 THIS:                   'this';
+SUPER:                  'super';
 
 ANY:                    'any';
 BYTE:                   'byte';

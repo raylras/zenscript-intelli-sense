@@ -150,6 +150,7 @@ expression
     | '{' mapEntryList? ','? '}' # MapLiteralExpr
     | '(' expression ')' # ParensExpr
     | 'this' # ThisExpr
+    | 'super' # SuperExpr
     | INT_LITERAL # IntExpr
     | LONG_LITERAL # LongExpr
     | FLOAT_LITERAL # FloatExpr

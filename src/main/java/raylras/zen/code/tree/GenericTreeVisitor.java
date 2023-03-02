@@ -194,6 +194,11 @@ public class GenericTreeVisitor<R> implements TreeVisitor<R> {
     }
 
     @Override
+    public R visitSuper(Super node) {
+        return null;
+    }
+
+    @Override
     public R visitTypeCast(TypeCast node) {
         visit(node.expr);
         visit(node.type);
