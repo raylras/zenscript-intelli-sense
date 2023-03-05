@@ -4,15 +4,15 @@ import { ExtensionContext, window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node';
 
 export function activate(context: ExtensionContext) {
-	let logChannel = window.createOutputChannel('ZenScript Language Server', "log");
+	const logChannel = window.createOutputChannel('ZenScript Language Server', "log");
 
 	logChannel.appendLine('[Extension] Starting ZenScript language server');
 	getJavaHome().then(javahome => {
-		let javabin: string = join(javahome, 'bin', 'java');
-		let classpath: string = join(__dirname, '..', '*');
-		let args: string[] = ['-cp', classpath];
-		let main = 'raylras.zen.langserver.StandardIOLauncher';
-		let debug = '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005,quiet=y';
+		const javabin: string = join(javahome, 'bin', 'java');
+		const classpath: string = join(__dirname, '..', '*');
+		const args: string[] = ['-cp', classpath];
+		const main = 'raylras.zen.langserver.StandardIOLauncher';
+		const debug = '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005,quiet=y';
 
 		logChannel.appendLine(`[Extension] Java home: ${javahome}`);
 		logChannel.appendLine(`[Extension] Class path: ${classpath}`)
@@ -27,20 +27,21 @@ export function activate(context: ExtensionContext) {
 		args.push('-Dfile.encoding=UTF-8');
 		args.push(main);
 
-		let serverOptions: ServerOptions = {
+		const serverOptions: ServerOptions = {
 			command: javabin,
 			args: [...args],
 			options: {}
 		};
 
-		let clientOptions: LanguageClientOptions = {
+		const clientOptions: LanguageClientOptions = {
 			documentSelector: [{ scheme: 'file', language: 'zenscript' }],
 			synchronize: { configurationSection: ['zenscript'] },
 			outputChannel: logChannel
 		};
 
-		let client = new LanguageClient('ZenScript Language Client', serverOptions, clientOptions);
-		let disposable = client.start();
+		const client = new LanguageClient('ZenScript Language Client', serverOptions, clientOptions);
+		client.start();
+		// const disposable = client.start();
 		// context.subscriptions.push(disposable);
 	}).catch(error => {
 		logChannel.appendLine('[Extension] Failed to start ZenScript language server');
@@ -52,7 +53,7 @@ export function activate(context: ExtensionContext) {
 export function deactivate() { }
 
 function getJavaHome() {
-	let javaHome = process.env?.['JAVA_HOME']
+	const javaHome = process.env?.['JAVA_HOME']
 	if (javaHome) return Promise.resolve(javaHome)
 
 	let cmd: string;
@@ -64,8 +65,8 @@ function getJavaHome() {
 
 	return new Promise<string>((resolve, reject) => {
 		try {
-			let response = execSync(cmd).toString();
-			resolve(response.split('java.home =')[1].trim());
+			const response = execSync(cmd).toString();
+			response ? resolve(response.split('java.home =')?.[1].trim()) : reject(new Error('Failed to get java home'));
 		} catch (error) {
 			reject(error)
 		}
