@@ -47,7 +47,7 @@ public class Binary extends Expression {
 
     @Override
     public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitBinaryExpr(this);
+        return visitor.visitBinary(this);
     }
 
 }

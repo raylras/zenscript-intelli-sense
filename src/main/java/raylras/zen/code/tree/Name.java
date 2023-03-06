@@ -8,11 +8,11 @@ import raylras.zen.code.Range;
  */
 public class Name extends TreeNode {
 
-    public String identifier;
+    public String literal;
 
-    public Name(String identifier, Range range) {
+    public Name(String literal, Range range) {
         super(range);
-        this.identifier = identifier;
+        this.literal = literal;
     }
 
     @Override
@@ -22,7 +22,7 @@ public class Name extends TreeNode {
 
     @Override
     public String toString() {
-        return identifier;
+        return literal;
     }
 
 }

@@ -34,7 +34,7 @@ public interface TreeVisitor<R> {
 
     R visitAssignment(Assignment node);
 
-    R visitBinaryExpr(Binary node);
+    R visitBinary(Binary node);
 
     R visitBracketHandler(BracketHandler node);
 

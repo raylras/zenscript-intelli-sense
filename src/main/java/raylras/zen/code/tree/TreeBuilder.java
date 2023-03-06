@@ -406,9 +406,9 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     @Override
     public BracketHandler visitBracketHandlerExpr(ZenScriptParser.BracketHandlerExprContext ctx) {
         if (ctx == null) return null;
-        String content = ctx.getText();
+        String literal = ctx.getText();
         Range range = getRange(ctx);
-        return new BracketHandler(content, range);
+        return new BracketHandler(literal, range);
     }
 
     @Override
@@ -438,11 +438,6 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     public List<MapEntry> visitMapEntryList(ZenScriptParser.MapEntryListContext ctx) {
         if (ctx == null) return Collections.emptyList();
         return ctx.mapEntry().stream().map(this::visitMapEntry).filter(Objects::nonNull).collect(Collectors.toList());
-    }
-
-    public TypeLiteral visitTypeLiteral(ZenScriptParser.TypeLiteralContext ctx) {
-        if (ctx == null) return null;
-        return (TypeLiteral) ctx.accept(this);
     }
 
     @Override
@@ -602,6 +597,11 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
         return new TypeCast(expr, type, range);
     }
 
+    public TypeLiteral visitTypeLiteral(ZenScriptParser.TypeLiteralContext ctx) {
+        if (ctx == null) return null;
+        return (TypeLiteral) ctx.accept(this);
+    }
+
     @Override
     public TypeLiteral visitArrayType(ZenScriptParser.ArrayTypeContext ctx) {
         if (ctx == null) return null;
@@ -624,8 +624,8 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     @Override
     public TypeLiteral visitListType(ZenScriptParser.ListTypeContext ctx) {
         if (ctx == null) return null;
-        Type e = getType(ctx.typeLiteral());
-        Type type = new ListType(e);
+        Type elementType = getType(ctx.typeLiteral());
+        Type type = new ListType(elementType);
         Range range = getRange(ctx);
         return new TypeLiteral(type, range);
     }
@@ -694,9 +694,9 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     @Override
     public TypeLiteral visitMapType(ZenScriptParser.MapTypeContext ctx) {
         if (ctx == null) return null;
-        Type k = getType(ctx.K);
-        Type v = getType(ctx.V);
-        Type type = new MapType(k, v);
+        Type keyType = getType(ctx.K);
+        Type valueType = getType(ctx.V);
+        Type type = new MapType(keyType, valueType);
         Range range = getRange(ctx);
         return new TypeLiteral(type, range);
     }

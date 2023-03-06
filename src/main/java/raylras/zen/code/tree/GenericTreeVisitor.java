@@ -110,7 +110,7 @@ public class GenericTreeVisitor<R> implements TreeVisitor<R> {
     }
 
     @Override
-    public R visitBinaryExpr(Binary node) {
+    public R visitBinary(Binary node) {
         visit(node.left);
         visit(node.right);
         return null;

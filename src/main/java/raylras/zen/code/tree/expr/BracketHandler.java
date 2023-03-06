@@ -9,11 +9,11 @@ import raylras.zen.code.tree.TreeVisitor;
  */
 public class BracketHandler extends Expression {
 
-    public String content;
+    public String literal;
 
-    public BracketHandler(String content, Range range) {
+    public BracketHandler(String literal, Range range) {
         super(range);
-        this.content = content;
+        this.literal = literal;
     }
 
     @Override

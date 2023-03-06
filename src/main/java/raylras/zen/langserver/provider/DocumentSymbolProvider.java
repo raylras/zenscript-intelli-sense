@@ -31,7 +31,7 @@ public class DocumentSymbolProvider extends GenericTreeVisitor<Object> {
     private void push(Name name, TreeNode node, SymbolKind kind) {
         Range range = Ranges.toLSPRange(node.range);
         Range selectionRange = Ranges.toLSPRange(name.range);
-        push(new DocumentSymbol(name.identifier, kind, range, selectionRange));
+        push(new DocumentSymbol(name.literal, kind, range, selectionRange));
     }
 
     private void push(DocumentSymbol symbol) {
