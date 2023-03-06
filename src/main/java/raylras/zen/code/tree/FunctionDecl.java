@@ -55,4 +55,9 @@ public class FunctionDecl extends TreeNode implements Function, Declaration {
         return visitor.visitFunctionDecl(this);
     }
 
+    @Override
+    public String toString() {
+        return new Pretty().visitFunctionDecl(this);
+    }
+
 }

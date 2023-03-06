@@ -33,4 +33,9 @@ public class ClassDecl extends TreeNode {
         return visitor.visitClassDecl(this);
     }
 
+    @Override
+    public String toString() {
+        return new Pretty().visitClassDecl(this);
+    }
+
 }

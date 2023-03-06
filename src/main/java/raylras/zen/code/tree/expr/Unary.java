@@ -1,6 +1,7 @@
 package raylras.zen.code.tree.expr;
 
 import raylras.zen.code.Range;
+import raylras.zen.code.tree.Pretty;
 import raylras.zen.code.tree.TreeVisitor;
 
 /**
@@ -19,6 +20,10 @@ public class Unary extends Expression {
         public Operator(String literal) {
             this.literal = literal;
         }
+        @Override
+        public String toString() {
+            return literal;
+        }
     }
 
     public Expression expr;
@@ -33,6 +38,11 @@ public class Unary extends Expression {
     @Override
     public <R> R accept(TreeVisitor<R> visitor) {
         return visitor.visitUnary(this);
+    }
+
+    @Override
+    public String toString() {
+        return new Pretty().visitUnary(this);
     }
 
 }

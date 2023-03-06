@@ -2,6 +2,7 @@ package raylras.zen.code.tree.expr;
 
 import raylras.zen.code.Range;
 import raylras.zen.code.tree.Name;
+import raylras.zen.code.tree.Pretty;
 import raylras.zen.code.tree.TreeVisitor;
 
 public class IDExpr extends Expression {
@@ -16,6 +17,11 @@ public class IDExpr extends Expression {
     @Override
     public <R> R accept(TreeVisitor<R> visitor) {
         return visitor.visitIDExpr(this);
+    }
+
+    @Override
+    public String toString() {
+        return new Pretty().visitIDExpr(this);
     }
 
 }

@@ -605,34 +605,38 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     @Override
     public TypeLiteral visitArrayType(ZenScriptParser.ArrayTypeContext ctx) {
         if (ctx == null) return null;
+        String literal = ctx.getText();
         Type elementType = getType(ctx.typeLiteral());
         ArrayType type = new ArrayType(elementType);
         Range range = getRange(ctx);
-        return new TypeLiteral(type, range);
+        return new TypeLiteral(literal, type, range);
     }
 
     @Override
     public TypeLiteral visitFunctionType(ZenScriptParser.FunctionTypeContext ctx) {
         if (ctx == null) return null;
+        String literal = ctx.getText();
         List<Type> paramTypes = getTypeList(ctx.typeLiteralList());
         Type returnType = getType(ctx.typeLiteral());
         Type type = new FunctionType(paramTypes, returnType);
         Range range = getRange(ctx);
-        return new TypeLiteral(type, range);
+        return new TypeLiteral(literal, type, range);
     }
 
     @Override
     public TypeLiteral visitListType(ZenScriptParser.ListTypeContext ctx) {
         if (ctx == null) return null;
+        String literal = ctx.getText();
         Type elementType = getType(ctx.typeLiteral());
         Type type = new ListType(elementType);
         Range range = getRange(ctx);
-        return new TypeLiteral(type, range);
+        return new TypeLiteral(literal, type, range);
     }
 
     @Override
     public TypeLiteral visitPrimitiveType(ZenScriptParser.PrimitiveTypeContext ctx) {
         if (ctx == null) return null;
+        String literal = ctx.getText();
         Type.Tag tag;
         switch (ctx.start.getType()) {
             case ZenScriptLexer.ANY:
@@ -680,25 +684,27 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
         }
         Type type = (tag != Type.Tag.NO_TAG) ? new PrimitiveType(tag) : NoType.INSTANCE;
         Range range = getRange(ctx);
-        return new TypeLiteral(type, range);
+        return new TypeLiteral(literal, type, range);
     }
 
     @Override
     public TypeLiteral visitClassType(ZenScriptParser.ClassTypeContext ctx) {
         if (ctx == null) return null;
         // TODO
+        String literal = ctx.getText();
         Range range = getRange(ctx);
-        return new TypeLiteral(NoType.INSTANCE, range);
+        return new TypeLiteral(literal, NoType.INSTANCE, range);
     }
 
     @Override
     public TypeLiteral visitMapType(ZenScriptParser.MapTypeContext ctx) {
         if (ctx == null) return null;
+        String literal = ctx.getText();
         Type keyType = getType(ctx.K);
         Type valueType = getType(ctx.V);
         Type type = new MapType(keyType, valueType);
         Range range = getRange(ctx);
-        return new TypeLiteral(type, range);
+        return new TypeLiteral(literal, type, range);
     }
 
     @Override

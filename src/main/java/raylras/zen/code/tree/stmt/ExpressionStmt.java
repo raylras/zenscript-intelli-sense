@@ -1,6 +1,7 @@
 package raylras.zen.code.tree.stmt;
 
 import raylras.zen.code.Range;
+import raylras.zen.code.tree.Pretty;
 import raylras.zen.code.tree.TreeVisitor;
 import raylras.zen.code.tree.expr.Expression;
 
@@ -20,6 +21,11 @@ public class ExpressionStmt extends Statement {
     @Override
     public <R> R accept(TreeVisitor<R> visitor) {
         return visitor.visitExpressionStmt(this);
+    }
+
+    @Override
+    public String toString() {
+        return new Pretty().visitExpressionStmt(this);
     }
 
 }

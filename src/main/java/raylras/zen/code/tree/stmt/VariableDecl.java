@@ -50,4 +50,9 @@ public class VariableDecl extends Statement implements Variable, Declaration {
         return visitor.visitVariableDecl(this);
     }
 
+    @Override
+    public String toString() {
+        return new Pretty().visitVariableDecl(this);
+    }
+
 }

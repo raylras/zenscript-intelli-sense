@@ -1,6 +1,7 @@
 package raylras.zen.code.tree.expr;
 
 import raylras.zen.code.Range;
+import raylras.zen.code.tree.Pretty;
 import raylras.zen.code.tree.TreeVisitor;
 
 import java.util.List;
@@ -21,6 +22,11 @@ public class ArrayLiteral extends Expression {
     @Override
     public <R> R accept(TreeVisitor<R> visitor) {
         return visitor.visitArrayLiteral(this);
+    }
+
+    @Override
+    public String toString() {
+        return new Pretty().visitArrayLiteral(this);
     }
 
 }

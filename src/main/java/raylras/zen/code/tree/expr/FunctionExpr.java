@@ -50,4 +50,9 @@ public class FunctionExpr extends Expression implements Function {
         return visitor.visitFunctionExpr(this);
     }
 
+    @Override
+    public String toString() {
+        return new Pretty().visitFunctionExpr(this);
+    }
+
 }

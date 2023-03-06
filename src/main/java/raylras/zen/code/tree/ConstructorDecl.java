@@ -51,4 +51,9 @@ public class ConstructorDecl extends TreeNode implements Function, Declaration {
         return visitor.visitConstructorDecl(this);
     }
 
+    @Override
+    public String toString() {
+        return new Pretty().visitConstructorDecl(this);
+    }
+
 }

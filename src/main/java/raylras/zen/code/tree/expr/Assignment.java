@@ -1,6 +1,7 @@
 package raylras.zen.code.tree.expr;
 
 import raylras.zen.code.Range;
+import raylras.zen.code.tree.Pretty;
 import raylras.zen.code.tree.TreeVisitor;
 
 /**
@@ -22,6 +23,10 @@ public class Assignment extends Expression {
         private Operator(String literal) {
             this.literal = literal;
         }
+        @Override
+        public String toString() {
+            return literal;
+        }
     }
 
     public Expression left;
@@ -38,6 +43,11 @@ public class Assignment extends Expression {
     @Override
     public <R> R accept(TreeVisitor<R> visitor) {
         return visitor.visitAssignment(this);
+    }
+
+    @Override
+    public String toString() {
+        return new Pretty().visitAssignment(this);
     }
 
 }

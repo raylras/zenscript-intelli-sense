@@ -22,7 +22,7 @@ public class Name extends TreeNode {
 
     @Override
     public String toString() {
-        return literal;
+        return new Pretty().visitName(this);
     }
 
 }

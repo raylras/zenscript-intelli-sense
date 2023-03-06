@@ -49,4 +49,9 @@ public class ParameterDecl extends TreeNode implements Variable, Declaration {
         return visitor.visitParameterDecl(this);
     }
 
+    @Override
+    public String toString() {
+        return new Pretty().visitParameterDecl(this);
+    }
+
 }

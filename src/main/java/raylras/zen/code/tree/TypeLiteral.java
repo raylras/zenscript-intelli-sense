@@ -9,16 +9,23 @@ import raylras.zen.code.type.Type;
  */
 public class TypeLiteral extends TreeNode {
 
+    public String literal;
     public Type type;
 
-    public TypeLiteral(Type type, Range range) {
+    public TypeLiteral(String literal, Type type, Range range) {
         super(range);
+        this.literal = literal;
         this.type = type;
     }
 
     @Override
     public <R> R accept(TreeVisitor<R> visitor) {
         return visitor.visitTypeLiteral(this);
+    }
+
+    @Override
+    public String toString() {
+        return new Pretty().visitTypeLiteral(this);
     }
 
 }

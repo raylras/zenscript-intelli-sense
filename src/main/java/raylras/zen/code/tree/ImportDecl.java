@@ -33,4 +33,9 @@ public class ImportDecl extends TreeNode implements Declaration {
         return visitor.visitImportDecl(this);
     }
 
+    @Override
+    public String toString() {
+        return new Pretty().visitImportDecl(this);
+    }
+
 }

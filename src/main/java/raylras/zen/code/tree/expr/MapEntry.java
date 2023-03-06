@@ -1,6 +1,7 @@
 package raylras.zen.code.tree.expr;
 
 import raylras.zen.code.Range;
+import raylras.zen.code.tree.Pretty;
 import raylras.zen.code.tree.TreeVisitor;
 
 public class MapEntry extends Expression {
@@ -17,6 +18,11 @@ public class MapEntry extends Expression {
     @Override
     public <R> R accept(TreeVisitor<R> visitor) {
         return visitor.visitMapEntry(this);
+    }
+
+    @Override
+    public String toString() {
+        return new Pretty().visitMapEntry(this);
     }
 
 }

@@ -2,6 +2,7 @@ package raylras.zen.code.tree.stmt;
 
 import raylras.zen.code.Range;
 import raylras.zen.code.scope.LocalScope;
+import raylras.zen.code.tree.Pretty;
 import raylras.zen.code.tree.TreeVisitor;
 import raylras.zen.code.tree.expr.Expression;
 
@@ -24,6 +25,11 @@ public class While extends Statement {
     @Override
     public <R> R accept(TreeVisitor<R> visitor) {
         return visitor.visitWhile(this);
+    }
+
+    @Override
+    public String toString() {
+        return new Pretty().visitWhile(this);
     }
 
 }
