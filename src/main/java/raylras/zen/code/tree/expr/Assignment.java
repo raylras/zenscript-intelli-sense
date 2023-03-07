@@ -17,6 +17,10 @@ public class Assignment extends Expression {
         public static final Operator MUL_ASSIGN = new Operator("*=");
         public static final Operator DIV_ASSIGN = new Operator("/=");
         public static final Operator MOD_ASSIGN = new Operator("%=");
+        public static final Operator XOR_ASSIGN = new Operator("^=");
+        public static final Operator AND_ASSIGN = new Operator("&=");
+        public static final Operator OR_ASSIGN = new Operator("|=");
+        public static final Operator CAT_ASSIGN = new Operator("~=");
         public static final Operator INVALID = new Operator("INVALID");
 
         public final String literal;

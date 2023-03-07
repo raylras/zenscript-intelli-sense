@@ -82,6 +82,42 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
             case ZenScriptLexer.DIV:
                 return Binary.Operator.DIV;
 
+            case ZenScriptLexer.MOD:
+                return Binary.Operator.MOD;
+
+            case ZenScriptLexer.CAT:
+                return Binary.Operator.CAT;
+
+            case ZenScriptLexer.LESS:
+                return Binary.Operator.LESS;
+
+            case ZenScriptLexer.GREATER:
+                return Binary.Operator.GREATER;
+
+            case ZenScriptLexer.LESS_EQUAL:
+                return Binary.Operator.LESS_EQUALS;
+
+            case ZenScriptLexer.GREATER_EQUAL:
+                return Binary.Operator.GREATER_EQUALS;
+
+            case ZenScriptLexer.AND:
+                return Binary.Operator.BITWISE_AND;
+
+            case ZenScriptLexer.OR:
+                return Binary.Operator.BITWISE_OR;
+
+            case ZenScriptLexer.AND_AND:
+                return Binary.Operator.LOGICAL_AND;
+
+            case ZenScriptLexer.OR_OR:
+                return Binary.Operator.LOGICAL_OR;
+
+            case ZenScriptLexer.EQUAL:
+                return Binary.Operator.EQUALS;
+
+            case ZenScriptLexer.NOT_EQUAL:
+                return Binary.Operator.NOT_EQUALS;
+
             default:
                 return Binary.Operator.INVALID;
         }
@@ -104,6 +140,21 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
 
             case ZenScriptLexer.DIV_ASSIGN:
                 return Assignment.Operator.DIV_ASSIGN;
+
+            case ZenScriptLexer.MOD_ASSIGN:
+                return Assignment.Operator.MOD_ASSIGN;
+
+            case ZenScriptLexer.XOR_ASSIGN:
+                return Assignment.Operator.XOR_ASSIGN;
+
+            case ZenScriptLexer.AND_ASSIGN:
+                return Assignment.Operator.AND_ASSIGN;
+
+            case ZenScriptLexer.OR_ASSIGN:
+                return Assignment.Operator.OR_ASSIGN;
+
+            case ZenScriptLexer.CAT_ASSIGN:
+                return Assignment.Operator.CAT_ASSIGN;
 
             default:
                 return Assignment.Operator.INVALID;
