@@ -1,12 +1,13 @@
 package raylras.zen.code.scope;
 
 import raylras.zen.code.symbol.Symbol;
+import raylras.zen.code.tree.TreeNode;
 
 public abstract class Scope {
 
-    public Symbol owner;
+    public TreeNode owner;
 
-    protected Scope(Symbol owner) {
+    protected Scope(TreeNode owner) {
         this.owner = owner;
     }
 

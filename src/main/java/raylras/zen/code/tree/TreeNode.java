@@ -1,7 +1,6 @@
 package raylras.zen.code.tree;
 
 import raylras.zen.code.Range;
-import raylras.zen.code.type.Type;
 
 /**
  * Base class of all Abstract Syntax Tree (AST) nodes.
@@ -11,8 +10,6 @@ import raylras.zen.code.type.Type;
 public abstract class TreeNode {
 
     public Range range;
-
-    public Type type;
 
     public TreeNode(Range range) {
         this.range = range;

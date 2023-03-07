@@ -1,12 +1,19 @@
 package raylras.zen.code.symbol;
 
-import raylras.zen.code.type.Type;
+import raylras.zen.code.scope.LocalScope;
+import raylras.zen.code.tree.TreeNode;
 
 public abstract class Symbol {
 
     public String name;
-    public Type type;
-    public Symbol owner;
+    public LocalScope enclScope;
+    public TreeNode owner;
+
+    public Symbol(String name, LocalScope enclScope, TreeNode owner) {
+        this.name = name;
+        this.enclScope = enclScope;
+        this.owner = owner;
+    }
 
     public <R> R accept(Visitor<R> visitor) {
         return visitor.visitSymbol(this);

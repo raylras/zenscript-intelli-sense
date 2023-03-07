@@ -1,15 +1,16 @@
 package raylras.zen.code.scope;
 
 import raylras.zen.code.symbol.Symbol;
+import raylras.zen.code.tree.TreeNode;
 
 import java.util.*;
 
 public class LocalScope extends Scope {
 
-    public LocalScope parent;
     public Map<String, List<Symbol>> symbolTable;
+    public LocalScope parent;
 
-    public LocalScope(Symbol owner, LocalScope parent) {
+    public LocalScope(LocalScope parent, TreeNode owner) {
         super(owner);
         this.parent = parent;
         this.symbolTable = new HashMap<>();
