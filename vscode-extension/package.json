@@ -44,16 +44,24 @@
 			}
 		],
 		"configuration": {
-			"type": "object",
 			"title": "ZenScript Language Server",
 			"properties": {
-				"zenscript.languageServer.debugMode": {
+				"zenscript.languageServer.debug": {
+					"order": 0,
 					"type": "boolean",
 					"default": false,
 					"description": "Enable/disable debug mode for language server"
 				},
+				"zenscript.languageServer.suspend": {
+					"order": 1,
+					"type": "boolean",
+					"default": false,
+					"description": "Suspend to wait for the debugger to attach"
+				},
 				"zenscript.languageServer.javaHome": {
+					"order": 2,
 					"type": "string",
+					"default": null,
 					"description": "Path of java home"
 				}
 			}

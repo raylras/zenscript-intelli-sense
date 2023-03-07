@@ -8,18 +8,23 @@ export function activate(context: ExtensionContext) {
 
 	logChannel.appendLine('[Extension] Starting ZenScript language server');
 	getJavaHome().then(javahome => {
+		const config = workspace.getConfiguration();
 		const javabin: string = join(javahome, 'bin', 'java');
 		const classpath: string = join(__dirname, '..', '*');
 		const args: string[] = ['-cp', classpath];
 		const main = 'raylras.zen.langserver.StandardIOLauncher';
-		const debug = '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005,quiet=y';
+		let debug = '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005,quiet=y';
 
 		logChannel.appendLine(`[Extension] Java home: ${javahome}`);
 		logChannel.appendLine(`[Extension] Class path: ${classpath}`)
 		logChannel.appendLine(`[Extension] Main class: ${main}`)
 
-		if (workspace.getConfiguration().get('zenscript.languageServer.debug') == true) {
-			logChannel.appendLine('[Extension] Language server is starting on debug mode');
+		if (config.get('zenscript.languageServer.debug') == true) {
+			logChannel.appendLine('[Extension] The language server is starting on debug mode');
+			if (config.get('zenscript.languageServer.suspend') == true) {
+				logChannel.appendLine('[Extension] The language server is waiting for the debugger to attach');
+				debug = debug.replace(/suspend=./, "suspend=y");
+			}
 			logChannel.appendLine(`[Extension] Arguments: ${debug}`);
 			args.push(debug);
 		}
