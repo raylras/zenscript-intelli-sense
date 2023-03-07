@@ -81,6 +81,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
         Timer timer = new Timer();
         String uri = params.getTextDocument().getUri();
         SourceUnit sourceUnit = getSourceUnit(uri);
+        sourceUnit.updateAll(null);
         server.logger.info("[didOpen] " + Utils.getFileName(uri) + ", took " + timer.cost());
     }
 
