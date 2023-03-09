@@ -19,9 +19,9 @@ export function activate(context: ExtensionContext) {
 		logChannel.appendLine(`[Extension] Class path: ${classpath}`)
 		logChannel.appendLine(`[Extension] Main class: ${main}`)
 
-		if (config.get('zenscript.languageServer.debug') == true) {
+		if (config.get('zenscript.languageServer.debug')) {
 			logChannel.appendLine('[Extension] The language server is starting on debug mode');
-			if (config.get('zenscript.languageServer.suspend') == true) {
+			if (config.get('zenscript.languageServer.suspend')) {
 				logChannel.appendLine('[Extension] The language server is waiting for the debugger to attach');
 				debug = debug.replace(/suspend=./, "suspend=y");
 			}
