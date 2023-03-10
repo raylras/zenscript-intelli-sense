@@ -21,13 +21,18 @@ public class TypeCast extends Expression {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitTypeCast(this);
+    public void accept(TreeVisitor visitor) {
+        boolean visitChildren = visitor.visit(this);
+        if (visitChildren) {
+            acceptChild(visitor, expr);
+            acceptChild(visitor, type);
+        }
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitTypeCast(this);
+        return new Pretty(this).toString();
     }
 
 }

@@ -27,13 +27,19 @@ public class Foreach extends Statement {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitForeach(this);
+    public void accept(TreeVisitor visitor) {
+        boolean visitChildren = visitor.visit(this);
+        if (visitChildren) {
+            acceptChildren(visitor, variables);
+            acceptChild(visitor, expression);
+            acceptChildren(visitor, statements);
+        }
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitForeach(this);
+        return new Pretty(this).toString();
     }
 
 }

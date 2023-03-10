@@ -21,13 +21,18 @@ public class MemberAccess extends Expression {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitMemberAccess(this);
+    public void accept(TreeVisitor visitor) {
+        boolean visitChildren = visitor.visit(this);
+        if (visitChildren) {
+            acceptChild(visitor, left);
+            acceptChild(visitor, right);
+        }
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitMemberAccess(this);
+        return new Pretty(this).toString();
     }
 
 }

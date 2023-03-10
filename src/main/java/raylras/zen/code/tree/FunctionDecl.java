@@ -51,13 +51,20 @@ public class FunctionDecl extends TreeNode implements Function, Declaration {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitFunctionDecl(this);
+    public void accept(TreeVisitor visitor) {
+        boolean visitChildren = visitor.visit(this);
+        if (visitChildren) {
+            acceptChild(visitor, name);
+            acceptChildren(visitor, params);
+            acceptChild(visitor, returnType);
+            acceptChildren(visitor, statements);
+        }
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitFunctionDecl(this);
+        return new Pretty(this).toString();
     }
 
 }

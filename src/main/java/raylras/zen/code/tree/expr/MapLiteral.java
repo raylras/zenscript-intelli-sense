@@ -20,13 +20,17 @@ public class MapLiteral extends Expression {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitMapLiteral(this);
+    public void accept(TreeVisitor visitor) {
+        boolean visitChildren = visitor.visit(this);
+        if (visitChildren) {
+            acceptChildren(visitor, entries);
+        }
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitMapLiteral(this);
+        return new Pretty(this).toString();
     }
 
 }

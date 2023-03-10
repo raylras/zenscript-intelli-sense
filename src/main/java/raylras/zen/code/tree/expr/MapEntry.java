@@ -16,13 +16,18 @@ public class MapEntry extends Expression {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitMapEntry(this);
+    public void accept(TreeVisitor visitor) {
+        boolean visitChildren = visitor.visit(this);
+        if (visitChildren) {
+            acceptChild(visitor, key);
+            acceptChild(visitor, value);
+        }
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitMapEntry(this);
+        return new Pretty(this).toString();
     }
 
 }

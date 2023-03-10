@@ -1,7 +1,6 @@
 package raylras.zen.code.tree.expr;
 
 import raylras.zen.code.Range;
-import raylras.zen.code.tree.Pretty;
 import raylras.zen.code.tree.TreeVisitor;
 import raylras.zen.code.type.Type;
 
@@ -21,13 +20,14 @@ public class ConstantExpr extends Expression {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitConstantExpr(this);
+    public void accept(TreeVisitor visitor) {
+        visitor.visit(this);
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitConstantExpr(this);
+        return String.valueOf(value);
     }
 
 }

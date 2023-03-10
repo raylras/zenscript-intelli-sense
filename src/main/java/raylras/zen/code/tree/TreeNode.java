@@ -15,6 +15,18 @@ public abstract class TreeNode {
         this.range = range;
     }
 
-    public abstract <R> R accept(TreeVisitor<R> visitor);
+    public abstract void accept(TreeVisitor visitor);
+
+    public final void acceptChild(TreeVisitor visitor, TreeNode child) {
+        if (child != null) {
+            child.accept(visitor);
+        }
+    }
+
+    public final void acceptChildren(TreeVisitor visitor, Iterable<? extends TreeNode> children) {
+        for (TreeNode child : children) {
+            child.accept(visitor);
+        }
+    }
 
 }

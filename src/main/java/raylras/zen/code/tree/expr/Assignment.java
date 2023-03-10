@@ -10,6 +10,32 @@ import raylras.zen.code.tree.TreeVisitor;
  */
 public class Assignment extends Expression {
 
+    public Expression left;
+    public Expression right;
+    public Operator op;
+
+    public Assignment(Expression left, Expression right, Operator op, Range range) {
+        super(range);
+        this.left = left;
+        this.right = right;
+        this.op = op;
+    }
+
+    @Override
+    public void accept(TreeVisitor visitor) {
+        boolean visitChildren = visitor.visit(this);
+        if (visitChildren) {
+            acceptChild(visitor, left);
+            acceptChild(visitor, right);
+        }
+        visitor.afterVisit(this);
+    }
+
+    @Override
+    public String toString() {
+        return new Pretty(this).toString();
+    }
+
     public static class Operator {
         public static final Operator ASSIGN = new Operator("=");
         public static final Operator ADD_ASSIGN = new Operator("+=");
@@ -24,34 +50,15 @@ public class Assignment extends Expression {
         public static final Operator INVALID = new Operator("INVALID");
 
         public final String literal;
+
         private Operator(String literal) {
             this.literal = literal;
         }
+
         @Override
         public String toString() {
             return literal;
         }
-    }
-
-    public Expression left;
-    public Expression right;
-    public Operator op;
-
-    public Assignment(Expression left, Expression right, Operator op, Range range) {
-        super(range);
-        this.left = left;
-        this.right = right;
-        this.op = op;
-    }
-
-    @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitAssignment(this);
-    }
-
-    @Override
-    public String toString() {
-        return new Pretty().visitAssignment(this);
     }
 
 }

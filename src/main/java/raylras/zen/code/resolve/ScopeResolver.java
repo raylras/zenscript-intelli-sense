@@ -19,117 +19,150 @@ import raylras.zen.util.Stack;
 /**
  * Class used to resolve the scope and symbol for AST.
  */
-public class ScopeResolver extends GenericTreeVisitor<Void> implements Resolver {
+public class ScopeResolver extends TreeVisitor implements Resolver {
 
     private final Stack<LocalScope> stack = new ArrayStack<>();
 
     @Override
     public void resolve(SourceUnit sourceUnit) {
-        visitCompilationUnit(sourceUnit.ast);
+        sourceUnit.ast.accept(this);
     }
 
-    private void addSymbolToCurrentScope(Symbol symbol) {
+    private void enterSymbol(Symbol symbol) {
         Scope currentScope = stack.peek();
         if (currentScope != null) {
             currentScope.add(symbol);
         }
     }
 
+    private void enterScope(LocalScope scope) {
+        stack.push(scope);
+    }
+
+    private void exitScope() {
+        stack.pop();
+    }
+
     @Override
-    public Void visitCompilationUnit(CompilationUnit node) {
+    public boolean visit(CompilationUnit node) {
         node.localScope = new LocalScope(null, node);
-        stack.push(node.localScope);
-        super.visitCompilationUnit(node);
-        stack.pop();
-        return null;
+        enterScope(node.localScope);
+        return true;
     }
 
     @Override
-    public Void visitImportDecl(ImportDecl node) {
-        return null;
+    public void afterVisit(CompilationUnit node) {
+        exitScope();
     }
 
     @Override
-    public Void visitClassDecl(ClassDecl node) {
+    public boolean visit(ImportDecl node) {
+        // TODO: handle imports
+        return false;
+    }
+
+    @Override
+    public boolean visit(ClassDecl node) {
         node.symbol = new ClassSymbol(node.name.literal, stack.peek(), node);
-        addSymbolToCurrentScope(node.symbol);
+        enterSymbol(node.symbol);
         node.localScope = new LocalScope(stack.peek(), node);
-        stack.push(node.localScope);
-        super.visitClassDecl(node);
-        stack.pop();
-        return null;
+        enterScope(node.localScope);
+        return true;
     }
 
     @Override
-    public Void visitConstructorDecl(ConstructorDecl node) {
+    public void afterVisit(ClassDecl node) {
+        exitScope();
+    }
+
+    @Override
+    public boolean visit(ConstructorDecl node) {
         node.symbol = new FunctionSymbol(node.name.literal, stack.peek(), node);
-        addSymbolToCurrentScope(node.symbol);
+        enterSymbol(node.symbol);
         node.localScope = new LocalScope(stack.peek(), node);
-        stack.push(node.localScope);
-        super.visitConstructorDecl(node);
-        stack.pop();
-        return null;
+        enterScope(node.localScope);
+        return true;
     }
 
     @Override
-    public Void visitFunctionDecl(FunctionDecl node) {
+    public void afterVisit(ConstructorDecl node) {
+        exitScope();
+    }
+
+    @Override
+    public boolean visit(FunctionDecl node) {
         node.symbol = new FunctionSymbol(node.name.literal, stack.peek(), node);
-        addSymbolToCurrentScope(node.symbol);
+        enterSymbol(node.symbol);
         node.localScope = new LocalScope(stack.peek(), node);
-        stack.push(node.localScope);
-        super.visitFunctionDecl(node);
-        stack.pop();
-        return null;
+        enterScope(node.localScope);
+        return true;
     }
 
     @Override
-    public Void visitParameterDecl(ParameterDecl node) {
+    public void afterVisit(FunctionDecl node) {
+        exitScope();
+    }
+
+    @Override
+    public boolean visit(ParameterDecl node) {
         node.symbol = new VariableSymbol(node.name.literal, stack.peek(), node);
-        addSymbolToCurrentScope(node.symbol);
-        return null;
+        enterSymbol(node.symbol);
+        return true;
     }
 
     @Override
-    public Void visitFunctionExpr(FunctionExpr node) {
+    public boolean visit(FunctionExpr node) {
         node.localScope = new LocalScope(stack.peek(), node);
-        stack.push(node.localScope);
-        super.visitFunctionExpr(node);
-        stack.pop();
-        return null;
+        enterScope(node.localScope);
+        return true;
     }
 
     @Override
-    public Void visitBlock(Block node) {
+    public void afterVisit(FunctionExpr node) {
+        exitScope();
+    }
+
+    @Override
+    public boolean visit(Block node) {
         node.localScope = new LocalScope(stack.peek(), node);
-        stack.push(node.localScope);
-        super.visitBlock(node);
-        stack.pop();
-        return null;
+        enterScope(node.localScope);
+        return true;
     }
 
     @Override
-    public Void visitForeach(Foreach node) {
+    public void afterVisit(Block node) {
+        exitScope();
+    }
+
+    @Override
+    public boolean visit(Foreach node) {
         node.localScope = new LocalScope(stack.peek(), node);
-        stack.push(node.localScope);
-        super.visitForeach(node);
-        stack.pop();
-        return null;
+        enterScope(node.localScope);
+        return true;
     }
 
     @Override
-    public Void visitVariableDecl(VariableDecl node) {
+    public void afterVisit(Foreach node) {
+        exitScope();
+    }
+
+    @Override
+    public boolean visit(VariableDecl node) {
         node.symbol = new VariableSymbol(node.name.literal, stack.peek(), node);
-        addSymbolToCurrentScope(node.symbol);
-        return null;
+        enterSymbol(node.symbol);
+        return true;
     }
 
     @Override
-    public Void visitWhile(While node) {
+    public boolean visit(While node) {
         node.localScope = new LocalScope(stack.peek(), node);
-        stack.push(node.localScope);
-        super.visitWhile(node);
-        stack.pop();
-        return null;
+        enterScope(node.localScope);
+        return true;
+    }
+
+    @Override
+    public void afterVisit(While node) {
+        exitScope();
     }
 
 }

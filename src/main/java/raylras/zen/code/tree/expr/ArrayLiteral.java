@@ -20,13 +20,17 @@ public class ArrayLiteral extends Expression {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitArrayLiteral(this);
+    public void accept(TreeVisitor visitor) {
+        boolean visitChildren = visitor.visit(this);
+        if (visitChildren) {
+            acceptChildren(visitor, elements);
+        }
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitArrayLiteral(this);
+        return new Pretty(this).toString();
     }
 
 }

@@ -16,13 +16,14 @@ public class Name extends TreeNode {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitName(this);
+    public void accept(TreeVisitor visitor) {
+        visitor.visit(this);
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitName(this);
+        return literal;
     }
 
 }

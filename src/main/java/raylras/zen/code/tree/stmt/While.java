@@ -23,13 +23,18 @@ public class While extends Statement {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitWhile(this);
+    public void accept(TreeVisitor visitor) {
+        boolean visitChildren = visitor.visit(this);
+        if (visitChildren) {
+            acceptChild(visitor, condition);
+            acceptChild(visitor, statement);
+        }
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitWhile(this);
+        return new Pretty(this).toString();
     }
 
 }

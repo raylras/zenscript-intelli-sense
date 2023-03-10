@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-public class DocumentSymbolProvider extends GenericTreeVisitor<Object> {
+public class DocumentSymbolProvider extends TreeVisitor {
 
     private final List<DocumentSymbol> topLevelSymbols = new ArrayList<>();
     private final Stack<DocumentSymbol> stack = new ArrayStack<>();
@@ -25,7 +25,8 @@ public class DocumentSymbolProvider extends GenericTreeVisitor<Object> {
             return Collections.emptyList();
         if (sourceUnit.ast == null)
             sourceUnit.updateAll(null);
-        return new DocumentSymbolProvider().visitCompilationUnit(sourceUnit.ast);
+//        return new DocumentSymbolProvider().visitCompilationUnit(sourceUnit.ast);
+        return Collections.emptyList();
     }
 
     private void push(Name name, TreeNode node, SymbolKind kind) {
@@ -55,55 +56,55 @@ public class DocumentSymbolProvider extends GenericTreeVisitor<Object> {
         return stack.isEmpty();
     }
 
-    @Override
-    public List<DocumentSymbol> visitCompilationUnit(CompilationUnit node) {
-        super.visitCompilationUnit(node);
-        return topLevelSymbols;
-    }
-
-    @Override
-    public Void visitClassDecl(ClassDecl node) {
-        if (node== null || node.name == null) return null;
-        push(node.name, node, SymbolKind.Class);
-        super.visitClassDecl(node);
-        pop();
-        return null;
-    }
-
-    @Override
-    public Void visitConstructorDecl(ConstructorDecl node) {
-        if (node== null || node.name == null) return null;
-        push(node.name, node, SymbolKind.Function);
-        super.visitConstructorDecl(node);
-        pop();
-        return null;
-    }
-
-    @Override
-    public Void visitFunctionDecl(FunctionDecl node) {
-        if (node== null || node.name == null) return null;
-        push(node.name, node, SymbolKind.Function);
-        super.visitFunctionDecl(node);
-        pop();
-        return null;
-    }
-
-    @Override
-    public Void visitParameterDecl(ParameterDecl node) {
-        if (node== null || node.name == null) return null;
-        push(node.name, node, SymbolKind.Variable);
-        super.visitParameterDecl(node);
-        pop();
-        return null;
-    }
-
-    @Override
-    public Void visitVariableDecl(VariableDecl node) {
-        if (node== null || node.name == null) return null;
-        push(node.name, node, SymbolKind.Variable);
-        super.visitVariableDecl(node);
-        pop();
-        return null;
-    }
+//    @Override
+//    public List<DocumentSymbol> visitCompilationUnit(CompilationUnit node) {
+//        super.visitCompilationUnit(node);
+//        return topLevelSymbols;
+//    }
+//
+//    @Override
+//    public Void visitClassDecl(ClassDecl node) {
+//        if (node== null || node.name == null) return null;
+//        push(node.name, node, SymbolKind.Class);
+//        super.visitClassDecl(node);
+//        pop();
+//        return null;
+//    }
+//
+//    @Override
+//    public Void visitConstructorDecl(ConstructorDecl node) {
+//        if (node== null || node.name == null) return null;
+//        push(node.name, node, SymbolKind.Function);
+//        super.visitConstructorDecl(node);
+//        pop();
+//        return null;
+//    }
+//
+//    @Override
+//    public Void visitFunctionDecl(FunctionDecl node) {
+//        if (node== null || node.name == null) return null;
+//        push(node.name, node, SymbolKind.Function);
+//        super.visitFunctionDecl(node);
+//        pop();
+//        return null;
+//    }
+//
+//    @Override
+//    public Void visitParameterDecl(ParameterDecl node) {
+//        if (node== null || node.name == null) return null;
+//        push(node.name, node, SymbolKind.Variable);
+//        super.visitParameterDecl(node);
+//        pop();
+//        return null;
+//    }
+//
+//    @Override
+//    public Void visitVariableDecl(VariableDecl node) {
+//        if (node== null || node.name == null) return null;
+//        push(node.name, node, SymbolKind.Variable);
+//        super.visitVariableDecl(node);
+//        pop();
+//        return null;
+//    }
 
 }

@@ -29,13 +29,20 @@ public class ClassDecl extends TreeNode {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitClassDecl(this);
+    public void accept(TreeVisitor visitor) {
+        boolean visitChildren = visitor.visit(this);
+        if (visitChildren) {
+            acceptChild(visitor, name);
+            acceptChildren(visitor, fields);
+            acceptChildren(visitor, constructors);
+            acceptChildren(visitor, methods);
+        }
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitClassDecl(this);
+        return new Pretty(this).toString();
     }
 
 }

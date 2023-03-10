@@ -20,13 +20,18 @@ public class IntRange extends Expression {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitIntRange(this);
+    public void accept(TreeVisitor visitor) {
+        boolean visitChildren = visitor.visit(this);
+        if (visitChildren) {
+            acceptChild(visitor, from);
+            acceptChild(visitor, to);
+        }
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitIntRange(this);
+        return new Pretty(this).toString();
     }
 
 }

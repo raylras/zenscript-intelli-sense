@@ -1,7 +1,6 @@
 package raylras.zen.code.tree.stmt;
 
 import raylras.zen.code.Range;
-import raylras.zen.code.tree.Pretty;
 import raylras.zen.code.tree.TreeVisitor;
 
 /**
@@ -14,13 +13,14 @@ public class Continue extends Statement {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitContinue(this);
+    public void accept(TreeVisitor visitor) {
+        visitor.visit(this);
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitContinue(this);
+        return "continue ";
     }
 
 }

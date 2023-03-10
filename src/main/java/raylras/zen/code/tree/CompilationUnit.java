@@ -29,8 +29,15 @@ public class CompilationUnit extends TreeNode {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitCompilationUnit(this);
+    public void accept(TreeVisitor visitor) {
+        boolean visitChildren = visitor.visit(this);
+        if (visitChildren) {
+            acceptChildren(visitor, imports);
+            acceptChildren(visitor, classes);
+            acceptChildren(visitor, functions);
+            acceptChildren(visitor, statements);
+        }
+        visitor.afterVisit(this);
     }
 
 }

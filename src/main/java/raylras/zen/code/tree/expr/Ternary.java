@@ -22,13 +22,19 @@ public class Ternary extends Expression {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitTernary(this);
+    public void accept(TreeVisitor visitor) {
+        boolean visitChildren = visitor.visit(this);
+        if (visitChildren) {
+            acceptChild(visitor, condition);
+            acceptChild(visitor, truePart);
+            acceptChild(visitor, falsePart);
+        }
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitTernary(this);
+        return new Pretty(this).toString();
     }
 
 }

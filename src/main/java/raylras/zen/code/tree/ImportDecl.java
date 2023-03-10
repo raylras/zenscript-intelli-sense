@@ -29,13 +29,18 @@ public class ImportDecl extends TreeNode implements Declaration {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitImportDecl(this);
+    public void accept(TreeVisitor visitor) {
+        boolean visitChildren = visitor.visit(this);
+        if (visitChildren) {
+            acceptChildren(visitor, fullName);
+            acceptChild(visitor, alias);
+        }
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitImportDecl(this);
+        return new Pretty(this).toString();
     }
 
 }

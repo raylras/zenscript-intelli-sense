@@ -3,266 +3,289 @@ package raylras.zen.code.tree;
 import raylras.zen.code.tree.expr.*;
 import raylras.zen.code.tree.stmt.*;
 
+import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class Pretty implements TreeVisitor<String> {
+public class Pretty extends TreeVisitor {
 
-    @Override
-    public String visitCompilationUnit(CompilationUnit node) {
-        return "...";
+    private final StringBuilder result;
+
+    public Pretty(TreeNode node) {
+        result = new StringBuilder();
+        node.accept(this);
     }
 
     @Override
-    public String visitImportDecl(ImportDecl node) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(node.fullName.stream().map(name -> name.literal).collect(Collectors.joining(".")));
+    public String toString() {
+        return result.toString();
+    }
+
+    @Override
+    public boolean visit(CompilationUnit node) {
+        result.append("...");
+        return false;
+    }
+
+    @Override
+    public boolean visit(ImportDecl node) {
+        result.append(node.fullName.stream().map(Object::toString).collect(Collectors.joining(".")));
         if (node.alias != null)
-            sb.append(" as ").append(node.alias.literal);
-        return sb.toString();
+            result.append(" as ").append(node.alias);
+        return false;
     }
 
     @Override
-    public String visitClassDecl(ClassDecl node) {
-        return "zenClass " + node.name.literal + " { ... }";
+    public boolean visit(ClassDecl node) {
+        result.append("zenClass ");
+        result.append(node.name);
+        result.append(" { ... }");
+        return false;
     }
 
     @Override
-    public String visitConstructorDecl(ConstructorDecl node) {
-        return "zenConstructor " + " { ... }";
+    public boolean visit(ConstructorDecl node) {
+        result.append("zenConstructor { ... }");
+        return false;
     }
 
     @Override
-    public String visitFunctionDecl(FunctionDecl node) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("function ").append(node.name.literal);
-        sb.append(node.params.stream().map(param -> param.accept(this)).collect(Collectors.joining(", ", "(", ")")));
+    public boolean visit(FunctionDecl node) {
+        result.append("function ").append(node.name);
+        result.append("(");
+        result.append(node.params.stream().map(Objects::toString).collect(Collectors.joining(", ")));
+        result.append(")");
         if (node.returnType != null)
-            sb.append(" as ").append(node.returnType.accept(this));
-        sb.append(" { ... }");
-        return sb.toString();
+            result.append(" as ").append(node.returnType);
+        result.append(" { ... }");
+        return false;
     }
 
     @Override
-    public String visitParameterDecl(ParameterDecl node) {
-        StringBuilder sb = new StringBuilder();
-        sb.append(node.name.literal);
+    public boolean visit(ParameterDecl node) {
+        result.append(node.name);
         if (node.typeDecl != null)
-            sb.append(" as ").append(node.typeDecl.accept(this));
+            result.append(" as ").append(node.typeDecl);
         if (node.defaultValue != null)
-            sb.append(" = ").append(node.defaultValue.accept(this));
-        return sb.toString();
+            result.append(" = ").append(node.defaultValue);
+        return false;
     }
 
     @Override
-    public String visitName(Name node) {
-        return node.literal;
+    public boolean visit(Name node) {
+        result.append(node.literal);
+        return false;
     }
 
     @Override
-    public String visitTypeLiteral(TypeLiteral node) {
-        return node.literal;
+    public boolean visit(TypeLiteral node) {
+        result.append(node.literal);
+        return false;
     }
 
     @Override
-    public String visitExpression(Expression node) {
-        return node.accept(this);
+    public boolean visit(ArrayAccess node) {
+        result.append(node.left).append("[").append(node.index).append("]");
+        return false;
     }
 
     @Override
-    public String visitArrayAccess(ArrayAccess node) {
-        return node.left.accept(this) + "[" + node.index.accept(this) + "]";
+    public boolean visit(ArrayLiteral node) {
+        result.append("[ ... ]");
+        return false;
     }
 
     @Override
-    public String visitArrayLiteral(ArrayLiteral node) {
-        return "[ ... ]";
+    public boolean visit(Assignment node) {
+        result.append(node.left);
+        result.append(" ").append(node.op).append(" ");
+        result.append(node.right);
+        return false;
     }
 
     @Override
-    public String visitAssignment(Assignment node) {
-        return node.left.accept(this) + " " + node.op.literal + " " + node.right.accept(this);
+    public boolean visit(Binary node) {
+        result.append(node.left);
+        result.append(" ").append(node.op).append(" ");
+        result.append(node.right);
+        return false;
     }
 
     @Override
-    public String visitBinary(Binary node) {
-        return node.left.accept(this) + " " + node.op.literal + " " + node.right.accept(this);
+    public boolean visit(BracketHandler node) {
+        result.append(node.literal);
+        return false;
     }
 
     @Override
-    public String visitBracketHandler(BracketHandler node) {
-        return node.literal;
+    public boolean visit(Call node) {
+        result.append(node.left);
+        result.append("(");
+        result.append(node.args.stream().map(Object::toString).collect(Collectors.joining(", ")));
+        result.append(")");
+        return false;
     }
 
     @Override
-    public String visitCall(Call node) {
-        return node.left.accept(this) + node.args.stream().map(arg -> arg.accept(this)).collect(Collectors.joining(", ", "(", ")"));
+    public boolean visit(ConstantExpr node) {
+        result.append(node.value);
+        return false;
     }
 
     @Override
-    public String visitConstantExpr(ConstantExpr node) {
-        return String.valueOf(node.value);
-    }
-
-    @Override
-    public String visitFunctionExpr(FunctionExpr node) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("function");
-        sb.append(node.params.stream().map(param -> param.accept(this)).collect(Collectors.joining(", ", "(", ")")));
+    public boolean visit(FunctionExpr node) {
+        result.append("function");
+        result.append("(");
+        result.append(node.params.stream().map(Object::toString).collect(Collectors.joining(", ")));
+        result.append(")");
         if (node.typeDecl != null)
-            sb.append(" as ").append(node.typeDecl.accept(this));
-        sb.append(" { ... }");
-        return sb.toString();
+            result.append(" as ").append(node.typeDecl);
+        result.append(" { ... }");
+        return false;
     }
 
     @Override
-    public String visitIDExpr(IDExpr node) {
-        return node.name.literal;
+    public boolean visit(IDExpr node) {
+        result.append(node.name);
+        return false;
     }
 
     @Override
-    public String visitIntRange(IntRange node) {
-        return node.from.accept(this) + " .. " + node.to.accept(this);
+    public boolean visit(IntRange node) {
+        result.append(node.from).append(" .. ").append(node.to);
+        return false;
     }
 
     @Override
-    public String visitMapLiteral(MapLiteral node) {
-        return "{ ... }";
+    public boolean visit(MapLiteral node) {
+        result.append("{ ... }");
+        return false;
     }
 
     @Override
-    public String visitMapEntry(MapEntry node) {
-        return node.key.accept(this) + " : " + node.value.accept(this);
+    public boolean visit(MapEntry node) {
+        result.append(node.key).append(" : ").append(node.value);
+        return false;
     }
 
     @Override
-    public String visitMemberAccess(MemberAccess node) {
-        return node.left.accept(this) + "." + node.right.accept(this);
+    public boolean visit(MemberAccess node) {
+        result.append(node.left).append(".").append(node.right);
+        return false;
     }
 
     @Override
-    public String visitParens(Parens node) {
-        return "(" + node.expr.accept(this) +")";
+    public boolean visit(Parens node) {
+        result.append("(").append(node.expr).append(")");
+        return false;
     }
 
     @Override
-    public String visitTernary(Ternary node) {
-        return node.condition.accept(this) + " ? " + node.truePart.accept(this) + " : " + node.falsePart.accept(this);
+    public boolean visit(Ternary node) {
+        result.append(node.condition);
+        result.append("?").append(node.truePart);
+        result.append(":").append(node.falsePart);
+        return false;
     }
 
     @Override
-    public String visitThis(This node) {
-        return "this";
+    public boolean visit(This node) {
+        result.append("this");
+        return false;
     }
 
     @Override
-    public String visitSuper(Super node) {
-        return "super";
+    public boolean visit(Super node) {
+        result.append("super");
+        return false;
     }
 
     @Override
-    public String visitTypeCast(TypeCast node) {
-        return node.expr.accept(this) + " as " + node.type.accept(this);
+    public boolean visit(TypeCast node) {
+        result.append(node.expr).append(" as ").append(node.type);
+        return false;
     }
 
     @Override
-    public String visitUnary(Unary node) {
-        return node.op.literal + node.expr.accept(this);
+    public boolean visit(Unary node) {
+        result.append(node.op).append(node.expr);
+        return false;
     }
 
     @Override
-    public String visitStatement(Statement node) {
-        return node.accept(this);
+    public boolean visit(Block node) {
+        result.append("{ ... }");
+        return false;
     }
 
     @Override
-    public String visitBlock(Block node) {
-        return "{ ... }";
+    public boolean visit(Break node) {
+        result.append("break");
+        return false;
     }
 
     @Override
-    public String visitBreak(Break node) {
-        return "break";
+    public boolean visit(Continue node) {
+        result.append("continue");
+        return false;
     }
 
     @Override
-    public String visitContinue(Continue node) {
-        return "continue";
+    public boolean visitExpressionStmt(ExpressionStmt node) {
+        result.append(node.expr).append(";");
+        return false;
     }
 
     @Override
-    public String visitExpressionStmt(ExpressionStmt node) {
-        return node.expr.accept(this);
+    public boolean visit(Foreach node) {
+        result.append("for ");
+        result.append(node.variables.stream().map(Object::toString).collect(Collectors.joining(", ")));
+        result.append(" in ").append(node.expression);
+        result.append(" { ... }");
+        return false;
     }
 
     @Override
-    public String visitForeach(Foreach node) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("for ");
-        sb.append(node.variables.stream().map(v -> v.accept(this)).collect(Collectors.joining(",")));
-        sb.append(" in ").append(node.expression.accept(this));
-        sb.append(" { ... }");
-        return sb.toString();
-    }
-
-    @Override
-    public String visitIf(If node) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("if ").append(node.condition.accept(this));
-        sb.append(" ").append(node.thenPart.accept(this));
+    public boolean visit(If node) {
+        result.append("if ").append(node.condition);
+        result.append(" ").append(node.thenPart);
         if (node.elsePart != null)
-            sb.append(" else ").append(node.elsePart.accept(this));
-        return sb.toString();
+            result.append(" else ").append(node.elsePart);
+        return false;
     }
 
     @Override
-    public String visitReturn(Return node) {
-        StringBuilder sb = new StringBuilder();
-        sb.append("return");
+    public boolean visit(Return node) {
+        result.append("return");
         if (node.expr != null)
-            sb.append(" ").append(node.expr.accept(this));
-        return sb.toString();
+            result.append(" ").append(node.expr);
+        return false;
     }
 
     @Override
-    public String visitVariableDecl(VariableDecl node) {
-        StringBuilder sb = new StringBuilder();
-        switch (node.declarator) {
-            case VAR:
-                sb.append("var ");
-                break;
-            case VAL:
-                sb.append("val ");
-                break;
-            case GLOBAL:
-                sb.append("global ");
-                break;
-            case STATIC:
-                sb.append("static ");
-                break;
-            case NONE:
-                break;
-            case INVALID:
-            default:
-                sb.append("/*invalid*/");
-        }
-        sb.append(node.name.accept(this));
+    public boolean visit(VariableDecl node) {
+        result.append(node.declarator);
+        if (node.declarator != Declarator.NONE)
+            result.append(" ");
+        result.append(node.name);
         if (node.typeDecl != null)
-            sb.append(" as ").append(node.typeDecl.accept(this));
+            result.append(" as ").append(node.typeDecl);
         if (node.init != null)
-            sb.append(" = ").append(node.init.accept(this));
-        return sb.toString();
+            result.append(" = ").append(node.init);
+        return false;
     }
 
     @Override
-    public String visitWhile(While node) {
-        return "while " + "(" + node.condition.accept(this) + ")" +  "{ ... }";
+    public boolean visit(While node) {
+        result.append("while (").append(node.condition).append(")");
+        result.append(" { ... }");
+        return false;
     }
 
-    @Override
-    public String visitTreeNode(TreeNode node) {
+    public boolean visit(TreeNode node) {
         if (node == null)
-            return "/*missing*/";
-        return "/*unknown/";
+            result.append("MISSING");
+        result.append("UNKNOWN");
+        return false;
     }
 
 }

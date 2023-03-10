@@ -46,13 +46,19 @@ public class VariableDecl extends Statement implements Variable, Declaration {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitVariableDecl(this);
+    public void accept(TreeVisitor visitor) {
+        boolean visitChildren = visitor.visit(this);
+        if (visitChildren) {
+            acceptChild(visitor, name);
+            acceptChild(visitor, typeDecl);
+            acceptChild(visitor, init);
+        }
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitVariableDecl(this);
+        return new Pretty(this).toString();
     }
 
 }

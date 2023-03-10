@@ -12,7 +12,7 @@ import raylras.zen.langserver.Semantics;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SemanticTokensProvider extends GenericTreeVisitor<Object> {
+public class SemanticTokensProvider extends TreeVisitor {
 
     private final SourceUnit sourceUnit;
     private final List<Integer> data;
@@ -31,7 +31,8 @@ public class SemanticTokensProvider extends GenericTreeVisitor<Object> {
             return new SemanticTokens();
         if (sourceUnit.ast == null)
             sourceUnit.updateAll(null);
-        return new SemanticTokens(new SemanticTokensProvider(sourceUnit).visitCompilationUnit(sourceUnit.ast));
+//        return new SemanticTokens(new SemanticTokensProvider(sourceUnit).visitCompilationUnit(sourceUnit.ast));
+        return new SemanticTokens();
     }
 
     private void push(TreeNode node, int tokenType, int tokenModifiers) {
@@ -67,56 +68,56 @@ public class SemanticTokensProvider extends GenericTreeVisitor<Object> {
         return tokenModifiers;
     }
 
-    @Override
-    public List<Integer> visitCompilationUnit(CompilationUnit node) {
-        super.visitCompilationUnit(node);
-        return data;
-    }
-
-    @Override
-    public Object visitImportDecl(ImportDecl node) {
-        // TODO
-        return null;
-    }
-
-    @Override
-    public Object visitClassDecl(ClassDecl node) {
-        push(node, Semantics.TokenType.CLASS, Semantics.TokenModifier.DECLARATION);
-        super.visitClassDecl(node);
-        return null;
-    }
-
-    @Override
-    public Object visitConstructorDecl(ConstructorDecl node) {
-        push(node, Semantics.TokenType.FUNCTION, Semantics.TokenModifier.DECLARATION);
-        super.visitConstructorDecl(node);
-        return null;
-    }
-
-    @Override
-    public Object visitFunctionDecl(FunctionDecl node) {
-        push(node, Semantics.TokenType.FUNCTION, Semantics.TokenModifier.DECLARATION);
-        super.visitFunctionDecl(node);
-        return null;
-    }
-
-    @Override
-    public Object visitParameterDecl(ParameterDecl node) {
-        push(node, Semantics.TokenType.FUNCTION, Semantics.TokenModifier.DECLARATION);
-        super.visitParameterDecl(node);
-        return null;
-    }
-
-    @Override
-    public Object visitMapEntry(MapEntry node) {
-        return null;
-    }
-
-    @Override
-    public Object visitVariableDecl(VariableDecl node) {
-        push(node, Semantics.TokenType.VARIABLE, Semantics.TokenModifier.DECLARATION);
-        super.visitVariableDecl(node);
-        return null;
-    }
+//    @Override
+//    public List<Integer> visitCompilationUnit(CompilationUnit node) {
+//        super.visitCompilationUnit(node);
+//        return data;
+//    }
+//
+//    @Override
+//    public Object visitImportDecl(ImportDecl node) {
+//        // TODO
+//        return null;
+//    }
+//
+//    @Override
+//    public Object visitClassDecl(ClassDecl node) {
+//        push(node, Semantics.TokenType.CLASS, Semantics.TokenModifier.DECLARATION);
+//        super.visitClassDecl(node);
+//        return null;
+//    }
+//
+//    @Override
+//    public Object visitConstructorDecl(ConstructorDecl node) {
+//        push(node, Semantics.TokenType.FUNCTION, Semantics.TokenModifier.DECLARATION);
+//        super.visitConstructorDecl(node);
+//        return null;
+//    }
+//
+//    @Override
+//    public Object visitFunctionDecl(FunctionDecl node) {
+//        push(node, Semantics.TokenType.FUNCTION, Semantics.TokenModifier.DECLARATION);
+//        super.visitFunctionDecl(node);
+//        return null;
+//    }
+//
+//    @Override
+//    public Object visitParameterDecl(ParameterDecl node) {
+//        push(node, Semantics.TokenType.FUNCTION, Semantics.TokenModifier.DECLARATION);
+//        super.visitParameterDecl(node);
+//        return null;
+//    }
+//
+//    @Override
+//    public Object visitMapEntry(MapEntry node) {
+//        return null;
+//    }
+//
+//    @Override
+//    public Object visitVariableDecl(VariableDecl node) {
+//        push(node, Semantics.TokenType.VARIABLE, Semantics.TokenModifier.DECLARATION);
+//        super.visitVariableDecl(node);
+//        return null;
+//    }
 
 }

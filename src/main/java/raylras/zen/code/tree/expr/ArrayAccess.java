@@ -20,13 +20,18 @@ public class ArrayAccess extends Expression {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitArrayAccess(this);
+    public void accept(TreeVisitor visitor) {
+        boolean visitChildren = visitor.visit(this);
+        if (visitChildren) {
+            left.accept(visitor);
+            index.accept(visitor);
+        }
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitArrayAccess(this);
+        return new Pretty(this).toString();
     }
 
 }

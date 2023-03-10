@@ -47,13 +47,19 @@ public class ConstructorDecl extends TreeNode implements Function, Declaration {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitConstructorDecl(this);
+    public void accept(TreeVisitor visitor) {
+        boolean visitChildren = visitor.visit(this);
+        if (visitChildren) {
+            acceptChild(visitor, name);
+            acceptChildren(visitor, params);
+            acceptChildren(visitor, statements);
+        }
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitConstructorDecl(this);
+        return new Pretty(this).toString();
     }
 
 }

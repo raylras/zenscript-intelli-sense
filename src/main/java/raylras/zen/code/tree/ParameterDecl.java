@@ -45,13 +45,19 @@ public class ParameterDecl extends TreeNode implements Variable, Declaration {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitParameterDecl(this);
+    public void accept(TreeVisitor visitor) {
+        boolean visitChildren = visitor.visit(this);
+        if (visitChildren) {
+            acceptChild(visitor, name);
+            acceptChild(visitor, typeDecl);
+            acceptChild(visitor, defaultValue);
+        }
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitParameterDecl(this);
+        return new Pretty(this).toString();
     }
 
 }

@@ -46,13 +46,19 @@ public class FunctionExpr extends Expression implements Function {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitFunctionExpr(this);
+    public void accept(TreeVisitor visitor) {
+        boolean visitChildren = visitor.visit(this);
+        if (visitChildren) {
+            acceptChildren(visitor, params);
+            acceptChild(visitor, typeDecl);
+            acceptChildren(visitor, statements);
+        }
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitFunctionExpr(this);
+        return new Pretty(this).toString();
     }
 
 }

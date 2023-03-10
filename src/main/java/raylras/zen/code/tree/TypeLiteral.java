@@ -19,13 +19,14 @@ public class TypeLiteral extends TreeNode {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitTypeLiteral(this);
+    public void accept(TreeVisitor visitor) {
+        visitor.visit(this);
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitTypeLiteral(this);
+        return new Pretty(this).toString();
     }
 
 }

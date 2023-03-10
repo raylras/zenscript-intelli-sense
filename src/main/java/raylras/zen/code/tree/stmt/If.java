@@ -23,13 +23,19 @@ public class If extends Statement {
     }
 
     @Override
-    public <R> R accept(TreeVisitor<R> visitor) {
-        return visitor.visitIf(this);
+    public void accept(TreeVisitor visitor) {
+        boolean visitChildren = visitor.visit(this);
+        if (visitChildren) {
+            acceptChild(visitor, condition);
+            acceptChild(visitor, thenPart);
+            acceptChild(visitor, elsePart);
+        }
+        visitor.afterVisit(this);
     }
 
     @Override
     public String toString() {
-        return new Pretty().visitIf(this);
+        return new Pretty(this).toString();
     }
 
 }
