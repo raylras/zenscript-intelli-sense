@@ -27,15 +27,18 @@ public class LocalScope extends Scope {
     }
 
     @Override
-    public Iterable<Symbol> getSymbols(boolean recursive) {
+    public List<Symbol> getSymbols(boolean recursive) {
         // TODO
         return Collections.emptyList();
     }
 
     @Override
-    public Iterable<Symbol> getSymbolsByName(String name, boolean recursive) {
-        // TODO
-        return Collections.emptyList();
+    public List<Symbol> getSymbolsByName(String name, boolean recursive) {
+        List<Symbol> symbols = new ArrayList<>(symbolTable.getOrDefault(name, Collections.emptyList()));
+        if (recursive && parent != null) {
+            symbols.addAll(parent.getSymbolsByName(name, recursive));
+        }
+        return symbols;
     }
 
 }

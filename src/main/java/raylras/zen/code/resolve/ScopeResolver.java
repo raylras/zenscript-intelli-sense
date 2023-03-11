@@ -17,6 +17,8 @@ import raylras.zen.code.tree.stmt.While;
 import raylras.zen.util.ArrayStack;
 import raylras.zen.util.Stack;
 
+import java.util.List;
+
 /**
  * Class used to resolve the scope and symbol for AST.
  */
@@ -37,6 +39,14 @@ public class ScopeResolver extends TreeVisitor implements Resolver {
 
     private void enterScope(LocalScope scope) {
         stack.push(scope);
+    }
+
+    private Symbol getSymbol(String name) {
+        Scope currentScope = stack.peek();
+        if (currentScope == null) return null;
+        List<Symbol> symbols = currentScope.getSymbolsByName(name, true);
+        if (!symbols.isEmpty()) return symbols.get(0);
+        return null;
     }
 
     private void exitScope() {
@@ -120,6 +130,15 @@ public class ScopeResolver extends TreeVisitor implements Resolver {
     @Override
     public void afterVisit(FunctionExpression node) {
         exitScope();
+    }
+
+    @Override
+    public boolean visit(MemberAccess node) {
+        if (node.left instanceof SimpleName) {
+            SimpleName left = ((SimpleName) node.left);
+            left.symbol = getSymbol(left.literal);
+        }
+        return true;
     }
 
     @Override
