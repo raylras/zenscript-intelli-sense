@@ -3,7 +3,7 @@ package raylras.zen.code.tree;
 import raylras.zen.code.Range;
 import raylras.zen.code.scope.LocalScope;
 import raylras.zen.code.symbol.ClassSymbol;
-import raylras.zen.code.tree.stmt.VariableDecl;
+import raylras.zen.code.tree.stmt.VariableDeclaration;
 
 import java.util.List;
 
@@ -11,16 +11,16 @@ import java.util.List;
  * Represents a class declaration such as "zenClass name { }".
  * e.g. "zenClass Foo { var foo = null; function bar() { } }".
  */
-public class ClassDecl extends TreeNode {
+public class ClassDeclaration extends TreeNode {
 
-    public Name name;
-    public List<VariableDecl> fields;
-    public List<ConstructorDecl> constructors;
-    public List<FunctionDecl> methods;
+    public SimpleName name;
+    public List<VariableDeclaration> fields;
+    public List<ConstructorDeclaration> constructors;
+    public List<FunctionDeclaration> methods;
     public ClassSymbol symbol;
     public LocalScope localScope;
 
-    public ClassDecl(Name name, List<VariableDecl> fields, List<ConstructorDecl> constructors, List<FunctionDecl> methods, Range range) {
+    public ClassDeclaration(SimpleName name, List<VariableDeclaration> fields, List<ConstructorDeclaration> constructors, List<FunctionDeclaration> methods, Range range) {
         super(range);
         this.name = name;
         this.constructors = constructors;

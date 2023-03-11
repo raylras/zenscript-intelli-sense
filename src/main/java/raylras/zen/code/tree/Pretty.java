@@ -3,7 +3,7 @@ package raylras.zen.code.tree;
 import raylras.zen.code.tree.expr.*;
 import raylras.zen.code.tree.stmt.*;
 
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class Pretty extends TreeVisitor {
@@ -27,15 +27,15 @@ public class Pretty extends TreeVisitor {
     }
 
     @Override
-    public boolean visit(ImportDecl node) {
-        result.append(node.fullName.stream().map(Object::toString).collect(Collectors.joining(".")));
+    public boolean visit(ImportDeclaration node) {
+        result.append(node.fullName);
         if (node.alias != null)
             result.append(" as ").append(node.alias);
         return false;
     }
 
     @Override
-    public boolean visit(ClassDecl node) {
+    public boolean visit(ClassDeclaration node) {
         result.append("zenClass ");
         result.append(node.name);
         result.append(" { ... }");
@@ -43,13 +43,13 @@ public class Pretty extends TreeVisitor {
     }
 
     @Override
-    public boolean visit(ConstructorDecl node) {
+    public boolean visit(ConstructorDeclaration node) {
         result.append("zenConstructor { ... }");
         return false;
     }
 
     @Override
-    public boolean visit(FunctionDecl node) {
+    public boolean visit(FunctionDeclaration node) {
         result.append("function ").append(node.name);
         result.append("(");
         result.append(node.params.stream().map(Objects::toString).collect(Collectors.joining(", ")));
@@ -61,7 +61,7 @@ public class Pretty extends TreeVisitor {
     }
 
     @Override
-    public boolean visit(ParameterDecl node) {
+    public boolean visit(ParameterDeclaration node) {
         result.append(node.name);
         if (node.typeDecl != null)
             result.append(" as ").append(node.typeDecl);
@@ -71,7 +71,22 @@ public class Pretty extends TreeVisitor {
     }
 
     @Override
-    public boolean visit(Name node) {
+    public boolean visit(QualifiedName node) {
+        Deque<SimpleName> deque = new ArrayDeque<>();
+        Name current = node;
+        while (current != null) {
+            deque.addFirst(current.getSimpleName());
+            if (current instanceof QualifiedName)
+                current = ((QualifiedName) current).qualifier;
+            else
+                current = null;
+        }
+        result.append(deque.stream().map(Objects::toString).collect(Collectors.joining(".")));
+        return false;
+    }
+
+    @Override
+    public boolean visit(SimpleName node) {
         result.append(node.literal);
         return false;
     }
@@ -126,13 +141,13 @@ public class Pretty extends TreeVisitor {
     }
 
     @Override
-    public boolean visit(ConstantExpr node) {
+    public boolean visit(ConstantExpression node) {
         result.append(node.value);
         return false;
     }
 
     @Override
-    public boolean visit(FunctionExpr node) {
+    public boolean visit(FunctionExpression node) {
         result.append("function");
         result.append("(");
         result.append(node.params.stream().map(Object::toString).collect(Collectors.joining(", ")));
@@ -140,12 +155,6 @@ public class Pretty extends TreeVisitor {
         if (node.typeDecl != null)
             result.append(" as ").append(node.typeDecl);
         result.append(" { ... }");
-        return false;
-    }
-
-    @Override
-    public boolean visit(IDExpr node) {
-        result.append(node.name);
         return false;
     }
 
@@ -262,7 +271,7 @@ public class Pretty extends TreeVisitor {
     }
 
     @Override
-    public boolean visit(VariableDecl node) {
+    public boolean visit(VariableDeclaration node) {
         result.append(node.declarator);
         if (node.declarator != Declarator.NONE)
             result.append(" ");

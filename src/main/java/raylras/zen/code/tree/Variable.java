@@ -6,7 +6,7 @@ public interface Variable {
 
     Declarator getDeclarator();
 
-    Name getName();
+    SimpleName getSimpleName();
 
     TypeLiteral getTypeDecl();
 

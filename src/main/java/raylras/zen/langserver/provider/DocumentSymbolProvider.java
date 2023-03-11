@@ -7,7 +7,7 @@ import org.eclipse.lsp4j.SymbolKind;
 import raylras.zen.code.Ranges;
 import raylras.zen.code.SourceUnit;
 import raylras.zen.code.tree.*;
-import raylras.zen.code.tree.stmt.VariableDecl;
+import raylras.zen.code.tree.stmt.VariableDeclaration;
 import raylras.zen.util.ArrayStack;
 import raylras.zen.util.Stack;
 
@@ -29,7 +29,8 @@ public class DocumentSymbolProvider extends TreeVisitor {
         return Collections.emptyList();
     }
 
-    private void push(Name name, TreeNode node, SymbolKind kind) {
+    private void push(SimpleName name, TreeNode node, SymbolKind kind) {
+        if (name == null || node == null) return;
         Range range = Ranges.toLSPRange(node.range);
         Range selectionRange = Ranges.toLSPRange(name.range);
         push(new DocumentSymbol(name.literal, kind, range, selectionRange));

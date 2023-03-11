@@ -1,8 +1,8 @@
 package raylras.zen.code.tree.expr;
 
 import raylras.zen.code.Range;
-import raylras.zen.code.tree.Name;
 import raylras.zen.code.tree.Pretty;
+import raylras.zen.code.tree.SimpleName;
 import raylras.zen.code.tree.TreeVisitor;
 
 /**
@@ -12,9 +12,9 @@ import raylras.zen.code.tree.TreeVisitor;
 public class MemberAccess extends Expression {
 
     public Expression left;
-    public Name right;
+    public SimpleName right;
 
-    public MemberAccess(Expression left, Name right, Range range) {
+    public MemberAccess(Expression left, SimpleName right, Range range) {
         super(range);
         this.left = left;
         this.right = right;

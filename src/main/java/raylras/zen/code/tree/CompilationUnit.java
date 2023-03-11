@@ -13,14 +13,14 @@ import java.util.List;
  */
 public class CompilationUnit extends TreeNode {
 
-    public List<ImportDecl> imports;
-    public List<ClassDecl> classes;
-    public List<FunctionDecl> functions;
+    public List<ImportDeclaration> imports;
+    public List<ClassDeclaration> classes;
+    public List<FunctionDeclaration> functions;
     public List<Statement> statements;
     public LocalScope localScope;
     public SourceUnit sourceUnit;
 
-    public CompilationUnit(List<ImportDecl> imports, List<ClassDecl> classes, List<FunctionDecl> functions, List<Statement> statements, Range range) {
+    public CompilationUnit(List<ImportDeclaration> imports, List<ClassDeclaration> classes, List<FunctionDeclaration> functions, List<Statement> statements, Range range) {
         super(range);
         this.imports = imports;
         this.classes = classes;

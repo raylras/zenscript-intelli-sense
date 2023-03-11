@@ -9,8 +9,8 @@ public class ArrayType extends Type {
     }
 
     @Override
-    public Tag getTag() {
-        return Tag.ARRAY;
+    public Kind getKind() {
+        return Kind.ARRAY;
     }
 
     @Override

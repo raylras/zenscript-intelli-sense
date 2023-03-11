@@ -2,20 +2,20 @@ package raylras.zen.code.type;
 
 public class PrimitiveType extends Type {
 
-    public Tag tag;
+    public Kind kind;
 
-    public PrimitiveType(Tag tag) {
-        this.tag = tag;
+    public PrimitiveType(Kind kind) {
+        this.kind = kind;
     }
 
     @Override
-    public Tag getTag() {
-        return tag;
+    public Kind getKind() {
+        return kind;
     }
 
     @Override
     public String toString() {
-        switch (tag) {
+        switch (kind) {
             case BOOL:
                 return "bool";
             case BYTE:

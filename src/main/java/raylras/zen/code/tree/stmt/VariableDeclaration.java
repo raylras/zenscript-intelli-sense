@@ -1,36 +1,37 @@
-package raylras.zen.code.tree;
+package raylras.zen.code.tree.stmt;
 
 import raylras.zen.code.Range;
 import raylras.zen.code.symbol.VariableSymbol;
+import raylras.zen.code.tree.*;
 import raylras.zen.code.tree.expr.Expression;
 
 /**
- * Represents a parameter such as "name as type = expr".
- * e.g. "i", "i as int = 2".
- *
- * @see FunctionDecl
+ * Represents a statement such as "var name as type = expr".
+ * e.g. "var a;", "val b as any = 1;".
  */
-public class ParameterDecl extends TreeNode implements Variable, Declaration {
+public class VariableDeclaration extends Statement implements Variable, Declaration {
 
-    public Name name;
+    public Declarator declarator;
+    public SimpleName name;
     public TypeLiteral typeDecl;
-    public Expression defaultValue;
+    public Expression init;
     public VariableSymbol symbol;
 
-    public ParameterDecl(Name name, TypeLiteral typeDecl, Expression defaultValue, Range range) {
+    public VariableDeclaration(Declarator declarator, SimpleName name, TypeLiteral typeDecl, Expression init, Range range) {
         super(range);
+        this.declarator = declarator;
         this.name = name;
         this.typeDecl = typeDecl;
-        this.defaultValue = defaultValue;
+        this.init = init;
     }
 
     @Override
     public Declarator getDeclarator() {
-        return Declarator.NONE;
+        return declarator;
     }
 
     @Override
-    public Name getName() {
+    public SimpleName getSimpleName() {
         return name;
     }
 
@@ -41,7 +42,7 @@ public class ParameterDecl extends TreeNode implements Variable, Declaration {
 
     @Override
     public Expression getInit() {
-        return defaultValue;
+        return init;
     }
 
     @Override
@@ -50,7 +51,7 @@ public class ParameterDecl extends TreeNode implements Variable, Declaration {
         if (visitChildren) {
             acceptChild(visitor, name);
             acceptChild(visitor, typeDecl);
-            acceptChild(visitor, defaultValue);
+            acceptChild(visitor, init);
         }
         visitor.afterVisit(this);
     }

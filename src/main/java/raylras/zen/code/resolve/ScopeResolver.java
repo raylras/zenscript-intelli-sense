@@ -8,10 +8,11 @@ import raylras.zen.code.symbol.FunctionSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.VariableSymbol;
 import raylras.zen.code.tree.*;
-import raylras.zen.code.tree.expr.FunctionExpr;
+import raylras.zen.code.tree.expr.FunctionExpression;
+import raylras.zen.code.tree.expr.MemberAccess;
 import raylras.zen.code.tree.stmt.Block;
 import raylras.zen.code.tree.stmt.Foreach;
-import raylras.zen.code.tree.stmt.VariableDecl;
+import raylras.zen.code.tree.stmt.VariableDeclaration;
 import raylras.zen.code.tree.stmt.While;
 import raylras.zen.util.ArrayStack;
 import raylras.zen.util.Stack;
@@ -30,9 +31,8 @@ public class ScopeResolver extends TreeVisitor implements Resolver {
 
     private void enterSymbol(Symbol symbol) {
         Scope currentScope = stack.peek();
-        if (currentScope != null) {
-            currentScope.add(symbol);
-        }
+        if (currentScope == null) return;
+        currentScope.add(symbol);
     }
 
     private void enterScope(LocalScope scope) {
@@ -56,13 +56,13 @@ public class ScopeResolver extends TreeVisitor implements Resolver {
     }
 
     @Override
-    public boolean visit(ImportDecl node) {
+    public boolean visit(ImportDeclaration node) {
         // TODO: handle imports
         return false;
     }
 
     @Override
-    public boolean visit(ClassDecl node) {
+    public boolean visit(ClassDeclaration node) {
         node.symbol = new ClassSymbol(node.name.literal, stack.peek(), node);
         enterSymbol(node.symbol);
         node.localScope = new LocalScope(stack.peek(), node);
@@ -71,12 +71,12 @@ public class ScopeResolver extends TreeVisitor implements Resolver {
     }
 
     @Override
-    public void afterVisit(ClassDecl node) {
+    public void afterVisit(ClassDeclaration node) {
         exitScope();
     }
 
     @Override
-    public boolean visit(ConstructorDecl node) {
+    public boolean visit(ConstructorDeclaration node) {
         node.symbol = new FunctionSymbol(node.name.literal, stack.peek(), node);
         enterSymbol(node.symbol);
         node.localScope = new LocalScope(stack.peek(), node);
@@ -85,12 +85,12 @@ public class ScopeResolver extends TreeVisitor implements Resolver {
     }
 
     @Override
-    public void afterVisit(ConstructorDecl node) {
+    public void afterVisit(ConstructorDeclaration node) {
         exitScope();
     }
 
     @Override
-    public boolean visit(FunctionDecl node) {
+    public boolean visit(FunctionDeclaration node) {
         node.symbol = new FunctionSymbol(node.name.literal, stack.peek(), node);
         enterSymbol(node.symbol);
         node.localScope = new LocalScope(stack.peek(), node);
@@ -99,26 +99,26 @@ public class ScopeResolver extends TreeVisitor implements Resolver {
     }
 
     @Override
-    public void afterVisit(FunctionDecl node) {
+    public void afterVisit(FunctionDeclaration node) {
         exitScope();
     }
 
     @Override
-    public boolean visit(ParameterDecl node) {
+    public boolean visit(ParameterDeclaration node) {
         node.symbol = new VariableSymbol(node.name.literal, stack.peek(), node);
         enterSymbol(node.symbol);
         return true;
     }
 
     @Override
-    public boolean visit(FunctionExpr node) {
+    public boolean visit(FunctionExpression node) {
         node.localScope = new LocalScope(stack.peek(), node);
         enterScope(node.localScope);
         return true;
     }
 
     @Override
-    public void afterVisit(FunctionExpr node) {
+    public void afterVisit(FunctionExpression node) {
         exitScope();
     }
 
@@ -147,7 +147,7 @@ public class ScopeResolver extends TreeVisitor implements Resolver {
     }
 
     @Override
-    public boolean visit(VariableDecl node) {
+    public boolean visit(VariableDeclaration node) {
         node.symbol = new VariableSymbol(node.name.literal, stack.peek(), node);
         enterSymbol(node.symbol);
         return true;

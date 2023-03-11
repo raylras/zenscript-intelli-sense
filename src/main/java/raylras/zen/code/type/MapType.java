@@ -11,8 +11,8 @@ public class MapType extends Type {
     }
 
     @Override
-    public Tag getTag() {
-        return Tag.MAP;
+    public Kind getKind() {
+        return Kind.MAP;
     }
 
     @Override

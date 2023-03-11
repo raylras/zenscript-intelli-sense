@@ -45,9 +45,9 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
                 cst.getSymbol().getCharPositionInLine() + cst.getText().length() + COLUMN_OFFSET);
     }
 
-    private Name getName(TerminalNode node) {
+    private SimpleName getSimpleName(TerminalNode node) {
         if (node == null) return null;
-        return new Name(node.getText(), getRange(node));
+        return new SimpleName(node.getText(), getRange(node));
     }
 
     private Unary.Operator getUnaryOp(Token token) {
@@ -198,60 +198,66 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     @Override
     public CompilationUnit visitCompilationUnit(ZenScriptParser.CompilationUnitContext ctx) {
         if (ctx == null) return null;
-        List<ImportDecl> imports = ctx.importDeclaration().stream().map(this::visitImportDeclaration).filter(Objects::nonNull).collect(Collectors.toList());
-        List<ClassDecl> classes = ctx.classDeclaration().stream().map(this::visitClassDeclaration).filter(Objects::nonNull).collect(Collectors.toList());
-        List<FunctionDecl> functions = ctx.functionDeclaration().stream().map(this::visitFunctionDeclaration).filter(Objects::nonNull).collect(Collectors.toList());
+        List<ImportDeclaration> imports = ctx.importDeclaration().stream().map(this::visitImportDeclaration).filter(Objects::nonNull).collect(Collectors.toList());
+        List<ClassDeclaration> classes = ctx.classDeclaration().stream().map(this::visitClassDeclaration).filter(Objects::nonNull).collect(Collectors.toList());
+        List<FunctionDeclaration> functions = ctx.functionDeclaration().stream().map(this::visitFunctionDeclaration).filter(Objects::nonNull).collect(Collectors.toList());
         List<Statement> statements = ctx.statement().stream().map(this::visitStatement).filter(Objects::nonNull).collect(Collectors.toList());
         Range range = getRange(ctx);
         return new CompilationUnit(imports, classes, functions, statements, range);
     }
 
     @Override
-    public ImportDecl visitImportDeclaration(ZenScriptParser.ImportDeclarationContext ctx) {
+    public ImportDeclaration visitImportDeclaration(ZenScriptParser.ImportDeclarationContext ctx) {
         if (ctx == null) return null;
-        List<Name> fullName = visitClassName(ctx.className());
-        Name alias = visitAlias(ctx.alias());
+        Name name = visitQualifiedName(ctx.qualifiedName());
+        SimpleName alias = visitAlias(ctx.alias());
         Range range = getRange(ctx);
-        return new ImportDecl(fullName, alias, range);
+        return new ImportDeclaration(name, alias, range);
     }
 
     @Override
-    public List<Name> visitClassName(ZenScriptParser.ClassNameContext ctx) {
-        if (ctx == null) return Collections.emptyList();
-        return ctx.IDENTIFIER().stream().map(this::getName).filter(Objects::nonNull).collect(Collectors.toList());
-    }
-
-    @Override
-    public Name visitAlias(ZenScriptParser.AliasContext ctx) {
+    public Name visitQualifiedName(ZenScriptParser.QualifiedNameContext ctx) {
         if (ctx == null) return null;
-        return getName(ctx.IDENTIFIER());
+        List<SimpleName> nameList = ctx.IDENTIFIER().stream().map(this::getSimpleName).filter(Objects::nonNull).collect(Collectors.toList());
+        Name name = nameList.get(0);
+        for (int i = 1; i < nameList.size(); i++) {
+            SimpleName next = nameList.get(i);
+            name = new QualifiedName(name, next, new Range(name.range.startLine, name.range.startColumn, next.range.endLine, next.range.endColumn));
+        }
+        return name;
     }
 
     @Override
-    public FunctionDecl visitFunctionDeclaration(ZenScriptParser.FunctionDeclarationContext ctx) {
+    public SimpleName visitAlias(ZenScriptParser.AliasContext ctx) {
         if (ctx == null) return null;
-        Name name = getName(ctx.IDENTIFIER());
-        List<ParameterDecl> params = visitParameterList(ctx.parameterList());
+        return getSimpleName(ctx.IDENTIFIER());
+    }
+
+    @Override
+    public FunctionDeclaration visitFunctionDeclaration(ZenScriptParser.FunctionDeclarationContext ctx) {
+        if (ctx == null) return null;
+        SimpleName name = getSimpleName(ctx.IDENTIFIER());
+        List<ParameterDeclaration> params = visitParameterList(ctx.parameterList());
         TypeLiteral returnType = visitTypeLiteral(ctx.typeLiteral());
         List<Statement> statements = visitFunctionBody(ctx.functionBody());
         Range range = getRange(ctx);
-        return new FunctionDecl(name, params, returnType, statements, range);
+        return new FunctionDeclaration(name, params, returnType, statements, range);
     }
 
     @Override
-    public List<ParameterDecl> visitParameterList(ZenScriptParser.ParameterListContext ctx) {
+    public List<ParameterDeclaration> visitParameterList(ZenScriptParser.ParameterListContext ctx) {
         if (ctx == null) return Collections.emptyList();
         return ctx.parameter().stream().map(this::visitParameter).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     @Override
-    public ParameterDecl visitParameter(ZenScriptParser.ParameterContext ctx) {
+    public ParameterDeclaration visitParameter(ZenScriptParser.ParameterContext ctx) {
         if (ctx == null) return null;
-        Name name = getName(ctx.IDENTIFIER());
+        SimpleName name = getSimpleName(ctx.IDENTIFIER());
         TypeLiteral typeDecl = visitTypeLiteral(ctx.typeLiteral());
         Expression defaultValue = visitDefaultValue(ctx.defaultValue());
         Range range = getRange(ctx);
-        return new ParameterDecl(name, typeDecl, defaultValue, range);
+        return new ParameterDeclaration(name, typeDecl, defaultValue, range);
     }
 
     @Override
@@ -267,24 +273,24 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     }
 
     @Override
-    public ClassDecl visitClassDeclaration(ZenScriptParser.ClassDeclarationContext ctx) {
+    public ClassDeclaration visitClassDeclaration(ZenScriptParser.ClassDeclarationContext ctx) {
         if (ctx == null) return null;
-        Name name = getName(ctx.IDENTIFIER());
-        List<VariableDecl> fields = ctx.variableDeclaration().stream().map(this::visitVariableDeclaration).filter(Objects::nonNull).collect(Collectors.toList());
-        List<ConstructorDecl> constructors = ctx.constructorDeclaration().stream().map(this::visitConstructorDeclaration).filter(Objects::nonNull).collect(Collectors.toList());
-        List<FunctionDecl> methods = ctx.functionDeclaration().stream().map(this::visitFunctionDeclaration).filter(Objects::nonNull).collect(Collectors.toList());
+        SimpleName name = getSimpleName(ctx.IDENTIFIER());
+        List<VariableDeclaration> fields = ctx.variableDeclaration().stream().map(this::visitVariableDeclaration).filter(Objects::nonNull).collect(Collectors.toList());
+        List<ConstructorDeclaration> constructors = ctx.constructorDeclaration().stream().map(this::visitConstructorDeclaration).filter(Objects::nonNull).collect(Collectors.toList());
+        List<FunctionDeclaration> methods = ctx.functionDeclaration().stream().map(this::visitFunctionDeclaration).filter(Objects::nonNull).collect(Collectors.toList());
         Range range = getRange(ctx);
-        return new ClassDecl(name, fields, constructors, methods, range);
+        return new ClassDeclaration(name, fields, constructors, methods, range);
     }
 
     @Override
-    public ConstructorDecl visitConstructorDeclaration(ZenScriptParser.ConstructorDeclarationContext ctx) {
+    public ConstructorDeclaration visitConstructorDeclaration(ZenScriptParser.ConstructorDeclarationContext ctx) {
         if (ctx == null) return null;
-        Name name = getName(ctx.ZEN_CONSTRUCTOR());
-        List<ParameterDecl> params = visitParameterList(ctx.parameterList());
+        SimpleName name = getSimpleName(ctx.ZEN_CONSTRUCTOR());
+        List<ParameterDeclaration> params = visitParameterList(ctx.parameterList());
         List<Statement> statements = visitConstructorBody(ctx.constructorBody());
         Range range = getRange(ctx);
-        return new ConstructorDecl(name, params, statements, range);
+        return new ConstructorDeclaration(name, params, statements, range);
     }
 
     @Override
@@ -294,14 +300,14 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     }
 
     @Override
-    public VariableDecl visitVariableDeclaration(ZenScriptParser.VariableDeclarationContext ctx) {
+    public VariableDeclaration visitVariableDeclaration(ZenScriptParser.VariableDeclarationContext ctx) {
         if (ctx == null) return null;
         Declarator declarator = getDeclarator(ctx.Declarator);
-        Name name = getName(ctx.IDENTIFIER());
+        SimpleName name = getSimpleName(ctx.IDENTIFIER());
         TypeLiteral typeDecl = visitTypeLiteral(ctx.typeLiteral());
         Expression init = visitInitializer(ctx.initializer());
         Range range = getRange(ctx);
-        return new VariableDecl(declarator, name, typeDecl, init, range);
+        return new VariableDeclaration(declarator, name, typeDecl, init, range);
     }
 
     @Override
@@ -371,7 +377,7 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     @Override
     public Foreach visitForeachStatement(ZenScriptParser.ForeachStatementContext ctx) {
         if (ctx == null) return null;
-        List<VariableDecl> variables = visitSimpleVariableDeclarations(ctx.simpleVariableDeclarations());
+        List<VariableDeclaration> variables = visitSimpleVariableDeclarations(ctx.simpleVariableDeclarations());
         Expression expr = visitExpression(ctx.expression());
         List<Statement> statements = visitForeachBody(ctx.foreachBody());
         Range range = getRange(ctx);
@@ -379,14 +385,14 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     }
 
     @Override
-    public List<VariableDecl> visitSimpleVariableDeclarations(ZenScriptParser.SimpleVariableDeclarationsContext ctx) {
+    public List<VariableDeclaration> visitSimpleVariableDeclarations(ZenScriptParser.SimpleVariableDeclarationsContext ctx) {
         if (ctx == null) return Collections.emptyList();
         return ctx.IDENTIFIER().stream().map(id -> {
             if (id == null) return null;
             Declarator declarator = Declarator.NONE;
-            Name name = getName(id);
+            SimpleName name = getSimpleName(id);
             Range range = getRange(id);
-            return new VariableDecl(declarator, name, null, null, range);
+            return new VariableDeclaration(declarator, name, null, null, range);
         }).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
@@ -419,7 +425,7 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     }
 
     @Override
-    public Ternary visitTernaryExpr(ZenScriptParser.TernaryExprContext ctx) {
+    public Ternary visitTernary(ZenScriptParser.TernaryContext ctx) {
         if (ctx == null) return null;
         Expression condition = visitExpression(ctx.Condition);
         Expression truePart = visitExpression(ctx.TruePart);
@@ -429,16 +435,16 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     }
 
     @Override
-    public MemberAccess visitMemberAccessExpr(ZenScriptParser.MemberAccessExprContext ctx) {
+    public MemberAccess visitMemberAccess(ZenScriptParser.MemberAccessContext ctx) {
         if (ctx == null) return null;
         Expression left = visitExpression(ctx.Left);
-        Name right = getName(ctx.IDENTIFIER());
+        SimpleName right = getSimpleName(ctx.IDENTIFIER());
         Range range = getRange(ctx);
         return new MemberAccess(left, right, range);
     }
 
     @Override
-    public MapLiteral visitMapLiteralExpr(ZenScriptParser.MapLiteralExprContext ctx) {
+    public MapLiteral visitMapInitializer(ZenScriptParser.MapInitializerContext ctx) {
         if (ctx == null) return null;
         List<MapEntry> entries = visitMapEntryList(ctx.mapEntryList());
         Range range = getRange(ctx);
@@ -448,14 +454,14 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     @Override
     public MapEntry visitMapEntry(ZenScriptParser.MapEntryContext ctx) {
         if (ctx == null) return null;
-        Expression key = visitExpression(ctx.K);
-        Expression value = visitExpression(ctx.V);
+        Expression key = visitExpression(ctx.Key);
+        Expression value = visitExpression(ctx.Value);
         Range range = getRange(ctx);
         return new MapEntry(key, value, range);
     }
 
     @Override
-    public BracketHandler visitBracketHandlerExpr(ZenScriptParser.BracketHandlerExprContext ctx) {
+    public BracketHandler visitBracketHandler(ZenScriptParser.BracketHandlerContext ctx) {
         if (ctx == null) return null;
         String literal = ctx.getText();
         Range range = getRange(ctx);
@@ -463,7 +469,7 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     }
 
     @Override
-    public ArrayLiteral visitArrayLiteralExpr(ZenScriptParser.ArrayLiteralExprContext ctx) {
+    public ArrayLiteral visitArrayInitializer(ZenScriptParser.ArrayInitializerContext ctx) {
         if (ctx == null) return null;
         List<Expression> elements = visitExpressionList(ctx.expressionList());
         Range range = getRange(ctx);
@@ -471,7 +477,7 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     }
 
     @Override
-    public IntRange visitIntRangeExpr(ZenScriptParser.IntRangeExprContext ctx) {
+    public IntRange visitIntRange(ZenScriptParser.IntRangeContext ctx) {
         if (ctx == null) return null;
         Expression from = visitExpression(ctx.From);
         Expression to = visitExpression(ctx.To);
@@ -492,7 +498,7 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     }
 
     @Override
-    public Call visitCallExpr(ZenScriptParser.CallExprContext ctx) {
+    public Call visitCall(ZenScriptParser.CallContext ctx) {
         if (ctx == null) return null;
         Expression left = visitExpression(ctx.Left);
         List<Expression> params = visitExpressionList(ctx.expressionList());
@@ -501,7 +507,7 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     }
 
     @Override
-    public ArrayAccess visitArrayIndexExpr(ZenScriptParser.ArrayIndexExprContext ctx) {
+    public ArrayAccess visitArrayIndex(ZenScriptParser.ArrayIndexContext ctx) {
         if (ctx == null) return null;
         Expression left = visitExpression(ctx.Left);
         Expression index = visitExpression(ctx.Index);
@@ -510,17 +516,17 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     }
 
     @Override
-    public FunctionExpr visitFunctionExpr(ZenScriptParser.FunctionExprContext ctx) {
+    public FunctionExpression visitFunctionExprission(ZenScriptParser.FunctionExprissionContext ctx) {
         if (ctx == null) return null;
-        List<ParameterDecl> params = visitParameterList(ctx.parameterList());
+        List<ParameterDeclaration> params = visitParameterList(ctx.parameterList());
         TypeLiteral typeDecl = visitTypeLiteral(ctx.typeLiteral());
         List<Statement> statements = visitFunctionBody(ctx.functionBody());
         Range range = getRange(ctx);
-        return new FunctionExpr(params, typeDecl, statements, range);
+        return new FunctionExpression(params, typeDecl, statements, range);
     }
 
     @Override
-    public Binary visitBinaryExpr(ZenScriptParser.BinaryExprContext ctx) {
+    public Binary visitBinary(ZenScriptParser.BinaryContext ctx) {
         if (ctx == null) return null;
         Expression left = visitExpression(ctx.Left);
         Expression right = visitExpression(ctx.Right);
@@ -530,7 +536,7 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     }
 
     @Override
-    public Assignment visitAssignmentExpr(ZenScriptParser.AssignmentExprContext ctx) {
+    public Assignment visitAssignment(ZenScriptParser.AssignmentContext ctx) {
         if (ctx == null) return null;
         Expression left = visitExpression(ctx.Left);
         Expression right = visitExpression(ctx.Right);
@@ -540,7 +546,7 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     }
 
     @Override
-    public Unary visitUnaryExpr(ZenScriptParser.UnaryExprContext ctx) {
+    public Unary visitUnary(ZenScriptParser.UnaryContext ctx) {
         if (ctx == null) return null;
         Expression expr = visitExpression(ctx.expression());
         Unary.Operator op = getUnaryOp(ctx.Op);
@@ -549,7 +555,7 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     }
 
     @Override
-    public Parens visitParensExpr(ZenScriptParser.ParensExprContext ctx) {
+    public Parens visitParens(ZenScriptParser.ParensContext ctx) {
         if (ctx == null) return null;
         Expression expr = visitExpression(ctx.expression());
         Range range = getRange(ctx);
@@ -557,90 +563,88 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     }
 
     @Override
-    public This visitThisExpr(ZenScriptParser.ThisExprContext ctx) {
+    public This visitThis(ZenScriptParser.ThisContext ctx) {
         if (ctx == null) return null;
         Range range = getRange(ctx);
         return new This(range);
     }
 
     @Override
-    public Super visitSuperExpr(ZenScriptParser.SuperExprContext ctx) {
+    public Super visitSuper(ZenScriptParser.SuperContext ctx) {
         if (ctx == null) return null;
         Range range = getRange(ctx);
         return new Super(range);
     }
 
     @Override
-    public ConstantExpr visitTrueExpr(ZenScriptParser.TrueExprContext ctx) {
+    public ConstantExpression visitTrueLiteral(ZenScriptParser.TrueLiteralContext ctx) {
         if (ctx == null) return null;
         Range range = getRange(ctx);
-        return new ConstantExpr(Boolean.TRUE, Type.Tag.BOOL, range);
+        return new ConstantExpression(Boolean.TRUE, Type.Kind.BOOL, range);
     }
 
     @Override
-    public ConstantExpr visitFalseExpr(ZenScriptParser.FalseExprContext ctx) {
+    public ConstantExpression visitFalseLiteral(ZenScriptParser.FalseLiteralContext ctx) {
         if (ctx == null) return null;
         Range range = getRange(ctx);
-        return new ConstantExpr(Boolean.FALSE, Type.Tag.BOOL, range);
+        return new ConstantExpression(Boolean.FALSE, Type.Kind.BOOL, range);
     }
 
     @Override
-    public ConstantExpr visitStringExpr(ZenScriptParser.StringExprContext ctx) {
+    public ConstantExpression visitStringLiteral(ZenScriptParser.StringLiteralContext ctx) {
         if (ctx == null) return null;
         String value = ctx.getText();
         Range range = getRange(ctx);
-        return new ConstantExpr(value, Type.Tag.STRING, range);
+        return new ConstantExpression(value, Type.Kind.STRING, range);
     }
 
     @Override
-    public ConstantExpr visitNullExpr(ZenScriptParser.NullExprContext ctx) {
+    public ConstantExpression visitNullLiteral(ZenScriptParser.NullLiteralContext ctx) {
         if (ctx == null) return null;
         Range range = getRange(ctx);
-        return new ConstantExpr(null, Type.Tag.ANY, range);
+        return new ConstantExpression(null, Type.Kind.ANY, range);
     }
 
     @Override
-    public ConstantExpr visitIntExpr(ZenScriptParser.IntExprContext ctx) {
+    public ConstantExpression visitIntLiteral(ZenScriptParser.IntLiteralContext ctx) {
         if (ctx == null) return null;
         Integer value = Integer.decode(ctx.getText());
         Range range = getRange(ctx);
-        return new ConstantExpr(value, Type.Tag.INT, range);
+        return new ConstantExpression(value, Type.Kind.INT, range);
     }
 
     @Override
-    public ConstantExpr visitDoubleExpr(ZenScriptParser.DoubleExprContext ctx) {
+    public ConstantExpression visitDoubleLiteral(ZenScriptParser.DoubleLiteralContext ctx) {
         if (ctx == null) return null;
         Double value = Double.valueOf(ctx.getText());
         Range range = getRange(ctx);
-        return new ConstantExpr(value, Type.Tag.DOUBLE, range);
+        return new ConstantExpression(value, Type.Kind.DOUBLE, range);
     }
 
     @Override
-    public ConstantExpr visitFloatExpr(ZenScriptParser.FloatExprContext ctx) {
+    public ConstantExpression visitFloatLiteral(ZenScriptParser.FloatLiteralContext ctx) {
         if (ctx == null) return null;
         Float value = Float.valueOf(ctx.getText());
         Range range = getRange(ctx);
-        return new ConstantExpr(value, Type.Tag.FLOAT, range);
+        return new ConstantExpression(value, Type.Kind.FLOAT, range);
     }
 
     @Override
-    public ConstantExpr visitLongExpr(ZenScriptParser.LongExprContext ctx) {
+    public ConstantExpression visitLongLiteral(ZenScriptParser.LongLiteralContext ctx) {
         if (ctx == null) return null;
         Long value = Long.decode(ctx.getText());
         Range range = getRange(ctx);
-        return new ConstantExpr(value, Type.Tag.LONG, range);
+        return new ConstantExpression(value, Type.Kind.LONG, range);
     }
 
     @Override
-    public IDExpr visitIDExpr(ZenScriptParser.IDExprContext ctx) {
+    public SimpleName visitSimpleNameExpression(ZenScriptParser.SimpleNameExpressionContext ctx) {
         if (ctx == null) return null;
-        Name name = getName(ctx.IDENTIFIER());
-        Range range = getRange(ctx);
-        return new IDExpr(name, range);
+        return getSimpleName(ctx.IDENTIFIER());
     }
 
     @Override
-    public TypeCast visitTypeCastExpr(ZenScriptParser.TypeCastExprContext ctx) {
+    public TypeCast visitTypeCast(ZenScriptParser.TypeCastContext ctx) {
         if (ctx == null) return null;
         Expression expr = visitExpression(ctx.expression());
         TypeLiteral type = visitTypeLiteral(ctx.typeLiteral());
@@ -688,52 +692,52 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     public TypeLiteral visitPrimitiveType(ZenScriptParser.PrimitiveTypeContext ctx) {
         if (ctx == null) return null;
         String literal = ctx.getText();
-        Type.Tag tag;
+        Type.Kind kind;
         switch (ctx.start.getType()) {
             case ZenScriptLexer.ANY:
-                tag = Type.Tag.ANY;
+                kind = Type.Kind.ANY;
                 break;
 
             case ZenScriptLexer.BYTE:
-                tag = Type.Tag.BYTE;
+                kind = Type.Kind.BYTE;
                 break;
 
             case ZenScriptLexer.SHORT:
-                tag = Type.Tag.SHORT;
+                kind = Type.Kind.SHORT;
                 break;
 
             case ZenScriptLexer.INT:
-                tag = Type.Tag.INT;
+                kind = Type.Kind.INT;
                 break;
 
             case ZenScriptLexer.LONG:
-                tag = Type.Tag.LONG;
+                kind = Type.Kind.LONG;
                 break;
 
             case ZenScriptLexer.FLOAT:
-                tag = Type.Tag.FLOAT;
+                kind = Type.Kind.FLOAT;
                 break;
 
             case ZenScriptLexer.DOUBLE:
-                tag = Type.Tag.DOUBLE;
+                kind = Type.Kind.DOUBLE;
                 break;
 
             case ZenScriptLexer.BOOL:
-                tag = Type.Tag.BOOL;
+                kind = Type.Kind.BOOL;
                 break;
 
             case ZenScriptLexer.VOID:
-                tag = Type.Tag.VOID;
+                kind = Type.Kind.VOID;
                 break;
 
             case ZenScriptLexer.STRING:
-                tag = Type.Tag.STRING;
+                kind = Type.Kind.STRING;
                 break;
 
             default:
-                tag = Type.Tag.NO_TAG;
+                kind = Type.Kind.NO_KIND;
         }
-        Type type = (tag != Type.Tag.NO_TAG) ? new PrimitiveType(tag) : NoType.INSTANCE;
+        Type type = (kind != Type.Kind.NO_KIND) ? new PrimitiveType(kind) : NoType.INSTANCE;
         Range range = getRange(ctx);
         return new TypeLiteral(literal, type, range);
     }
@@ -751,8 +755,8 @@ public class TreeBuilder extends ZenScriptParserBaseVisitor<Object> {
     public TypeLiteral visitMapType(ZenScriptParser.MapTypeContext ctx) {
         if (ctx == null) return null;
         String literal = ctx.getText();
-        Type keyType = getType(ctx.K);
-        Type valueType = getType(ctx.V);
+        Type keyType = getType(ctx.Key);
+        Type valueType = getType(ctx.Value);
         Type type = new MapType(keyType, valueType);
         Range range = getRange(ctx);
         return new TypeLiteral(literal, type, range);

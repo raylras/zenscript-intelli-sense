@@ -31,51 +31,59 @@ public abstract class TreeVisitor {
 
     }
 
-    public boolean visit(ImportDecl node) {
+    public boolean visit(ImportDeclaration node) {
         return true;
     }
 
-    public void afterVisit(ImportDecl node) {
+    public void afterVisit(ImportDeclaration node) {
 
     }
 
-    public boolean visit(ClassDecl node) {
+    public boolean visit(ClassDeclaration node) {
         return true;
     }
 
-    public void afterVisit(ClassDecl node) {
+    public void afterVisit(ClassDeclaration node) {
 
     }
 
-    public boolean visit(ConstructorDecl node) {
+    public boolean visit(ConstructorDeclaration node) {
         return true;
     }
 
-    public void afterVisit(ConstructorDecl node) {
+    public void afterVisit(ConstructorDeclaration node) {
 
     }
 
-    public boolean visit(FunctionDecl node) {
+    public boolean visit(FunctionDeclaration node) {
         return true;
     }
 
-    public void afterVisit(FunctionDecl node) {
+    public void afterVisit(FunctionDeclaration node) {
 
     }
 
-    public boolean visit(ParameterDecl node) {
+    public boolean visit(ParameterDeclaration node) {
         return true;
     }
 
-    public void afterVisit(ParameterDecl node) {
+    public void afterVisit(ParameterDeclaration node) {
 
     }
 
-    public boolean visit(Name node) {
+    public boolean visit(SimpleName node) {
         return true;
     }
 
-    public void afterVisit(Name node) {
+    public void afterVisit(SimpleName node) {
+
+    }
+
+    public boolean visit(QualifiedName node) {
+        return true;
+    }
+
+    public void afterVisit(QualifiedName node) {
 
     }
 
@@ -135,27 +143,19 @@ public abstract class TreeVisitor {
 
     }
 
-    public boolean visit(ConstantExpr node) {
+    public boolean visit(ConstantExpression node) {
         return true;
     }
 
-    public void afterVisit(ConstantExpr node) {
+    public void afterVisit(ConstantExpression node) {
 
     }
 
-    public boolean visit(FunctionExpr node) {
+    public boolean visit(FunctionExpression node) {
         return true;
     }
 
-    public void afterVisit(FunctionExpr node) {
-
-    }
-
-    public boolean visit(IDExpr node) {
-        return true;
-    }
-
-    public void afterVisit(IDExpr node) {
+    public void afterVisit(FunctionExpression node) {
 
     }
 
@@ -294,11 +294,11 @@ public abstract class TreeVisitor {
 
     }
 
-    public boolean visit(VariableDecl node) {
+    public boolean visit(VariableDeclaration node) {
         return true;
     }
 
-    public void afterVisit(VariableDecl node) {
+    public void afterVisit(VariableDeclaration node) {
 
     }
 

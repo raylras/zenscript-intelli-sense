@@ -12,10 +12,10 @@ compilationUnit
     ;
 
 importDeclaration
-    : 'import' className ('as' alias)? ';'
+    : 'import' qualifiedName ('as' alias)? ';'
     ;
 
-className
+qualifiedName
     : IDENTIFIER ('.' IDENTIFIER)*
     ;
 
@@ -124,42 +124,42 @@ expressionStatement
     ;
 
 expression
-    : 'function' '(' parameterList? ')' ('as' typeLiteral)? functionBody # FunctionExpr
-    | Left=expression '(' expressionList? ')' # CallExpr
-    | Left=expression Op='.' IDENTIFIER # MemberAccessExpr
-    | Left=expression '[' Index=expression ']' # ArrayIndexExpr
-    | expression 'as' typeLiteral # TypeCastExpr
-    | <assoc=right> Op=('!' | '-' | '+') expression # UnaryExpr
-    | Left=expression Op=('*' | '/' | '%') Right=expression # BinaryExpr
-    | Left=expression Op=('+' | '-') Right=expression # BinaryExpr
-    | Left=expression Op='~' Right=expression # BinaryExpr
-    | Left=expression Op=('<' | '<=' | '>' | '>=') Right=expression # BinaryExpr
-    | Left=expression Op=('==' | '!=') Right=expression # BinaryExpr
-    | Left=expression Op='instanceof' Right=expression # BinaryExpr
-    | Left=expression Op=('in' | 'has') Right=expression # BinaryExpr
-    | Left=expression Op='&' Right=expression # BinaryExpr
-    | Left=expression Op='|' Right=expression # BinaryExpr
-    | Left=expression Op='^'Right=expression # BinaryExpr
-    | Left=expression Op='&&' Right=expression # BinaryExpr
-    | Left=expression Op='||' Right=expression # BinaryExpr
-    | <assoc=right> Condition=expression '?' TruePart=expression ':' FalsePart=expression # TernaryExpr
-    | <assoc=right> Left=expression Op=('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '~=' | '&=' | '|=' | '^=') Right=expression # AssignmentExpr
-    | '<' (~'>')*? '>' # BracketHandlerExpr
-    | From=expression Op=('..' | 'to') To=expression # IntRangeExpr
-    | '[' expressionList? ','? ']' # ArrayLiteralExpr
-    | '{' mapEntryList? ','? '}' # MapLiteralExpr
-    | '(' expression ')' # ParensExpr
-    | 'this' # ThisExpr
-    | 'super' # SuperExpr
-    | INT_LITERAL # IntExpr
-    | LONG_LITERAL # LongExpr
-    | FLOAT_LITERAL # FloatExpr
-    | DOUBLE_LITERAL # DoubleExpr
-    | STRING_LITERAL # StringExpr
-    | TRUE_LITERAL # TrueExpr
-    | FALSE_LITERAL # FalseExpr
-    | NULL_LITERAL # NullExpr
-    | IDENTIFIER # IDExpr
+    : 'function' '(' parameterList? ')' ('as' typeLiteral)? functionBody # FunctionExprission
+    | Left=expression '(' expressionList? ')' # Call
+    | Left=expression Op='.' IDENTIFIER # MemberAccess
+    | Left=expression '[' Index=expression ']' # ArrayIndex
+    | expression 'as' typeLiteral # TypeCast
+    | <assoc=right> Op=('!' | '-' | '+') expression # Unary
+    | Left=expression Op=('*' | '/' | '%') Right=expression # Binary
+    | Left=expression Op=('+' | '-') Right=expression # Binary
+    | Left=expression Op='~' Right=expression # Binary
+    | Left=expression Op=('<' | '<=' | '>' | '>=') Right=expression # Binary
+    | Left=expression Op=('==' | '!=') Right=expression # Binary
+    | Left=expression Op='instanceof' Right=expression # Binary
+    | Left=expression Op=('in' | 'has') Right=expression # Binary
+    | Left=expression Op='&' Right=expression # Binary
+    | Left=expression Op='|' Right=expression # Binary
+    | Left=expression Op='^'Right=expression # Binary
+    | Left=expression Op='&&' Right=expression # Binary
+    | Left=expression Op='||' Right=expression # Binary
+    | <assoc=right> Condition=expression '?' TruePart=expression ':' FalsePart=expression # Ternary
+    | <assoc=right> Left=expression Op=('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '~=' | '&=' | '|=' | '^=') Right=expression # Assignment
+    | '<' (~'>')*? '>' # BracketHandler
+    | From=expression Op=('..' | 'to') To=expression # IntRange
+    | '[' expressionList? ','? ']' # ArrayInitializer
+    | '{' mapEntryList? ','? '}' # MapInitializer
+    | '(' expression ')' # Parens
+    | 'this' # This
+    | 'super' # Super
+    | INT_LITERAL # IntLiteral
+    | LONG_LITERAL # LongLiteral
+    | FLOAT_LITERAL # FloatLiteral
+    | DOUBLE_LITERAL # DoubleLiteral
+    | STRING_LITERAL # StringLiteral
+    | TRUE_LITERAL # TrueLiteral
+    | FALSE_LITERAL # FalseLiteral
+    | NULL_LITERAL # NullLiteral
+    | IDENTIFIER # SimpleNameExpression
     ;
 
 expressionList
@@ -167,7 +167,7 @@ expressionList
     ;
 
 mapEntry
-    : K=expression ':' V=expression
+    : Key=expression ':' Value=expression
     ;
 
 mapEntryList
@@ -175,11 +175,11 @@ mapEntryList
     ;
 
 typeLiteral
-    : className # ClassType
+    : qualifiedName # ClassType
     | 'function' '(' typeLiteralList? ')' R=typeLiteral # FunctionType
     | '[' typeLiteral ']' # ListType
     | typeLiteral '['']' # ArrayType
-    | V=typeLiteral '[' K=typeLiteral ']' # MapType
+    | Value=typeLiteral '[' Key=typeLiteral ']' # MapType
     | ANY # PrimitiveType
     | BYTE # PrimitiveType
     | SHORT # PrimitiveType

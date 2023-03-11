@@ -9,8 +9,8 @@ public class ListType extends Type {
     }
 
     @Override
-    public Tag getTag() {
-        return Tag.LIST;
+    public Kind getKind() {
+        return Kind.LIST;
     }
 
     @Override

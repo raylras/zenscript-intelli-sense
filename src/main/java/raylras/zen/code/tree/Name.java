@@ -1,29 +1,17 @@
 package raylras.zen.code.tree;
 
 import raylras.zen.code.Range;
+import raylras.zen.code.symbol.Symbol;
+import raylras.zen.code.tree.expr.Expression;
 
-/**
- * Represents an identifier.
- * e.g. "i", "foo".
- */
-public class Name extends TreeNode {
+public abstract class Name extends Expression {
 
-    public String literal;
+    public Symbol symbol;
 
-    public Name(String literal, Range range) {
+    public Name(Range range) {
         super(range);
-        this.literal = literal;
     }
 
-    @Override
-    public void accept(TreeVisitor visitor) {
-        visitor.visit(this);
-        visitor.afterVisit(this);
-    }
-
-    @Override
-    public String toString() {
-        return literal;
-    }
+    public abstract SimpleName getSimpleName();
 
 }

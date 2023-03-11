@@ -14,8 +14,8 @@ public class FunctionType extends Type {
     }
 
     @Override
-    public Tag getTag() {
-        return Tag.FUNCTION;
+    public Kind getKind() {
+        return Kind.FUNCTION;
     }
 
     @Override

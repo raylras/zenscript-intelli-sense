@@ -8,15 +8,15 @@ import raylras.zen.code.type.Type;
  * A constant value given literally.
  * e.g. "null", "true", "1.0", "'str'".
  */
-public class ConstantExpr extends Expression {
+public class ConstantExpression extends Expression {
 
     public Object value;
-    public Type.Tag tag;
+    public Type.Kind kind;
 
-    public ConstantExpr(Object value, Type.Tag tag, Range range) {
+    public ConstantExpression(Object value, Type.Kind kind, Range range) {
         super(range);
         this.value = value;
-        this.tag = tag;
+        this.kind = kind;
     }
 
     @Override

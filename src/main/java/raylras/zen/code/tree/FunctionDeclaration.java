@@ -11,18 +11,18 @@ import java.util.List;
  * Represents a function declaration such as "function name(param, ...) as type { statement, ... }".
  * e.g. "function f() { }", "function f(a,b) as any { return a + b; }".
  *
- * @see ParameterDecl
+ * @see ParameterDeclaration
  */
-public class FunctionDecl extends TreeNode implements Function, Declaration {
+public class FunctionDeclaration extends TreeNode implements Function, Declaration {
 
-    public Name name;
-    public List<ParameterDecl> params;
+    public SimpleName name;
+    public List<ParameterDeclaration> params;
     public TypeLiteral returnType;
     public List<Statement> statements;
     public FunctionSymbol symbol;
     public LocalScope localScope;
 
-    public FunctionDecl(Name name, List<ParameterDecl> params, TypeLiteral returnType, List<Statement> statements, Range range) {
+    public FunctionDeclaration(SimpleName name, List<ParameterDeclaration> params, TypeLiteral returnType, List<Statement> statements, Range range) {
         super(range);
         this.name = name;
         this.params = params;
@@ -31,12 +31,12 @@ public class FunctionDecl extends TreeNode implements Function, Declaration {
     }
 
     @Override
-    public Name getName() {
+    public SimpleName getSimpleName() {
         return name;
     }
 
     @Override
-    public List<ParameterDecl> getParams() {
+    public List<ParameterDeclaration> getParams() {
         return params;
     }
 

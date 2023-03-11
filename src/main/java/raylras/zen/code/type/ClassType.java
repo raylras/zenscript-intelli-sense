@@ -11,8 +11,8 @@ public class ClassType extends Type {
     public List<Type> interfaces;
 
     @Override
-    public Tag getTag() {
-        return Tag.CLASS;
+    public Kind getKind() {
+        return Kind.CLASS;
     }
 
 }

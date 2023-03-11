@@ -6,9 +6,9 @@ import java.util.List;
 
 public interface Function {
 
-    Name getName();
+    SimpleName getSimpleName();
 
-    List<ParameterDecl> getParams();
+    List<ParameterDeclaration> getParams();
 
     TypeLiteral getTypeDecl();
 

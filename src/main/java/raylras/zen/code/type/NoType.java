@@ -5,8 +5,8 @@ public class NoType extends Type {
     public static final NoType INSTANCE = new NoType();
 
     @Override
-    public Tag getTag() {
-        return Tag.NO_TAG;
+    public Kind getKind() {
+        return Kind.NO_KIND;
     }
 
     @Override

@@ -14,12 +14,12 @@ import java.util.List;
  */
 public class Foreach extends Statement {
 
-    public List<VariableDecl> variables;
+    public List<VariableDeclaration> variables;
     public Expression expression;
     public List<Statement> statements;
     public LocalScope localScope;
 
-    public Foreach(List<VariableDecl> variables, Expression expr, List<Statement> statements, Range range) {
+    public Foreach(List<VariableDeclaration> variables, Expression expr, List<Statement> statements, Range range) {
         super(range);
         this.variables = variables;
         this.expression = expr;

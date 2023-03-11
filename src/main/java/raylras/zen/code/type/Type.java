@@ -2,9 +2,9 @@ package raylras.zen.code.type;
 
 public abstract class Type {
 
-    public abstract Tag getTag();
+    public abstract Kind getKind();
 
-    public enum Tag {
+    public enum Kind {
         BOOL,
         BYTE,
         SHORT,
@@ -32,7 +32,7 @@ public abstract class Type {
         CLASS,
         FUNCTION,
 
-        NO_TAG;
+        NO_KIND;
     }
 
     public interface Visitor<R> {

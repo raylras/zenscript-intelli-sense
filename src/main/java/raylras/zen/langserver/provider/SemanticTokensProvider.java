@@ -5,8 +5,6 @@ import org.eclipse.lsp4j.SemanticTokensParams;
 import raylras.zen.code.Range;
 import raylras.zen.code.SourceUnit;
 import raylras.zen.code.tree.*;
-import raylras.zen.code.tree.expr.MapEntry;
-import raylras.zen.code.tree.stmt.VariableDecl;
 import raylras.zen.langserver.Semantics;
 
 import java.util.ArrayList;
