@@ -27,7 +27,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
         ServerCapabilities capabilities = new ServerCapabilities();
         capabilities.setTextDocumentSync(TextDocumentSyncKind.Full);
 //        capabilities.setCompletionProvider(new CompletionOptions());
-//        capabilities.setDocumentSymbolProvider(true);
+        capabilities.setDocumentSymbolProvider(true);
 //        capabilities.setWorkspaceSymbolProvider(true);
 //        capabilities.setDocumentHighlightProvider(true);
 //        SignatureHelpOptions signatureHelpOptions = new SignatureHelpOptions();

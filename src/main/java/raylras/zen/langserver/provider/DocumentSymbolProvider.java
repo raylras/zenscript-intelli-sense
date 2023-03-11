@@ -21,12 +21,11 @@ public class DocumentSymbolProvider extends TreeVisitor {
     private final Stack<DocumentSymbol> stack = new ArrayStack<>();
 
     public static List<DocumentSymbol> documentSymbol(SourceUnit sourceUnit, DocumentSymbolParams params) {
-        if (sourceUnit == null)
-            return Collections.emptyList();
-        if (sourceUnit.ast == null)
-            sourceUnit.updateAll(null);
-//        return new DocumentSymbolProvider().visitCompilationUnit(sourceUnit.ast);
-        return Collections.emptyList();
+        if (sourceUnit == null) return Collections.emptyList();
+        if (sourceUnit.ast == null) sourceUnit.updateAll(null);
+        DocumentSymbolProvider provider = new DocumentSymbolProvider();
+        sourceUnit.ast.accept(provider);
+        return provider.topLevelSymbols;
     }
 
     private void push(SimpleName name, TreeNode node, SymbolKind kind) {
@@ -57,55 +56,62 @@ public class DocumentSymbolProvider extends TreeVisitor {
         return stack.isEmpty();
     }
 
-//    @Override
-//    public List<DocumentSymbol> visitCompilationUnit(CompilationUnit node) {
-//        super.visitCompilationUnit(node);
-//        return topLevelSymbols;
-//    }
-//
-//    @Override
-//    public Void visitClassDecl(ClassDecl node) {
-//        if (node== null || node.name == null) return null;
-//        push(node.name, node, SymbolKind.Class);
-//        super.visitClassDecl(node);
-//        pop();
-//        return null;
-//    }
-//
-//    @Override
-//    public Void visitConstructorDecl(ConstructorDecl node) {
-//        if (node== null || node.name == null) return null;
-//        push(node.name, node, SymbolKind.Function);
-//        super.visitConstructorDecl(node);
-//        pop();
-//        return null;
-//    }
-//
-//    @Override
-//    public Void visitFunctionDecl(FunctionDecl node) {
-//        if (node== null || node.name == null) return null;
-//        push(node.name, node, SymbolKind.Function);
-//        super.visitFunctionDecl(node);
-//        pop();
-//        return null;
-//    }
-//
-//    @Override
-//    public Void visitParameterDecl(ParameterDecl node) {
-//        if (node== null || node.name == null) return null;
-//        push(node.name, node, SymbolKind.Variable);
-//        super.visitParameterDecl(node);
-//        pop();
-//        return null;
-//    }
-//
-//    @Override
-//    public Void visitVariableDecl(VariableDecl node) {
-//        if (node== null || node.name == null) return null;
-//        push(node.name, node, SymbolKind.Variable);
-//        super.visitVariableDecl(node);
-//        pop();
-//        return null;
-//    }
+    @Override
+    public boolean visit(ClassDeclaration node) {
+        push(node.name, node, SymbolKind.Class);
+        return true;
+    }
+
+    @Override
+    public void afterVisit(ClassDeclaration node) {
+        pop();
+    }
+
+    @Override
+    public boolean visit(ConstructorDeclaration node) {
+        push(node.name, node, SymbolKind.Function);
+        return true;
+    }
+
+    @Override
+    public void afterVisit(ConstructorDeclaration node) {
+        pop();
+    }
+
+
+    @Override
+    public boolean visit(FunctionDeclaration node) {
+        push(node.name, node, SymbolKind.Function);
+        return true;
+    }
+
+    @Override
+    public void afterVisit(FunctionDeclaration node) {
+        pop();
+    }
+
+
+    @Override
+    public boolean visit(ParameterDeclaration node) {
+        push(node.name, node, SymbolKind.Variable);
+        return true;
+    }
+
+    @Override
+    public void afterVisit(ParameterDeclaration node) {
+        pop();
+    }
+
+
+    @Override
+    public boolean visit(VariableDeclaration node) {
+        push(node.name, node, SymbolKind.Variable);
+        return true;
+    }
+
+    @Override
+    public void afterVisit(VariableDeclaration node) {
+        pop();
+    }
 
 }
