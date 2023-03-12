@@ -23,10 +23,9 @@ run
 src/main/gen
 
 # vscode-extension
-/vscode-extension/*.jar
+/vscode-extension/libs
 /vscode-extension/out
 /vscode-extension/node_modules
 /vscode-extension/.vscode-test
 /vscode-extension/*.vsix
-/vscode-extension/node_modules/
 /vscode-extension/language/*.tmLanguage.json

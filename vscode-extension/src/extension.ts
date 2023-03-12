@@ -10,7 +10,7 @@ export function activate(context: ExtensionContext) {
 	getJavaHome().then(javahome => {
 		const config = workspace.getConfiguration();
 		const javabin: string = join(javahome, 'bin', 'java');
-		const classpath: string = join(__dirname, '..', '*');
+		const classpath: string = join(__dirname, '..', 'libs', '*');
 		const args: string[] = ['-cp', classpath];
 		const main = 'raylras.zen.langserver.StandardIOLauncher';
 		let debug = '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005,quiet=y';
