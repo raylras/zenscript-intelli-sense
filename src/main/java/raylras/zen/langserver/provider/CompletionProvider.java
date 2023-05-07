@@ -11,6 +11,7 @@ import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.FunctionSymbol;
 import raylras.zen.code.symbol.VariableSymbol;
+import raylras.zen.l10n.L10N;
 import raylras.zen.util.Nodes;
 import raylras.zen.util.Utils;
 
@@ -55,7 +56,7 @@ public class CompletionProvider {
             if (keyword.startsWith(toBeCompleted)) {
                 CompletionItem item = new CompletionItem(keyword);
                 item.setKind(CompletionItemKind.Keyword);
-                item.setDetail("keyword");
+                item.setDetail(L10N.getString("l10n.keyword"));
                 data.add(item);
             }
         }

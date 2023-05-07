@@ -4,6 +4,7 @@ import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.*;
 import raylras.zen.code.CompilationUnit;
+import raylras.zen.l10n.L10N;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,6 +39,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 //        capabilities.setTypeDefinitionProvider(true);
 //        capabilities.setHoverProvider(true);
 //        capabilities.setRenameProvider(true);
+        L10N.setLocale(params.getLocale());
         return CompletableFuture.completedFuture(new InitializeResult(capabilities));
     }
 
