@@ -3,7 +3,7 @@ package raylras.zen.langserver;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.*;
-import raylras.zen.code.SourceUnit;
+import raylras.zen.code.CompilationUnit;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,12 +13,10 @@ import java.util.concurrent.CompletableFuture;
 
 public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 
-    public Logger logger;
     public ZenLanguageService service;
     public LanguageClient client;
 
     public ZenLanguageServer() {
-        this.logger = new Logger();
         this.service = new ZenLanguageService(this);
     }
 
@@ -26,8 +24,8 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
         ServerCapabilities capabilities = new ServerCapabilities();
         capabilities.setTextDocumentSync(TextDocumentSyncKind.Full);
-//        capabilities.setCompletionProvider(new CompletionOptions());
-        capabilities.setDocumentSymbolProvider(true);
+        capabilities.setCompletionProvider(new CompletionOptions());
+//        capabilities.setDocumentSymbolProvider(true);
 //        capabilities.setWorkspaceSymbolProvider(true);
 //        capabilities.setDocumentHighlightProvider(true);
 //        SignatureHelpOptions signatureHelpOptions = new SignatureHelpOptions();
@@ -46,7 +44,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
     @Override
     public void initialized(InitializedParams params) {
         startListeningFileChanges();
-        logger.info("ZenScript language server initialized");
+        log("ZenScript Language Server initialized");
     }
 
     @Override
@@ -72,16 +70,19 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
     @Override
     public void connect(LanguageClient client) {
         this.client = client;
-        this.logger.client = client;
+    }
+
+    public void log(String message) {
+        if (client == null) return;
+        client.logMessage(new MessageParams(MessageType.Log, "[info] [Server] " + message));
     }
 
     private void startListeningFileChanges() {
         List<FileSystemWatcher> watchers = new ArrayList<>(1);
-        watchers.add(new FileSystemWatcher(Either.forLeft("**/*" + SourceUnit.DOCUMENT_EXTENSION), WatchKind.Create + WatchKind.Change + WatchKind.Delete));
+        watchers.add(new FileSystemWatcher(Either.forLeft("**/*" + CompilationUnit.FILE_EXTENSION), WatchKind.Create + WatchKind.Change + WatchKind.Delete));
         Object options = new DidChangeWatchedFilesRegistrationOptions(watchers);
         Registration registration = new Registration(UUID.randomUUID().toString(), "workspace/didChangeWatchedFiles", options);
         client.registerCapability(new RegistrationParams(Collections.singletonList(registration)));
-        logger.info("Start listening for file changes");
     }
 
 }

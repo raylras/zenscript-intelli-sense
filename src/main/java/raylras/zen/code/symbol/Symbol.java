@@ -1,29 +1,22 @@
 package raylras.zen.code.symbol;
 
-import raylras.zen.code.scope.LocalScope;
-import raylras.zen.code.tree.TreeNode;
+import org.antlr.v4.runtime.tree.ParseTree;
+import raylras.zen.code.CompilationUnit;
+import raylras.zen.code.scope.Scope;
 
 public abstract class Symbol {
 
-    public String name;
-    public LocalScope enclScope;
-    public TreeNode owner;
+    public Scope enclScope;
+    public ParseTree owner;
 
-    public Symbol(String name, LocalScope enclScope, TreeNode owner) {
-        this.name = name;
+    protected CompilationUnit unit;
+
+    public Symbol(Scope enclScope, ParseTree owner, CompilationUnit unit) {
         this.enclScope = enclScope;
         this.owner = owner;
+        this.unit = unit;
     }
 
-    public <R> R accept(Visitor<R> visitor) {
-        return visitor.visitSymbol(this);
-    }
-
-    public interface Visitor<R> {
-        R visitClassSymbol(ClassSymbol symbol);
-        R visitFunctionSymbol(FunctionSymbol symbol);
-        R visitVariableSymbol(VariableSymbol symbol);
-        R visitSymbol(Symbol symbol);
-    }
+    public abstract String getName();
 
 }

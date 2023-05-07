@@ -3,65 +3,69 @@ package raylras.zen.langserver;
 import org.eclipse.lsp4j.SemanticTokenModifiers;
 import org.eclipse.lsp4j.SemanticTokenTypes;
 import org.eclipse.lsp4j.SemanticTokensLegend;
-import raylras.zen.code.tree.TreeNode;
-import raylras.zen.code.tree.Variable;
+import raylras.zen.code.Declarator;
 
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.TreeMap;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class Semantics {
 
     public static final SemanticTokensLegend SEMANTIC_TOKENS_LEGEND;
 
     static {
-        Map<Integer, String> tokenTypes = new TreeMap<>();
-        tokenTypes.put(Semantics.TokenType.CLASS, SemanticTokenTypes.Class);
-        tokenTypes.put(Semantics.TokenType.PARAMETER, SemanticTokenTypes.Parameter);
-        tokenTypes.put(Semantics.TokenType.VARIABLE, SemanticTokenTypes.Variable);
-        tokenTypes.put(Semantics.TokenType.FUNCTION, SemanticTokenTypes.Function);
-        tokenTypes.put(Semantics.TokenType.METHOD, SemanticTokenTypes.Method);
-        tokenTypes.put(Semantics.TokenType.STRING, SemanticTokenTypes.String);
-
-        Map<Integer, String> tokenModifiers = new TreeMap<>();
-        tokenModifiers.put(Semantics.TokenModifier.DECLARATION, SemanticTokenModifiers.Declaration);
-        tokenModifiers.put(Semantics.TokenModifier.READONLY, SemanticTokenModifiers.Readonly);
-        tokenModifiers.put(Semantics.TokenModifier.STATIC, SemanticTokenModifiers.Static);
-
-        SEMANTIC_TOKENS_LEGEND = new SemanticTokensLegend(new ArrayList<>(tokenTypes.values()), new ArrayList<>(tokenModifiers.values()));
+        List<String> tokenTypes = Arrays.stream(TokenType.values()).map(tokenType -> tokenType.name).collect(Collectors.toList());
+        List<String> tokenModifiers = Arrays.stream(TokenModifier.values()).map(tokenModifier -> tokenModifier.name).collect(Collectors.toList());
+        SEMANTIC_TOKENS_LEGEND = new SemanticTokensLegend(tokenTypes, tokenModifiers);
     }
 
-    public static int getTokenModifiers(Variable node) {
+    public static int getTokenModifiers(Declarator declarator) {
         int tokenModifiers = 0;
-        switch (node.getDeclarator()) {
+        switch (declarator) {
             case GLOBAL:
             case STATIC:
-                tokenModifiers |= TokenModifier.STATIC;
+                tokenModifiers |= TokenModifier.STATIC.flag;
             case VAL:
-                tokenModifiers |= TokenModifier.READONLY;
+                tokenModifiers |= TokenModifier.READONLY.flag;
             case VAR:
-                tokenModifiers |= TokenModifier.DECLARATION;
+            case NONE:
+                tokenModifiers |= TokenModifier.DEFINITION.flag;
         }
         return tokenModifiers;
     }
 
-    public static int getTokenType(TreeNode node) {
-        return -1;
+    public enum TokenType {
+        TYPE(SemanticTokenTypes.Type),
+        CLASS(SemanticTokenTypes.Class),
+        PARAMETER(SemanticTokenTypes.Parameter),
+        VARIABLE(SemanticTokenTypes.Variable),
+        FUNCTION(SemanticTokenTypes.Function),
+        KEYWORD(SemanticTokenTypes.Keyword),
+        MODIFIER(SemanticTokenTypes.Modifier),
+        COMMENT(SemanticTokenTypes.Comment),
+        STRING(SemanticTokenTypes.String),
+        NUMBER(SemanticTokenTypes.Number),
+        OPERATOR(SemanticTokenTypes.Operator);
+
+        public final String name;
+
+        TokenType(String name) {
+            this.name = name;
+        }
     }
 
-    public static final class TokenType {
-        public static final int CLASS = 0;
-        public static final int PARAMETER = 1;
-        public static final int VARIABLE = 2;
-        public static final int FUNCTION = 3;
-        public static final int METHOD = 4;
-        public static final int STRING = 5;
-    }
+    public enum TokenModifier {
+        DEFINITION(1, SemanticTokenModifiers.Definition),
+        READONLY(2, SemanticTokenModifiers.Readonly),
+        STATIC(4, SemanticTokenModifiers.Static);
 
-    public static final class TokenModifier {
-        public static final int DECLARATION = 1;
-        public static final int READONLY = 2;
-        public static final int STATIC = 4;
+        public final int flag;
+        public final String name;
+
+        TokenModifier(int flag, String name) {
+            this.flag = flag;
+            this.name = name;
+        }
     }
 
 }

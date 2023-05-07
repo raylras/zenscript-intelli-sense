@@ -2,40 +2,32 @@ package raylras.zen.langserver.provider;
 
 import org.eclipse.lsp4j.SemanticTokens;
 import org.eclipse.lsp4j.SemanticTokensParams;
-import raylras.zen.code.Range;
-import raylras.zen.code.SourceUnit;
-import raylras.zen.code.tree.*;
-import raylras.zen.langserver.Semantics;
+import raylras.zen.code.CompilationContext;
+import raylras.zen.code.CompilationUnit;
+import raylras.zen.code.Listener;
+import raylras.zen.util.Range;
+import raylras.zen.util.Utils;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-public class SemanticTokensProvider extends TreeVisitor {
+public class SemanticTokensProvider extends Listener {
 
-    private final SourceUnit sourceUnit;
-    private final List<Integer> data;
-    private int prevLine;
-    private int prevColumn;
-
-    public SemanticTokensProvider(SourceUnit sourceUnit) {
-        this.sourceUnit = sourceUnit;
-        this.data = new ArrayList<>();
-        this.prevLine = Range.FIRST_LINE;
-        this.prevColumn = Range.FIRST_COLUMN;
+    public static SemanticTokens semanticTokensFull(CompilationContext context, SemanticTokensParams params) {
+        Path documentPath = Utils.toPath(params.getTextDocument().getUri());
+        CompilationUnit compilationUnit = context.getCompilationUnit(documentPath);
+        SemanticTokensProvider provider = new SemanticTokensProvider(compilationUnit);
+        return new SemanticTokens(provider.data);
     }
 
-    public static SemanticTokens semanticTokensFull(SourceUnit sourceUnit, SemanticTokensParams params) {
-        if (sourceUnit == null)
-            return new SemanticTokens();
-        if (sourceUnit.ast == null)
-            sourceUnit.updateAll(null);
-//        return new SemanticTokens(new SemanticTokensProvider(sourceUnit).visitCompilationUnit(sourceUnit.ast));
-        return new SemanticTokens();
-    }
+    private final CompilationUnit unit;
+    private final List<Integer> data = new ArrayList<>();
+    private int prevLine = Range.FIRST_LINE;
+    private int prevColumn = Range.FIRST_COLUMN;
 
-    private void push(TreeNode node, int tokenType, int tokenModifiers) {
-        if (node == null) return;
-        push(node.range, tokenType, tokenModifiers);
+    private SemanticTokensProvider(CompilationUnit unit) {
+        this.unit = unit;
     }
 
     private void push(Range range, int tokenType, int tokenModifiers) {
@@ -51,71 +43,5 @@ public class SemanticTokensProvider extends TreeVisitor {
         data.add(tokenType);
         data.add(tokenModifiers);
     }
-
-    public static int getTokenModifiers(Declarator declarator) {
-        int tokenModifiers = 0;
-        switch (declarator) {
-            case GLOBAL:
-            case STATIC:
-                tokenModifiers |= Semantics.TokenModifier.STATIC;
-            case VAL:
-                tokenModifiers |= Semantics.TokenModifier.READONLY;
-            case VAR:
-                tokenModifiers |= Semantics.TokenModifier.DECLARATION;
-        }
-        return tokenModifiers;
-    }
-
-//    @Override
-//    public List<Integer> visitCompilationUnit(CompilationUnit node) {
-//        super.visitCompilationUnit(node);
-//        return data;
-//    }
-//
-//    @Override
-//    public Object visitImportDecl(ImportDecl node) {
-//        // TODO
-//        return null;
-//    }
-//
-//    @Override
-//    public Object visitClassDecl(ClassDecl node) {
-//        push(node, Semantics.TokenType.CLASS, Semantics.TokenModifier.DECLARATION);
-//        super.visitClassDecl(node);
-//        return null;
-//    }
-//
-//    @Override
-//    public Object visitConstructorDecl(ConstructorDecl node) {
-//        push(node, Semantics.TokenType.FUNCTION, Semantics.TokenModifier.DECLARATION);
-//        super.visitConstructorDecl(node);
-//        return null;
-//    }
-//
-//    @Override
-//    public Object visitFunctionDecl(FunctionDecl node) {
-//        push(node, Semantics.TokenType.FUNCTION, Semantics.TokenModifier.DECLARATION);
-//        super.visitFunctionDecl(node);
-//        return null;
-//    }
-//
-//    @Override
-//    public Object visitParameterDecl(ParameterDecl node) {
-//        push(node, Semantics.TokenType.FUNCTION, Semantics.TokenModifier.DECLARATION);
-//        super.visitParameterDecl(node);
-//        return null;
-//    }
-//
-//    @Override
-//    public Object visitMapEntry(MapEntry node) {
-//        return null;
-//    }
-//
-//    @Override
-//    public Object visitVariableDecl(VariableDecl node) {
-//        push(node, Semantics.TokenType.VARIABLE, Semantics.TokenModifier.DECLARATION);
-//        super.visitVariableDecl(node);
-//        return null;
-//    }
 
 }

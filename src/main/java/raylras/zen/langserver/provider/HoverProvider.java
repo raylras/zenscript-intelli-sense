@@ -4,19 +4,13 @@ import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
-import raylras.zen.code.SourceUnit;
-import raylras.zen.code.parser.ZenScriptParserBaseVisitor;
+import raylras.zen.code.CompilationContext;
+import raylras.zen.code.Visitor;
 
-public class HoverProvider extends ZenScriptParserBaseVisitor<Hover> {
+public class HoverProvider extends Visitor<Hover> {
 
-    public static Hover hover(SourceUnit sourceUnit, HoverParams params) {
-        if (sourceUnit == null)
-            return null;
-        if (sourceUnit.ast == null)
-            sourceUnit.updateAll(null);
-
-        // TODO
-        return null;
+    public static Hover hover(CompilationContext context, HoverParams params) {
+        return new Hover();
     }
 
     private static Hover code(String code) {

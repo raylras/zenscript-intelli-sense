@@ -29,16 +29,12 @@ public final class Utils {
         return path.toFile().getName();
     }
 
-    public static Path findScriptsUpwards(String startDirUri) {
-        return findDirUpwards(toPath(startDirUri), "scripts");
-    }
-
-    public static Path findDirUpwards(Path startDir, String targetDirName) {
-        Path current = startDir;
+    public static Path findUpwards(Path start, String targetName) {
+        Path current = start;
         while (current != null) {
-            Path path = current.resolve(targetDirName);
-            if (Files.exists(path) && Files.isDirectory(path)) {
-                return path;
+            Path target = current.resolve(targetName);
+            if (Files.exists(target)) {
+                return target;
             }
             current = current.getParent();
         }
