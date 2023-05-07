@@ -24,11 +24,7 @@ alias
     ;
 
 functionDeclaration
-    : 'function' IDENTIFIER '(' parameterList? ')' ('as' typeLiteral)? functionBody
-    ;
-
-parameterList
-    : parameter (',' parameter)*
+    : 'function' IDENTIFIER '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody
     ;
 
 parameter
@@ -48,7 +44,7 @@ classDeclaration
     ;
 
 constructorDeclaration
-    : 'zenConstructor' '(' parameterList? ')' constructorBody
+    : 'zenConstructor' '(' (parameter (',' parameter)*)? ')' constructorBody
     ;
 
 constructorBody
@@ -104,11 +100,11 @@ elseBody
     ;
 
 foreachStatement
-    : 'for' simpleVariableDeclarations 'in' expression foreachBody
+    : 'for' simpleVariable (',' simpleVariable)* 'in' expression foreachBody
     ;
 
-simpleVariableDeclarations
-    : IDENTIFIER (',' IDENTIFIER)*
+simpleVariable
+    : IDENTIFIER
     ;
 
 foreachBody
@@ -124,8 +120,8 @@ expressionStatement
     ;
 
 expression
-    : 'function' '(' parameterList? ')' ('as' typeLiteral)? functionBody # FunctionExprission
-    | Left=expression '(' expressionList? ')' # Call
+    : 'function' '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody # FunctionExprission
+    | Left=expression '(' (expression (',' expression)*)? ')' # Call
     | Left=expression Op='.' IDENTIFIER # MemberAccess
     | Left=expression '[' Index=expression ']' # ArrayIndex
     | expression 'as' typeLiteral # TypeCast
@@ -146,8 +142,8 @@ expression
     | <assoc=right> Left=expression Op=('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '~=' | '&=' | '|=' | '^=') Right=expression # Assignment
     | '<' (~'>')*? '>' # BracketHandler
     | From=expression Op=('..' | 'to') To=expression # IntRange
-    | '[' expressionList? ','? ']' # ArrayInitializer
-    | '{' mapEntryList? ','? '}' # MapInitializer
+    | '[' (expression (',' expression)*)? ','? ']' # ArrayInitializer
+    | '{' (mapEntry (',' mapEntry)*)? ','? '}' # MapInitializer
     | '(' expression ')' # Parens
     | 'this' # This
     | 'super' # Super
@@ -162,21 +158,13 @@ expression
     | IDENTIFIER # SimpleNameExpression
     ;
 
-expressionList
-    : expression (',' expression)*
-    ;
-
 mapEntry
     : Key=expression ':' Value=expression
     ;
 
-mapEntryList
-    : mapEntry (',' mapEntry)*
-    ;
-
 typeLiteral
     : qualifiedName # ClassType
-    | 'function' '(' typeLiteralList? ')' R=typeLiteral # FunctionType
+    | 'function' '(' (typeLiteral (',' typeLiteral)*)? ')' Return=typeLiteral # FunctionType
     | '[' typeLiteral ']' # ListType
     | typeLiteral '['']' # ArrayType
     | Value=typeLiteral '[' Key=typeLiteral ']' # MapType
@@ -190,8 +178,4 @@ typeLiteral
     | BOOL # PrimitiveType
     | VOID # PrimitiveType
     | STRING # PrimitiveType
-    ;
-
-typeLiteralList
-    : typeLiteral (',' typeLiteral)*
     ;
