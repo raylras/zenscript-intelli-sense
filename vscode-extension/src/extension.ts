@@ -6,7 +6,7 @@ import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-lan
 export function activate(context: ExtensionContext) {
 	const logChannel = window.createOutputChannel('ZenScript Language Server', "log");
 
-	logChannel.appendLine('[Extension] Starting ZenScript language server');
+	logChannel.appendLine('[info] [Extension] Starting ZenScript Language Server');
 	getJavaHome().then(javahome => {
 		const config = workspace.getConfiguration();
 		const javabin: string = join(javahome, 'bin', 'java');
@@ -14,19 +14,21 @@ export function activate(context: ExtensionContext) {
 		const args: string[] = ['-cp', classpath];
 		const main = 'raylras.zen.langserver.StandardIOLauncher';
 		let debug = '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005,quiet=y';
-
-		logChannel.appendLine(`[Extension] Java home: ${javahome}`);
-		logChannel.appendLine(`[Extension] Class path: ${classpath}`)
-		logChannel.appendLine(`[Extension] Main class: ${main}`)
+		logChannel.appendLine(`[info] [Extension] Java home: ${javahome}`);
+		logChannel.appendLine(`[info] [Extension] Class path: ${classpath}`)
+		logChannel.appendLine(`[info] [Extension] Main class: ${main}`)
 
 		if (config.get('zenscript.languageServer.debug')) {
-			logChannel.appendLine('[Extension] The language server is starting on debug mode');
+			logChannel.appendLine('[info] [Extension] Debug mode is enabled for the language server');
 			if (config.get('zenscript.languageServer.suspend')) {
-				logChannel.appendLine('[Extension] The language server is waiting for the debugger to attach');
-				debug = debug.replace(/suspend=./, "suspend=y");
+				debug = debug.replace(/suspend=n/, "suspend=y");
 			}
-			logChannel.appendLine(`[Extension] Arguments: ${debug}`);
+			logChannel.appendLine(`[info] [Extension] Debug arguments: ${debug}`);
 			args.push(debug);
+		}
+
+		if (debug.indexOf("suspend=y") > -1) {
+			logChannel.appendLine('[info] [Extension] Waiting for the debugger to attach...');
 		}
 
 		args.push('-Dfile.encoding=UTF-8');
@@ -49,7 +51,7 @@ export function activate(context: ExtensionContext) {
 		// const disposable = client.start();
 		// context.subscriptions.push(disposable);
 	}).catch(error => {
-		logChannel.appendLine('[Extension] Failed to start ZenScript language server');
+		logChannel.appendLine('[info] [Extension] Failed to start ZenScript Language Server');
 		logChannel.appendLine(error?.message || error);
 	})
 
