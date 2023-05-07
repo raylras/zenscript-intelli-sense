@@ -128,7 +128,10 @@ repository:
 
   function-declaration:
     name: meta.function.zs
-    begin: '(?=function)'
+    begin: '(?=(function))'
+    beginCaptures:
+      '1':
+        name: keyword.function.zs
     end: '(?<=\})'
     patterns:
       - match: '(function)\s+([[:alpha:]_$][[:alnum:]_$]*)'
