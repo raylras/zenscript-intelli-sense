@@ -33,15 +33,13 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public void didOpen(DidOpenTextDocumentParams params) {
-        Path documentPath = Utils.toPath(params.getTextDocument().getUri());
-        checkContext(documentPath);
+        checkContext(params.getTextDocument().getUri());
     }
 
     @Override
     public void didChange(DidChangeTextDocumentParams params) {
-        Path documentPath = Utils.toPath(params.getTextDocument().getUri());
+        CompilationUnit unit = getCompilationUnit(params.getTextDocument().getUri());
         String source = params.getContentChanges().get(0).getText();
-        CompilationUnit unit = context.getCompilationUnit(documentPath);
         loadCompilationUnit(unit, source);
     }
 
@@ -55,7 +53,8 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
-        SemanticTokens data = SemanticTokensProvider.semanticTokensFull(context, params);
+        CompilationUnit unit = getCompilationUnit(params.getTextDocument().getUri());
+        SemanticTokens data = SemanticTokensProvider.semanticTokensFull(unit, params);
         return CompletableFuture.completedFuture(data);
     }
 
@@ -77,7 +76,8 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
-        List<CompletionItem> data = CompletionProvider.completion(context, params);
+        CompilationUnit unit = getCompilationUnit(params.getTextDocument().getUri());
+        List<CompletionItem> data = CompletionProvider.completion(unit, params);
         return CompletableFuture.completedFuture(Either.forLeft(data));
     }
 
@@ -129,7 +129,8 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     /* End Workspace Service */
 
 
-    private void checkContext(Path documentPath) {
+    private void checkContext(String uri) {
+        Path documentPath = Utils.toPath(uri);
         if (context != null && Objects.equals(documentPath, context.compilationRoot)) {
             return;
         }
@@ -168,6 +169,11 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     private void loadCompilationUnit(CompilationUnit unit, String source) {
         unit.load(CharStreams.fromString(source, String.valueOf(unit.path)));
+    }
+
+    private CompilationUnit getCompilationUnit(String uri) {
+        Path documentPath = Utils.toPath(uri);
+        return context.getCompilationUnit(documentPath);
     }
 
 }

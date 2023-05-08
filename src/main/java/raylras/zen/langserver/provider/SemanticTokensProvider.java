@@ -2,22 +2,17 @@ package raylras.zen.langserver.provider;
 
 import org.eclipse.lsp4j.SemanticTokens;
 import org.eclipse.lsp4j.SemanticTokensParams;
-import raylras.zen.code.CompilationContext;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Listener;
 import raylras.zen.util.Range;
-import raylras.zen.util.Utils;
 
-import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 public class SemanticTokensProvider extends Listener {
 
-    public static SemanticTokens semanticTokensFull(CompilationContext context, SemanticTokensParams params) {
-        Path documentPath = Utils.toPath(params.getTextDocument().getUri());
-        CompilationUnit compilationUnit = context.getCompilationUnit(documentPath);
-        SemanticTokensProvider provider = new SemanticTokensProvider(compilationUnit);
+    public static SemanticTokens semanticTokensFull(CompilationUnit unit, SemanticTokensParams params) {
+        SemanticTokensProvider provider = new SemanticTokensProvider(unit);
         return new SemanticTokens(provider.data);
     }
 

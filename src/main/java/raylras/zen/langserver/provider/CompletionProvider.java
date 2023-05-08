@@ -5,7 +5,6 @@ import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.CompletionParams;
 import org.eclipse.lsp4j.Position;
-import raylras.zen.code.CompilationContext;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.scope.Scope;
@@ -13,11 +12,9 @@ import raylras.zen.code.symbol.FunctionSymbol;
 import raylras.zen.code.symbol.VariableSymbol;
 import raylras.zen.l10n.L10N;
 import raylras.zen.util.Nodes;
-import raylras.zen.util.Utils;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -26,9 +23,7 @@ public class CompletionProvider {
 
     private static final String[] KEYWORDS = makeKeywords();
 
-    public static List<CompletionItem> completion(CompilationContext context, CompletionParams params) {
-        Path documentPath = Utils.toPath(params.getTextDocument().getUri());
-        CompilationUnit unit = context.getCompilationUnit(documentPath);
+    public static List<CompletionItem> completion(CompilationUnit unit, CompletionParams params) {
         List<CompletionItem> data = new ArrayList<>();
         ParseTree node = getNodeAtPosition(unit.parseTree, params.getPosition());
         String toBeCompleted = node.getText();

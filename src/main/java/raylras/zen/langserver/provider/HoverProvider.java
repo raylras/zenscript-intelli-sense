@@ -4,12 +4,12 @@ import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
-import raylras.zen.code.CompilationContext;
+import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Visitor;
 
 public class HoverProvider extends Visitor<Hover> {
 
-    public static Hover hover(CompilationContext context, HoverParams params) {
+    public static Hover hover(CompilationUnit unit, HoverParams params) {
         return new Hover();
     }
 
