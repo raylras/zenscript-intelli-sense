@@ -19,11 +19,9 @@ public class CompilationUnit {
 
     public final Path path;
     public final CompilationContext context;
-
-    public ParseTree parseTree;
-
     public final ParseTreeProperty<Scope> scopes = new ParseTreeProperty<>();
     public final ParseTreeProperty<Symbol> symbols = new ParseTreeProperty<>();
+    public ParseTree parseTree;
 
 
     public CompilationUnit(Path path, CompilationContext context) {
@@ -31,7 +29,7 @@ public class CompilationUnit {
         this.context = context;
     }
 
-    public Scope getScope(ParseTree node) {
+    public Scope lookupScope(ParseTree node) {
         ParseTree n = node;
         while (n != null) {
             Scope scope = scopes.get(n);
@@ -43,7 +41,24 @@ public class CompilationUnit {
         return null;
     }
 
-    public  <T extends Symbol> T getSymbol(ParseTree node) {
+    public <T extends Symbol> T lookupSymbol(ParseTree node) {
+        Scope scope = lookupScope(node);
+        Symbol symbol = null;
+        while (scope != null) {
+            symbol = scope.getSymbol(node.getText());
+            if (symbol != null) {
+                break;
+            }
+            scope = scope.parent;
+        }
+        return (T) symbol;
+    }
+
+    public Scope getScope(ParseTree node) {
+        return scopes.get(node);
+    }
+
+    public <T extends Symbol> T getSymbol(ParseTree node) {
         return (T) symbols.get(node);
     }
 

@@ -29,7 +29,7 @@ public class CompletionProvider {
         String toBeCompleted = node.getText();
 
         // match variables
-        Scope scope = unit.getScope(node);
+        Scope scope = unit.lookupScope(node);
         while (scope != null) {
             scope.getSymbols().stream()
                     .filter(symbol -> symbol.getName().startsWith(toBeCompleted))
