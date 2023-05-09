@@ -3,7 +3,7 @@ package raylras.zen.code.resolve;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Listener;
-import raylras.zen.code.parser.ZenScriptParser;
+import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.*;
 import raylras.zen.util.ArrayStack;
@@ -23,7 +23,7 @@ public class DefResolver extends Listener {
     }
 
     private void enterScope(Scope scope) {
-        unit.scopes.put(scope.owner, scope);
+        unit.scopes.put(scope.getOwner(), scope);
         stack.push(scope);
     }
 
@@ -36,110 +36,110 @@ public class DefResolver extends Listener {
     }
 
     private void enterSymbol(Symbol symbol) {
-        unit.symbols.put(symbol.owner, symbol);
+        unit.symbols.put(symbol.getOwner(), symbol);
         currentScope().addSymbol(symbol);
     }
 
     @Override
-    public void enterCompilationUnit(ZenScriptParser.CompilationUnitContext ctx) {
+    public void enterCompilationUnit(CompilationUnitContext ctx) {
         enterScope(new Scope(null, ctx));
     }
 
     @Override
-    public void exitCompilationUnit(ZenScriptParser.CompilationUnitContext ctx) {
+    public void exitCompilationUnit(CompilationUnitContext ctx) {
         exitScope();
     }
 
     @Override
-    public void enterImportDeclaration(ZenScriptParser.ImportDeclarationContext ctx) {
+    public void enterImportDeclaration(ImportDeclarationContext ctx) {
         enterSymbol(new ImportSymbol(currentScope(), ctx, unit));
     }
 
     @Override
-    public void enterFunctionDeclaration(ZenScriptParser.FunctionDeclarationContext ctx) {
+    public void enterFunctionDeclaration(FunctionDeclarationContext ctx) {
         enterSymbol(new FunctionSymbol(currentScope(), ctx, unit));
         enterScope(new Scope(currentScope(), ctx));
     }
 
     @Override
-    public void exitFunctionDeclaration(ZenScriptParser.FunctionDeclarationContext ctx) {
+    public void exitFunctionDeclaration(FunctionDeclarationContext ctx) {
         exitScope();
     }
 
     @Override
-    public void enterParameter(ZenScriptParser.ParameterContext ctx) {
+    public void enterParameter(ParameterContext ctx) {
         enterSymbol(new VariableSymbol(currentScope(), ctx, unit));
     }
 
     @Override
-    public void enterClassDeclaration(ZenScriptParser.ClassDeclarationContext ctx) {
+    public void enterClassDeclaration(ClassDeclarationContext ctx) {
         enterSymbol(new ClassSymbol(currentScope(), ctx, unit));
         enterScope(new Scope(currentScope(), ctx));
     }
 
     @Override
-    public void exitClassDeclaration(ZenScriptParser.ClassDeclarationContext ctx) {
+    public void exitClassDeclaration(ClassDeclarationContext ctx) {
         exitScope();
     }
 
     @Override
-    public void enterConstructorDeclaration(ZenScriptParser.ConstructorDeclarationContext ctx) {
+    public void enterConstructorDeclaration(ConstructorDeclarationContext ctx) {
         enterSymbol(new FunctionSymbol(currentScope(), ctx, unit));
         enterScope(new Scope(currentScope(), ctx));
     }
 
     @Override
-    public void exitConstructorDeclaration(ZenScriptParser.ConstructorDeclarationContext ctx) {
+    public void exitConstructorDeclaration(ConstructorDeclarationContext ctx) {
         exitScope();
     }
 
     @Override
-    public void enterVariableDeclaration(ZenScriptParser.VariableDeclarationContext ctx) {
+    public void enterVariableDeclaration(VariableDeclarationContext ctx) {
         enterSymbol(new VariableSymbol(currentScope(), ctx, unit));
     }
 
     @Override
-    public void enterThenBody(ZenScriptParser.ThenBodyContext ctx) {
+    public void enterThenBody(ThenBodyContext ctx) {
         enterScope(new Scope(currentScope(), ctx));
     }
 
     @Override
-    public void exitThenBody(ZenScriptParser.ThenBodyContext ctx) {
+    public void exitThenBody(ThenBodyContext ctx) {
         exitScope();
     }
 
     @Override
-    public void enterElseBody(ZenScriptParser.ElseBodyContext ctx) {
+    public void enterElseBody(ElseBodyContext ctx) {
         enterScope(new Scope(currentScope(), ctx));
     }
 
     @Override
-    public void exitElseBody(ZenScriptParser.ElseBodyContext ctx) {
+    public void exitElseBody(ElseBodyContext ctx) {
         exitScope();
     }
 
     @Override
-    public void enterForeachStatement(ZenScriptParser.ForeachStatementContext ctx) {
+    public void enterForeachStatement(ForeachStatementContext ctx) {
         enterScope(new Scope(currentScope(), ctx));
     }
 
     @Override
-    public void exitForeachStatement(ZenScriptParser.ForeachStatementContext ctx) {
+    public void exitForeachStatement(ForeachStatementContext ctx) {
         exitScope();
     }
 
     @Override
-    public void enterSimpleVariable(ZenScriptParser.SimpleVariableContext ctx) {
+    public void enterSimpleVariable(SimpleVariableContext ctx) {
         enterSymbol(new VariableSymbol(currentScope(), ctx, unit));
     }
 
     @Override
-    public void enterWhileStatement(ZenScriptParser.WhileStatementContext ctx) {
+    public void enterWhileStatement(WhileStatementContext ctx) {
         enterScope(new Scope(currentScope(), ctx));
     }
 
     @Override
-    public void exitWhileStatement(ZenScriptParser.WhileStatementContext ctx) {
+    public void exitWhileStatement(WhileStatementContext ctx) {
         exitScope();
     }
 

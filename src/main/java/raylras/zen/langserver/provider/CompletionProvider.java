@@ -35,7 +35,7 @@ public class CompletionProvider {
                     .filter(symbol -> symbol.getName().startsWith(toBeCompleted))
                     .forEach(symbol -> {
                         CompletionItem item = new CompletionItem(symbol.getName());
-                        item.setDetail(getText(symbol.owner));
+                        item.setDetail(getText(symbol.getOwner()));
                         if (symbol instanceof FunctionSymbol) {
                             item.setKind(CompletionItemKind.Function);
                         } else if (symbol instanceof VariableSymbol) {
@@ -43,7 +43,7 @@ public class CompletionProvider {
                         }
                         data.add(item);
                     });
-            scope = scope.parent;
+            scope = scope.getParent();
         }
 
         // match keywords

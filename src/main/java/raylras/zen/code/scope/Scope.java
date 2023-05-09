@@ -9,13 +9,10 @@ import java.util.Objects;
 
 public class Scope {
 
-    public Scope parent;
-    public ParseTree owner;
+    private Scope parent;
+    private ParseTree owner;
 
-    public final List<Symbol> symbols = new ArrayList<>();
-
-    public Scope() {
-    }
+    private final List<Symbol> symbols = new ArrayList<>();
 
     public Scope(Scope parent, ParseTree owner) {
         this.parent = parent;
@@ -40,6 +37,22 @@ public class Scope {
 
     public List<Symbol> getSymbols() {
         return symbols;
+    }
+
+    public Scope getParent() {
+        return parent;
+    }
+
+    public void setParent(Scope parent) {
+        this.parent = parent;
+    }
+
+    public ParseTree getOwner() {
+        return owner;
+    }
+
+    public void setOwner(ParseTree owner) {
+        this.owner = owner;
     }
 
 }

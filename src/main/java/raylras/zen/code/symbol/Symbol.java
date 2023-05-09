@@ -7,8 +7,8 @@ import raylras.zen.code.type.Type;
 
 public abstract class Symbol {
 
-    public Scope enclScope;
-    public ParseTree owner;
+    protected Scope enclScope;
+    protected ParseTree owner;
 
     protected CompilationUnit unit;
 
@@ -21,5 +21,21 @@ public abstract class Symbol {
     public abstract String getName();
 
     public abstract Type getType();
+
+    public Scope getEnclScope() {
+        return enclScope;
+    }
+
+    public void setEnclScope(Scope enclScope) {
+        this.enclScope = enclScope;
+    }
+
+    public ParseTree getOwner() {
+        return owner;
+    }
+
+    public void setOwner(ParseTree owner) {
+        this.owner = owner;
+    }
 
 }

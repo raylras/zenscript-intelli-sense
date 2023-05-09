@@ -49,7 +49,7 @@ public class CompilationUnit {
             if (symbol != null) {
                 break;
             }
-            scope = scope.parent;
+            scope = scope.getParent();
         }
         return (T) symbol;
     }
