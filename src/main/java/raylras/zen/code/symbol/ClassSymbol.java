@@ -2,9 +2,10 @@ package raylras.zen.code.symbol;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.Visitor;
-import raylras.zen.code.parser.ZenScriptParser;
+import raylras.zen.code.resolve.NameResolver;
 import raylras.zen.code.scope.Scope;
+import raylras.zen.code.type.ClassType;
+import raylras.zen.code.type.Type;
 
 import java.util.List;
 
@@ -19,14 +20,12 @@ public class ClassSymbol extends Symbol {
 
     @Override
     public String getName() {
-        return owner.accept(nameVisitor);
+        return owner.accept(new NameResolver());
     }
 
-    private final Visitor<String> nameVisitor = new Visitor<String>() {
-        @Override
-        public String visitClassDeclaration(ZenScriptParser.ClassDeclarationContext ctx) {
-            return ctx.qualifiedName().getText();
-        }
-    };
+    @Override
+    public Type getType() {
+        return new ClassType(getName(), unit);
+    }
 
 }

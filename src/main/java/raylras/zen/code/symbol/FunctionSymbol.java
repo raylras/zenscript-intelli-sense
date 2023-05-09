@@ -5,6 +5,8 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptParser.ConstructorDeclarationContext;
 import raylras.zen.code.parser.ZenScriptParser.FunctionDeclarationContext;
+import raylras.zen.code.resolve.NameResolver;
+import raylras.zen.code.resolve.TypeResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.type.AnyType;
 import raylras.zen.code.type.Type;
@@ -21,52 +23,44 @@ public class FunctionSymbol extends Symbol {
 
     @Override
     public String getName() {
-        return owner.accept(nameVisitor);
+        return owner.accept(new NameResolver());
+    }
+
+    @Override
+    public Type getType() {
+        return owner.accept(new TypeResolver(unit));
     }
 
     public List<VariableSymbol> getParams() {
-        return owner.accept(paramsVisitor);
+        return owner.accept(new Visitor<List<VariableSymbol>>() {
+            @Override
+            public List<VariableSymbol> visitFunctionDeclaration(FunctionDeclarationContext ctx) {
+                return ctx.parameter().stream()
+                        .map(unit::<VariableSymbol>getSymbol)
+                        .collect(Collectors.toList());
+            }
+
+            @Override
+            public List<VariableSymbol> visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
+                return ctx.parameter().stream()
+                        .map(unit::<VariableSymbol>getSymbol)
+                        .collect(Collectors.toList());
+            }
+        });
     }
 
     public Type getReturnType() {
-        return owner.accept(returnTypeVisitor);
+        return owner.accept(new Visitor<Type>() {
+            @Override
+            public Type visitFunctionDeclaration(FunctionDeclarationContext ctx) {
+                return new AnyType();
+            }
+
+            @Override
+            public Type visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
+                return new VoidType();
+            }
+        });
     }
-
-    private final Visitor<String> nameVisitor = new Visitor<String>() {
-        @Override
-        public String visitFunctionDeclaration(FunctionDeclarationContext ctx) {
-            return ctx.IDENTIFIER().getText();
-        }
-        @Override
-        public String visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
-            return ctx.ZEN_CONSTRUCTOR().getText();
-        }
-    };
-
-    private final Visitor<List<VariableSymbol>> paramsVisitor = new Visitor<List<VariableSymbol>>() {
-        @Override
-        public List<VariableSymbol> visitFunctionDeclaration(FunctionDeclarationContext ctx) {
-            return ctx.parameter().stream()
-                    .map(unit::<VariableSymbol>getSymbol)
-                    .collect(Collectors.toList());
-        }
-        @Override
-        public List<VariableSymbol> visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
-            return ctx.parameter().stream()
-                    .map(unit::<VariableSymbol>getSymbol)
-                    .collect(Collectors.toList());
-        }
-    };
-
-    private final Visitor<Type> returnTypeVisitor = new Visitor<Type>() {
-        @Override
-        public Type visitFunctionDeclaration(FunctionDeclarationContext ctx) {
-            return new AnyType();
-        }
-        @Override
-        public Type visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
-            return new VoidType();
-        }
-    };
 
 }
