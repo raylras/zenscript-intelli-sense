@@ -25,7 +25,7 @@ public class ClassSymbol extends Symbol {
     private final Visitor<String> nameVisitor = new Visitor<String>() {
         @Override
         public String visitClassDeclaration(ZenScriptParser.ClassDeclarationContext ctx) {
-            return ctx.IDENTIFIER().getText();
+            return ctx.qualifiedName().getText();
         }
     };
 

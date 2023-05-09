@@ -59,7 +59,7 @@ repository:
         name: keyword.other.zenClass.zs
     end: '(?<=\})'
     patterns:
-      - match: '(?:zenClass)\s+([[:alpha:]_$][[:alnum:]_$]*)'
+      - match: '(?:zenClass)\s+([[:alpha:]_$][[:alnum:]_$\.]*)'
         captures:
           '1':
             name: entity.name.type.class.zs
@@ -72,6 +72,7 @@ repository:
           '0':
             name: punctuation.definition.block.zs
         patterns:
+          - include: '#comment'
           - include: '#constructor-declaration'
           - include: '#function-declaration'
           - include: '#variable-declaration'
@@ -128,9 +129,11 @@ repository:
 
   function-declaration:
     name: meta.function.zs
-    begin: '(?=(function))'
+    begin: '(?=((static)\s+)?(function))'
     beginCaptures:
-      '1':
+      '2':
+        name: keyword.other.static.zs
+      '3':
         name: keyword.function.zs
     end: '(?<=\})'
     patterns:

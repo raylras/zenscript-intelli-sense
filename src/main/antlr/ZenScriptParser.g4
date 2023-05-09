@@ -24,7 +24,7 @@ alias
     ;
 
 functionDeclaration
-    : 'function' IDENTIFIER '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody
+    : Declarator='static'? 'function' IDENTIFIER '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody
     ;
 
 parameter
@@ -40,7 +40,7 @@ functionBody
     ;
 
 classDeclaration
-    : 'zenClass' IDENTIFIER '{' (variableDeclaration | constructorDeclaration | functionDeclaration)* '}'
+    : 'zenClass' qualifiedName '{' (variableDeclaration | constructorDeclaration | functionDeclaration)* '}'
     ;
 
 constructorDeclaration
