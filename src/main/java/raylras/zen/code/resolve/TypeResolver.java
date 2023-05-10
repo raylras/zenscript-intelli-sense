@@ -4,6 +4,7 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
+import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.*;
 
 import java.util.ArrayList;
@@ -76,16 +77,35 @@ public class TypeResolver extends Visitor<Type> {
     }
 
     @Override
-    public Type visitArrayInitializer(ArrayInitializerContext ctx) {
-        Type type = visitExpression(ctx.expression(0));
-        if (type == null)
-            type = new AnyType();
-        return type;
+    public Type visitCall(CallContext ctx) {
+        Type leftType = ctx.Left.accept(this);
+        if (leftType instanceof FunctionType) {
+            return ((FunctionType) leftType).returnType;
+        }
+        return new AnyType();
     }
 
     @Override
-    public Type visitTypeCast(TypeCastContext ctx) {
-        Type type = visitTypeLiteral(ctx.typeLiteral());
+    public Type visitSimpleNameExpression(SimpleNameExpressionContext ctx) {
+        Symbol symbol = unit.lookupSymbol(ctx);
+        if (symbol != null)
+            return symbol.getType();
+        return new AnyType();
+    }
+
+    @Override
+    public Type visitMemberAccess(MemberAccessContext ctx) {
+        Symbol leftSymbol = visitExpression(ctx.Left).lookupSymbol();
+        String rightName = ctx.IDENTIFIER().getText();
+        Type type = null;
+        if (leftSymbol != null) {
+            for (Symbol member : leftSymbol.getMembers()) {
+                if (member.getName().equals(rightName)) {
+                    type = member.getType();
+                    break;
+                }
+            }
+        }
         if (type == null)
             type = new AnyType();
         return type;
@@ -107,14 +127,24 @@ public class TypeResolver extends Visitor<Type> {
     }
 
     @Override
-    public Type visitMemberAccess(MemberAccessContext ctx) {
-        Type type = visitExpression(ctx.Left);
-        return new AnyType();
+    public Type visitTypeCast(TypeCastContext ctx) {
+        Type type = visitTypeLiteral(ctx.typeLiteral());
+        if (type == null)
+            type = new AnyType();
+        return type;
     }
 
     @Override
     public Type visitNullLiteral(NullLiteralContext ctx) {
         return new AnyType();
+    }
+
+    @Override
+    public Type visitArrayInitializer(ArrayInitializerContext ctx) {
+        Type type = visitExpression(ctx.expression(0));
+        if (type == null)
+            type = new AnyType();
+        return type;
     }
 
     @Override
@@ -179,8 +209,10 @@ public class TypeResolver extends Visitor<Type> {
 
     @Override
     public Type visitClassType(ClassTypeContext ctx) {
-        String name = ctx.qualifiedName().getText();
-        return new ClassType(name, unit);
+        Type type = unit.lookupType(ctx);
+        if (type == null)
+            type = new ClassType(ctx, unit);
+        return type;
     }
 
     @Override

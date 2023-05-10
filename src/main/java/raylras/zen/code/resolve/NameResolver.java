@@ -1,20 +1,34 @@
 package raylras.zen.code.resolve;
 
-import org.antlr.v4.runtime.tree.TerminalNode;
+import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptParser.*;
-
-import java.util.List;
 
 public class NameResolver extends Visitor<String> {
 
     @Override
     public String visitImportDeclaration(ImportDeclarationContext ctx) {
-        if (ctx.alias() != null) {
-            return ctx.alias().getText();
+        String name = visitAlias(ctx.alias());
+        if (name == null) {
+            name = ctx.qualifiedName().IDENTIFIER().stream()
+                    .skip(ctx.qualifiedName().IDENTIFIER().size() - 1)
+                    .map(ParseTree::getText)
+                    .findFirst()
+                    .orElse(null);
         }
-        List<TerminalNode> names = ctx.qualifiedName().IDENTIFIER();
-        return names.get(names.size() - 1).getText();
+        return name;
+    }
+
+    @Override
+    public String visitQualifiedName(QualifiedNameContext ctx) {
+        if (ctx == null) return null;
+        return ctx.getText();
+    }
+
+    @Override
+    public String visitAlias(AliasContext ctx) {
+        if (ctx == null) return null;
+        return ctx.IDENTIFIER().getText();
     }
 
     @Override
@@ -44,6 +58,11 @@ public class NameResolver extends Visitor<String> {
 
     @Override
     public String visitSimpleVariable(SimpleVariableContext ctx) {
+        return ctx.IDENTIFIER().getText();
+    }
+
+    @Override
+    public String visitSimpleNameExpression(SimpleNameExpressionContext ctx) {
         return ctx.IDENTIFIER().getText();
     }
 

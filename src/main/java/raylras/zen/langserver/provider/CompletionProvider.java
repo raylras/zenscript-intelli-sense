@@ -7,15 +7,23 @@ import org.eclipse.lsp4j.CompletionParams;
 import org.eclipse.lsp4j.Position;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.parser.ZenScriptLexer;
+import raylras.zen.code.parser.ZenScriptParser.ExpressionContext;
+import raylras.zen.code.parser.ZenScriptParser.MemberAccessContext;
+import raylras.zen.code.resolve.TypeResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.FunctionSymbol;
+import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.VariableSymbol;
+import raylras.zen.code.type.Type;
 import raylras.zen.l10n.L10N;
 import raylras.zen.util.Nodes;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Objects;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -28,6 +36,28 @@ public class CompletionProvider {
         ParseTree node = getNodeAtPosition(unit.parseTree, params.getPosition());
         String toBeCompleted = node.getText();
 
+        if (node.getParent() instanceof MemberAccessContext) {
+            ExpressionContext left = ((MemberAccessContext) node.getParent()).Left;
+            Type type = new TypeResolver(unit).visitExpression(left);
+            Symbol symbol = type.lookupSymbol();
+            if (symbol != null) {
+                for (Symbol member : symbol.getMembers()) {
+                    CompletionItem item = new CompletionItem(member.getName());
+                    item.setDetail(member.getType().toString());
+                    CompletionItemKind kind;
+                    switch (member.getType().getKind()) {
+                        case FUNCTION:
+                            kind = CompletionItemKind.Function;
+                            break;
+                        default:
+                            kind = CompletionItemKind.Field;
+                    }
+                    item.setKind(kind);
+                    data.add(item);
+                }
+            }
+        }
+
         // match variables
         Scope scope = unit.lookupScope(node);
         while (scope != null) {
@@ -35,7 +65,7 @@ public class CompletionProvider {
                     .filter(symbol -> symbol.getName().startsWith(toBeCompleted))
                     .forEach(symbol -> {
                         CompletionItem item = new CompletionItem(symbol.getName());
-                        item.setDetail(getText(symbol.getOwner()));
+                        item.setDetail(symbol.getType().toString());
                         if (symbol instanceof FunctionSymbol) {
                             item.setKind(CompletionItemKind.Function);
                         } else if (symbol instanceof VariableSymbol) {
@@ -81,20 +111,6 @@ public class CompletionProvider {
         int line = position.getLine() + 1;
         int column = position.getCharacter() - 1;
         return Nodes.getNodeAtPosition(parseTree, line, column);
-    }
-
-    private static String getText(ParseTree node) {
-        if (node.getChildCount() == 0) {
-            return "";
-        }
-
-        StringBuilder builder = new StringBuilder();
-        for (int i = 0; i < node.getChildCount(); i++) {
-            builder.append(node.getChild(i).getText());
-            builder.append(" ");
-        }
-
-        return builder.toString();
     }
 
 }

@@ -23,7 +23,7 @@ public class DefResolver extends Listener {
     }
 
     private void enterScope(Scope scope) {
-        unit.scopes.put(scope.getOwner(), scope);
+        unit.putScope(scope.getOwner(), scope);
         stack.push(scope);
     }
 
@@ -36,7 +36,7 @@ public class DefResolver extends Listener {
     }
 
     private void enterSymbol(Symbol symbol) {
-        unit.symbols.put(symbol.getOwner(), symbol);
+        unit.putSymbol(symbol.getOwner(), symbol);
         currentScope().addSymbol(symbol);
     }
 
@@ -52,12 +52,12 @@ public class DefResolver extends Listener {
 
     @Override
     public void enterImportDeclaration(ImportDeclarationContext ctx) {
-        enterSymbol(new ImportSymbol(currentScope(), ctx, unit));
+        enterSymbol(new ImportSymbol(ctx, unit));
     }
 
     @Override
     public void enterFunctionDeclaration(FunctionDeclarationContext ctx) {
-        enterSymbol(new FunctionSymbol(currentScope(), ctx, unit));
+        enterSymbol(new FunctionSymbol(ctx, unit));
         enterScope(new Scope(currentScope(), ctx));
     }
 
@@ -68,12 +68,12 @@ public class DefResolver extends Listener {
 
     @Override
     public void enterParameter(ParameterContext ctx) {
-        enterSymbol(new VariableSymbol(currentScope(), ctx, unit));
+        enterSymbol(new VariableSymbol(ctx, unit));
     }
 
     @Override
     public void enterClassDeclaration(ClassDeclarationContext ctx) {
-        enterSymbol(new ClassSymbol(currentScope(), ctx, unit));
+        enterSymbol(new ClassSymbol(ctx, unit));
         enterScope(new Scope(currentScope(), ctx));
     }
 
@@ -84,7 +84,7 @@ public class DefResolver extends Listener {
 
     @Override
     public void enterConstructorDeclaration(ConstructorDeclarationContext ctx) {
-        enterSymbol(new FunctionSymbol(currentScope(), ctx, unit));
+        enterSymbol(new FunctionSymbol(ctx, unit));
         enterScope(new Scope(currentScope(), ctx));
     }
 
@@ -95,7 +95,7 @@ public class DefResolver extends Listener {
 
     @Override
     public void enterVariableDeclaration(VariableDeclarationContext ctx) {
-        enterSymbol(new VariableSymbol(currentScope(), ctx, unit));
+        enterSymbol(new VariableSymbol(ctx, unit));
     }
 
     @Override
@@ -130,7 +130,7 @@ public class DefResolver extends Listener {
 
     @Override
     public void enterSimpleVariable(SimpleVariableContext ctx) {
-        enterSymbol(new VariableSymbol(currentScope(), ctx, unit));
+        enterSymbol(new VariableSymbol(ctx, unit));
     }
 
     @Override

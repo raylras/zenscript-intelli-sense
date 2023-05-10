@@ -1,28 +1,52 @@
 package raylras.zen.code;
 
+import raylras.zen.code.symbol.Symbol;
+
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
 public class CompilationContext {
 
-    public final Map<Path, CompilationUnit> units = new HashMap<>();
     public final Path compilationRoot;
+    private final Map<Path, CompilationUnit> unitMap = new HashMap<>();
 
     public CompilationContext(Path compilationRoot) {
         this.compilationRoot = compilationRoot;
     }
 
     public void addCompilationUnit(CompilationUnit unit) {
-        units.put(unit.path, unit);
+        unitMap.put(unit.path, unit);
     }
 
     public CompilationUnit getCompilationUnit(Path unitPath) {
-        return units.get(unitPath);
+        return unitMap.get(unitPath);
     }
 
     public void removeCompilationUnit(Path unitPath) {
-        units.remove(unitPath);
+        unitMap.remove(unitPath);
+    }
+
+    public Collection<CompilationUnit> getCompilationUnits() {
+        return unitMap.values();
+    }
+
+    public Symbol lookupSymbol(String name) {
+        for (CompilationUnit unit : getCompilationUnits()) {
+            for (Symbol symbol : unit.getTopLevelSymbols()) {
+                if (!symbol.getName().equals(name)) {
+                    continue;
+                }
+                if (unit.isDzs()) {
+                    return symbol;
+                }
+                if (symbol.isDeclaredBy(Declarator.GLOBAL)) {
+                    return symbol;
+                }
+            }
+        }
+        return null;
     }
 
 }

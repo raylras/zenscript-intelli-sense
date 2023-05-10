@@ -10,13 +10,12 @@ import raylras.zen.code.parser.ZenScriptParser.SimpleVariableContext;
 import raylras.zen.code.parser.ZenScriptParser.VariableDeclarationContext;
 import raylras.zen.code.resolve.NameResolver;
 import raylras.zen.code.resolve.TypeResolver;
-import raylras.zen.code.scope.Scope;
 import raylras.zen.code.type.Type;
 
 public class VariableSymbol extends Symbol {
 
-    public VariableSymbol(Scope enclScope, ParseTree owner, CompilationUnit unit) {
-        super(enclScope, owner, unit);
+    public VariableSymbol(ParseTree owner, CompilationUnit unit) {
+        super(owner, unit);
     }
 
     @Override
@@ -26,6 +25,11 @@ public class VariableSymbol extends Symbol {
 
     public Type getType() {
         return owner.accept(new TypeResolver(unit));
+    }
+
+    @Override
+    public boolean isDeclaredBy(Declarator declarator) {
+        return declarator == getDeclarator();
     }
 
     public Declarator getDeclarator() {

@@ -7,7 +7,6 @@ import raylras.zen.code.parser.ZenScriptParser.ConstructorDeclarationContext;
 import raylras.zen.code.parser.ZenScriptParser.FunctionDeclarationContext;
 import raylras.zen.code.resolve.NameResolver;
 import raylras.zen.code.resolve.TypeResolver;
-import raylras.zen.code.scope.Scope;
 import raylras.zen.code.type.AnyType;
 import raylras.zen.code.type.Type;
 import raylras.zen.code.type.VoidType;
@@ -17,8 +16,8 @@ import java.util.stream.Collectors;
 
 public class FunctionSymbol extends Symbol {
 
-    public FunctionSymbol(Scope enclScope, ParseTree owner, CompilationUnit unit) {
-        super(enclScope, owner, unit);
+    public FunctionSymbol(ParseTree owner, CompilationUnit unit) {
+        super(owner, unit);
     }
 
     @Override
