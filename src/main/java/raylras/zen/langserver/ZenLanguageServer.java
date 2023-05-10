@@ -6,10 +6,7 @@ import org.eclipse.lsp4j.services.*;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.l10n.L10N;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
@@ -25,7 +22,9 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
         ServerCapabilities capabilities = new ServerCapabilities();
         capabilities.setTextDocumentSync(TextDocumentSyncKind.Full);
-        capabilities.setCompletionProvider(new CompletionOptions());
+        CompletionOptions completionOptions = new CompletionOptions();
+        completionOptions.setTriggerCharacters(Collections.singletonList("."));
+        capabilities.setCompletionProvider(completionOptions);
 //        capabilities.setDocumentSymbolProvider(true);
 //        capabilities.setWorkspaceSymbolProvider(true);
 //        capabilities.setDocumentHighlightProvider(true);
