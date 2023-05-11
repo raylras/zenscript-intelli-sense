@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.resolve.NameResolver;
 import raylras.zen.code.type.ClassType;
+import raylras.zen.code.type.Kind;
 import raylras.zen.code.type.Type;
 
 import java.util.List;
@@ -22,6 +23,11 @@ public class ClassSymbol extends Symbol {
     @Override
     public Type getType() {
         return new ClassType(owner, unit);
+    }
+
+    @Override
+    public Kind getKind() {
+        return Kind.CLASS;
     }
 
     @Override

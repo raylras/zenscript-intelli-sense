@@ -2,6 +2,7 @@ package raylras.zen.code.type;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
+import raylras.zen.code.resolve.NameResolver;
 import raylras.zen.code.symbol.Symbol;
 
 public class ClassType extends Type {
@@ -29,14 +30,14 @@ public class ClassType extends Type {
         if (symbol != null) {
             return symbol.getName();
         }
-        return super.toString();
+        return owner.accept(new NameResolver());
     }
 
     public String getSimpleName() {
         String name = getName();
         int i = name.lastIndexOf('.');
         if (i >= 0) {
-            return name.substring(i + 1, name.length() - 1);
+            return name.substring(i + 1);
         }
         return name;
     }

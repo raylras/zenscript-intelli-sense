@@ -3,6 +3,7 @@ package raylras.zen.code.symbol;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Declarator;
+import raylras.zen.code.type.Kind;
 import raylras.zen.code.type.Type;
 
 import java.util.Collections;
@@ -23,6 +24,8 @@ public abstract class Symbol {
 
     public abstract Type getType();
 
+    public abstract Kind getKind();
+
     public List<Symbol> getMembers() {
         return Collections.emptyList();
     }
@@ -37,6 +40,10 @@ public abstract class Symbol {
 
     public CompilationUnit getCompilationUnit() {
         return unit;
+    }
+
+    public Declarator getDeclarator() {
+        return null;
     }
 
     public boolean isDeclaredBy(Declarator declarator) {

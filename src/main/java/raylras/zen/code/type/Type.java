@@ -10,10 +10,4 @@ public abstract class Type {
         return null;
     }
 
-    public enum Kind {
-        ANY, FUNCTION, NUMBER, STRING, ARRAY, LIST, MAP, BOOL,
-        CLASS, PACKAGE, VOID,
-        NONE
-    }
-
 }

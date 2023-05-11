@@ -7,4 +7,9 @@ public class VoidType extends Type {
         return Kind.VOID;
     }
 
+    @Override
+    public String toString() {
+        return "void";
+    }
+
 }

@@ -8,6 +8,7 @@ import raylras.zen.code.parser.ZenScriptParser.FunctionDeclarationContext;
 import raylras.zen.code.resolve.NameResolver;
 import raylras.zen.code.resolve.TypeResolver;
 import raylras.zen.code.type.AnyType;
+import raylras.zen.code.type.Kind;
 import raylras.zen.code.type.Type;
 import raylras.zen.code.type.VoidType;
 
@@ -28,6 +29,11 @@ public class FunctionSymbol extends Symbol {
     @Override
     public Type getType() {
         return owner.accept(new TypeResolver(unit));
+    }
+
+    @Override
+    public Kind getKind() {
+        return Kind.FUNCTION;
     }
 
     public List<VariableSymbol> getParams() {

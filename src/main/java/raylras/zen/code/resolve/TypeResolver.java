@@ -96,7 +96,7 @@ public class TypeResolver extends Visitor<Type> {
     @Override
     public Type visitMemberAccess(MemberAccessContext ctx) {
         Symbol leftSymbol = visitExpression(ctx.Left).lookupSymbol();
-        String rightName = ctx.IDENTIFIER().getText();
+        String rightName = ctx.name().getText();
         Type type = null;
         if (leftSymbol != null) {
             for (Symbol member : leftSymbol.getMembers()) {
@@ -200,7 +200,7 @@ public class TypeResolver extends Visitor<Type> {
                 return new VoidType();
 
             case ZenScriptLexer.STRING:
-                return new StringType();
+                return new ClassType(ctx.STRING(), unit);
 
             default:
                 return null;

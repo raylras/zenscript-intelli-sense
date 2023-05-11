@@ -6,17 +6,19 @@ import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.CompletionParams;
 import org.eclipse.lsp4j.Position;
 import raylras.zen.code.CompilationUnit;
+import raylras.zen.code.Declarator;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.ExpressionContext;
 import raylras.zen.code.parser.ZenScriptParser.MemberAccessContext;
 import raylras.zen.code.resolve.TypeResolver;
 import raylras.zen.code.scope.Scope;
-import raylras.zen.code.symbol.FunctionSymbol;
 import raylras.zen.code.symbol.Symbol;
-import raylras.zen.code.symbol.VariableSymbol;
+import raylras.zen.code.type.Kind;
 import raylras.zen.code.type.Type;
 import raylras.zen.l10n.L10N;
 import raylras.zen.util.Nodes;
+import raylras.zen.util.Range;
+import raylras.zen.util.Ranges;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -36,47 +38,54 @@ public class CompletionProvider {
         ParseTree node = getNodeAtPosition(unit.parseTree, params.getPosition());
         String toBeCompleted = node.getText();
 
+        // matches member access
         if (node.getParent() instanceof MemberAccessContext) {
             ExpressionContext left = ((MemberAccessContext) node.getParent()).Left;
             Type type = new TypeResolver(unit).visitExpression(left);
             Symbol symbol = type.lookupSymbol();
             if (symbol != null) {
                 for (Symbol member : symbol.getMembers()) {
+                    if (!member.getName().startsWith(toBeCompleted.replace(".", "")))
+                        continue;
                     CompletionItem item = new CompletionItem(member.getName());
                     item.setDetail(member.getType().toString());
-                    CompletionItemKind kind;
-                    switch (member.getType().getKind()) {
-                        case FUNCTION:
-                            kind = CompletionItemKind.Function;
-                            break;
-                        default:
-                            kind = CompletionItemKind.Field;
-                    }
-                    item.setKind(kind);
+                    item.setKind(getCompletionItemKind(member.getKind()));
                     data.add(item);
                 }
             }
+            // when completing member access
+            // it's stupid to match the following things
+            // just returns it now
+            return data;
         }
 
-        // match variables
+        // matches local variables
         Scope scope = unit.lookupScope(node);
         while (scope != null) {
-            scope.getSymbols().stream()
-                    .filter(symbol -> symbol.getName().startsWith(toBeCompleted))
-                    .forEach(symbol -> {
-                        CompletionItem item = new CompletionItem(symbol.getName());
-                        item.setDetail(symbol.getType().toString());
-                        if (symbol instanceof FunctionSymbol) {
-                            item.setKind(CompletionItemKind.Function);
-                        } else if (symbol instanceof VariableSymbol) {
-                            item.setKind(CompletionItemKind.Variable);
-                        }
-                        data.add(item);
-                    });
+            for (Symbol symbol : scope.getSymbols()) {
+                if (!symbol.getName().startsWith(toBeCompleted))
+                    continue;
+                CompletionItem item = new CompletionItem(symbol.getName());
+                item.setDetail(symbol.getType().toString());
+                item.setKind(getCompletionItemKind(symbol.getKind()));
+                data.add(item);
+            }
             scope = scope.getParent();
         }
 
-        // match keywords
+        // matches global variables
+        for (CompilationUnit cu : unit.context.getCompilationUnits()) {
+            for (Symbol symbol : cu.getTopLevelSymbols()) {
+                if (!symbol.isDeclaredBy(Declarator.GLOBAL) && !symbol.getName().startsWith(toBeCompleted))
+                    continue;
+                CompletionItem item = new CompletionItem(symbol.getName());
+                item.setDetail(symbol.getType().toString());
+                item.setKind(getCompletionItemKind(symbol.getKind()));
+                data.add(item);
+            }
+        }
+
+        // matches keywords
         for (String keyword : KEYWORDS) {
             if (keyword.startsWith(toBeCompleted)) {
                 CompletionItem item = new CompletionItem(keyword);
@@ -108,9 +117,32 @@ public class CompletionProvider {
     }
 
     private static ParseTree getNodeAtPosition(ParseTree parseTree, Position position) {
-        int line = position.getLine() + 1;
-        int column = position.getCharacter() - 1;
-        return Nodes.getNodeAtPosition(parseTree, line, column);
+        Range range = Ranges.from(position);
+        return Nodes.getNodeAtPosition(parseTree, range.startLine, range.startColumn);
+    }
+
+    private static CompletionItemKind getCompletionItemKind(Kind kind) {
+        switch (kind) {
+            case FUNCTION:
+                return CompletionItemKind.Function;
+            case BOOL:
+            case NUMBER:
+            case STRING:
+                return CompletionItemKind.Constant;
+            case CLASS:
+            case PACKAGE:
+                return CompletionItemKind.Class;
+            case VARIABLE:
+            case ANY:
+            case NONE:
+            case MAP:
+            case LIST:
+            case ARRAY:
+            case VOID:
+                return CompletionItemKind.Variable;
+            default:
+                return null;
+        }
     }
 
 }

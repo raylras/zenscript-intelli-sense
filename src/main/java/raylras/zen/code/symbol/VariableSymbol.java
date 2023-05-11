@@ -10,6 +10,7 @@ import raylras.zen.code.parser.ZenScriptParser.SimpleVariableContext;
 import raylras.zen.code.parser.ZenScriptParser.VariableDeclarationContext;
 import raylras.zen.code.resolve.NameResolver;
 import raylras.zen.code.resolve.TypeResolver;
+import raylras.zen.code.type.Kind;
 import raylras.zen.code.type.Type;
 
 public class VariableSymbol extends Symbol {
@@ -32,6 +33,19 @@ public class VariableSymbol extends Symbol {
         return declarator == getDeclarator();
     }
 
+    @Override
+    public Kind getKind() {
+        switch (getType().getKind()) {
+            case FUNCTION:
+                return Kind.FUNCTION;
+            case CLASS:
+                return Kind.CLASS;
+            default:
+                return Kind.VARIABLE;
+        }
+    }
+
+    @Override
     public Declarator getDeclarator() {
         return owner.accept(new Visitor<Declarator>() {
             @Override

@@ -16,19 +16,24 @@ importDeclaration
     ;
 
 qualifiedName
-    : IDENTIFIER ('.' IDENTIFIER)*
+    : name ('.' name)*
     ;
 
 alias
+    : name
+    ;
+
+name
     : IDENTIFIER
+    | 'to'
     ;
 
 functionDeclaration
-    : Declarator='static'? 'function' IDENTIFIER '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody
+    : Declarator='static'? 'function' name '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody
     ;
 
 parameter
-    : IDENTIFIER ('as' typeLiteral)? ('=' defaultValue)?
+    : name ('as' typeLiteral)? ('=' defaultValue)?
     ;
 
 defaultValue
@@ -52,7 +57,7 @@ constructorBody
     ;
 
 variableDeclaration
-    : Declarator=('var' | 'val' | 'static' | 'global') IDENTIFIER ('as' typeLiteral)? ('=' initializer)? ';'
+    : Declarator=('var' | 'val' | 'static' | 'global') name ('as' typeLiteral)? ('=' initializer)? ';'
     ;
 
 initializer
@@ -104,7 +109,7 @@ foreachStatement
     ;
 
 simpleVariable
-    : IDENTIFIER
+    : name
     ;
 
 foreachBody
@@ -122,7 +127,7 @@ expressionStatement
 expression
     : 'function' '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody # FunctionExprission
     | Left=expression '(' (expression (',' expression)*)? ')' # Call
-    | Left=expression Op='.' IDENTIFIER # MemberAccess
+    | Left=expression Op='.' name # MemberAccess
     | Left=expression '[' Index=expression ']' # ArrayIndex
     | expression 'as' typeLiteral # TypeCast
     | <assoc=right> Op=('!' | '-' | '+') expression # Unary
@@ -155,7 +160,7 @@ expression
     | TRUE_LITERAL # TrueLiteral
     | FALSE_LITERAL # FalseLiteral
     | NULL_LITERAL # NullLiteral
-    | IDENTIFIER # SimpleNameExpression
+    | name # SimpleNameExpression
     ;
 
 mapEntry

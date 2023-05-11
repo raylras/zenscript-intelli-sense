@@ -7,4 +7,9 @@ public class AnyType extends Type {
         return Kind.ANY;
     }
 
+    @Override
+    public String toString() {
+        return "any";
+    }
+
 }
