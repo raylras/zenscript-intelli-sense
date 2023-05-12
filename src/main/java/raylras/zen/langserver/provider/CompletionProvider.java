@@ -76,7 +76,7 @@ public class CompletionProvider {
         // matches global variables
         for (CompilationUnit cu : unit.context.getCompilationUnits()) {
             for (Symbol symbol : cu.getTopLevelSymbols()) {
-                if (!symbol.isDeclaredBy(Declarator.GLOBAL) && !symbol.getName().startsWith(toBeCompleted))
+                if (!symbol.isDeclaredBy(Declarator.GLOBAL) || !symbol.getName().startsWith(toBeCompleted))
                     continue;
                 CompletionItem item = new CompletionItem(symbol.getName());
                 item.setDetail(symbol.getType().toString());
