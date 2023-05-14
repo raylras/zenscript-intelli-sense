@@ -16,8 +16,8 @@ public class NameResolver extends Visitor<String> {
     public String visitImportDeclaration(ImportDeclarationContext ctx) {
         String name = visitAlias(ctx.alias());
         if (name == null) {
-            name = ctx.qualifiedName().name().stream()
-                    .skip(ctx.qualifiedName().name().size() - 1)
+            name = ctx.qualifiedName().simpleName().stream()
+                    .skip(ctx.qualifiedName().simpleName().size() - 1)
                     .map(ParseTree::getText)
                     .findFirst()
                     .orElse(null);
@@ -26,7 +26,7 @@ public class NameResolver extends Visitor<String> {
     }
 
     @Override
-    public String visitName(NameContext ctx) {
+    public String visitSimpleName(SimpleNameContext ctx) {
         return ctx.getText();
     }
 
@@ -39,17 +39,17 @@ public class NameResolver extends Visitor<String> {
     @Override
     public String visitAlias(AliasContext ctx) {
         if (ctx == null) return null;
-        return ctx.name().getText();
+        return ctx.simpleName().getText();
     }
 
     @Override
     public String visitFunctionDeclaration(FunctionDeclarationContext ctx) {
-        return ctx.name().getText();
+        return ctx.simpleName().getText();
     }
 
     @Override
     public String visitParameter(ParameterContext ctx) {
-        return ctx.name().getText();
+        return ctx.simpleName().getText();
     }
 
     @Override
@@ -64,17 +64,17 @@ public class NameResolver extends Visitor<String> {
 
     @Override
     public String visitVariableDeclaration(VariableDeclarationContext ctx) {
-        return ctx.name().getText();
+        return ctx.simpleName().getText();
     }
 
     @Override
     public String visitSimpleVariable(SimpleVariableContext ctx) {
-        return ctx.name().getText();
+        return ctx.simpleName().getText();
     }
 
     @Override
-    public String visitSimpleNameExpression(SimpleNameExpressionContext ctx) {
-        return ctx.name().getText();
+    public String visitLocalAccessExpr(LocalAccessExprContext ctx) {
+        return ctx.simpleName().getText();
     }
 
 }

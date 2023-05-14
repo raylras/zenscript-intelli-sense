@@ -9,7 +9,7 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Declarator;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.ExpressionContext;
-import raylras.zen.code.parser.ZenScriptParser.MemberAccessContext;
+import raylras.zen.code.parser.ZenScriptParser.MemberAccessExprContext;
 import raylras.zen.code.resolve.TypeResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.Symbol;
@@ -39,8 +39,8 @@ public class CompletionProvider {
         String toBeCompleted = node.getText();
 
         // matches member access
-        if (node.getParent() instanceof MemberAccessContext) {
-            ExpressionContext left = ((MemberAccessContext) node.getParent()).Left;
+        if (node.getParent() instanceof MemberAccessExprContext) {
+            ExpressionContext left = ((MemberAccessExprContext) node.getParent()).Left;
             Type type = new TypeResolver(unit).visitExpression(left);
             Symbol symbol = type.lookupSymbol();
             if (symbol != null) {

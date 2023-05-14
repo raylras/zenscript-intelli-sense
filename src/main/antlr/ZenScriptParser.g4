@@ -16,24 +16,24 @@ importDeclaration
     ;
 
 qualifiedName
-    : name ('.' name)*
+    : simpleName ('.' simpleName)*
     ;
 
 alias
-    : name
+    : simpleName
     ;
 
-name
+simpleName
     : IDENTIFIER
     | 'to'
     ;
 
 functionDeclaration
-    : Declarator='static'? 'function' name '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody
+    : Declarator='static'? 'function' simpleName '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody
     ;
 
 parameter
-    : name ('as' typeLiteral)? ('=' defaultValue)?
+    : simpleName ('as' typeLiteral)? ('=' defaultValue)?
     ;
 
 defaultValue
@@ -57,7 +57,7 @@ constructorBody
     ;
 
 variableDeclaration
-    : Declarator=('var' | 'val' | 'static' | 'global') name ('as' typeLiteral)? ('=' initializer)? ';'
+    : Declarator=('var' | 'val' | 'static' | 'global') simpleName ('as' typeLiteral)? ('=' initializer)? ';'
     ;
 
 initializer
@@ -109,7 +109,7 @@ foreachStatement
     ;
 
 simpleVariable
-    : name
+    : simpleName
     ;
 
 foreachBody
@@ -125,42 +125,42 @@ expressionStatement
     ;
 
 expression
-    : 'function' '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody # FunctionExprission
-    | Left=expression '(' (expression (',' expression)*)? ')' # Call
-    | Left=expression Op='.' name # MemberAccess
-    | Left=expression '[' Index=expression ']' # ArrayIndex
-    | expression 'as' typeLiteral # TypeCast
-    | <assoc=right> Op=('!' | '-' | '+') expression # Unary
-    | Left=expression Op=('*' | '/' | '%') Right=expression # Binary
-    | Left=expression Op=('+' | '-') Right=expression # Binary
-    | Left=expression Op='~' Right=expression # Binary
-    | Left=expression Op=('<' | '<=' | '>' | '>=') Right=expression # Binary
-    | Left=expression Op=('==' | '!=') Right=expression # Binary
-    | Left=expression Op='instanceof' Right=expression # Binary
-    | Left=expression Op=('in' | 'has') Right=expression # Binary
-    | Left=expression Op='&' Right=expression # Binary
-    | Left=expression Op='|' Right=expression # Binary
-    | Left=expression Op='^'Right=expression # Binary
-    | Left=expression Op='&&' Right=expression # Binary
-    | Left=expression Op='||' Right=expression # Binary
-    | <assoc=right> Condition=expression '?' TruePart=expression ':' FalsePart=expression # Ternary
-    | <assoc=right> Left=expression Op=('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '~=' | '&=' | '|=' | '^=') Right=expression # Assignment
-    | '<' (~'>')*? '>' # BracketHandler
-    | From=expression Op=('..' | 'to') To=expression # IntRange
-    | '[' (expression (',' expression)*)? ','? ']' # ArrayInitializer
-    | '{' (mapEntry (',' mapEntry)*)? ','? '}' # MapInitializer
-    | '(' expression ')' # Parens
-    | 'this' # This
-    | 'super' # Super
-    | INT_LITERAL # IntLiteral
-    | LONG_LITERAL # LongLiteral
-    | FLOAT_LITERAL # FloatLiteral
-    | DOUBLE_LITERAL # DoubleLiteral
-    | STRING_LITERAL # StringLiteral
-    | TRUE_LITERAL # TrueLiteral
-    | FALSE_LITERAL # FalseLiteral
-    | NULL_LITERAL # NullLiteral
-    | name # SimpleNameExpression
+    : 'function' '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody # FunctionExpr
+    | Left=expression '(' (expression (',' expression)*)? ')' # CallExpr
+    | Left=expression Op='.' simpleName # MemberAccessExpr
+    | Left=expression '[' Index=expression ']' # ArrayIndexExpr
+    | expression 'as' typeLiteral # TypeCastExpr
+    | <assoc=right> Op=('!' | '-' | '+') expression # UnaryExpr
+    | Left=expression Op=('*' | '/' | '%') Right=expression # BinaryExpr
+    | Left=expression Op=('+' | '-') Right=expression # BinaryExpr
+    | Left=expression Op='~' Right=expression # BinaryExpr
+    | Left=expression Op=('<' | '<=' | '>' | '>=') Right=expression # BinaryExpr
+    | Left=expression Op=('==' | '!=') Right=expression # BinaryExpr
+    | Left=expression Op='instanceof' Right=expression # BinaryExpr
+    | Left=expression Op=('in' | 'has') Right=expression # BinaryExpr
+    | Left=expression Op='&' Right=expression # BinaryExpr
+    | Left=expression Op='|' Right=expression # BinaryExpr
+    | Left=expression Op='^'Right=expression # BinaryExpr
+    | Left=expression Op='&&' Right=expression # BinaryExpr
+    | Left=expression Op='||' Right=expression # BinaryExpr
+    | <assoc=right> Condition=expression '?' TruePart=expression ':' FalsePart=expression # TernaryExpr
+    | <assoc=right> Left=expression Op=('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '~=' | '&=' | '|=' | '^=') Right=expression # AssignmentExpr
+    | '<' (~'>')*? '>' # BracketHandlerExpr
+    | From=expression Op=('..' | 'to') To=expression # IntRangeExpr
+    | '[' (expression (',' expression)*)? ','? ']' # ArrayInitializerExpr
+    | '{' (mapEntry (',' mapEntry)*)? ','? '}' # MapInitializerExpr
+    | '(' expression ')' # ParensExpr
+    | 'this' # ThisExpr
+    | 'super' # SuperExpr
+    | INT_LITERAL # IntLiteralExpr
+    | LONG_LITERAL # LongLiteralExpr
+    | FLOAT_LITERAL # FloatLiteralExpr
+    | DOUBLE_LITERAL # DoubleLiteralExpr
+    | STRING_LITERAL # StringLiteralExpr
+    | TRUE_LITERAL # TrueLiteralExpr
+    | FALSE_LITERAL # FalseLiteralExpr
+    | NULL_LITERAL # NullLiteralExpr
+    | simpleName # LocalAccessExpr
     ;
 
 mapEntry

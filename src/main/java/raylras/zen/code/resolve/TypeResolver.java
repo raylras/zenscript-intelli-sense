@@ -77,7 +77,7 @@ public class TypeResolver extends Visitor<Type> {
     }
 
     @Override
-    public Type visitCall(CallContext ctx) {
+    public Type visitCallExpr(CallExprContext ctx) {
         Type leftType = ctx.Left.accept(this);
         if (leftType instanceof FunctionType) {
             return ((FunctionType) leftType).returnType;
@@ -86,7 +86,7 @@ public class TypeResolver extends Visitor<Type> {
     }
 
     @Override
-    public Type visitSimpleNameExpression(SimpleNameExpressionContext ctx) {
+    public Type visitLocalAccessExpr(LocalAccessExprContext ctx) {
         Symbol symbol = unit.lookupSymbol(ctx);
         if (symbol != null)
             return symbol.getType();
@@ -94,9 +94,9 @@ public class TypeResolver extends Visitor<Type> {
     }
 
     @Override
-    public Type visitMemberAccess(MemberAccessContext ctx) {
+    public Type visitMemberAccessExpr(MemberAccessExprContext ctx) {
         Symbol leftSymbol = visitExpression(ctx.Left).lookupSymbol();
-        String rightName = ctx.name().getText();
+        String rightName = ctx.simpleName().getText();
         Type type = null;
         if (leftSymbol != null) {
             for (Symbol member : leftSymbol.getMembers()) {
@@ -112,7 +112,7 @@ public class TypeResolver extends Visitor<Type> {
     }
 
     @Override
-    public Type visitBinary(BinaryContext ctx) {
+    public Type visitBinaryExpr(BinaryExprContext ctx) {
         Type type;
         switch (ctx.Op.getType()) {
             case ZenScriptLexer.ADD:
@@ -127,7 +127,7 @@ public class TypeResolver extends Visitor<Type> {
     }
 
     @Override
-    public Type visitTypeCast(TypeCastContext ctx) {
+    public Type visitTypeCastExpr(TypeCastExprContext ctx) {
         Type type = visitTypeLiteral(ctx.typeLiteral());
         if (type == null)
             type = new AnyType();
@@ -135,12 +135,12 @@ public class TypeResolver extends Visitor<Type> {
     }
 
     @Override
-    public Type visitNullLiteral(NullLiteralContext ctx) {
+    public Type visitNullLiteralExpr(NullLiteralExprContext ctx) {
         return new AnyType();
     }
 
     @Override
-    public Type visitArrayInitializer(ArrayInitializerContext ctx) {
+    public Type visitArrayInitializerExpr(ArrayInitializerExprContext ctx) {
         Type type = visitExpression(ctx.expression(0));
         if (type == null)
             type = new AnyType();
