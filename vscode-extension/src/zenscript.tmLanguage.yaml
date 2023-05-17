@@ -5,9 +5,9 @@ fileTypes:
 
 patterns:
   - include: '#preprocessor'
-  - include: '#declaration'
-  - include: '#statement'
-  - include: '#comment'
+  - include: '#declarations'
+  - include: '#statements'
+  - include: '#comments'
 
 repository:
 
@@ -27,15 +27,15 @@ repository:
       - name: string.unquoted.zs
         match: '[[:alnum:]_$]+'
 
-  # Declaration
+  # Declarations
 
-  declaration:
+  declarations:
     patterns:
       - include: '#import-declaration'
       - include: '#class-declaration'
       - include: '#function-declaration'
       - include: '#variable-declaration'
-      - include: '#comment'
+      - include: '#comments'
 
   import-declaration:
     name: meta.import.zs
@@ -72,7 +72,7 @@ repository:
           '0':
             name: punctuation.definition.block.zs
         patterns:
-          - include: '#comment'
+          - include: '#comments'
           - include: '#constructor-declaration'
           - include: '#function-declaration'
           - include: '#variable-declaration'
@@ -85,9 +85,9 @@ repository:
         name: keyword.other.zenConstructor.zs
     end: '(?<=\})'
     patterns:
-      - include: '#function-parameters'
+      - include: '#parameter-list'
       - include: '#block'
-      - include: '#comment'
+      - include: '#comments'
 
   variable-declaration:
     patterns:
@@ -105,7 +105,7 @@ repository:
           - include: '#variable-initializer'
           - include: '#punctuation-semicolon'
       - name: meta.definition.variable.zs
-        begin: '(?=val|static|global)'
+        begin: '(?=\b(val|static|global)\b)'
         end: '(?<=;)'
         patterns:
           - match: '(val|static|global)\s+([[:alpha:]_$][[:alnum:]_$]*)'
@@ -125,10 +125,10 @@ repository:
         name: keyword.operator.assignment.zs
     end: '(?=;)'
     patterns:
-      - include: '#expression'
+      - include: '#expressions'
 
   function-declaration:
-    name: meta.function.zs
+    name: meta.function.decl.zs
     begin: '(?=((static)\s+)?(function))'
     beginCaptures:
       '2':
@@ -143,52 +143,54 @@ repository:
             name: storage.type.function.zs
           '2':
             name: meta.definition.function.zs entity.name.function.zs
-      - include: '#function-parameters'
+      - include: '#parameter-list'
       - include: '#type-annotation'
       - include: '#block'
-      - include: '#comment'
+      - include: '#comments'
 
-  function-parameters:
-    name: 'meta.parameters.zs'
+  parameter-list:
+    name: 'meta.parameter-list.zs'
     begin: '\('
     beginCaptures:
       '0':
-        name: punctuation.definition.parameters.begin.zs
+        name: punctuation.definition.parameter-list.begin.zs
     end: '\)'
     endCaptures:
       '0':
-        name: punctuation.definition.parameters.end.zs
+        name: punctuation.definition.parameter-list.end.zs
     patterns:
-      - include: '#function-parameter'
+      - include: '#parameter'
       - name: punctuation.separator.parameter.zs
         match: ","
 
-  function-parameter:
+  parameter:
+    name: meta.parameter.zs
     begin: '[[:alpha:]_$][[:alnum:]_$]*'
     beginCaptures:
       '0':
         name: variable.parameter.zs
-    end: '(?=,|\))'
+    end: '(?=[,\)])'
     patterns:
       - include: '#type-annotation'
+      - include: '#expressions'
 
-  # Statement
+  # Statements
 
-  statement:
+  statements:
     patterns:
-      - include: '#comment'
+      - include: '#comments'
       - include: '#function-declaration'
       - include: '#variable-declaration'
       - include: '#if-statement'
       - include: '#while-statement'
       - include: '#foreach-statement'
       - include: '#return-statement'
+      - include: '#block'
+      - include: '#expressions'
       - name: keyword.control.break.zs
         match: '\b(break)\b'
       - name: keyword.control.continue.zs
         match: '\b(continue)\b'
-      - include: '#block'
-      - include: '#expression'
       - include: '#punctuation-semicolon'
 
   if-statement:
@@ -203,9 +205,9 @@ repository:
             begin: '\('
             end: '\)'
             patterns:
-              - include: '#expression'
-          - include: '#statement'
-          - include: '#expression'
+              - include: '#expressions'
+          - include: '#statements'
+          - include: '#expressions'
       - include: '#else-part'
 
   else-part:
@@ -215,8 +217,8 @@ repository:
         name: keyword.control.else.zs
     end: '(?<=\})|(?=;)'
     patterns:
-      - include: '#statement'
-      - include: '#expression'
+      - include: '#statements'
+      - include: '#expressions'
 
   while-statement:
     name: meta.statement.while.zs
@@ -229,9 +231,9 @@ repository:
         begin: '\('
         end: '\)'
         patterns:
-          - include: '#expression'
+          - include: '#expressions'
       - include: '#block'
-      - include: '#comment'
+      - include: '#comments'
 
   foreach-statement:
     name: meta.statement.for.zs
@@ -261,12 +263,12 @@ repository:
     begin: '(?<=in)'
     end: '(?={)'
     patterns: 
-      # copy from '#expression'
+      # copy from '#expressions'
       - include: '#function-expression'
       - include: '#function-call'
       - include: '#ternary-expression'
       - include: '#instanceof-expression'
-      - include: '#paren-expression'
+      - include: '#parens-expression'
       - include: '#constant-expression'
       - include: '#bracket-handler'
       - name: variable.language.this.zs
@@ -283,7 +285,7 @@ repository:
             name: keyword.operator.assignment.zs
         end: (?=;)
         patterns:
-          - include: '#expression'
+          - include: '#expressions'
       - name: keyword.operator.arithmetic.zs
         match: '(\-|\+|\*|\/|\%)'
       - name: keyword.operator.logical.zs
@@ -314,7 +316,7 @@ repository:
       '0':
         name: punctuation.terminator.zs
     patterns:
-      - include: '#expression'
+      - include: '#expressions'
 
   block:
     name: meta.block.zs
@@ -327,17 +329,18 @@ repository:
       '0':
         name: punctuation.definition.block.zs
     patterns:
-      - include: '#statement'
+      - include: '#comments'
+      - include: '#statements'
 
-  # Expression
+  # Expressions
 
-  expression:
+  expressions:
     patterns:
       - include: '#function-expression'
       - include: '#function-call'
       - include: '#ternary-expression'
       - include: '#instanceof-expression'
-      - include: '#paren-expression'
+      - include: '#parens-expression'
       - include: '#constant-expression'
       - include: '#bracket-handler'
       - name: variable.language.this.zs
@@ -348,13 +351,8 @@ repository:
         match: '\b(in|has)\b'
       - name: keyword.operator.comparison.zs
         match: '(==|!=|<=|>=|<|>)'
-      - begin: '([\+\-\*\/\%\&\|\^\~]?=)'
-        beginCaptures:
-          '1':
-            name: keyword.operator.assignment.zs
-        end: (?=;)
-        patterns:
-          - include: '#expression'
+      - name: keyword.operator.assignment.zs
+        match: '([\+\-\*\/\%\&\|\^\~]?=)'
       - name: keyword.operator.arithmetic.zs
         match: '(\-|\+|\*|\/|\%)'
       - name: keyword.operator.logical.zs
@@ -384,7 +382,7 @@ repository:
       "1":
         name: keyword.operator.ternary.zs
     patterns:
-      - include: "#expression"
+      - include: "#expressions"
 
   instanceof-expression:
     begin: '\b(instanceof)\b'
@@ -393,10 +391,10 @@ repository:
         name: keyword.operator.instanceof.zs
     end: '(?=\;|\)|\||\{)'
     patterns:
-      - include: "#type"
+      - include: "#type-literal"
 
-  paren-expression:
-    name: paren
+  parens-expression:
+    name: meta.parens.expr.zs
     begin: '\('
     beginCaptures:
       "0":
@@ -406,7 +404,7 @@ repository:
       "0":
         name: meta.brace.round.zs
     patterns:
-      - include: "#expression"
+      - include: "#expressions"
 
   constant-expression:
     patterns:
@@ -426,8 +424,8 @@ repository:
       '0':
         name: meta.brace.square.zs
     patterns:
-      - include: '#comment'
-      - include: '#expression'
+      - include: '#comments'
+      - include: '#expressions'
       - include: '#punctuation-comma'
 
   map-literal:
@@ -441,7 +439,7 @@ repository:
       '0':
         name: punctuation.definition.map.end.zs
     patterns:
-      - include: '#comment'
+      - include: '#comments'
       - include: '#punctuation-comma'
       - include: '#map-entry'
 
@@ -451,21 +449,25 @@ repository:
     patterns:
       - name: punctuation.separator.key-value.zs
         match: ':'
-      - include: '#expression'
+      - include: '#expressions'
 
   function-expression:
-    name: meta.function.expression.zs
+    name: meta.function.expr.zs
     begin: '(?=(function))'
     beginCaptures:
       '1':
         name: storage.type.function.zs
     end: '(?<=})'
     patterns:
-      - include: '#function-parameters'
+      - include: '#parameter-list'
+      - include: '#type-annotation'
+      - match: '\b(=)\b'
+        patterns:
+          - include: '#expressions'
       - include: '#block'
 
   function-call:
-    name: meta.function-call.zs
+    name: meta.call.expr.zs
     begin: '([[:alpha:]_$][[:alnum:]_$]*)\s*(\()'
     beginCaptures:
       '1':
@@ -477,21 +479,21 @@ repository:
       '0':
         name: meta.brace.round.zs
     patterns:
-      - include: '#expression'
+      - include: '#expressions'
       - include: '#punctuation-comma'
 
   bracket-handler:
-    name: meta.bracket-handler.zs
+    name: meta.brackets.expr.zs
     begin: '(<)(.*?)(?=:)'
     beginCaptures:
       '1':
-        name: constant.language.bracket-handler.begin.zs
+        name: constant.language.brackets.begin.zs
       "2":
         name: variable.other.constant.zs
     end: '>'
     endCaptures:
       '0':
-        name: constant.language.bracket-handler.end.zs
+        name: constant.language.brackets.end.zs
     patterns:
       # - name: variable.other.constant.zs
       #   match: '(?<=<)([[:alpha:]_$][[:alnum:]_$]*)(?=:)'
@@ -560,15 +562,15 @@ repository:
 
   type-annotation:
     name: meta.type.annotation.zs
-    begin: '\b(as)\b'
+    begin: \b(as)\b
     beginCaptures:
-      '0':
-        name: keyword.control.as.zs
-    end: '(?=(?:\s*)(?:,|\)|=|{|}|;))'
+      '1':
+        name: 'keyword.control.zs'
+    end: '(?=[,\(\)={};])'
     patterns:
-      - include: '#type'
+      - include: '#type-literal'
 
-  type:
+  type-literal:
     patterns:
       - name: support.type.zs
         match: '\b([[:alpha:]_$][[:alnum:]_$]*)\b'
@@ -578,9 +580,9 @@ repository:
     name: variable.other.zs
     match: '\b([[:alpha:]_$][[:alnum:]_$]*)\b'
 
-  # Comment
+  # Comments
 
-  comment:
+  comments:
     patterns:
       - name: comment.line.double-slash.zs
         begin: '//'
