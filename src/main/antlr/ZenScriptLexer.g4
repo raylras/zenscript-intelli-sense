@@ -46,6 +46,7 @@ FRIGGIN_CLASS:          'frigginClass';
 FRIGGIN_CONSTRUCTOR:    'frigginConstructor';
 ZEN_CLASS:              'zenClass';
 ZEN_CONSTRUCTOR:        'zenConstructor';
+EXPAND:                 '$expand';
 
 // Separators
 

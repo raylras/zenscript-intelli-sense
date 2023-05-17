@@ -1,5 +1,5 @@
 package raylras.zen.code;
 
 public enum Declarator {
-    VAR, VAL, GLOBAL, STATIC, NONE
+    VAR, VAL, GLOBAL, STATIC, EXPAND, NONE
 }

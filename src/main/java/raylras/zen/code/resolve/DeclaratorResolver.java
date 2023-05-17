@@ -34,6 +34,9 @@ public class DeclaratorResolver extends Visitor<Declarator> {
             case ZenScriptLexer.STATIC:
                 return Declarator.STATIC;
 
+            case  ZenScriptLexer.EXPAND:
+                return Declarator.EXPAND;
+
             default:
                 return null;
         }

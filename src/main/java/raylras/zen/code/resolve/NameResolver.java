@@ -52,6 +52,11 @@ public class NameResolver extends Visitor<String> {
     }
 
     @Override
+    public String visitExpandFunctionDeclaration(ExpandFunctionDeclarationContext ctx) {
+        return visitSimpleName(ctx.simpleName());
+    }
+
+    @Override
     public String visitParameter(ParameterContext ctx) {
         return visitSimpleName(ctx.simpleName());
     }

@@ -5,6 +5,7 @@ options { tokenVocab = ZenScriptLexer; }
 compilationUnit
     :   ( importDeclaration
         | functionDeclaration
+        | expandFunctionDeclaration
         | classDeclaration
         | statement
         )*
@@ -30,6 +31,10 @@ simpleName
 
 functionDeclaration
     : Declarator='static'? 'function' simpleName '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody
+    ;
+
+expandFunctionDeclaration
+    : Declarator='$expand' qualifiedName '$' simpleName '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody
     ;
 
 parameter

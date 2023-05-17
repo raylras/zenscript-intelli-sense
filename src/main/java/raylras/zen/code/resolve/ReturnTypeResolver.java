@@ -3,6 +3,7 @@ package raylras.zen.code.resolve;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Visitor;
+import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.parser.ZenScriptParser.ConstructorDeclarationContext;
 import raylras.zen.code.parser.ZenScriptParser.FunctionDeclarationContext;
 import raylras.zen.code.type.AnyType;
@@ -25,6 +26,14 @@ public class ReturnTypeResolver extends Visitor<Type> {
 
     @Override
     public Type visitFunctionDeclaration(FunctionDeclarationContext ctx) {
+        Type type = new LiteralTypeResolver(unit).resolve(ctx.typeLiteral());
+        if (type == null)
+            type = new AnyType();
+        return type;
+    }
+
+    @Override
+    public Type visitExpandFunctionDeclaration(ZenScriptParser.ExpandFunctionDeclarationContext ctx) {
         Type type = new LiteralTypeResolver(unit).resolve(ctx.typeLiteral());
         if (type == null)
             type = new AnyType();

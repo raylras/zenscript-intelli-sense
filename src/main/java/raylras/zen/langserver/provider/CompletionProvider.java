@@ -65,7 +65,7 @@ public class CompletionProvider {
         Scope scope = unit.lookupScope(node);
         while (scope != null) {
             for (Symbol symbol : scope.symbols) {
-                if (!symbol.getName().startsWith(toBeCompleted))
+                if (!symbol.getName().startsWith(toBeCompleted) || symbol.isDeclaredBy(Declarator.EXPAND))
                     continue;
                 CompletionItem item = new CompletionItem(symbol.getName());
                 item.setDetail(symbol.getType().toString());

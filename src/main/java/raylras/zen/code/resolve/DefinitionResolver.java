@@ -64,6 +64,17 @@ public class DefinitionResolver extends Listener {
     }
 
     @Override
+    public void enterExpandFunctionDeclaration(ExpandFunctionDeclarationContext ctx) {
+        enterSymbol(new FunctionSymbol(ctx, unit));
+        enterScope(new Scope(currentScope(), ctx));
+    }
+
+    @Override
+    public void exitExpandFunctionDeclaration(ExpandFunctionDeclarationContext ctx) {
+        exitScope();
+    }
+
+    @Override
     public void enterParameter(ParameterContext ctx) {
         enterSymbol(new VariableSymbol(ctx, unit));
     }

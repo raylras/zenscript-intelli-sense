@@ -3,6 +3,7 @@ package raylras.zen.code.resolve;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Visitor;
+import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.parser.ZenScriptParser.ConstructorDeclarationContext;
 import raylras.zen.code.parser.ZenScriptParser.FunctionDeclarationContext;
 import raylras.zen.code.symbol.VariableSymbol;
@@ -26,6 +27,13 @@ public class ParamsResolver extends Visitor<List<VariableSymbol>> {
 
     @Override
     public List<VariableSymbol> visitFunctionDeclaration(FunctionDeclarationContext ctx) {
+        return ctx.parameter().stream()
+                .map(unit::<VariableSymbol>getSymbol)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<VariableSymbol> visitExpandFunctionDeclaration(ZenScriptParser.ExpandFunctionDeclarationContext ctx) {
         return ctx.parameter().stream()
                 .map(unit::<VariableSymbol>getSymbol)
                 .collect(Collectors.toList());
