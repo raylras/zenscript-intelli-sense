@@ -3,9 +3,16 @@ package raylras.zen.code.resolve;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import raylras.zen.code.Visitor;
+import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
 
 public class NameResolver extends Visitor<String> {
+
+    public String resolve(ParseTree node) {
+        if (node == null)
+            return null;
+        return node.accept(this);
+    }
 
     @Override
     public String visitTerminal(TerminalNode node) {
@@ -15,19 +22,9 @@ public class NameResolver extends Visitor<String> {
     @Override
     public String visitImportDeclaration(ImportDeclarationContext ctx) {
         String name = visitAlias(ctx.alias());
-        if (name == null) {
-            name = ctx.qualifiedName().simpleName().stream()
-                    .skip(ctx.qualifiedName().simpleName().size() - 1)
-                    .map(ParseTree::getText)
-                    .findFirst()
-                    .orElse(null);
-        }
+        if (name == null)
+            name = visitQualifiedName(ctx.qualifiedName());
         return name;
-    }
-
-    @Override
-    public String visitSimpleName(SimpleNameContext ctx) {
-        return ctx.getText();
     }
 
     @Override
@@ -39,42 +36,49 @@ public class NameResolver extends Visitor<String> {
     @Override
     public String visitAlias(AliasContext ctx) {
         if (ctx == null) return null;
-        return ctx.simpleName().getText();
+        return ctx.getText();
+    }
+
+    @Override
+    public String visitSimpleName(SimpleNameContext ctx) {
+        if (ctx == null)
+            return null;
+        return ctx.getText();
     }
 
     @Override
     public String visitFunctionDeclaration(FunctionDeclarationContext ctx) {
-        return ctx.simpleName().getText();
+        return visitSimpleName(ctx.simpleName());
     }
 
     @Override
     public String visitParameter(ParameterContext ctx) {
-        return ctx.simpleName().getText();
+        return visitSimpleName(ctx.simpleName());
     }
 
     @Override
     public String visitClassDeclaration(ClassDeclarationContext ctx) {
-        return ctx.qualifiedName().getText();
+        return visitQualifiedName(ctx.qualifiedName());
     }
 
     @Override
     public String visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
-        return ctx.ZEN_CONSTRUCTOR().getText();
+        return ZenScriptLexer.VOCABULARY.getLiteralName(ZenScriptLexer.ZEN_CONSTRUCTOR);
     }
 
     @Override
     public String visitVariableDeclaration(VariableDeclarationContext ctx) {
-        return ctx.simpleName().getText();
+        return visitSimpleName(ctx.simpleName());
     }
 
     @Override
     public String visitSimpleVariable(SimpleVariableContext ctx) {
-        return ctx.simpleName().getText();
+        return visitSimpleName(ctx.simpleName());
     }
 
     @Override
     public String visitLocalAccessExpr(LocalAccessExprContext ctx) {
-        return ctx.simpleName().getText();
+        return visitSimpleName(ctx.simpleName());
     }
 
 }

@@ -3,15 +3,13 @@ package raylras.zen.code.symbol;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Declarator;
-import raylras.zen.code.Visitor;
-import raylras.zen.code.parser.ZenScriptLexer;
-import raylras.zen.code.parser.ZenScriptParser.ParameterContext;
-import raylras.zen.code.parser.ZenScriptParser.SimpleVariableContext;
-import raylras.zen.code.parser.ZenScriptParser.VariableDeclarationContext;
+import raylras.zen.code.resolve.DeclaratorResolver;
 import raylras.zen.code.resolve.NameResolver;
-import raylras.zen.code.resolve.TypeResolver;
-import raylras.zen.code.type.Kind;
+import raylras.zen.code.resolve.VariableTypeResolver;
 import raylras.zen.code.type.Type;
+
+import java.util.Collections;
+import java.util.List;
 
 public class VariableSymbol extends Symbol {
 
@@ -21,59 +19,27 @@ public class VariableSymbol extends Symbol {
 
     @Override
     public String getName() {
-        return owner.accept(new NameResolver());
+        return new NameResolver().resolve(owner);
     }
 
+    @Override
     public Type getType() {
-        return owner.accept(new TypeResolver(unit));
+        return new VariableTypeResolver(unit).resolve(owner);
+    }
+
+    @Override
+    public List<Symbol> getMembers() {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Declarator getDeclarator() {
+        return new DeclaratorResolver().resolve(owner);
     }
 
     @Override
     public boolean isDeclaredBy(Declarator declarator) {
         return declarator == getDeclarator();
-    }
-
-    @Override
-    public Kind getKind() {
-        switch (getType().getKind()) {
-            case FUNCTION:
-                return Kind.FUNCTION;
-            case CLASS:
-                return Kind.CLASS;
-            default:
-                return Kind.VARIABLE;
-        }
-    }
-
-    @Override
-    public Declarator getDeclarator() {
-        return owner.accept(new Visitor<Declarator>() {
-            @Override
-            public Declarator visitParameter(ParameterContext ctx) {
-                return Declarator.NONE;
-            }
-
-            @Override
-            public Declarator visitVariableDeclaration(VariableDeclarationContext ctx) {
-                switch (ctx.Declarator.getType()) {
-                    case ZenScriptLexer.VAR:
-                        return Declarator.VAR;
-                    case ZenScriptLexer.VAL:
-                        return Declarator.VAL;
-                    case ZenScriptLexer.GLOBAL:
-                        return Declarator.GLOBAL;
-                    case ZenScriptLexer.STATIC:
-                        return Declarator.STATIC;
-                    default:
-                        return null;
-                }
-            }
-
-            @Override
-            public Declarator visitSimpleVariable(SimpleVariableContext ctx) {
-                return Declarator.NONE;
-            }
-        });
     }
 
 }

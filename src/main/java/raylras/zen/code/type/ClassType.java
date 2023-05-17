@@ -27,24 +27,14 @@ public class ClassType extends Type {
 
     public String getName() {
         Symbol symbol = lookupSymbol();
-        if (symbol != null) {
+        if (symbol != null)
             return symbol.getName();
-        }
-        return owner.accept(new NameResolver());
-    }
-
-    public String getSimpleName() {
-        String name = getName();
-        int i = name.lastIndexOf('.');
-        if (i >= 0) {
-            return name.substring(i + 1);
-        }
-        return name;
+        return new NameResolver().resolve(owner);
     }
 
     @Override
     public String toString() {
-        return getSimpleName();
+        return getName();
     }
 
 }

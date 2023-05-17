@@ -5,9 +5,9 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.parser.ZenScriptParser.ImportDeclarationContext;
 import raylras.zen.code.resolve.NameResolver;
 import raylras.zen.code.type.ClassType;
-import raylras.zen.code.type.Kind;
 import raylras.zen.code.type.Type;
 
+import java.util.Collections;
 import java.util.List;
 
 public class ImportSymbol extends Symbol {
@@ -33,16 +33,11 @@ public class ImportSymbol extends Symbol {
     }
 
     @Override
-    public Kind getKind() {
-        return Kind.CLASS;
-    }
-
-    @Override
     public List<Symbol> getMembers() {
         Symbol symbol = getType().lookupSymbol();
         if (symbol != null)
             return symbol.getMembers();
-        return null;
+        return Collections.emptyList();
     }
 
 }

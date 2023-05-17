@@ -9,21 +9,18 @@ import raylras.zen.code.symbol.*;
 import raylras.zen.util.ArrayStack;
 import raylras.zen.util.Stack;
 
-public class DefResolver extends Listener {
+public class DefinitionResolver extends Listener {
 
-    private final CompilationUnit unit;
     private final Stack<Scope> stack = new ArrayStack<>();
+    private CompilationUnit unit;
 
-    public DefResolver(CompilationUnit unit) {
+    public void resolve(CompilationUnit unit) {
         this.unit = unit;
-    }
-
-    public void resolve() {
         ParseTreeWalker.DEFAULT.walk(this, unit.parseTree);
     }
 
     private void enterScope(Scope scope) {
-        unit.putScope(scope.getOwner(), scope);
+        unit.putScope(scope.owner, scope);
         stack.push(scope);
     }
 
@@ -36,7 +33,7 @@ public class DefResolver extends Listener {
     }
 
     private void enterSymbol(Symbol symbol) {
-        unit.putSymbol(symbol.getOwner(), symbol);
+        unit.putSymbol(symbol.owner, symbol);
         currentScope().addSymbol(symbol);
     }
 

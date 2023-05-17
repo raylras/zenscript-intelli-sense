@@ -3,10 +3,11 @@ package raylras.zen.code.symbol;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.resolve.NameResolver;
+import raylras.zen.code.scope.Scope;
 import raylras.zen.code.type.ClassType;
-import raylras.zen.code.type.Kind;
 import raylras.zen.code.type.Type;
 
+import java.util.Collections;
 import java.util.List;
 
 public class ClassSymbol extends Symbol {
@@ -17,7 +18,7 @@ public class ClassSymbol extends Symbol {
 
     @Override
     public String getName() {
-        return owner.accept(new NameResolver());
+        return new NameResolver().resolve(owner);
     }
 
     @Override
@@ -26,13 +27,11 @@ public class ClassSymbol extends Symbol {
     }
 
     @Override
-    public Kind getKind() {
-        return Kind.CLASS;
-    }
-
-    @Override
     public List<Symbol> getMembers() {
-        return unit.getScope(owner).getSymbols();
+        Scope scope = unit.getScope(owner);
+        if (scope != null)
+            return scope.symbols;
+        return Collections.emptyList();
     }
 
 }

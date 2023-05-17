@@ -8,13 +8,13 @@ import org.eclipse.lsp4j.Position;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Declarator;
 import raylras.zen.code.parser.ZenScriptLexer;
+import raylras.zen.code.parser.ZenScriptParser.ArgumentContext;
 import raylras.zen.code.parser.ZenScriptParser.ExpressionContext;
-import raylras.zen.code.parser.ZenScriptParser.MemberAccessExprContext;
-import raylras.zen.code.resolve.TypeResolver;
+import raylras.zen.code.parser.ZenScriptParser.ExpressionStatementContext;
+import raylras.zen.code.resolve.ExpressionTypeResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.Symbol;
-import raylras.zen.code.type.Kind;
-import raylras.zen.code.type.Type;
+import raylras.zen.code.type.*;
 import raylras.zen.l10n.L10N;
 import raylras.zen.util.Nodes;
 import raylras.zen.util.Range;
@@ -39,38 +39,40 @@ public class CompletionProvider {
         String toBeCompleted = node.getText();
 
         // matches member access
-        if (node.getParent() instanceof MemberAccessExprContext) {
-            ExpressionContext left = ((MemberAccessExprContext) node.getParent()).Left;
-            Type type = new TypeResolver(unit).visitExpression(left);
-            Symbol symbol = type.lookupSymbol();
-            if (symbol != null) {
-                for (Symbol member : symbol.getMembers()) {
-                    if (!member.getName().startsWith(toBeCompleted.replace(".", "")))
-                        continue;
-                    CompletionItem item = new CompletionItem(member.getName());
-                    item.setDetail(member.getType().toString());
-                    item.setKind(getCompletionItemKind(member.getKind()));
-                    data.add(item);
+        ExpressionContext exprCtx = lookupExpr(node);
+        if (exprCtx != null) {
+            Type type = new ExpressionTypeResolver(unit).resolve(exprCtx);
+            if (type != null) {
+                Symbol symbol = type.lookupSymbol();
+                if (symbol != null) {
+                    for (Symbol member : symbol.getMembers()) {
+                        if (!member.getName().startsWith(toBeCompleted.replace(".", "")))
+                            continue;
+                        CompletionItem item = new CompletionItem(member.getName());
+                        item.setDetail(member.getType().toString());
+                        item.setKind(getCompletionItemKind(member.getType().getKind()));
+                        data.add(item);
+                    }
+                    // when completing member access
+                    // it's stupid to match the following things
+                    // just returns it now
+                    return data;
                 }
             }
-            // when completing member access
-            // it's stupid to match the following things
-            // just returns it now
-            return data;
         }
 
         // matches local variables
         Scope scope = unit.lookupScope(node);
         while (scope != null) {
-            for (Symbol symbol : scope.getSymbols()) {
+            for (Symbol symbol : scope.symbols) {
                 if (!symbol.getName().startsWith(toBeCompleted))
                     continue;
                 CompletionItem item = new CompletionItem(symbol.getName());
                 item.setDetail(symbol.getType().toString());
-                item.setKind(getCompletionItemKind(symbol.getKind()));
+                item.setKind(getCompletionItemKind(symbol.getType().getKind()));
                 data.add(item);
             }
-            scope = scope.getParent();
+            scope = scope.parent;
         }
 
         // matches global variables
@@ -80,7 +82,7 @@ public class CompletionProvider {
                     continue;
                 CompletionItem item = new CompletionItem(symbol.getName());
                 item.setDetail(symbol.getType().toString());
-                item.setKind(getCompletionItemKind(symbol.getKind()));
+                item.setKind(getCompletionItemKind(symbol.getType().getKind()));
                 data.add(item);
             }
         }
@@ -143,6 +145,18 @@ public class CompletionProvider {
             default:
                 return null;
         }
+    }
+
+    private static ExpressionContext lookupExpr(ParseTree node) {
+        ParseTree current = node;
+        while (current != null) {
+            if (current instanceof ExpressionStatementContext)
+                return ((ExpressionStatementContext) current).expression();
+            if (current instanceof ArgumentContext)
+                return ((ArgumentContext) current).expression();
+            current = current.getParent();
+        }
+        return null;
     }
 
 }

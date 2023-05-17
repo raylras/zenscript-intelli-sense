@@ -163,6 +163,10 @@ expression
     | simpleName # LocalAccessExpr
     ;
 
+argument
+    : expression
+    ;
+
 mapEntry
     : Key=expression ':' Value=expression
     ;

@@ -6,7 +6,7 @@ import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser;
-import raylras.zen.code.resolve.DefResolver;
+import raylras.zen.code.resolve.DefinitionResolver;
 import raylras.zen.code.resolve.NameResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.Symbol;
@@ -52,7 +52,7 @@ public class CompilationUnit {
             symbol = scope.getSymbol(name);
             if (symbol != null)
                 break;
-            scope = scope.getParent();
+            scope = scope.parent;
         }
         if (symbol == null)
             symbol = context.lookupSymbol(name);
@@ -91,12 +91,12 @@ public class CompilationUnit {
     }
 
     public Collection<Symbol> getTopLevelSymbols() {
-        return getScope(parseTree).getSymbols();
+        return getScope(parseTree).symbols;
     }
 
     public void load(CharStream charStream) {
         parse(charStream);
-        new DefResolver(this).resolve();
+        new DefinitionResolver().resolve(this);
     }
 
     public void parse(CharStream charStream) {

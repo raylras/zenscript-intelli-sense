@@ -9,10 +9,9 @@ import java.util.Objects;
 
 public class Scope {
 
-    private Scope parent;
-    private ParseTree owner;
-
-    private final List<Symbol> symbols = new ArrayList<>();
+    public final List<Symbol> symbols = new ArrayList<>();
+    public Scope parent;
+    public ParseTree owner;
 
     public Scope(Scope parent, ParseTree owner) {
         this.parent = parent;
@@ -33,26 +32,6 @@ public class Scope {
 
     public void removeSymbol(Symbol symbol) {
         symbols.remove(symbol);
-    }
-
-    public List<Symbol> getSymbols() {
-        return symbols;
-    }
-
-    public Scope getParent() {
-        return parent;
-    }
-
-    public void setParent(Scope parent) {
-        this.parent = parent;
-    }
-
-    public ParseTree getOwner() {
-        return owner;
-    }
-
-    public void setOwner(ParseTree owner) {
-        this.owner = owner;
     }
 
 }
