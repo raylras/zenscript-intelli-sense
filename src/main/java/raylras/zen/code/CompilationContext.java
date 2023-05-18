@@ -5,7 +5,9 @@ import raylras.zen.code.symbol.Symbol;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class CompilationContext {
 
@@ -32,7 +34,7 @@ public class CompilationContext {
         return unitMap.values();
     }
 
-    public Symbol lookupSymbol(String name) {
+    public Symbol lookupGlobal(String name) {
         for (CompilationUnit unit : getCompilationUnits()) {
             for (Symbol symbol : unit.getTopLevelSymbols()) {
                 if (!symbol.getName().equals(name)) {
@@ -47,6 +49,13 @@ public class CompilationContext {
             }
         }
         return null;
+    }
+
+    public List<Symbol> getGlobals() {
+        return getCompilationUnits().stream()
+                .flatMap(unit -> unit.getTopLevelSymbols().stream())
+                .filter(symbol -> symbol.isDeclaredBy(Declarator.GLOBAL))
+                .collect(Collectors.toList());
     }
 
 }

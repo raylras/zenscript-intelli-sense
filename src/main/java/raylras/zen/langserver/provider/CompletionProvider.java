@@ -8,9 +8,8 @@ import org.eclipse.lsp4j.Position;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Declarator;
 import raylras.zen.code.parser.ZenScriptLexer;
-import raylras.zen.code.parser.ZenScriptParser.ArgumentContext;
-import raylras.zen.code.parser.ZenScriptParser.ExpressionContext;
-import raylras.zen.code.parser.ZenScriptParser.ExpressionStatementContext;
+import raylras.zen.code.parser.ZenScriptParser.*;
+import raylras.zen.code.resolve.ExpressionSymbolResolver;
 import raylras.zen.code.resolve.ExpressionTypeResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.Symbol;
@@ -22,82 +21,172 @@ import raylras.zen.util.Ranges;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class CompletionProvider {
 
+    private final CompilationUnit unit;
+    private final ParseTree completingNode;
+    private final String completingString;
+    private final List<CompletionItem> data = new ArrayList<>();
+
     private static final String[] KEYWORDS = makeKeywords();
 
+    public CompletionProvider(CompilationUnit unit, ParseTree completingNode, String completingString) {
+        this.unit = unit;
+        this.completingNode = completingNode;
+        this.completingString = completingString;
+    }
+
     public static List<CompletionItem> completion(CompilationUnit unit, CompletionParams params) {
-        List<CompletionItem> data = new ArrayList<>();
-        ParseTree node = getNodeAtPosition(unit.parseTree, params.getPosition());
-        String toBeCompleted = node.getText();
+        ParseTree completingNode = getNodeAtPosition(unit.parseTree, params.getPosition());
+        String completingString = getCompletingString(completingNode);
+        CompletionProvider provider = new CompletionProvider(unit, completingNode, completingString);
+        provider.complete();
+        return provider.data;
+    }
 
-        // matches member access
-        ExpressionContext exprCtx = lookupExpr(node);
-        if (exprCtx != null) {
-            Type type = new ExpressionTypeResolver(unit).resolve(exprCtx);
-            if (type != null) {
-                Symbol symbol = type.lookupSymbol();
-                if (symbol != null) {
-                    for (Symbol member : symbol.getMembers()) {
-                        if (!member.getName().startsWith(toBeCompleted.replace(".", "")))
-                            continue;
-                        CompletionItem item = new CompletionItem(member.getName());
-                        item.setDetail(member.getType().toString());
-                        item.setKind(getCompletionItemKind(member.getType().getKind()));
-                        data.add(item);
-                    }
-                    // when completing member access
-                    // it's stupid to match the following things
-                    // just returns it now
-                    return data;
-                }
-            }
+    private void complete() {
+        Symbol symbol = getSymbolOfNode(completingNode);
+        if (symbol != null) {
+            completeSymbolMembers(symbol);
+            return;
         }
+        completeLocalSymbols();
+        completeGlobalSymbols();
+        completeKeywords();
+    }
 
-        // matches local variables
-        Scope scope = unit.lookupScope(node);
-        while (scope != null) {
-            for (Symbol symbol : scope.symbols) {
-                if (!symbol.getName().startsWith(toBeCompleted) || symbol.isDeclaredBy(Declarator.EXPAND))
-                    continue;
+    private void completeLocalSymbols() {
+        Scope scope = unit.lookupScope(completingNode);
+        if (scope == null)
+            return ;
+        for (Symbol symbol : scope.symbols) {
+            if (symbol.getName().startsWith(completingString)) {
                 CompletionItem item = new CompletionItem(symbol.getName());
                 item.setDetail(symbol.getType().toString());
-                item.setKind(getCompletionItemKind(symbol.getType().getKind()));
-                data.add(item);
-            }
-            scope = scope.parent;
-        }
-
-        // matches global variables
-        for (CompilationUnit cu : unit.context.getCompilationUnits()) {
-            for (Symbol symbol : cu.getTopLevelSymbols()) {
-                if (!symbol.isDeclaredBy(Declarator.GLOBAL) || !symbol.getName().startsWith(toBeCompleted))
-                    continue;
-                CompletionItem item = new CompletionItem(symbol.getName());
-                item.setDetail(symbol.getType().toString());
-                item.setKind(getCompletionItemKind(symbol.getType().getKind()));
+                item.setKind(getCompletionItemKind(symbol.getKind()));
                 data.add(item);
             }
         }
+    }
 
-        // matches keywords
+    private void completeGlobalSymbols() {
+        for (Symbol member : unit.context.getGlobals()) {
+            if (member.getName().startsWith(completingString)) {
+                CompletionItem item = new CompletionItem(member.getName());
+                item.setDetail(member.getType().toString());
+                item.setKind(getCompletionItemKind(member.getKind()));
+                data.add(item);
+            }
+        }
+    }
+
+    private void completeSymbolMembers(Symbol target) {
+        switch (target.getKind()) {
+            case CLASS:
+                completeStaticMembers(target.getType().lookupSymbol(unit));
+                break;
+            case VARIABLE:
+            default:
+                completeInstanceMembers(target.getType().lookupSymbol(unit));
+                break;
+        }
+    }
+
+    private void completeStaticMembers(Symbol target) {
+        if (target == null)
+            return;
+        for (Symbol member : target.getMembers()) {
+            if (!member.isDeclaredBy(Declarator.STATIC))
+                continue;
+            if (member.getName().startsWith(completingString)) {
+                CompletionItem item = new CompletionItem(member.getName());
+                item.setDetail("static " + member.getType().toString());
+                item.setKind(getCompletionItemKind(member.getKind()));
+                data.add(item);
+            }
+        }
+    }
+
+    private void completeInstanceMembers(Symbol target) {
+        if (target == null)
+            return;
+        for (Symbol member : target.getMembers()) {
+            if (member.isDeclaredBy(Declarator.STATIC))
+                continue;
+            if (member.getName().startsWith(completingString)) {
+                CompletionItem item = new CompletionItem(member.getName());
+                item.setDetail(member.getType().toString());
+                item.setKind(getCompletionItemKind(member.getKind()));
+                data.add(item);
+            }
+        }
+    }
+
+    private void completeKeywords() {
         for (String keyword : KEYWORDS) {
-            if (keyword.startsWith(toBeCompleted)) {
+            if (keyword.startsWith(completingString)) {
                 CompletionItem item = new CompletionItem(keyword);
                 item.setKind(CompletionItemKind.Keyword);
                 item.setDetail(L10N.getString("l10n.keyword"));
                 data.add(item);
             }
         }
+    }
 
-        return data;
+    private Type getTypeOfNode(ParseTree node) {
+        ExpressionContext exprCtx = getCompletingExpression(node);
+        if (exprCtx == null)
+            return null;
+        return new ExpressionTypeResolver(unit).resolve(exprCtx);
+    }
+
+    private Symbol getSymbolOfNode(ParseTree node) {
+        ExpressionContext exprCtx = getCompletingExpression(node);
+        if (exprCtx == null)
+            return null;
+        return new ExpressionSymbolResolver(unit).resolve(exprCtx);
+    }
+
+    private static ExpressionContext getCompletingExpression(ParseTree node) {
+        ParseTree current = node;
+        while (current != null) {
+            if (current instanceof ExpressionStatementContext)
+                return ((ExpressionStatementContext) current).expression();
+            if (current instanceof ArgumentContext)
+                return ((ArgumentContext) current).expression();
+            current = current.getParent();
+        }
+        return null;
+    }
+
+    private static String getCompletingString(ParseTree node) {
+        String result = node.getText();
+        if (result.equals("."))
+            result = "";
+        return result;
+    }
+
+    private static ParseTree getNodeAtPosition(ParseTree parseTree, Position position) {
+        Range range = Ranges.from(position);
+        return Nodes.getNodeAtPosition(parseTree, range.startLine, range.startColumn);
+    }
+
+    private static CompletionItemKind getCompletionItemKind(Symbol.Kind kind) {
+        switch (kind) {
+            case FUNCTION:
+                return CompletionItemKind.Function;
+            case CLASS:
+                return CompletionItemKind.Class;
+            case VARIABLE:
+            case NONE:
+                return CompletionItemKind.Variable;
+            default:
+                return null;
+        }
     }
 
     private static String[] makeKeywords() {
@@ -116,47 +205,6 @@ public class CompletionProvider {
             e.printStackTrace();
         }
         return new String[]{};
-    }
-
-    private static ParseTree getNodeAtPosition(ParseTree parseTree, Position position) {
-        Range range = Ranges.from(position);
-        return Nodes.getNodeAtPosition(parseTree, range.startLine, range.startColumn);
-    }
-
-    private static CompletionItemKind getCompletionItemKind(Kind kind) {
-        switch (kind) {
-            case FUNCTION:
-                return CompletionItemKind.Function;
-            case BOOL:
-            case NUMBER:
-            case STRING:
-                return CompletionItemKind.Constant;
-            case CLASS:
-            case PACKAGE:
-                return CompletionItemKind.Class;
-            case VARIABLE:
-            case ANY:
-            case NONE:
-            case MAP:
-            case LIST:
-            case ARRAY:
-            case VOID:
-                return CompletionItemKind.Variable;
-            default:
-                return null;
-        }
-    }
-
-    private static ExpressionContext lookupExpr(ParseTree node) {
-        ParseTree current = node;
-        while (current != null) {
-            if (current instanceof ExpressionStatementContext)
-                return ((ExpressionStatementContext) current).expression();
-            if (current instanceof ArgumentContext)
-                return ((ArgumentContext) current).expression();
-            current = current.getParent();
-        }
-        return null;
     }
 
 }

@@ -44,8 +44,16 @@ public class CompilationUnit {
         return null;
     }
 
+    public <T extends Symbol> T lookupSymbol(String name) {
+        for (Symbol symbol : getTopLevelSymbols()) {
+            if (name.equals(symbol.getName()))
+                return (T) symbol;
+        }
+        return (T) context.lookupGlobal(name);
+    }
+
     public <T extends Symbol> T lookupSymbol(ParseTree node) {
-        String name = node.accept(new NameResolver());
+        String name = new NameResolver().resolve(node);
         Scope scope = lookupScope(node);
         Symbol symbol = null;
         while (scope != null) {
@@ -55,7 +63,7 @@ public class CompilationUnit {
             scope = scope.parent;
         }
         if (symbol == null)
-            symbol = context.lookupSymbol(name);
+            symbol = context.lookupGlobal(name);
         return (T) symbol;
     }
 

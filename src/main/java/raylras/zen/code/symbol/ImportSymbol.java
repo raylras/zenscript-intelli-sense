@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.parser.ZenScriptParser.ImportDeclarationContext;
 import raylras.zen.code.resolve.NameResolver;
+import raylras.zen.code.type.AnyType;
 import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.Type;
 
@@ -18,23 +19,29 @@ public class ImportSymbol extends Symbol {
 
     @Override
     public String getName() {
-        return owner.accept(new NameResolver());
+        return new NameResolver().resolve(owner);
     }
 
     @Override
     public Type getType() {
-        ParseTree name;
         if (owner instanceof ImportDeclarationContext) {
-            name = ((ImportDeclarationContext) owner).qualifiedName();
-        } else {
-            name = owner;
+            String qualifiedName = new NameResolver().resolve(((ImportDeclarationContext) owner).qualifiedName());
+            if (qualifiedName == null)
+                return null;
+            return new ClassType(qualifiedName);
+
         }
-        return new ClassType(name, unit);
+        return AnyType.INSTANCE;
+    }
+
+    @Override
+    public Kind getKind() {
+        return Kind.CLASS;
     }
 
     @Override
     public List<Symbol> getMembers() {
-        Symbol symbol = getType().lookupSymbol();
+        Symbol symbol = getType().lookupSymbol(unit);
         if (symbol != null)
             return symbol.getMembers();
         return Collections.emptyList();

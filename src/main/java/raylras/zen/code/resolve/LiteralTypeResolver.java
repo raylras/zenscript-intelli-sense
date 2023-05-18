@@ -27,8 +27,10 @@ public class LiteralTypeResolver extends Visitor<Type> {
     @Override
     public Type visitClassType(ClassTypeContext ctx) {
         Type type = unit.lookupType(ctx);
-        if (type == null)
-            type = new ClassType(ctx, unit);
+        if (type == null) {
+            String qualifiedName = new NameResolver().resolve(ctx.qualifiedName());
+            type = new ClassType(qualifiedName);
+        }
         return type;
     }
 
@@ -66,34 +68,34 @@ public class LiteralTypeResolver extends Visitor<Type> {
     public Type visitPrimitiveType(PrimitiveTypeContext ctx) {
         switch (ctx.start.getType()) {
             case ZenScriptLexer.ANY:
-                return new AnyType();
+                return AnyType.INSTANCE;
 
             case ZenScriptLexer.BYTE:
-                return new ByteType();
+                return ByteType.INSTANCE;
 
             case ZenScriptLexer.SHORT:
-                return new ShortType();
+                return ShortType.INSTANCE;
 
             case ZenScriptLexer.INT:
-                return new IntType();
+                return IntType.INSTANCE;
 
             case ZenScriptLexer.LONG:
-                return new LongType();
+                return LongType.INSTANCE;
 
             case ZenScriptLexer.FLOAT:
-                return new FloatType();
+                return FloatType.INSTANCE;
 
             case ZenScriptLexer.DOUBLE:
-                return new DoubleType();
+                return DoubleType.INSTANCE;
 
             case ZenScriptLexer.BOOL:
-                return new BoolType();
+                return BoolType.INSTANCE;
 
             case ZenScriptLexer.VOID:
-                return new VoidType();
+                return VoidType.INSTANCE;
 
             case ZenScriptLexer.STRING:
-                return new ClassType(ctx.STRING(), unit);
+                return StringType.INSTANCE;
 
             default:
                 return null;

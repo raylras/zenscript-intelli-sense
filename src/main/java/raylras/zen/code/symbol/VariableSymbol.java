@@ -28,6 +28,11 @@ public class VariableSymbol extends Symbol {
     }
 
     @Override
+    public Kind getKind() {
+        return Kind.VARIABLE;
+    }
+
+    @Override
     public List<Symbol> getMembers() {
         return Collections.emptyList();
     }

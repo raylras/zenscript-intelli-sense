@@ -2,9 +2,10 @@ package raylras.zen.code.type;
 
 public class DoubleType extends NumberType {
 
-    @Override
-    public String toString() {
-        return "double";
+    public static final DoubleType INSTANCE = new DoubleType();
+
+    private DoubleType() {
+        super("double");
     }
 
 }

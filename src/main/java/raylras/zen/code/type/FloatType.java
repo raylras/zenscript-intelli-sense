@@ -2,9 +2,10 @@ package raylras.zen.code.type;
 
 public class FloatType extends NumberType {
 
-    @Override
-    public String toString() {
-        return "float";
+    public static final FloatType INSTANCE = new FloatType();
+
+    private FloatType() {
+        super("float");
     }
 
 }

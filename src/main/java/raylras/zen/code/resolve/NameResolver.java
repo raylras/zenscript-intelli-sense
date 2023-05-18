@@ -16,14 +16,18 @@ public class NameResolver extends Visitor<String> {
 
     @Override
     public String visitTerminal(TerminalNode node) {
+        if (node == null)
+            return null;
         return node.getText();
     }
 
     @Override
     public String visitImportDeclaration(ImportDeclarationContext ctx) {
         String name = visitAlias(ctx.alias());
-        if (name == null)
-            name = visitQualifiedName(ctx.qualifiedName());
+        if (name == null) {
+            int lastNameIndex = ctx.qualifiedName().simpleName().size() - 1;
+            name = visitSimpleName(ctx.qualifiedName().simpleName(lastNameIndex));
+        }
         return name;
     }
 
@@ -43,7 +47,10 @@ public class NameResolver extends Visitor<String> {
     public String visitSimpleName(SimpleNameContext ctx) {
         if (ctx == null)
             return null;
-        return ctx.getText();
+        TerminalNode termNode = ctx.IDENTIFIER();
+        if (termNode == null)
+            termNode = ctx.TO();
+        return visitTerminal(termNode);
     }
 
     @Override

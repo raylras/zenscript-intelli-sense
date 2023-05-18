@@ -40,12 +40,20 @@ public class ExpressionTypeResolver extends Visitor<Type> {
     @Override
     public Type visitMemberAccessExpr(MemberAccessExprContext ctx) {
         Type leftType = ctx.Left.accept(this);
-        Symbol symbol = leftType.lookupSymbol();
-        if (symbol != null) {
-            for (Symbol member : symbol.getMembers()) {
-                if (Objects.equals(member.getName(), ctx.simpleName().getText())) {
-                    return member.getType();
-                }
+        if (leftType == null)
+            return null;
+
+        Symbol symbol = leftType.lookupSymbol(unit);
+        if (symbol == null)
+            return leftType;
+
+        String simpleName = new NameResolver().resolve(ctx.simpleName());
+        if (simpleName == null)
+            return leftType;
+
+        for (Symbol member : symbol.getMembers()) {
+            if (Objects.equals(member.getName(), simpleName)) {
+                return member.getType();
             }
         }
         return leftType;
@@ -58,17 +66,17 @@ public class ExpressionTypeResolver extends Visitor<Type> {
 
     @Override
     public Type visitTrueLiteralExpr(TrueLiteralExprContext ctx) {
-        return new BoolType();
+        return BoolType.INSTANCE;
     }
 
     @Override
     public Type visitFalseLiteralExpr(FalseLiteralExprContext ctx) {
-        return new BoolType();
+        return BoolType.INSTANCE;
     }
 
     @Override
     public Type visitStringLiteralExpr(StringLiteralExprContext ctx) {
-        return new StringType();
+        return StringType.INSTANCE;
     }
 
     public Type visitTypeLiteral(TypeLiteralContext ctx) {

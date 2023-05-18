@@ -29,7 +29,7 @@ public class VariableTypeResolver extends Visitor<Type> {
         if (type == null)
             type = new ExpressionTypeResolver(unit).resolve(ctx.defaultValue());
         if (type == null)
-            type = new AnyType();
+            type = AnyType.INSTANCE;
         return type;
     }
 
@@ -39,13 +39,13 @@ public class VariableTypeResolver extends Visitor<Type> {
         if (type == null)
             type = new ExpressionTypeResolver(unit).resolve(ctx.initializer());
         if (type == null)
-            type = new AnyType();
+            type = AnyType.INSTANCE;
         return type;
     }
 
     @Override
     public Type visitSimpleVariable(SimpleVariableContext ctx) {
-        return new AnyType();
+        return AnyType.INSTANCE;
     }
 
 }

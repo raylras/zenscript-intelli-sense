@@ -1,15 +1,16 @@
 package raylras.zen.code.type;
 
-public class BoolType extends Type {
+public class BoolType extends ClassType {
+
+    public static final BoolType INSTANCE = new BoolType();
+
+    private BoolType() {
+        super("bool");
+    }
 
     @Override
     public Kind getKind() {
         return Kind.BOOL;
-    }
-
-    @Override
-    public String toString() {
-        return "bool";
     }
 
 }

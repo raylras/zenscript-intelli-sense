@@ -28,7 +28,7 @@ public class ReturnTypeResolver extends Visitor<Type> {
     public Type visitFunctionDeclaration(FunctionDeclarationContext ctx) {
         Type type = new LiteralTypeResolver(unit).resolve(ctx.typeLiteral());
         if (type == null)
-            type = new AnyType();
+            type = AnyType.INSTANCE;
         return type;
     }
 
@@ -36,13 +36,13 @@ public class ReturnTypeResolver extends Visitor<Type> {
     public Type visitExpandFunctionDeclaration(ZenScriptParser.ExpandFunctionDeclarationContext ctx) {
         Type type = new LiteralTypeResolver(unit).resolve(ctx.typeLiteral());
         if (type == null)
-            type = new AnyType();
+            type = AnyType.INSTANCE;
         return type;
     }
 
     @Override
     public Type visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
-        return new VoidType();
+        return VoidType.INSTANCE;
     }
 
 }

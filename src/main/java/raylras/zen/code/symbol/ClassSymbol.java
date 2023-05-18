@@ -23,7 +23,13 @@ public class ClassSymbol extends Symbol {
 
     @Override
     public Type getType() {
-        return new ClassType(owner, unit);
+        String qualifiedName = new NameResolver().resolve(owner);
+        return new ClassType(qualifiedName);
+    }
+
+    @Override
+    public Kind getKind() {
+        return Kind.CLASS;
     }
 
     @Override

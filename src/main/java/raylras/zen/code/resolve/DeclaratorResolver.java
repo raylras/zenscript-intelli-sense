@@ -47,4 +47,17 @@ public class DeclaratorResolver extends Visitor<Declarator> {
         return Declarator.NONE;
     }
 
+    @Override
+    public Declarator visitFunctionDeclaration(FunctionDeclarationContext ctx) {
+        if (ctx.Declarator != null && ctx.Declarator.getType() == ZenScriptLexer.STATIC) {
+            return Declarator.STATIC;
+        }
+        return null;
+    }
+
+    @Override
+    public Declarator visitExpandFunctionDeclaration(ExpandFunctionDeclarationContext ctx) {
+        return Declarator.EXPAND;
+    }
+
 }

@@ -5,7 +5,8 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.resolve.NameResolver;
 import raylras.zen.code.resolve.ParamsResolver;
 import raylras.zen.code.resolve.ReturnTypeResolver;
-import raylras.zen.code.type.*;
+import raylras.zen.code.type.FunctionType;
+import raylras.zen.code.type.Type;
 
 import java.util.Collections;
 import java.util.List;
@@ -27,6 +28,11 @@ public class FunctionSymbol extends Symbol {
         List<Type> paramTypes = getParams().stream().map(Symbol::getType).collect(Collectors.toList());
         Type returnType = getReturnType();
         return new FunctionType(paramTypes, returnType);
+    }
+
+    @Override
+    public Kind getKind() {
+        return Kind.FUNCTION;
     }
 
     @Override
