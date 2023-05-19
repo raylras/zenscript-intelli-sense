@@ -7,6 +7,8 @@ import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.*;
 
+import java.util.List;
+
 public class ExpressionSymbolResolver extends Visitor<Symbol> {
 
     private final CompilationUnit unit;
@@ -43,11 +45,16 @@ public class ExpressionSymbolResolver extends Visitor<Symbol> {
         if (leftSymbol == null)
             return null;
 
+        Symbol leftSymbolType = leftSymbol.getType().lookupSymbol(unit);
+        if (leftSymbolType == null) {
+            return null;
+        }
+
         String simpleName = new NameResolver().resolve(ctx.simpleName());
         if (simpleName == null)
             return leftSymbol;
 
-        for (Symbol member : leftSymbol.getMembers()) {
+        for (Symbol member : leftSymbolType.getMembers()) {
             if (simpleName.equals(member.getName())) {
                 return member;
             }
@@ -109,6 +116,7 @@ public class ExpressionSymbolResolver extends Visitor<Symbol> {
         return visit(ctx.expression());
     }
 
+    @Override
     public Symbol visitTypeLiteral(ZenScriptParser.TypeLiteralContext ctx) {
         Type type = new LiteralTypeResolver(unit).resolve(ctx);
         if (type == null)

@@ -79,8 +79,11 @@ public class ExpressionTypeResolver extends Visitor<Type> {
         return StringType.INSTANCE;
     }
 
+    @Override
     public Type visitTypeLiteral(TypeLiteralContext ctx) {
         return new LiteralTypeResolver(unit).resolve(ctx);
     }
+
+
 
 }

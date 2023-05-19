@@ -7,8 +7,10 @@ import org.eclipse.lsp4j.CompletionParams;
 import org.eclipse.lsp4j.Position;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Declarator;
+import raylras.zen.code.data.CompletionData;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
+import raylras.zen.code.resolve.CompletionDataResolver;
 import raylras.zen.code.resolve.ExpressionSymbolResolver;
 import raylras.zen.code.resolve.ExpressionTypeResolver;
 import raylras.zen.code.scope.Scope;
@@ -28,43 +30,101 @@ import java.util.stream.Collectors;
 public class CompletionProvider {
 
     private final CompilationUnit unit;
-    private final ParseTree completingNode;
-    private final String completingString;
     private final List<CompletionItem> data = new ArrayList<>();
+
+    private final CompletionData completionData;
 
     private static final String[] KEYWORDS = makeKeywords();
 
-    public CompletionProvider(CompilationUnit unit, ParseTree completingNode, String completingString) {
+    public CompletionProvider(CompilationUnit unit, CompletionData completionNode) {
         this.unit = unit;
-        this.completingNode = completingNode;
-        this.completingString = completingString;
+        this.completionData = completionNode;
     }
 
     public static List<CompletionItem> completion(CompilationUnit unit, CompletionParams params) {
-        ParseTree completingNode = getNodeAtPosition(unit.parseTree, params.getPosition());
-        String completingString = getCompletingString(completingNode);
-        CompletionProvider provider = new CompletionProvider(unit, completingNode, completingString);
+        Range cursorPos = Ranges.from(params.getPosition());
+        CompletionData completionData = new CompletionDataResolver(unit, cursorPos).resolve(unit.parseTree);
+        CompletionProvider provider = new CompletionProvider(unit, completionData);
         provider.complete();
         return provider.data;
     }
 
     private void complete() {
-        Symbol symbol = getSymbolOfNode(completingNode);
-        if (symbol != null) {
-            completeSymbolMembers(symbol);
-            return;
+
+
+        switch (completionData.kind) {
+            case IDENTIFIER:
+                completeIdentifier();
+                break;
+            case IMPORT:
+                completeImport();
+                break;
+            case MEMBER_ACCESS:
+                completeMemberAccess();
+                break;
+            case BRACKET_HANDLER:
+                completeBracketHandler();
+                break;
+            case NONE:
+                completeDefault();
+                break;
         }
+
+    }
+
+
+    private void completeIdentifier() {
         completeLocalSymbols();
         completeGlobalSymbols();
         completeKeywords();
     }
 
+    private void completeImport() {
+        completeGlobalSymbols();
+    }
+
+    private void completeBracketHandler() {
+
+    }
+
+    private void completeMemberAccess() {
+        ExpressionContext qualifierExpr = completionData.getQualifierExpression();
+        if (qualifierExpr == null) {
+            return;
+        }
+        Symbol qualifierSymbol = new ExpressionSymbolResolver(unit).resolve(qualifierExpr);
+
+        boolean isStaticAccess = qualifierSymbol != null && qualifierSymbol.getKind() == Symbol.Kind.CLASS;
+        Type type = null;
+        if (qualifierSymbol != null) {
+            type = qualifierSymbol.getType();
+        } else {
+            type = new ExpressionTypeResolver(unit).resolve(qualifierExpr);
+        }
+
+        if (type == null) {
+            return;
+        }
+
+
+        if (isStaticAccess) {
+            completeStaticMembers(qualifierSymbol);
+        } else {
+            completeInstanceMembers(type.lookupSymbol(unit));
+        }
+    }
+
+    private void completeDefault() {
+        completeKeywords();
+    }
+
+
     private void completeLocalSymbols() {
-        Scope scope = unit.lookupScope(completingNode);
+        Scope scope = unit.lookupScope(completionData.node);
         if (scope == null)
-            return ;
+            return;
         for (Symbol symbol : scope.symbols) {
-            if (symbol.getName().startsWith(completingString)) {
+            if (symbol.getName().startsWith(completionData.completingString)) {
                 CompletionItem item = new CompletionItem(symbol.getName());
                 item.setDetail(symbol.getType().toString());
                 item.setKind(getCompletionItemKind(symbol.getKind()));
@@ -75,7 +135,7 @@ public class CompletionProvider {
 
     private void completeGlobalSymbols() {
         for (Symbol member : unit.context.getGlobals()) {
-            if (member.getName().startsWith(completingString)) {
+            if (member.getName().startsWith(completionData.completingString)) {
                 CompletionItem item = new CompletionItem(member.getName());
                 item.setDetail(member.getType().toString());
                 item.setKind(getCompletionItemKind(member.getKind()));
@@ -84,17 +144,6 @@ public class CompletionProvider {
         }
     }
 
-    private void completeSymbolMembers(Symbol target) {
-        switch (target.getKind()) {
-            case CLASS:
-                completeStaticMembers(target.getType().lookupSymbol(unit));
-                break;
-            case VARIABLE:
-            default:
-                completeInstanceMembers(target.getType().lookupSymbol(unit));
-                break;
-        }
-    }
 
     private void completeStaticMembers(Symbol target) {
         if (target == null)
@@ -102,7 +151,7 @@ public class CompletionProvider {
         for (Symbol member : target.getMembers()) {
             if (!member.isDeclaredBy(Declarator.STATIC))
                 continue;
-            if (member.getName().startsWith(completingString)) {
+            if (member.getName().startsWith(completionData.completingString)) {
                 CompletionItem item = new CompletionItem(member.getName());
                 item.setDetail("static " + member.getType().toString());
                 item.setKind(getCompletionItemKind(member.getKind()));
@@ -117,7 +166,7 @@ public class CompletionProvider {
         for (Symbol member : target.getMembers()) {
             if (member.isDeclaredBy(Declarator.STATIC))
                 continue;
-            if (member.getName().startsWith(completingString)) {
+            if (member.getName().startsWith(completionData.completingString)) {
                 CompletionItem item = new CompletionItem(member.getName());
                 item.setDetail(member.getType().toString());
                 item.setKind(getCompletionItemKind(member.getKind()));
@@ -128,7 +177,7 @@ public class CompletionProvider {
 
     private void completeKeywords() {
         for (String keyword : KEYWORDS) {
-            if (keyword.startsWith(completingString)) {
+            if (keyword.startsWith(completionData.completingString)) {
                 CompletionItem item = new CompletionItem(keyword);
                 item.setKind(CompletionItemKind.Keyword);
                 item.setDetail(L10N.getString("l10n.keyword"));
@@ -196,10 +245,10 @@ public class CompletionProvider {
             method.setAccessible(true);
             String[] literalNames = (String[]) method.invoke(null);
             List<String> keywordList = Arrays.stream(literalNames)
-                    .filter(Objects::nonNull)
-                    .map(literal -> literal.replaceAll("'", ""))
-                    .filter(literal -> pattern.matcher(literal).matches())
-                    .collect(Collectors.toList());
+                .filter(Objects::nonNull)
+                .map(literal -> literal.replaceAll("'", ""))
+                .filter(literal -> pattern.matcher(literal).matches())
+                .collect(Collectors.toList());
             return keywordList.toArray(new String[]{});
         } catch (NoSuchMethodException | InvocationTargetException | IllegalAccessException e) {
             e.printStackTrace();

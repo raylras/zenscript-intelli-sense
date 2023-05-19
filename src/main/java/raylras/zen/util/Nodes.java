@@ -1,5 +1,6 @@
 package raylras.zen.util;
 
+import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 
 import java.util.ArrayDeque;
@@ -23,6 +24,19 @@ public class Nodes {
             }
         }
         return found;
+    }
+
+
+    public static ParseTree getNextNode(RuleContext node) {
+        if(node == null || node.getParent() == null) {
+            return null;
+        }
+
+        int index = node.getRuleIndex();
+        if(index < node.getParent().getChildCount() - 1) {
+            return node.getParent().getChild(index + 1);
+        }
+        return null;
     }
 
 }
