@@ -17,6 +17,7 @@ import raylras.zen.code.type.*;
 import raylras.zen.l10n.L10N;
 import raylras.zen.util.Range;
 import raylras.zen.util.Ranges;
+import raylras.zen.util.StringUtils;
 
 import javax.lang.model.element.ExecutableElement;
 import java.lang.reflect.InvocationTargetException;
@@ -120,7 +121,7 @@ public class CompletionProvider {
         if (scope == null)
             return;
         for (Symbol symbol : scope.symbols) {
-            if (symbol.getName().startsWith(completionData.completingString)) {
+            if (isNameMatchesCompleting(symbol.getName())) {
                 CompletionItem item = new CompletionItem(symbol.getName());
                 item.setDetail(symbol.getType().toString());
                 item.setKind(getCompletionItemKind(symbol.getKind()));
@@ -131,7 +132,7 @@ public class CompletionProvider {
 
     private void completeGlobalSymbols() {
         for (Symbol member : unit.context.getGlobals()) {
-            if (member.getName().startsWith(completionData.completingString)) {
+            if (isNameMatchesCompleting(member.getName())) {
                 CompletionItem item = new CompletionItem(member.getName());
                 item.setDetail(member.getType().toString());
                 item.setKind(getCompletionItemKind(member.getKind()));
@@ -140,6 +141,9 @@ public class CompletionProvider {
         }
     }
 
+    private boolean isNameMatchesCompleting(String candidate) {
+        return StringUtils.matchesPartialName(candidate, completionData.completingString);
+    }
 
     private void addMemberAccess(Type type, boolean isStatic, boolean endsWithParen) {
         Symbol target = type.lookupSymbol(unit);
@@ -152,7 +156,7 @@ public class CompletionProvider {
             if (isStatic != member.isDeclaredBy(Declarator.STATIC))
                 continue;
 
-            if (!member.getName().startsWith(completionData.completingString)) {
+            if (!isNameMatchesCompleting(member.getName())) {
                 continue;
             }
 
@@ -173,7 +177,7 @@ public class CompletionProvider {
 
     private void completeKeywords() {
         for (String keyword : KEYWORDS) {
-            if (keyword.startsWith(completionData.completingString)) {
+            if (isNameMatchesCompleting(keyword)) {
                 CompletionItem item = new CompletionItem(keyword);
                 item.setKind(CompletionItemKind.Keyword);
                 item.setDetail(L10N.getString("l10n.keyword"));
@@ -242,7 +246,7 @@ public class CompletionProvider {
         List<VariableSymbol> params = function.getParams();
         for (int i = 0; i < params.size(); i++) {
             VariableSymbol param = params.get(i);
-            labelBuilder.append(param.getType().toString()).append(" ").append(param.getName());
+            labelBuilder.append(param.getName()).append(" as ").append(param.getType().toString());
             if (i < params.size() - 1) {
                 labelBuilder.append(", ");
             }
@@ -250,6 +254,7 @@ public class CompletionProvider {
         labelBuilder.append(")");
         item.setLabel(labelBuilder.toString());
         item.setKind(CompletionItemKind.Function);
+        item.setFilterText(function.getName());
         item.setDetail(function.getReturnType() + " " + function);
 //        item.setData();
         if (addParens) {
@@ -261,7 +266,7 @@ public class CompletionProvider {
 
                 for (int i = 0; i < params.size(); i++) {
                     VariableSymbol param = params.get(i);
-                    insertTextBuilder.append("${").append(params.size() - i).append(":")
+                    insertTextBuilder.append("${").append(i + 1).append(":")
                         .append(param.getName())
                         .append("}");
                     if (i < params.size() - 1) {
