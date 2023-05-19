@@ -1,10 +1,6 @@
 package raylras.zen.langserver.provider;
 
-import org.antlr.v4.runtime.tree.ParseTree;
-import org.eclipse.lsp4j.CompletionItem;
-import org.eclipse.lsp4j.CompletionItemKind;
-import org.eclipse.lsp4j.CompletionParams;
-import org.eclipse.lsp4j.Position;
+import org.eclipse.lsp4j.*;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Declarator;
 import raylras.zen.code.data.CompletionData;
@@ -14,13 +10,15 @@ import raylras.zen.code.resolve.CompletionDataResolver;
 import raylras.zen.code.resolve.ExpressionSymbolResolver;
 import raylras.zen.code.resolve.ExpressionTypeResolver;
 import raylras.zen.code.scope.Scope;
+import raylras.zen.code.symbol.FunctionSymbol;
 import raylras.zen.code.symbol.Symbol;
+import raylras.zen.code.symbol.VariableSymbol;
 import raylras.zen.code.type.*;
 import raylras.zen.l10n.L10N;
-import raylras.zen.util.Nodes;
 import raylras.zen.util.Range;
 import raylras.zen.util.Ranges;
 
+import javax.lang.model.element.ExecutableElement;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -73,6 +71,7 @@ public class CompletionProvider {
     }
 
 
+    // basic completion methods
     private void completeIdentifier() {
         completeLocalSymbols();
         completeGlobalSymbols();
@@ -95,7 +94,7 @@ public class CompletionProvider {
         Symbol qualifierSymbol = new ExpressionSymbolResolver(unit).resolve(qualifierExpr);
 
         boolean isStaticAccess = qualifierSymbol != null && qualifierSymbol.getKind() == Symbol.Kind.CLASS;
-        Type type = null;
+        Type type;
         if (qualifierSymbol != null) {
             type = qualifierSymbol.getType();
         } else {
@@ -106,12 +105,9 @@ public class CompletionProvider {
             return;
         }
 
+        boolean endWithParen = completionData.isEndsWithParen();
 
-        if (isStaticAccess) {
-            completeStaticMembers(qualifierSymbol);
-        } else {
-            completeInstanceMembers(type.lookupSymbol(unit));
-        }
+        addMemberAccess(type, isStaticAccess, endWithParen);
     }
 
     private void completeDefault() {
@@ -145,34 +141,34 @@ public class CompletionProvider {
     }
 
 
-    private void completeStaticMembers(Symbol target) {
-        if (target == null)
-            return;
-        for (Symbol member : target.getMembers()) {
-            if (!member.isDeclaredBy(Declarator.STATIC))
-                continue;
-            if (member.getName().startsWith(completionData.completingString)) {
-                CompletionItem item = new CompletionItem(member.getName());
-                item.setDetail("static " + member.getType().toString());
-                item.setKind(getCompletionItemKind(member.getKind()));
-                data.add(item);
-            }
-        }
-    }
+    private void addMemberAccess(Type type, boolean isStatic, boolean endsWithParen) {
+        Symbol target = type.lookupSymbol(unit);
 
-    private void completeInstanceMembers(Symbol target) {
         if (target == null)
             return;
+
+//        HashMap<String, List<FunctionSymbol>> functions = new HashMap<>();
         for (Symbol member : target.getMembers()) {
-            if (member.isDeclaredBy(Declarator.STATIC))
+            if (isStatic != member.isDeclaredBy(Declarator.STATIC))
                 continue;
-            if (member.getName().startsWith(completionData.completingString)) {
-                CompletionItem item = new CompletionItem(member.getName());
-                item.setDetail(member.getType().toString());
-                item.setKind(getCompletionItemKind(member.getKind()));
-                data.add(item);
+
+            if (!member.getName().startsWith(completionData.completingString)) {
+                continue;
             }
+
+            if (member.getKind() == Symbol.Kind.FUNCTION) {
+//                functions.computeIfAbsent(member.getName(), n -> new ArrayList<>())
+//                    .add((FunctionSymbol) member);
+                data.add(makeFunction((FunctionSymbol) member, !endsWithParen));
+            } else {
+                data.add(makeItem(member));
+            }
+
         }
+
+//        for (List<FunctionSymbol> overloads : functions.values()) {
+//            data.add(makeFunctions(overloads, !endsWithParen));
+//        }
     }
 
     private void completeKeywords() {
@@ -184,44 +180,6 @@ public class CompletionProvider {
                 data.add(item);
             }
         }
-    }
-
-    private Type getTypeOfNode(ParseTree node) {
-        ExpressionContext exprCtx = getCompletingExpression(node);
-        if (exprCtx == null)
-            return null;
-        return new ExpressionTypeResolver(unit).resolve(exprCtx);
-    }
-
-    private Symbol getSymbolOfNode(ParseTree node) {
-        ExpressionContext exprCtx = getCompletingExpression(node);
-        if (exprCtx == null)
-            return null;
-        return new ExpressionSymbolResolver(unit).resolve(exprCtx);
-    }
-
-    private static ExpressionContext getCompletingExpression(ParseTree node) {
-        ParseTree current = node;
-        while (current != null) {
-            if (current instanceof ExpressionStatementContext)
-                return ((ExpressionStatementContext) current).expression();
-            if (current instanceof ArgumentContext)
-                return ((ArgumentContext) current).expression();
-            current = current.getParent();
-        }
-        return null;
-    }
-
-    private static String getCompletingString(ParseTree node) {
-        String result = node.getText();
-        if (result.equals("."))
-            result = "";
-        return result;
-    }
-
-    private static ParseTree getNodeAtPosition(ParseTree parseTree, Position position) {
-        Range range = Ranges.from(position);
-        return Nodes.getNodeAtPosition(parseTree, range.startLine, range.startColumn);
     }
 
     private static CompletionItemKind getCompletionItemKind(Symbol.Kind kind) {
@@ -238,6 +196,11 @@ public class CompletionProvider {
         }
     }
 
+    private static void getCompletionItemData() {
+
+    }
+
+    // tool methods for make completionItem
     private static String[] makeKeywords() {
         try {
             Pattern pattern = Pattern.compile("^[a-zA-Z].*");
@@ -255,5 +218,94 @@ public class CompletionProvider {
         }
         return new String[]{};
     }
+
+
+    private CompletionItem makeItem(Symbol symbol) {
+        if (symbol.getKind() == Symbol.Kind.FUNCTION)
+            throw new RuntimeException("Method symbol should use makeMethod()");
+        CompletionItem item = new CompletionItem();
+        item.setLabel(symbol.getName());
+        item.setKind(getCompletionItemKind(symbol.getKind()));
+        item.setDetail(symbol.toString());
+//        item.setData();
+        return item;
+    }
+
+
+    private CompletionItem makeFunction(FunctionSymbol function, boolean addParens) {
+        CompletionItem item = new CompletionItem();
+
+        // build label
+        StringBuilder labelBuilder = new StringBuilder();
+        labelBuilder.append(function.getName()).append("(");
+
+        List<VariableSymbol> params = function.getParams();
+        for (int i = 0; i < params.size(); i++) {
+            VariableSymbol param = params.get(i);
+            labelBuilder.append(param.getType().toString()).append(" ").append(param.getName());
+            if (i < params.size() - 1) {
+                labelBuilder.append(", ");
+            }
+        }
+        labelBuilder.append(")");
+        item.setLabel(labelBuilder.toString());
+        item.setKind(CompletionItemKind.Function);
+        item.setDetail(function.getReturnType() + " " + function);
+//        item.setData();
+        if (addParens) {
+            if (params.isEmpty()) {
+                item.setInsertText(function.getName() + "()$0");
+            } else {
+                StringBuilder insertTextBuilder = new StringBuilder();
+                insertTextBuilder.append(function.getName()).append("(");
+
+                for (int i = 0; i < params.size(); i++) {
+                    VariableSymbol param = params.get(i);
+                    insertTextBuilder.append("${").append(params.size() - i).append(":")
+                        .append(param.getName())
+                        .append("}");
+                    if (i < params.size() - 1) {
+                        insertTextBuilder.append(", ");
+                    }
+                }
+                insertTextBuilder.append(")$0");
+                item.setInsertText(insertTextBuilder.toString());
+                // Activate signatureHelp
+                // see https://github.com/microsoft/vscode/issues/78806
+                Command command = new Command();
+                item.setCommand(command);
+                command.setCommand("editor.action.triggerParameterHints");
+                command.setTitle("Trigger Parameter Hints");
+            }
+            item.setInsertTextFormat(InsertTextFormat.Snippet);
+        }
+        return item;
+    }
+
+    // grouping overloads
+    private CompletionItem makeFunctions(List<FunctionSymbol> overloads, boolean addParens) {
+        FunctionSymbol first = overloads.get(0);
+        CompletionItem item = new CompletionItem();
+        item.setLabel(first.getName());
+        item.setKind(CompletionItemKind.Function);
+        item.setDetail(first.getReturnType() + " " + first);
+//        item.setData();
+        if (addParens) {
+            if (overloads.size() == 1 && first.getParams().isEmpty()) {
+                item.setInsertText(first.getName() + "()$0");
+            } else {
+                item.setInsertText(first.getName() + "($0)");
+                // Activate signatureHelp
+                // see https://github.com/microsoft/vscode/issues/78806
+                Command command = new Command();
+                item.setCommand(command);
+                command.setCommand("editor.action.triggerParameterHints");
+                command.setTitle("Trigger Parameter Hints");
+            }
+            item.setInsertTextFormat(InsertTextFormat.Snippet);
+        }
+        return item;
+    }
+
 
 }

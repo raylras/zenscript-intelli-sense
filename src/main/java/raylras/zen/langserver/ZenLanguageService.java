@@ -9,6 +9,7 @@ import raylras.zen.code.CompilationContext;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.langserver.provider.CompletionProvider;
 import raylras.zen.langserver.provider.SemanticTokensProvider;
+import raylras.zen.langserver.provider.SignatureProvider;
 import raylras.zen.util.Utils;
 
 import java.io.IOException;
@@ -84,6 +85,13 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public CompletableFuture<CompletionItem> resolveCompletionItem(CompletionItem unresolved) {
         return CompletableFuture.completedFuture(null);
+    }
+
+    @Override
+    public CompletableFuture<SignatureHelp> signatureHelp(SignatureHelpParams params) {
+        CompilationUnit unit = getCompilationUnit(params.getTextDocument().getUri());
+        SignatureHelp data = SignatureProvider.signatureHelp(unit, params);
+        return CompletableFuture.completedFuture(data);
     }
 
     /* End Text Document Service */

@@ -27,16 +27,30 @@ public class Nodes {
     }
 
 
-    public static ParseTree getNextNode(RuleContext node) {
-        if(node == null || node.getParent() == null) {
+    public static ParseTree getNextSiblingNode(RuleContext node) {
+        if (node == null || node.getParent() == null) {
             return null;
         }
 
         int index = node.getRuleIndex();
-        if(index < node.getParent().getChildCount() - 1) {
+        if (index < node.getParent().getChildCount() - 1) {
             return node.getParent().getChild(index + 1);
         }
         return null;
     }
+
+    public static ParseTree getNextNode(RuleContext node) {
+        if (node == null) {
+            return null;
+        }
+
+        ParseTree siblingNode = getNextSiblingNode(node);
+        if (siblingNode == null) {
+            return getNextNode(node.getParent());
+        }
+        return siblingNode;
+
+    }
+
 
 }

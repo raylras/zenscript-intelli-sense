@@ -14,9 +14,19 @@ import java.util.stream.Collectors;
 
 public class FunctionSymbol extends Symbol {
 
+    private final boolean isConstructor;
+
     public FunctionSymbol(ParseTree owner, CompilationUnit unit) {
         super(owner, unit);
+        isConstructor = false;
     }
+
+
+    public FunctionSymbol(ParseTree owner, CompilationUnit unit, boolean isConstructor) {
+        super(owner, unit);
+        this.isConstructor = isConstructor;
+    }
+
 
     @Override
     public String getName() {
@@ -47,5 +57,10 @@ public class FunctionSymbol extends Symbol {
     public Type getReturnType() {
         return new ReturnTypeResolver(unit).resolve(owner);
     }
+
+    public boolean isConstructor() {
+        return isConstructor;
+    }
+
 
 }

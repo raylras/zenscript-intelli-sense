@@ -34,29 +34,17 @@ import raylras.zen.util.Ranges;
  * - foo.bar. (with DOT suffix) will not recognize DOT as part of QualifierName
  * - foo..bar (two DOTS) will be recognized as IntRangeExpr
  */
-public class CompletionDataResolver extends Visitor<CompletionData> {
+public class CompletionDataResolver extends AbstractPositionSearchResolver<CompletionData> {
 
     private final CompilationUnit unit;
-    private final Range cursorPos;
 
 
     public CompletionDataResolver(CompilationUnit unit, Range cursorPos) {
+        super(cursorPos);
         this.unit = unit;
-        this.cursorPos = cursorPos;
     }
 
-    @Override
-    protected CompletionData aggregateResult(CompletionData aggregate, CompletionData nextResult) {
-        if (nextResult == null) {
-            return aggregate;
-        }
-        return nextResult;
-    }
 
-    @Override
-    protected boolean shouldVisitNextChild(RuleNode node, CompletionData currentResult) {
-        return currentResult == null;
-    }
 
     public CompletionData resolve(ParseTree node) {
         CompletionData result = null;
@@ -71,38 +59,7 @@ public class CompletionDataResolver extends Visitor<CompletionData> {
         return CompletionData.NONE;
     }
 
-    @Override
-    public CompletionData visitChildren(RuleNode node) {
-        // skip not target position
-        if (!isNodeContainsCursor(node)) {
-            return null;
-        }
-        return super.visitChildren(node);
-    }
 
-    private boolean isNodeContainsCursor(ParseTree node) {
-        if (node == null) {
-            return false;
-        }
-        Range nodeRange = Ranges.from(node);
-        return Ranges.isRangeContainsPosition(nodeRange, cursorPos.startLine, cursorPos.startColumn);
-    }
-
-    private boolean isNodeContainsCursor(ParseTree node, TerminalNode possibleNextDOT) {
-        if (possibleNextDOT != null) {
-            return isNodeContainsCursor(possibleNextDOT);
-        }
-        return isNodeContainsCursor(node);
-
-    }
-
-    // if node is possibly unavailable, calculate range
-    private boolean isNodeContainsCursor(ParserRuleContext parentNode, Token previousToken) {
-        Range nodeRange = new Range(
-            previousToken.getLine() - 1, previousToken.getCharPositionInLine() + 1,
-            parentNode.stop.getLine() - 1, parentNode.stop.getCharPositionInLine() + parentNode.stop.getText().length());
-        return Ranges.isRangeContainsPosition(nodeRange, cursorPos.startLine, cursorPos.startColumn);
-    }
 
     @Override
     public CompletionData visitImportDeclaration(ZenScriptParser.ImportDeclarationContext ctx) {
@@ -154,7 +111,7 @@ public class CompletionDataResolver extends Visitor<CompletionData> {
      * handle it.
      */
     private TerminalNode findNextDOT(ZenScriptParser.QualifiedNameContext expr) {
-        ParseTree possibleNext = Nodes.getNextNode(expr);
+        ParseTree possibleNext = Nodes.getNextSiblingNode(expr);
         if (possibleNext instanceof TerminalNode && ((TerminalNode) possibleNext).getSymbol().getType() == ZenScriptParser.DOT) {
             return (TerminalNode) possibleNext;
         }
@@ -212,7 +169,7 @@ public class CompletionDataResolver extends Visitor<CompletionData> {
             return new CompletionData(CompletionKind.MEMBER_ACCESS, ctx, completingString);
         }
         // default
-        return super.visitIntRangeExpr(ctx);
+        return visitChildren(ctx);
     }
 
     @Override

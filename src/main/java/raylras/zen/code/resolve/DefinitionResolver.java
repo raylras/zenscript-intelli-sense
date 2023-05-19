@@ -92,7 +92,7 @@ public class DefinitionResolver extends Listener {
 
     @Override
     public void enterConstructorDeclaration(ConstructorDeclarationContext ctx) {
-        enterSymbol(new FunctionSymbol(ctx, unit));
+        enterSymbol(new FunctionSymbol(ctx, unit, true));
         enterScope(new Scope(currentScope(), ctx));
     }
 

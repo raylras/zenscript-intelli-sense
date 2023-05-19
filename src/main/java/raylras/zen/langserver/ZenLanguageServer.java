@@ -28,9 +28,9 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 //        capabilities.setDocumentSymbolProvider(true);
 //        capabilities.setWorkspaceSymbolProvider(true);
 //        capabilities.setDocumentHighlightProvider(true);
-//        SignatureHelpOptions signatureHelpOptions = new SignatureHelpOptions();
-//        signatureHelpOptions.setTriggerCharacters(Arrays.asList("(", ","));
-//        capabilities.setSignatureHelpProvider(signatureHelpOptions);
+        SignatureHelpOptions signatureHelpOptions = new SignatureHelpOptions();
+        signatureHelpOptions.setTriggerCharacters(Arrays.asList("(", ","));
+        capabilities.setSignatureHelpProvider(signatureHelpOptions);
 //        capabilities.setSemanticTokensProvider(new SemanticTokensWithRegistrationOptions(Semantics.SEMANTIC_TOKENS_LEGEND, true));
 //        capabilities.setReferencesProvider(true);
 //        capabilities.setDeclarationProvider(true);
