@@ -6,6 +6,7 @@ import raylras.zen.code.resolve.NameResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.Type;
+import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.Collections;
 import java.util.List;
@@ -18,23 +19,27 @@ public class ClassSymbol extends Symbol {
 
     @Override
     public String getName() {
-        return new NameResolver().resolve(owner);
+        return new NameResolver().resolve(getOwner());
     }
 
     @Override
     public Type getType() {
-        String qualifiedName = new NameResolver().resolve(owner);
+        String qualifiedName = new NameResolver().resolve(getOwner());
         return new ClassType(qualifiedName);
     }
 
+    public FunctionSymbol getFunctionalInterface() {
+        throw new NotImplementedException();
+    }
+
     @Override
-    public Kind getKind() {
-        return Kind.CLASS;
+    public ZenSymbolKind getKind() {
+        return ZenSymbolKind.ZEN_CLASS;
     }
 
     @Override
     public List<Symbol> getMembers() {
-        Scope scope = unit.getScope(owner);
+        Scope scope = getUnit().getScope(getOwner());
         if (scope != null)
             return scope.symbols;
         return Collections.emptyList();

@@ -2,7 +2,7 @@ package raylras.zen.langserver.provider;
 
 import org.eclipse.lsp4j.*;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.Declarator;
+import raylras.zen.code.data.Declarator;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.resolve.ExpressionSymbolResolver;
 import raylras.zen.code.resolve.ExpressionTypeResolver;
@@ -11,6 +11,7 @@ import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.FunctionSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.VariableSymbol;
+import raylras.zen.code.symbol.ZenSymbolKind;
 import raylras.zen.code.type.Type;
 import raylras.zen.util.Range;
 import raylras.zen.util.Ranges;
@@ -89,11 +90,11 @@ public class SignatureProvider {
             return Collections.emptyList();
         }
 
-        boolean isStatic = target != null && target.getKind() == Symbol.Kind.CLASS;
+        boolean isStatic = target != null && target.getKind().isClass();
 
         List<FunctionSymbol> list = new ArrayList<>();
         for (Symbol member : type.lookupSymbol(unit).getMembers()) {
-            if (member.getKind() != Symbol.Kind.FUNCTION) continue;
+            if (member.getKind() != ZenSymbolKind.FUNCTION) continue;
             if (!member.getName().equals(name)) continue;
             if (isStatic != member.isDeclaredBy(Declarator.STATIC)) continue;
             list.add((FunctionSymbol) member);
@@ -108,7 +109,7 @@ public class SignatureProvider {
         // TODO: merge this code with those in CompletionProvider
         Scope localScope = unit.lookupScope(expr);
         for (Symbol symbol : localScope.symbols) {
-            if (symbol.getKind() != Symbol.Kind.FUNCTION) {
+            if (symbol.getKind() != ZenSymbolKind.FUNCTION) {
                 continue;
             }
             if (!symbol.getName().equals(methodName)) {
@@ -118,7 +119,7 @@ public class SignatureProvider {
         }
 
         for (Symbol symbol : unit.context.getGlobals()) {
-            if (symbol.getKind() != Symbol.Kind.FUNCTION) {
+            if (symbol.getKind() != ZenSymbolKind.FUNCTION) {
                 continue;
             }
             if (!symbol.getName().equals(methodName)) {
@@ -135,7 +136,7 @@ public class SignatureProvider {
         SignatureInformation info = new SignatureInformation();
         String name = method.getName();
         if (method.isConstructor()) {
-            ZenScriptParser.ClassDeclarationContext clazz = (ZenScriptParser.ClassDeclarationContext) method.owner.getParent();
+            ZenScriptParser.ClassDeclarationContext clazz = (ZenScriptParser.ClassDeclarationContext) method.getOwner().getParent();
             String className = clazz.qualifiedName().getText();
             int dotIndex = className.lastIndexOf(".");
             if (dotIndex >= 0) {

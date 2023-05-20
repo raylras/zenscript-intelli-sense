@@ -16,11 +16,6 @@ public class FunctionSymbol extends Symbol {
 
     private final boolean isConstructor;
 
-    public FunctionSymbol(ParseTree owner, CompilationUnit unit) {
-        super(owner, unit);
-        isConstructor = false;
-    }
-
 
     public FunctionSymbol(ParseTree owner, CompilationUnit unit, boolean isConstructor) {
         super(owner, unit);
@@ -30,7 +25,7 @@ public class FunctionSymbol extends Symbol {
 
     @Override
     public String getName() {
-        return new NameResolver().resolve(owner);
+        return new NameResolver().resolve(getOwner());
     }
 
     @Override
@@ -41,8 +36,8 @@ public class FunctionSymbol extends Symbol {
     }
 
     @Override
-    public Kind getKind() {
-        return Kind.FUNCTION;
+    public ZenSymbolKind getKind() {
+        return ZenSymbolKind.FUNCTION;
     }
 
     @Override
@@ -51,11 +46,11 @@ public class FunctionSymbol extends Symbol {
     }
 
     public List<VariableSymbol> getParams() {
-        return new ParamsResolver(unit).resolve(owner);
+        return new ParamsResolver(getUnit()).resolve(getOwner());
     }
 
     public Type getReturnType() {
-        return new ReturnTypeResolver(unit).resolve(owner);
+        return new ReturnTypeResolver(getUnit()).resolve(getOwner());
     }
 
     public boolean isConstructor() {

@@ -3,7 +3,7 @@ package raylras.zen.langserver;
 import org.eclipse.lsp4j.SemanticTokenModifiers;
 import org.eclipse.lsp4j.SemanticTokenTypes;
 import org.eclipse.lsp4j.SemanticTokensLegend;
-import raylras.zen.code.Declarator;
+import raylras.zen.code.data.Declarator;
 
 import java.util.Arrays;
 import java.util.List;

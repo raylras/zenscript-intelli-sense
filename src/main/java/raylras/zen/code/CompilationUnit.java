@@ -2,7 +2,6 @@ package raylras.zen.code;
 
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.TokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser;
@@ -104,16 +103,18 @@ public class CompilationUnit {
 
     public void load(CharStream charStream) {
         parse(charStream);
-        new DefinitionResolver().resolve(this);
     }
 
-    public void parse(CharStream charStream) {
+    private void parse(CharStream charStream) {
         ZenScriptLexer lexer = new ZenScriptLexer(charStream);
-        TokenStream tokenStream = new CommonTokenStream(lexer);
+        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
         ZenScriptParser parser = new ZenScriptParser(tokenStream);
         parser.removeErrorListeners();
         parseTree = parser.compilationUnit();
+
+        new DefinitionResolver(this, tokenStream).resolve();
     }
+
 
     public boolean isDzs() {
         return path.toString().endsWith(DZS_FILE_EXTENSION);

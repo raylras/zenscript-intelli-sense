@@ -11,6 +11,8 @@ import raylras.zen.code.type.Type;
 import java.util.Collections;
 import java.util.List;
 
+
+//TODO: is it possible to import non-class types?
 public class ImportSymbol extends Symbol {
 
     public ImportSymbol(ParseTree owner, CompilationUnit unit) {
@@ -19,13 +21,13 @@ public class ImportSymbol extends Symbol {
 
     @Override
     public String getName() {
-        return new NameResolver().resolve(owner);
+        return new NameResolver().resolve(getOwner());
     }
 
     @Override
     public Type getType() {
-        if (owner instanceof ImportDeclarationContext) {
-            String qualifiedName = new NameResolver().resolve(((ImportDeclarationContext) owner).qualifiedName());
+        if (getOwner() instanceof ImportDeclarationContext) {
+            String qualifiedName = new NameResolver().resolve(((ImportDeclarationContext) getOwner()).qualifiedName());
             if (qualifiedName == null)
                 return null;
             return new ClassType(qualifiedName);
@@ -35,13 +37,13 @@ public class ImportSymbol extends Symbol {
     }
 
     @Override
-    public Kind getKind() {
-        return Kind.CLASS;
+    public ZenSymbolKind getKind() {
+        return ZenSymbolKind.ZEN_CLASS;
     }
 
     @Override
     public List<Symbol> getMembers() {
-        Symbol symbol = getType().lookupSymbol(unit);
+        Symbol symbol = getType().lookupSymbol(getUnit());
         if (symbol != null)
             return symbol.getMembers();
         return Collections.emptyList();

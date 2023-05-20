@@ -2,7 +2,7 @@ package raylras.zen.langserver.provider;
 
 import org.eclipse.lsp4j.*;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.Declarator;
+import raylras.zen.code.data.Declarator;
 import raylras.zen.code.data.CompletionData;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
@@ -13,13 +13,13 @@ import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.FunctionSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.VariableSymbol;
+import raylras.zen.code.symbol.ZenSymbolKind;
 import raylras.zen.code.type.*;
 import raylras.zen.l10n.L10N;
 import raylras.zen.util.Range;
 import raylras.zen.util.Ranges;
 import raylras.zen.util.StringUtils;
 
-import javax.lang.model.element.ExecutableElement;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -94,7 +94,7 @@ public class CompletionProvider {
         }
         Symbol qualifierSymbol = new ExpressionSymbolResolver(unit).resolve(qualifierExpr);
 
-        boolean isStaticAccess = qualifierSymbol != null && qualifierSymbol.getKind() == Symbol.Kind.CLASS;
+        boolean isStaticAccess = qualifierSymbol != null && qualifierSymbol.getKind() == ZenSymbolKind.CLASS;
         Type type;
         if (qualifierSymbol != null) {
             type = qualifierSymbol.getType();
@@ -160,7 +160,7 @@ public class CompletionProvider {
                 continue;
             }
 
-            if (member.getKind() == Symbol.Kind.FUNCTION) {
+            if (member.getKind() == ZenSymbolKind.FUNCTION) {
 //                functions.computeIfAbsent(member.getName(), n -> new ArrayList<>())
 //                    .add((FunctionSymbol) member);
                 data.add(makeFunction((FunctionSymbol) member, !endsWithParen));
@@ -186,7 +186,7 @@ public class CompletionProvider {
         }
     }
 
-    private static CompletionItemKind getCompletionItemKind(Symbol.Kind kind) {
+    private static CompletionItemKind getCompletionItemKind(ZenSymbolKind kind) {
         switch (kind) {
             case FUNCTION:
                 return CompletionItemKind.Function;
@@ -198,10 +198,6 @@ public class CompletionProvider {
             default:
                 return null;
         }
-    }
-
-    private static void getCompletionItemData() {
-
     }
 
     // tool methods for make completionItem
@@ -225,7 +221,7 @@ public class CompletionProvider {
 
 
     private CompletionItem makeItem(Symbol symbol) {
-        if (symbol.getKind() == Symbol.Kind.FUNCTION)
+        if (symbol.getKind() == ZenSymbolKind.FUNCTION)
             throw new RuntimeException("Method symbol should use makeMethod()");
         CompletionItem item = new CompletionItem();
         item.setLabel(symbol.getName());

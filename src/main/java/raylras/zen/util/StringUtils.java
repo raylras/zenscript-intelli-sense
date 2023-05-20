@@ -20,4 +20,24 @@ public final class StringUtils {
         }
         return i == partialName.length();
     }
+
+
+    public static String getPackageName(String fullQualifiedName) {
+
+        int lastDotIndex = fullQualifiedName.lastIndexOf(".");
+        if (lastDotIndex <= 0) {
+            return "";
+        }
+
+        return fullQualifiedName.substring(0, lastDotIndex - 1);
+    }
+
+    public static String getSimpleClassName(String fullQualifiedName) {
+        int lastDotIndex = fullQualifiedName.lastIndexOf(".");
+        if (lastDotIndex < 0) {
+            return fullQualifiedName;
+        }
+
+        return fullQualifiedName.substring(lastDotIndex + 1);
+    }
 }

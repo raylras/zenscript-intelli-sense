@@ -2,7 +2,7 @@ package raylras.zen.code.symbol;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.Declarator;
+import raylras.zen.code.data.Declarator;
 import raylras.zen.code.resolve.DeclaratorResolver;
 import raylras.zen.code.resolve.NameResolver;
 import raylras.zen.code.resolve.VariableTypeResolver;
@@ -19,17 +19,17 @@ public class VariableSymbol extends Symbol {
 
     @Override
     public String getName() {
-        return new NameResolver().resolve(owner);
+        return new NameResolver().resolve(getOwner());
     }
 
     @Override
     public Type getType() {
-        return new VariableTypeResolver(unit).resolve(owner);
+        return new VariableTypeResolver(getUnit()).resolve(getOwner());
     }
 
     @Override
-    public Kind getKind() {
-        return Kind.VARIABLE;
+    public ZenSymbolKind getKind() {
+        return ZenSymbolKind.LOCAL_VARIABLE;
     }
 
     @Override
@@ -39,7 +39,7 @@ public class VariableSymbol extends Symbol {
 
     @Override
     public Declarator getDeclarator() {
-        return new DeclaratorResolver().resolve(owner);
+        return new DeclaratorResolver().resolve(getOwner());
     }
 
     @Override

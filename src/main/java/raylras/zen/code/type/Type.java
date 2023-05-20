@@ -12,7 +12,7 @@ public abstract class Type {
     }
 
     public enum Kind {
-        ANY, CLASS, FUNCTION, NUMBER, STRING, ARRAY, LIST, MAP, BOOL, VOID, NONE
+        ANY, CLASS, FUNCTIONAL_INTERFACE, FUNCTION, NUMBER, STRING, ARRAY, LIST, MAP, BOOL, VOID, NONE
     }
 
 }

@@ -1,5 +1,6 @@
 package raylras.zen.code;
 
+import raylras.zen.code.data.Declarator;
 import raylras.zen.code.symbol.Symbol;
 
 import java.nio.file.Path;
