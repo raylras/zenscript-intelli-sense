@@ -45,4 +45,11 @@ public class ReturnTypeResolver extends Visitor<Type> {
         return VoidType.INSTANCE;
     }
 
+    @Override
+    public Type visitFunctionExpr(ZenScriptParser.FunctionExprContext ctx) {
+        Type type = new LiteralTypeResolver(unit).resolve(ctx.typeLiteral());
+        if (type == null)
+            type = AnyType.INSTANCE;
+        return type;
+    }
 }

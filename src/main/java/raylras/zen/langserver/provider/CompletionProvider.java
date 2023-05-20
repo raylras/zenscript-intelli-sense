@@ -94,7 +94,7 @@ public class CompletionProvider {
         }
         Symbol qualifierSymbol = new ExpressionSymbolResolver(unit).resolve(qualifierExpr);
 
-        boolean isStaticAccess = qualifierSymbol != null && qualifierSymbol.getKind() == ZenSymbolKind.CLASS;
+        boolean isStaticAccess = qualifierSymbol != null && qualifierSymbol.getKind().isClass();
         Type type;
         if (qualifierSymbol != null) {
             type = qualifierSymbol.getType();
@@ -124,7 +124,7 @@ public class CompletionProvider {
             if (isNameMatchesCompleting(symbol.getName())) {
                 CompletionItem item = new CompletionItem(symbol.getName());
                 item.setDetail(symbol.getType().toString());
-                item.setKind(getCompletionItemKind(symbol.getKind()));
+                item.setKind(getCompletionItemKind(symbol));
                 data.add(item);
             }
         }
@@ -135,7 +135,7 @@ public class CompletionProvider {
             if (isNameMatchesCompleting(member.getName())) {
                 CompletionItem item = new CompletionItem(member.getName());
                 item.setDetail(member.getType().toString());
-                item.setKind(getCompletionItemKind(member.getKind()));
+                item.setKind(getCompletionItemKind(member));
                 data.add(item);
             }
         }
@@ -160,7 +160,7 @@ public class CompletionProvider {
                 continue;
             }
 
-            if (member.getKind() == ZenSymbolKind.FUNCTION) {
+            if (member.getKind().isFunction()) {
 //                functions.computeIfAbsent(member.getName(), n -> new ArrayList<>())
 //                    .add((FunctionSymbol) member);
                 data.add(makeFunction((FunctionSymbol) member, !endsWithParen));
@@ -186,15 +186,37 @@ public class CompletionProvider {
         }
     }
 
-    private static CompletionItemKind getCompletionItemKind(ZenSymbolKind kind) {
-        switch (kind) {
-            case FUNCTION:
-                return CompletionItemKind.Function;
-            case CLASS:
+    private static CompletionItemKind getCompletionItemKind(Symbol symbol) {
+        switch (symbol.getKind()) {
+            case LIBRARY_PACKAGE:
+            case SCRIPT_PACKAGE:
+                return CompletionItemKind.Module;
+            case ZEN_CLASS:
+            case NATIVE_CLASS:
+            case LIBRARY_CLASS:
                 return CompletionItemKind.Class;
-            case VARIABLE:
-            case NONE:
+            case INTERFACE:
+            case FUNCTIONAL_INTERFACE:
+                return CompletionItemKind.Interface;
+            case UNARY_OPERATOR:
+            case BINARY_OPERATOR:
+            case TYPE_CASTER:
+                return CompletionItemKind.Operator;
+            case LOCAL_VARIABLE:
                 return CompletionItemKind.Variable;
+            case GLOBAL_VARIABLE:
+            case FIELD:
+                return CompletionItemKind.Field;
+            case FUNCTION_PARAMETER:
+            case PROPERTY:
+                return CompletionItemKind.Property;
+            case FUNCTION:
+            case FUNCTION_EXPRESSION:
+            case EXPAND_FUNCTION:
+                return CompletionItemKind.Function;
+            case CONSTRUCTOR:
+                return CompletionItemKind.Constructor;
+            case NONE:
             default:
                 return null;
         }
@@ -221,11 +243,11 @@ public class CompletionProvider {
 
 
     private CompletionItem makeItem(Symbol symbol) {
-        if (symbol.getKind() == ZenSymbolKind.FUNCTION)
+        if (symbol.getKind().isFunction())
             throw new RuntimeException("Method symbol should use makeMethod()");
         CompletionItem item = new CompletionItem();
         item.setLabel(symbol.getName());
-        item.setKind(getCompletionItemKind(symbol.getKind()));
+        item.setKind(getCompletionItemKind(symbol));
         item.setDetail(symbol.toString());
 //        item.setData();
         return item;

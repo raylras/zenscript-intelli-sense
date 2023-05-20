@@ -94,7 +94,7 @@ public class SignatureProvider {
 
         List<FunctionSymbol> list = new ArrayList<>();
         for (Symbol member : type.lookupSymbol(unit).getMembers()) {
-            if (member.getKind() != ZenSymbolKind.FUNCTION) continue;
+            if (!member.getKind().isFunction()) continue;
             if (!member.getName().equals(name)) continue;
             if (isStatic != member.isDeclaredBy(Declarator.STATIC)) continue;
             list.add((FunctionSymbol) member);
@@ -109,7 +109,7 @@ public class SignatureProvider {
         // TODO: merge this code with those in CompletionProvider
         Scope localScope = unit.lookupScope(expr);
         for (Symbol symbol : localScope.symbols) {
-            if (symbol.getKind() != ZenSymbolKind.FUNCTION) {
+            if (!symbol.getKind().isFunction()) {
                 continue;
             }
             if (!symbol.getName().equals(methodName)) {
@@ -119,7 +119,7 @@ public class SignatureProvider {
         }
 
         for (Symbol symbol : unit.context.getGlobals()) {
-            if (symbol.getKind() != ZenSymbolKind.FUNCTION) {
+            if (!symbol.getKind().isFunction()) {
                 continue;
             }
             if (!symbol.getName().equals(methodName)) {
@@ -152,9 +152,9 @@ public class SignatureProvider {
 
     private List<ParameterInformation> makeSignatureParameters(FunctionSymbol method) {
         List<ParameterInformation> list = new ArrayList<>();
-        for (VariableSymbol p : method.getParams()) {
+        for (Type p : method.getType().paramTypes) {
             ParameterInformation info = new ParameterInformation();
-            info.setLabel(p.getType().toString());
+            info.setLabel(p.toString());
             list.add(info);
         }
         return list;
@@ -192,18 +192,17 @@ public class SignatureProvider {
         for (int i = 0; i < overloads.size(); i++) {
             FunctionSymbol method = overloads.get(i);
 
-            List<VariableSymbol> parameters = method.getParams();
+            List<Type> parameterTypes = method.getType().paramTypes;
             // TODO: 可变长方法？
-            if (arguments.size() > parameters.size()) {
+            if (arguments.size() > parameterTypes.size()) {
                 continue;
             }
 
             for (int j = 0; j < arguments.size(); j++) {
                 ZenScriptParser.ExpressionContext arguementExpr = arguments.get(j);
-                VariableSymbol parameterSymbol = parameters.get(j);
+                Type parameterType = parameterTypes.get(j);
 
                 Type argumentType = findExprType(arguementExpr);
-                Type parameterType = parameterSymbol.getType();
 
                 if (!isTypeCompatible(argumentType, parameterType)) {
                     continue methodLoop;

@@ -28,22 +28,28 @@ public class ParamsResolver extends Visitor<List<VariableSymbol>> {
     @Override
     public List<VariableSymbol> visitFunctionDeclaration(FunctionDeclarationContext ctx) {
         return ctx.parameter().stream()
-                .map(unit::<VariableSymbol>getSymbol)
-                .collect(Collectors.toList());
+            .map(unit::<VariableSymbol>getSymbol)
+            .collect(Collectors.toList());
     }
 
     @Override
     public List<VariableSymbol> visitExpandFunctionDeclaration(ZenScriptParser.ExpandFunctionDeclarationContext ctx) {
         return ctx.parameter().stream()
-                .map(unit::<VariableSymbol>getSymbol)
-                .collect(Collectors.toList());
+            .map(unit::<VariableSymbol>getSymbol)
+            .collect(Collectors.toList());
     }
 
     @Override
     public List<VariableSymbol> visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
         return ctx.parameter().stream()
-                .map(unit::<VariableSymbol>getSymbol)
-                .collect(Collectors.toList());
+            .map(unit::<VariableSymbol>getSymbol)
+            .collect(Collectors.toList());
     }
 
+    @Override
+    public List<VariableSymbol> visitFunctionExpr(ZenScriptParser.FunctionExprContext ctx) {
+        return ctx.parameter().stream()
+            .map(unit::<VariableSymbol>getSymbol)
+            .collect(Collectors.toList());
+    }
 }

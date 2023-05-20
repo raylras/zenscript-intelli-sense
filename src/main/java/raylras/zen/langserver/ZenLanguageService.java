@@ -31,7 +31,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     public ZenLanguageService(ZenLanguageServer server) {
         this.server = server;
-        environment = new EnvironmentService();
+        environment = new EnvironmentService(rootScope);
     }
 
     /* Text Document Service */

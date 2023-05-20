@@ -12,9 +12,9 @@ import java.util.Map;
 
 public abstract class Symbol {
 
-    protected final ParseTree owner;
+    private final ParseTree owner;
 
-    protected final CompilationUnit unit;
+    private final CompilationUnit unit;
 
 
     protected Map<String, String> annotations;
@@ -36,6 +36,10 @@ public abstract class Symbol {
     public abstract ZenSymbolKind getKind();
 
     public abstract List<Symbol> getMembers();
+
+    public boolean isLibrarySymbol() {
+        return this.unit.isDzs();
+    }
 
     public Scope getEnclosingScope() {
         Scope scope = getUnit().getScope(getOwner());

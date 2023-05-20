@@ -68,6 +68,10 @@ public enum ZenSymbolKind {
      */
     FUNCTION,
     /**
+     * an anonymous function
+     */
+    FUNCTION_EXPRESSION,
+    /**
      * an expand function
      */
     EXPAND_FUNCTION,

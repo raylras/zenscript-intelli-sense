@@ -120,4 +120,9 @@ public class CompilationUnit {
         return path.toString().endsWith(DZS_FILE_EXTENSION);
     }
 
+
+    public String relativePath() {
+        throw new IllegalStateException("NOT IMPLEMENTED");
+    }
+
 }

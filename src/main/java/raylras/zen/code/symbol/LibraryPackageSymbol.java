@@ -3,8 +3,8 @@ package raylras.zen.code.symbol;
 import com.google.common.collect.ImmutableList;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
+import raylras.zen.code.scope.Scope;
 import raylras.zen.service.EnvironmentService;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.util.List;
 
@@ -20,12 +20,17 @@ public class LibraryPackageSymbol extends PackageSymbol {
 
     @Override
     public ParseTree getOwner() {
-        throw new NotImplementedException();
+        throw new IllegalStateException();
     }
 
     @Override
     public CompilationUnit getUnit() {
-        throw new NotImplementedException();
+        throw new IllegalStateException();
+    }
+
+    @Override
+    public Scope getEnclosingScope() {
+        return environment.getRootScope();
     }
 
     @Override
@@ -41,5 +46,10 @@ public class LibraryPackageSymbol extends PackageSymbol {
     @Override
     public List<Symbol> getMembers() {
         return ImmutableList.copyOf(environment.getClassSymbolsByPackageName(name));
+    }
+
+    @Override
+    public boolean isLibrarySymbol() {
+        return true;
     }
 }

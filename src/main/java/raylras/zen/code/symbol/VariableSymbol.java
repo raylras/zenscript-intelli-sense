@@ -3,6 +3,7 @@ package raylras.zen.code.symbol;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.data.Declarator;
+import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.resolve.DeclaratorResolver;
 import raylras.zen.code.resolve.NameResolver;
 import raylras.zen.code.resolve.VariableTypeResolver;
@@ -29,6 +30,22 @@ public class VariableSymbol extends Symbol {
 
     @Override
     public ZenSymbolKind getKind() {
+        Declarator declarator = getDeclarator();
+        if (declarator == Declarator.GLOBAL || declarator == Declarator.STATIC) {
+            return ZenSymbolKind.GLOBAL_VARIABLE;
+        }
+
+        ParseTree owner = getOwner();
+
+        if (owner instanceof ZenScriptParser.ParameterContext) {
+            return ZenSymbolKind.FUNCTION_PARAMETER;
+        }
+
+        if (owner instanceof ZenScriptParser.VariableDeclarationContext && owner.getParent() instanceof ZenScriptParser.ClassDeclarationContext) {
+            // TODO: is property
+            return ZenSymbolKind.FIELD;
+        }
+
         return ZenSymbolKind.LOCAL_VARIABLE;
     }
 

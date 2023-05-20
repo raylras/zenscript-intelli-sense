@@ -1,18 +1,17 @@
 package raylras.zen.service;
 
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.data.Declarator;
+import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.*;
-import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.Type;
 import raylras.zen.util.StringUtils;
 
 import java.util.*;
 import java.util.function.BiPredicate;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 public class EnvironmentService {
+    private final Scope rootScope;
 
     private final Map<String, ClassSymbol> classes = new HashMap<>();
     private final Map<String, List<FunctionSymbol>> globalFunctions = new HashMap<>();
@@ -22,6 +21,10 @@ public class EnvironmentService {
 
 
     private final Map<String, List<ExpandFunctionSymbol>> expandFunctions = new HashMap<>();
+
+    public EnvironmentService(Scope rootScope) {
+        this.rootScope = rootScope;
+    }
 
 
     private <T extends FunctionSymbol> void putFunction(Map<String, List<T>> map, String key, T function) {
@@ -125,4 +128,7 @@ public class EnvironmentService {
     }
 
 
+    public Scope getRootScope() {
+        return rootScope;
+    }
 }

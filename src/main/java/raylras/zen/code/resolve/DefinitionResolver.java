@@ -134,6 +134,18 @@ public class DefinitionResolver extends Listener {
         exitScope();
     }
 
+
+    @Override
+    public void enterFunctionExpr(FunctionExprContext ctx) {
+        enterSymbol(new FunctionExpressionSymbol(ctx, unit));
+        enterScope(new Scope(currentScope(), ctx));
+    }
+
+    @Override
+    public void exitFalseLiteralExpr(FalseLiteralExprContext ctx) {
+        exitScope();
+    }
+
     @Override
     public void enterExpandFunctionDeclaration(ExpandFunctionDeclarationContext ctx) {
         if (isLibraryFile()) {
@@ -163,6 +175,7 @@ public class DefinitionResolver extends Listener {
             enterSymbol(new ClassSymbol(ctx, unit).setAnnotations(annotationTokens));
             enterScope(new Scope(currentScope(), ctx));
             // TODO: add operator symbols
+
         } else {
             enterSymbol(new ClassSymbol(ctx, unit));
             enterScope(new Scope(currentScope(), ctx));

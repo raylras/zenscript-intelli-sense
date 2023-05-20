@@ -8,6 +8,7 @@ import raylras.zen.code.resolve.ReturnTypeResolver;
 import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.Type;
 
+import java.lang.invoke.MethodType;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -29,7 +30,7 @@ public class FunctionSymbol extends Symbol {
     }
 
     @Override
-    public Type getType() {
+    public FunctionType getType() {
         List<Type> paramTypes = getParams().stream().map(Symbol::getType).collect(Collectors.toList());
         Type returnType = getReturnType();
         return new FunctionType(paramTypes, returnType);
@@ -37,6 +38,9 @@ public class FunctionSymbol extends Symbol {
 
     @Override
     public ZenSymbolKind getKind() {
+        if (isConstructor) {
+            return ZenSymbolKind.CONSTRUCTOR;
+        }
         return ZenSymbolKind.FUNCTION;
     }
 
