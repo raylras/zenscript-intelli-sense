@@ -19,7 +19,6 @@ public class EnvironmentService {
 
     private final Map<String, LibraryPackageSymbol> packages = new HashMap<>();
 
-
     private final Map<String, List<ExpandFunctionSymbol>> expandFunctions = new HashMap<>();
 
     public EnvironmentService(Scope rootScope) {
@@ -61,12 +60,15 @@ public class EnvironmentService {
                     if (type.getKind() == Type.Kind.FUNCTION) {
                         FunctionSymbol functionSymbol = (FunctionSymbol) type.lookupSymbol(dtsUnit);
                         putFunction(globalFunctions, topLevelSymbol.getName(), functionSymbol);
-                    } else if (type.getKind() == Type.Kind.FUNCTIONAL_INTERFACE) {
+                    } else if (type.getKind() == Type.Kind.CLASS) {
                         ClassSymbol classSymbol = (ClassSymbol) type.lookupSymbol(dtsUnit);
-                        putFunction(globalFunctions, topLevelSymbol.getName(), classSymbol.getFunctionalInterface());
-
-                        // acts as both variable and function
-                        if (!topLevelSymbol.getMembers().isEmpty()) {
+                        if (classSymbol.isFunctionalInterface()) {
+                            putFunction(globalFunctions, topLevelSymbol.getName(), classSymbol.getFunctionalInterface());
+                            // acts as both variable and function
+                            if (!classSymbol.getMembers().isEmpty()) {
+                                globalVariables.put(topLevelSymbol.getName(), (VariableSymbol) topLevelSymbol);
+                            }
+                        } else {
                             globalVariables.put(topLevelSymbol.getName(), (VariableSymbol) topLevelSymbol);
                         }
                     } else {

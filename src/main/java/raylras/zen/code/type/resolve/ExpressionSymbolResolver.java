@@ -1,4 +1,4 @@
-package raylras.zen.code.resolve;
+package raylras.zen.code.type.resolve;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
@@ -6,8 +6,6 @@ import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.*;
-
-import java.util.List;
 
 public class ExpressionSymbolResolver extends Visitor<Symbol> {
 

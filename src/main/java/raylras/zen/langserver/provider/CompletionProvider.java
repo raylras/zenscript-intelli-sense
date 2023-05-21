@@ -6,14 +6,13 @@ import raylras.zen.code.data.Declarator;
 import raylras.zen.code.data.CompletionData;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
-import raylras.zen.code.resolve.CompletionDataResolver;
-import raylras.zen.code.resolve.ExpressionSymbolResolver;
-import raylras.zen.code.resolve.ExpressionTypeResolver;
+import raylras.zen.code.type.resolve.CompletionDataResolver;
+import raylras.zen.code.type.resolve.ExpressionSymbolResolver;
+import raylras.zen.code.type.resolve.ExpressionTypeResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.FunctionSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.VariableSymbol;
-import raylras.zen.code.symbol.ZenSymbolKind;
 import raylras.zen.code.type.*;
 import raylras.zen.l10n.L10N;
 import raylras.zen.util.Range;
@@ -208,7 +207,6 @@ public class CompletionProvider {
             case FIELD:
                 return CompletionItemKind.Field;
             case FUNCTION_PARAMETER:
-            case PROPERTY:
                 return CompletionItemKind.Property;
             case FUNCTION:
             case FUNCTION_EXPRESSION:

@@ -3,7 +3,7 @@ package raylras.zen.util;
 import com.google.common.collect.ImmutableSet;
 import org.antlr.v4.runtime.ParserRuleContext;
 import raylras.zen.code.parser.ZenScriptParser;
-import raylras.zen.code.resolve.NameResolver;
+import raylras.zen.code.type.resolve.NameResolver;
 
 import java.util.Set;
 

@@ -3,10 +3,11 @@ package raylras.zen.code.symbol;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.data.Declarator;
-import raylras.zen.code.resolve.DeclaratorResolver;
+import raylras.zen.code.type.resolve.DeclaratorResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.type.Type;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -17,7 +18,7 @@ public abstract class Symbol {
     private final CompilationUnit unit;
 
 
-    protected Map<String, String> annotations;
+    protected Map<String, String> annotations = Collections.emptyMap();
 
     public Symbol setAnnotations(Map<String, String> annotations) {
         this.annotations = annotations;

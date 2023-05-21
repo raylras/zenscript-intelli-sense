@@ -1,4 +1,4 @@
-package raylras.zen.code.resolve;
+package raylras.zen.code.type.resolve;
 
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;

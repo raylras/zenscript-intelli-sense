@@ -55,11 +55,6 @@ public enum ZenSymbolKind {
      */
     FIELD,
     /**
-     * a field, but is created by zen getters or setters
-     * TODO: EXPORT SUPPORT
-     */
-    PROPERTY,
-    /**
      * a function parameter
      */
     FUNCTION_PARAMETER,
@@ -93,7 +88,7 @@ public enum ZenSymbolKind {
     }
 
     public boolean isVariable() {
-        return this == FUNCTION_PARAMETER || this == LOCAL_VARIABLE || this == GLOBAL_VARIABLE || this == FIELD || this == PROPERTY;
+        return this == FUNCTION_PARAMETER || this == LOCAL_VARIABLE || this == GLOBAL_VARIABLE || this == FIELD;
     }
 
     public boolean isFunction() {

@@ -20,7 +20,10 @@ public class FunctionType extends Type {
 
     @Override
     public String toString() {
-        return "function" + paramTypes.stream().map(Type::toString).collect(Collectors.joining(",", "(", ")")) + returnType;
+        return "function" + getParamsSignature() + returnType;
     }
 
+    public String getParamsSignature() {
+        return paramTypes.stream().map(Type::toString).collect(Collectors.joining(",", "(", ")"));
+    }
 }

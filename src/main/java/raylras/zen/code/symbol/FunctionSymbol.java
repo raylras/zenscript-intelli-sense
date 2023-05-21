@@ -2,13 +2,12 @@ package raylras.zen.code.symbol;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.resolve.NameResolver;
-import raylras.zen.code.resolve.ParamsResolver;
-import raylras.zen.code.resolve.ReturnTypeResolver;
+import raylras.zen.code.type.resolve.NameResolver;
+import raylras.zen.code.type.resolve.ParamsResolver;
+import raylras.zen.code.type.resolve.ReturnTypeResolver;
 import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.Type;
 
-import java.lang.invoke.MethodType;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,6 +34,7 @@ public class FunctionSymbol extends Symbol {
         Type returnType = getReturnType();
         return new FunctionType(paramTypes, returnType);
     }
+
 
     @Override
     public ZenSymbolKind getKind() {

@@ -1,4 +1,4 @@
-package raylras.zen.code.resolve;
+package raylras.zen.code.type.resolve;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;

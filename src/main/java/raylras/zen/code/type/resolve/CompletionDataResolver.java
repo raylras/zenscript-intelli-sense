@@ -1,18 +1,15 @@
-package raylras.zen.code.resolve;
+package raylras.zen.code.type.resolve;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
-import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.Visitor;
 import raylras.zen.code.data.CompletionData;
 import raylras.zen.code.data.CompletionKind;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.util.Nodes;
 import raylras.zen.util.Range;
-import raylras.zen.util.Ranges;
 
 /**
  * This class just resolve for possible node that needs to execute auto complete progress (those not only need keywords),

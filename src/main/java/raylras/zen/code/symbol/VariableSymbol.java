@@ -4,9 +4,9 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.data.Declarator;
 import raylras.zen.code.parser.ZenScriptParser;
-import raylras.zen.code.resolve.DeclaratorResolver;
-import raylras.zen.code.resolve.NameResolver;
-import raylras.zen.code.resolve.VariableTypeResolver;
+import raylras.zen.code.type.resolve.DeclaratorResolver;
+import raylras.zen.code.type.resolve.NameResolver;
+import raylras.zen.code.type.resolve.VariableTypeResolver;
 import raylras.zen.code.type.Type;
 
 import java.util.Collections;

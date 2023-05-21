@@ -1,16 +1,18 @@
 package raylras.zen.code.symbol;
 
+import com.google.common.base.Strings;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.resolve.NameResolver;
+import raylras.zen.code.type.resolve.NameResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.Type;
 import raylras.zen.util.SymbolUtils;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class ClassSymbol extends Symbol {
 
@@ -29,8 +31,39 @@ public class ClassSymbol extends Symbol {
         return new ClassType(qualifiedName);
     }
 
+    public List<Type> getCasters() {
+        // TODO: Finish
+        return Collections.emptyList();
+    }
+
+    public boolean isFunctionalInterface() {
+        return getFunctionalInterface() != null;
+    }
+
+    public List<ClassSymbol> getParents() {
+        if (!isLibrarySymbol()) {
+            return null;
+        }
+
+        String extendClasses = getAnnotations().get("extends");
+
+        if (extendClasses == null) {
+            return Collections.emptyList();
+        }
+
+        return Arrays.stream(extendClasses.split(","))
+            .map(String::trim)
+            .map(it -> getUnit().<ClassSymbol>lookupSymbol(it))
+            .collect(Collectors.toList());
+    }
+
     public FunctionSymbol getFunctionalInterface() {
-        throw new NotImplementedException();
+        String functionalInterface = getAnnotations().get("function");
+        if (Strings.isNullOrEmpty(functionalInterface)) {
+            return null;
+        }
+
+        throw new IllegalStateException("not implemented");
     }
 
     @Override
