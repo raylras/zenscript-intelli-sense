@@ -5,15 +5,22 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser;
+import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.resolve.DefinitionResolver;
 import raylras.zen.code.type.resolve.NameResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.Symbol;
-import raylras.zen.code.type.Type;
+import raylras.zen.service.LibraryService;
+import raylras.zen.service.TypeService;
 import raylras.zen.util.ParseTreeProperty;
 
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 
 public class CompilationUnit {
 
@@ -24,11 +31,18 @@ public class CompilationUnit {
     public final CompilationContext context;
     private final ParseTreeProperty<Scope> scopeProp = new ParseTreeProperty<>();
     private final ParseTreeProperty<Symbol> symbolProp = new ParseTreeProperty<>();
+    private final Map<String, ClassType> classTypes = new HashMap<>();
     public ParseTree parseTree;
+    public CommonTokenStream tokenStream;
 
-    public CompilationUnit(Path path, CompilationContext context) {
+    private final TypeService typeService;
+    private final LibraryService libraryService;
+
+    public CompilationUnit(Path path, CompilationContext context, TypeService typeService, LibraryService libraryService) {
         this.path = path;
         this.context = context;
+        this.typeService = typeService;
+        this.libraryService = libraryService;
     }
 
     public Scope lookupScope(ParseTree node) {
@@ -43,13 +57,6 @@ public class CompilationUnit {
         return null;
     }
 
-    public <T extends Symbol> T lookupSymbol(String name) {
-        for (Symbol symbol : getTopLevelSymbols()) {
-            if (name.equals(symbol.getName()))
-                return (T) symbol;
-        }
-        return (T) context.lookupGlobal(name);
-    }
 
     public <T extends Symbol> T lookupSymbol(ParseTree node) {
         String name = new NameResolver().resolve(node);
@@ -66,13 +73,6 @@ public class CompilationUnit {
         return (T) symbol;
     }
 
-    public Type lookupType(ParseTree node) {
-        Symbol symbol = lookupSymbol(node);
-        if (symbol != null)
-            return symbol.getType();
-        return null;
-    }
-
     public Scope getScope(ParseTree node) {
         return scopeProp.get(node);
     }
@@ -87,6 +87,25 @@ public class CompilationUnit {
 
     public void putSymbol(ParseTree node, Symbol symbol) {
         symbolProp.put(node, symbol);
+    }
+
+    public void putClassType(String name, ClassType type) {
+        if (classTypes.containsKey(name)) {
+            throw new IllegalStateException("Class " + name + " already exists");
+        }
+        classTypes.put(name, type);
+    }
+
+    public ClassType lookupClassType(String qualifiedName) {
+        return classTypes.get(qualifiedName);
+    }
+
+    public LibraryService libraryService() {
+        return libraryService;
+    }
+
+    public TypeService typeService() {
+        return typeService;
     }
 
     public Collection<Scope> getScopes() {
@@ -107,10 +126,11 @@ public class CompilationUnit {
 
     private void parse(CharStream charStream) {
         ZenScriptLexer lexer = new ZenScriptLexer(charStream);
-        CommonTokenStream tokenStream = new CommonTokenStream(lexer);
+        tokenStream = new CommonTokenStream(lexer);
         ZenScriptParser parser = new ZenScriptParser(tokenStream);
         parser.removeErrorListeners();
         parseTree = parser.compilationUnit();
+
 
         new DefinitionResolver(this, tokenStream).resolve();
     }
@@ -122,7 +142,13 @@ public class CompilationUnit {
 
 
     public String relativePath() {
-        throw new IllegalStateException("NOT IMPLEMENTED");
+        Path root = context.compilationRoot;
+        String scriptPackage = StreamSupport.stream(root.relativize(path).spliterator(), false)
+            .map(it -> it.getFileName().toString())
+            .collect(Collectors.joining("."));
+
+
+        return "scripts." + scriptPackage;
     }
 
 }

@@ -41,50 +41,6 @@ public class DefinitionResolver extends Listener {
     }
 
 
-    private Map<String, String> parseAnnotationTokensRight(Token locator) {
-
-        List<Token> annotationTokens = tokenStream.getHiddenTokensToRight(
-            locator.getTokenIndex(),
-            ZenScriptParser.LINE_COMMENT
-        );
-
-        return parseAnnotationTokens(annotationTokens);
-    }
-
-    private Map<String, String> parseAnnotationTokensLeft(Token locator) {
-
-        List<Token> annotationTokens = tokenStream.getHiddenTokensToLeft(
-            locator.getTokenIndex(),
-            ZenScriptParser.LINE_COMMENT
-        );
-
-        return parseAnnotationTokens(annotationTokens);
-    }
-
-
-    private Map<String, String> parseAnnotationTokens(List<Token> tokens) {
-        Map<String, String> result = new HashMap<>();
-        for (Token token : tokens) {
-            String annotation = token.getText().substring(2).trim();
-
-            if (annotation.charAt(0) != '$') {
-                return null;
-            }
-
-            String[] split = annotation.split(":", 2);
-
-            String head = split[0].substring(1);
-
-            if (split.length < 2) {
-                result.put(head, "");
-            } else {
-                result.put(head, split[1].trim());
-            }
-        }
-        return result;
-
-    }
-
     private void enterScope(Scope scope) {
         unit.putScope(scope.owner, scope);
         stack.push(scope);
@@ -120,12 +76,7 @@ public class DefinitionResolver extends Listener {
 
     @Override
     public void enterFunctionDeclaration(FunctionDeclarationContext ctx) {
-        if (isLibraryFile()) {
-            Map<String, String> annotationTokens = parseAnnotationTokensRight(ctx.functionBody().BRACE_OPEN().getSymbol());
-            enterSymbol(new FunctionSymbol(ctx, unit, false).setAnnotations(annotationTokens));
-        } else {
-            enterSymbol(new FunctionSymbol(ctx, unit, false));
-        }
+        enterSymbol(new FunctionSymbol(ctx, unit, false));
         enterScope(new Scope(currentScope(), ctx));
     }
 
@@ -142,19 +93,14 @@ public class DefinitionResolver extends Listener {
     }
 
     @Override
-    public void exitFalseLiteralExpr(FalseLiteralExprContext ctx) {
+    public void exitFunctionExpr(FunctionExprContext ctx) {
         exitScope();
     }
 
     @Override
     public void enterExpandFunctionDeclaration(ExpandFunctionDeclarationContext ctx) {
-        if (isLibraryFile()) {
-            Map<String, String> annotationTokens = parseAnnotationTokensRight(ctx.functionBody().BRACE_OPEN().getSymbol());
-            enterSymbol(new ExpandFunctionSymbol(ctx, unit, false).setAnnotations(annotationTokens));
-        } else {
-            // TODO: expand constructor?
-            enterSymbol(new ExpandFunctionSymbol(ctx, unit, false));
-        }
+        // TODO: expand constructor?
+        enterSymbol(new ExpandFunctionSymbol(ctx, unit, false));
         enterScope(new Scope(currentScope(), ctx));
     }
 
@@ -170,16 +116,8 @@ public class DefinitionResolver extends Listener {
 
     @Override
     public void enterClassDeclaration(ClassDeclarationContext ctx) {
-        if (isLibraryFile()) {
-            Map<String, String> annotationTokens = parseAnnotationTokensRight(ctx.BRACE_OPEN().getSymbol());
-            enterSymbol(new ClassSymbol(ctx, unit).setAnnotations(annotationTokens));
-            enterScope(new Scope(currentScope(), ctx));
-            // TODO: add operator symbols
-
-        } else {
-            enterSymbol(new ClassSymbol(ctx, unit));
-            enterScope(new Scope(currentScope(), ctx));
-        }
+        enterSymbol(new ClassSymbol(ctx, unit));
+        enterScope(new Scope(currentScope(), ctx));
     }
 
     @Override
@@ -189,12 +127,7 @@ public class DefinitionResolver extends Listener {
 
     @Override
     public void enterConstructorDeclaration(ConstructorDeclarationContext ctx) {
-        if (isLibraryFile()) {
-            Map<String, String> annotationTokens = parseAnnotationTokensRight(ctx.constructorBody().BRACE_OPEN().getSymbol());
-            enterSymbol(new FunctionSymbol(ctx, unit, true).setAnnotations(annotationTokens));
-        } else {
-            enterSymbol(new FunctionSymbol(ctx, unit, true));
-        }
+        enterSymbol(new FunctionSymbol(ctx, unit, true));
         enterScope(new Scope(currentScope(), ctx));
     }
 
@@ -205,12 +138,7 @@ public class DefinitionResolver extends Listener {
 
     @Override
     public void enterVariableDeclaration(VariableDeclarationContext ctx) {
-        if (isLibraryFile()) {
-            Map<String, String> annotationTokens = parseAnnotationTokensLeft(ctx.Declarator);
-            enterSymbol(new VariableSymbol(ctx, unit).setAnnotations(annotationTokens));
-        } else {
-            enterSymbol(new VariableSymbol(ctx, unit));
-        }
+        enterSymbol(new VariableSymbol(ctx, unit));
     }
 
     @Override

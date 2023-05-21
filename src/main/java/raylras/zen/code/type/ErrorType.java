@@ -1,6 +1,19 @@
 package raylras.zen.code.type;
 
-public class ErrorType extends Type{
+import org.antlr.v4.runtime.tree.ParseTree;
+import raylras.zen.code.type.resolve.NameResolver;
+
+public class ErrorType extends NamedType {
+
+
+    public ErrorType(String name) {
+        super(name);
+    }
+
+    public ErrorType(ParseTree node) {
+        this(new NameResolver().resolve(node));
+    }
+
     @Override
     public Kind getKind() {
         return Kind.NONE;
@@ -8,6 +21,6 @@ public class ErrorType extends Type{
 
     @Override
     public String toString() {
-        return "ERROR";
+        return "ERROR~" + name;
     }
 }

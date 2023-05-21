@@ -8,6 +8,7 @@ import raylras.zen.code.parser.ZenScriptParser.*;
 
 public class NameResolver extends Visitor<String> {
 
+
     public String resolve(ParseTree node) {
         if (node == null)
             return null;

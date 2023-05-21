@@ -4,6 +4,8 @@ import org.eclipse.lsp4j.*;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.data.Declarator;
 import raylras.zen.code.parser.ZenScriptParser;
+import raylras.zen.code.symbol.ClassSymbol;
+import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.resolve.ExpressionSymbolResolver;
 import raylras.zen.code.type.resolve.ExpressionTypeResolver;
 import raylras.zen.code.type.resolve.FunctionInvocationResolver;
@@ -74,7 +76,7 @@ public class SignatureProvider {
     }
 
     private List<FunctionSymbol> memberMethodOverloads(ZenScriptParser.ExpressionContext qualifierExpression, String name) {
-        Symbol target = new ExpressionSymbolResolver(unit).resolve(qualifierExpression);
+        Symbol target = unit.lookupSymbol(qualifierExpression);
         Type type;
         if (target != null) {
             type = target.getType();
@@ -83,7 +85,7 @@ public class SignatureProvider {
         }
         if (type == null) return Collections.emptyList();
 
-        Symbol typeSymbol = type.lookupSymbol(unit);
+        ClassSymbol typeSymbol = type instanceof ClassType ? ((ClassType) type).getSymbol() : null;
         if (typeSymbol == null) {
             return Collections.emptyList();
         }
@@ -91,7 +93,8 @@ public class SignatureProvider {
         boolean isStatic = target != null && target.getKind().isClass();
 
         List<FunctionSymbol> list = new ArrayList<>();
-        for (Symbol member : type.lookupSymbol(unit).getMembers()) {
+
+        for (Symbol member : unit.typeService().getAllMembers(typeSymbol)) {
             if (!member.getKind().isFunction()) continue;
             if (!member.getName().equals(name)) continue;
             if (isStatic != member.isDeclaredBy(Declarator.STATIC)) continue;

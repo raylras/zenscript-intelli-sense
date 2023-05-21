@@ -4,9 +4,11 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptParser;
+import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.*;
 
+// 暂时不知道有什么用，可以直接 unit.lookupSymbol
 public class ExpressionSymbolResolver extends Visitor<Symbol> {
 
     private final CompilationUnit unit;
@@ -27,24 +29,13 @@ public class ExpressionSymbolResolver extends Visitor<Symbol> {
     }
 
     @Override
-    public Symbol visitCallExpr(ZenScriptParser.CallExprContext ctx) {
-        Symbol leftSymbol = ctx.Left.accept(this);
-        if (leftSymbol == null)
-            return null;
-        Type leftType = leftSymbol.getType();
-        if (leftType == null)
-            return null;
-        return leftType.lookupSymbol(unit);
-    }
-
-    @Override
     public Symbol visitMemberAccessExpr(ZenScriptParser.MemberAccessExprContext ctx) {
         Symbol leftSymbol = ctx.Left.accept(this);
         if (leftSymbol == null)
             return null;
 
-        Symbol leftSymbolType = leftSymbol.getType().lookupSymbol(unit);
-        if (leftSymbolType == null) {
+        Type leftSymbolType = leftSymbol.getType();
+        if (leftSymbolType == null || leftSymbolType.getKind() != Type.Kind.CLASS) {
             return null;
         }
 
@@ -52,7 +43,7 @@ public class ExpressionSymbolResolver extends Visitor<Symbol> {
         if (simpleName == null)
             return leftSymbol;
 
-        for (Symbol member : leftSymbolType.getMembers()) {
+        for (Symbol member : unit.typeService().getAllMembers(((ClassType) leftSymbolType).getSymbol())) {
             if (simpleName.equals(member.getName())) {
                 return member;
             }
@@ -61,65 +52,20 @@ public class ExpressionSymbolResolver extends Visitor<Symbol> {
         return leftSymbol;
     }
 
-    @Override
-    public Symbol visitTypeCastExpr(ZenScriptParser.TypeCastExprContext ctx) {
-        Type type = new LiteralTypeResolver(unit).resolve(ctx.typeLiteral());
-        if (type == null)
-            return null;
-        return type.lookupSymbol(unit);
-    }
-
-    @Override
-    public Symbol visitTrueLiteralExpr(ZenScriptParser.TrueLiteralExprContext ctx) {
-        return BoolType.INSTANCE.lookupSymbol(unit);
-    }
-
-    @Override
-    public Symbol visitFalseLiteralExpr(ZenScriptParser.FalseLiteralExprContext ctx) {
-        return BoolType.INSTANCE.lookupSymbol(unit);
-    }
-
-    @Override
-    public Symbol visitStringLiteralExpr(ZenScriptParser.StringLiteralExprContext ctx) {
-        return StringType.INSTANCE.lookupSymbol(unit);
-    }
-
-    @Override
-    public Symbol visitFloatLiteralExpr(ZenScriptParser.FloatLiteralExprContext ctx) {
-        return FloatType.INSTANCE.lookupSymbol(unit);
-    }
-
-    @Override
-    public Symbol visitLongLiteralExpr(ZenScriptParser.LongLiteralExprContext ctx) {
-        return LongType.INSTANCE.lookupSymbol(unit);
-    }
-
-    @Override
-    public Symbol visitNullLiteralExpr(ZenScriptParser.NullLiteralExprContext ctx) {
-        return AnyType.INSTANCE.lookupSymbol(unit);
-    }
-
-    @Override
-    public Symbol visitIntLiteralExpr(ZenScriptParser.IntLiteralExprContext ctx) {
-        return IntType.INSTANCE.lookupSymbol(unit);
-    }
-
-    @Override
-    public Symbol visitDoubleLiteralExpr(ZenScriptParser.DoubleLiteralExprContext ctx) {
-        return DoubleType.INSTANCE.lookupSymbol(unit);
-    }
-
-    @Override
-    public Symbol visitParensExpr(ZenScriptParser.ParensExprContext ctx) {
-        return visit(ctx.expression());
-    }
-
-    @Override
-    public Symbol visitTypeLiteral(ZenScriptParser.TypeLiteralContext ctx) {
-        Type type = new LiteralTypeResolver(unit).resolve(ctx);
-        if (type == null)
-            return null;
-        return type.lookupSymbol(unit);
-    }
+//    @Override
+//    public Symbol visitTypeCastExpr(ZenScriptParser.TypeCastExprContext ctx) {
+//        Type type = new LiteralTypeResolver(unit).resolve(ctx.typeLiteral());
+//        if (type == null)
+//            return null;
+//        return type.lookupSymbol(unit);
+//    }
+//
+//    @Override
+//    public Symbol visitTypeLiteral(ZenScriptParser.TypeLiteralContext ctx) {
+//        Type type = new LiteralTypeResolver(unit).resolve(ctx);
+//        if (type == null)
+//            return null;
+//        return type.lookupSymbol(unit);
+//    }
 
 }

@@ -156,7 +156,6 @@ expression
     | '{' (mapEntry (',' mapEntry)*)? ','? '}' # MapInitializerExpr
     | '(' expression ')' # ParensExpr
     | 'this' # ThisExpr
-    | 'super' # SuperExpr
     | INT_LITERAL # IntLiteralExpr
     | LONG_LITERAL # LongLiteralExpr
     | FLOAT_LITERAL # FloatLiteralExpr

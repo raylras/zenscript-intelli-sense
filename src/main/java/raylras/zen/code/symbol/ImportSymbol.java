@@ -3,6 +3,7 @@ package raylras.zen.code.symbol;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.parser.ZenScriptParser.ImportDeclarationContext;
+import raylras.zen.code.type.ErrorType;
 import raylras.zen.code.type.resolve.NameResolver;
 import raylras.zen.code.type.AnyType;
 import raylras.zen.code.type.ClassType;
@@ -12,7 +13,6 @@ import java.util.Collections;
 import java.util.List;
 
 
-//TODO: is it possible to import non-class types?
 public class ImportSymbol extends Symbol {
 
     public ImportSymbol(ParseTree owner, CompilationUnit unit) {
@@ -26,24 +26,27 @@ public class ImportSymbol extends Symbol {
 
     @Override
     public Type getType() {
-        if (getOwner() instanceof ImportDeclarationContext) {
-            String qualifiedName = new NameResolver().resolve(((ImportDeclarationContext) getOwner()).qualifiedName());
-            if (qualifiedName == null)
-                return null;
-            return new ClassType(qualifiedName);
-
+        Symbol target = getTarget();
+        if (target != null) {
+            return target.getType();
         }
-        return AnyType.INSTANCE;
+        String qualifiedName = new NameResolver().resolve(((ImportDeclarationContext) getOwner()).qualifiedName());
+        return new ErrorType(qualifiedName);
+    }
+
+    public Symbol getTarget() {
+        // TODO: finish
+        return null;
     }
 
     @Override
     public ZenSymbolKind getKind() {
-        return ZenSymbolKind.ZEN_CLASS;
+        return ZenSymbolKind.IMPORT;
     }
 
     @Override
     public List<Symbol> getMembers() {
-        Symbol symbol = getType().lookupSymbol(getUnit());
+        Symbol symbol = getTarget();
         if (symbol != null)
             return symbol.getMembers();
         return Collections.emptyList();

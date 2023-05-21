@@ -1,14 +1,23 @@
 package raylras.zen.code.type;
 
 import raylras.zen.code.CompilationUnit;
+import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
 
-public class ClassType extends Type {
+public class ClassType extends NamedType {
+    private final ClassSymbol classSymbol;
 
-    public String qualifiedName;
+    public ClassType(String qualifiedName, ClassSymbol classSymbol) {
+        super(qualifiedName);
+        this.classSymbol = classSymbol;
+    }
 
-    public ClassType(String qualifiedName) {
-        this.qualifiedName = qualifiedName;
+    public ClassSymbol getSymbol() {
+        return classSymbol;
+    }
+
+    public boolean isLibraryClass() {
+        return classSymbol.isLibrarySymbol();
     }
 
     @Override
@@ -16,14 +25,5 @@ public class ClassType extends Type {
         return Kind.CLASS;
     }
 
-    @Override
-    public Symbol lookupSymbol(CompilationUnit unit) {
-        return unit.lookupSymbol(qualifiedName);
-    }
-
-    @Override
-    public String toString() {
-        return qualifiedName;
-    }
 
 }

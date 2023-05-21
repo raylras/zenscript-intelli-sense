@@ -1,6 +1,6 @@
 package raylras.zen.code.type;
 
-public class StringType extends ClassType {
+public class StringType extends NamedType {
 
     public static final StringType INSTANCE = new StringType();
 

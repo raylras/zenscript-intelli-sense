@@ -1,5 +1,7 @@
 package raylras.zen.code.symbol;
 
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.data.Declarator;
@@ -17,14 +19,6 @@ public abstract class Symbol {
 
     private final CompilationUnit unit;
 
-
-    protected Map<String, String> annotations = Collections.emptyMap();
-
-    public Symbol setAnnotations(Map<String, String> annotations) {
-        this.annotations = annotations;
-        return this;
-    }
-
     public Symbol(ParseTree owner, CompilationUnit unit) {
         this.owner = owner;
         this.unit = unit;
@@ -37,6 +31,10 @@ public abstract class Symbol {
     public abstract ZenSymbolKind getKind();
 
     public abstract List<Symbol> getMembers();
+
+    public boolean isValid() {
+        return true;
+    }
 
     public boolean isLibrarySymbol() {
         return this.unit.isDzs();
@@ -72,6 +70,10 @@ public abstract class Symbol {
     }
 
     public Map<String, String> getAnnotations() {
-        return annotations;
+        return Collections.emptyMap();
+    }
+
+    public boolean isHidden() {
+        return false;
     }
 }

@@ -1,6 +1,6 @@
 package raylras.zen.code.type;
 
-public class VoidType extends ClassType {
+public class VoidType extends NamedType {
 
     public static final VoidType INSTANCE = new VoidType();
 

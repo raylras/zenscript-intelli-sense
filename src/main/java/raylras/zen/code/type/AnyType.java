@@ -1,6 +1,6 @@
 package raylras.zen.code.type;
 
-public class AnyType extends ClassType {
+public class AnyType extends NamedType {
 
     public static final AnyType INSTANCE = new AnyType();
 

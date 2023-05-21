@@ -91,7 +91,7 @@ public class CompletionProvider {
         if (qualifierExpr == null) {
             return;
         }
-        Symbol qualifierSymbol = new ExpressionSymbolResolver(unit).resolve(qualifierExpr);
+        Symbol qualifierSymbol = unit.lookupSymbol(qualifierExpr);
 
         boolean isStaticAccess = qualifierSymbol != null && qualifierSymbol.getKind().isClass();
         Type type;
@@ -145,7 +145,8 @@ public class CompletionProvider {
     }
 
     private void addMemberAccess(Type type, boolean isStatic, boolean endsWithParen) {
-        Symbol target = type.lookupSymbol(unit);
+        Symbol target = type instanceof ClassType ? ((ClassType) type).getSymbol() : null;
+        // TODO：拓展方法
 
         if (target == null)
             return;
@@ -197,9 +198,7 @@ public class CompletionProvider {
             case INTERFACE:
             case FUNCTIONAL_INTERFACE:
                 return CompletionItemKind.Interface;
-            case UNARY_OPERATOR:
-            case BINARY_OPERATOR:
-            case TYPE_CASTER:
+            case OPERATOR:
                 return CompletionItemKind.Operator;
             case LOCAL_VARIABLE:
                 return CompletionItemKind.Variable;

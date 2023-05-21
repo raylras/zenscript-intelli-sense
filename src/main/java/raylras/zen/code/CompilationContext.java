@@ -2,6 +2,7 @@ package raylras.zen.code;
 
 import raylras.zen.code.data.Declarator;
 import raylras.zen.code.symbol.Symbol;
+import raylras.zen.code.type.ClassType;
 
 import java.nio.file.Path;
 import java.util.Collection;
@@ -51,6 +52,7 @@ public class CompilationContext {
         }
         return null;
     }
+
 
     public List<Symbol> getGlobals() {
         return getCompilationUnits().stream()

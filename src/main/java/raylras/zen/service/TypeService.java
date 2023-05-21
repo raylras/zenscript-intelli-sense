@@ -15,8 +15,6 @@ import java.util.stream.Collectors;
  * Provide support to resolve types
  */
 public class TypeService {
-    private CompilationUnit unit;
-    private EnvironmentService environment;
 
     private void mergeOverloadFunctions(List<FunctionSymbol> childFunctions, List<FunctionSymbol> parentFunctions) {
 
@@ -50,6 +48,9 @@ public class TypeService {
             if (kind == ZenSymbolKind.FIELD) {
                 variables.put(member.getName(), (VariableSymbol) member);
             } else if (kind == ZenSymbolKind.FUNCTION) {
+                if (member.isHidden()) {
+                    continue;
+                }
                 functions.computeIfAbsent(member.getName(), it -> new ArrayList<>())
                     .add((FunctionSymbol) member);
             } else if (kind == ZenSymbolKind.CONSTRUCTOR) {
@@ -97,6 +98,52 @@ public class TypeService {
     }
 
 
+    public List<Symbol> getAllMembers(ClassSymbol classSymbol) {
+        // TODO: extend functions
+        return getAllDirectMembers(classSymbol);
+    }
+
+
+    public List<Type> getCasters(ClassSymbol classSymbol) {
+        List<Type> result = new ArrayList<>();
+        for (Symbol member : classSymbol.getMembers()) {
+            if (member.getKind() != ZenSymbolKind.OPERATOR) {
+                continue;
+            }
+            FunctionSymbol op = (FunctionSymbol) member;
+            if (op.getOperatorType() != OperatorType.CASTER) {
+                continue;
+            }
+            result.add(op.getReturnType());
+        }
+
+        for (ClassSymbol parent : classSymbol.getParents()) {
+            List<Type> parentCasters = getCasters(parent);
+            result.addAll(parentCasters);
+        }
+        return result;
+    }
+
+
+    public FunctionSymbol getOperatorOf(ClassSymbol classSymbol, OperatorType operatorType) {
+        for (Symbol member : classSymbol.getMembers()) {
+            if (member.getKind() != ZenSymbolKind.OPERATOR) {
+                continue;
+            }
+            FunctionSymbol op = (FunctionSymbol) member;
+            if (op.getOperatorType() == operatorType) {
+                return op;
+            }
+        }
+        for (ClassSymbol parent : classSymbol.getParents()) {
+            FunctionSymbol found = getOperatorOf(parent, operatorType);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
+    }
+
     public boolean isNullable(Type targetType) {
         Type.Kind targetKind = targetType.getKind();
         if (targetKind == Type.Kind.NUMBER) {
@@ -109,7 +156,7 @@ public class TypeService {
         return false;
     }
 
-    private Map<Type, Set<Type>> internalCasters = ImmutableMap.<Type, Set<Type>>builder()
+    private final Map<Type, Set<Type>> internalCasters = ImmutableMap.<Type, Set<Type>>builder()
         .put(IntType.INSTANCE, ImmutableSet.of(ByteType.INSTANCE, ShortType.INSTANCE, LongType.INSTANCE, FloatType.INSTANCE, DoubleType.INSTANCE, StringType.INSTANCE))
         .put(ByteType.INSTANCE, ImmutableSet.of(ShortType.INSTANCE, IntType.INSTANCE, LongType.INSTANCE, FloatType.INSTANCE, DoubleType.INSTANCE, StringType.INSTANCE))
         .put(ShortType.INSTANCE, ImmutableSet.of(ByteType.INSTANCE, IntType.INSTANCE, LongType.INSTANCE, FloatType.INSTANCE, DoubleType.INSTANCE, StringType.INSTANCE))
@@ -125,22 +172,51 @@ public class TypeService {
     }
 
     public boolean hasCaster(Type targetType, Type sourceType) {
-        Symbol sourceSymbol = sourceType.lookupSymbol(unit);
-        if (!(sourceSymbol instanceof ClassSymbol)) {
+        if (sourceType.getKind() != Type.Kind.CLASS) {
             return false;
         }
 
-        List<Type> casters = ((ClassSymbol) sourceSymbol).getCasters();
-        return casters != null && casters.contains(targetType);
+        ClassSymbol sourceSymbol = ((ClassType) sourceType).getSymbol();
+
+        List<Type> casters = getCasters(sourceSymbol);
+
+        return casters.contains(targetType);
+
     }
 
-    public boolean isSubClass(ClassType superClass, ClassType subClass) {
+    public boolean isSameType(ClassType first, ClassType second) {
+        return first.getName().equals(second.getName());
+    }
+
+    public boolean isAssignableTo(ClassType currentType, ClassType targetType) {
+        if (isSameType(currentType, targetType)) {
+            return true;
+        }
         // not library, do not have extends
-        if (!subClass.isLibraryClass || !superClass.isLibraryClass) {
+        if (!currentType.isLibraryClass() || !targetType.isLibraryClass()) {
             return false;
         }
 
-        // TODO: extends
+        ArrayDeque<ClassSymbol> searchQueue = new ArrayDeque<>();
+        ClassSymbol currentSymbol = currentType.getSymbol();
+        String targetName = targetType.getName();
+
+        for (ClassSymbol parent : currentSymbol.getParents()) {
+            searchQueue.push(parent);
+        }
+
+        while (!searchQueue.isEmpty()) {
+            ClassSymbol symbol = searchQueue.pop();
+
+            if (symbol.getQualifiedName().equals(targetName)) {
+                return true;
+            }
+
+            for (ClassSymbol parent : symbol.getParents()) {
+                searchQueue.push(parent);
+            }
+        }
+
         return false;
 
     }
@@ -186,8 +262,9 @@ public class TypeService {
 
         if (sourceKind == Type.Kind.CLASS && targetKind == Type.Kind.CLASS) {
             // this is library class, consider extends
-
-
+            if (isAssignableTo((ClassType) sourceType, (ClassType) targetType)) {
+                return true;
+            }
         }
 
         // consider predefined casters

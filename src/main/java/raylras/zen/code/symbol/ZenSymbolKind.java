@@ -2,6 +2,10 @@ package raylras.zen.code.symbol;
 
 public enum ZenSymbolKind {
     /**
+     * a import
+     */
+    IMPORT,
+    /**
      * a package of java library
      */
     LIBRARY_PACKAGE,
@@ -31,20 +35,9 @@ public enum ZenSymbolKind {
      */
     FUNCTIONAL_INTERFACE,
     /**
-     * an operator accepts one operand
+     * an operator
      */
-    UNARY_OPERATOR,
-    /**
-     * an operator accepts two operands
-     */
-    BINARY_OPERATOR,
-    /**
-     * a unary operator but function as type casters
-     */
-    TYPE_CASTER,
-    /**
-     * a local variable
-     */
+    OPERATOR,
     LOCAL_VARIABLE,
     /**
      * a global or static variable
@@ -92,14 +85,15 @@ public enum ZenSymbolKind {
     }
 
     public boolean isFunction() {
-        return this == FUNCTION || this == EXPAND_FUNCTION || this == CONSTRUCTOR;
+        return this == FUNCTION || this == EXPAND_FUNCTION || this == CONSTRUCTOR || this == OPERATOR || this == FUNCTION_EXPRESSION;
     }
 
-    public boolean isOperator() {
-        return this == UNARY_OPERATOR || this == BINARY_OPERATOR || this == TYPE_CASTER;
-    }
 
     public boolean isLocal() {
-        return this == LOCAL_VARIABLE || this == FUNCTION_PARAMETER;
+        return this == LOCAL_VARIABLE || this == FUNCTION_PARAMETER || this == FUNCTION_EXPRESSION;
+    }
+
+    public boolean isTypeSymbol() {
+        return isClass() || this == IMPORT;
     }
 }

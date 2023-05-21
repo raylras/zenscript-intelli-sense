@@ -4,15 +4,15 @@ import com.google.common.collect.ImmutableList;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.scope.Scope;
-import raylras.zen.service.EnvironmentService;
+import raylras.zen.service.LibraryService;
 
 import java.util.List;
 
 public class LibraryPackageSymbol extends PackageSymbol {
     private final String name;
-    private final EnvironmentService environment;
+    private final LibraryService environment;
 
-    public LibraryPackageSymbol(String name, EnvironmentService environment) {
+    public LibraryPackageSymbol(String name, LibraryService environment) {
         super(null, null);
         this.name = name;
         this.environment = environment;

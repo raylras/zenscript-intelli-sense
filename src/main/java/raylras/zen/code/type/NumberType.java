@@ -1,6 +1,6 @@
 package raylras.zen.code.type;
 
-public abstract class NumberType extends ClassType {
+public abstract class NumberType extends NamedType {
 
     protected NumberType(String name) {
         super(name);

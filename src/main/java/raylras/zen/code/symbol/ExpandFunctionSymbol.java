@@ -13,10 +13,8 @@ public class ExpandFunctionSymbol extends FunctionSymbol {
     }
 
 
-    public ClassSymbol getExpandTarget() {
-        // TODO: is it able to expand no class?(eg: array)
-        Type firstType = super.getParams().get(0).getType();
-        return (ClassSymbol) firstType.lookupSymbol(unit);
+    public Type getExpandTarget() {
+        return super.getParams().get(0).getType();
     }
 
     @Override

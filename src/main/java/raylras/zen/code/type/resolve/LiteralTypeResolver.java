@@ -5,6 +5,7 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
+import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.*;
 
 import java.util.List;
@@ -24,14 +25,16 @@ public class LiteralTypeResolver extends Visitor<Type> {
         return node.accept(this);
     }
 
+
+
     @Override
     public Type visitClassType(ClassTypeContext ctx) {
-        Type type = unit.lookupType(ctx);
-        if (type == null) {
-            String qualifiedName = new NameResolver().resolve(ctx.qualifiedName());
-            type = new ClassType(qualifiedName);
+        Symbol symbol = unit.lookupSymbol(ctx);
+        if (symbol != null && symbol.getKind().isTypeSymbol()) {
+            return symbol.getType();
         }
-        return type;
+        String qualifiedName = new NameResolver().resolve(ctx.qualifiedName());
+        return new ErrorType(qualifiedName);
     }
 
     @Override
@@ -50,8 +53,8 @@ public class LiteralTypeResolver extends Visitor<Type> {
     @Override
     public Type visitFunctionType(FunctionTypeContext ctx) {
         List<Type> typeList = ctx.typeLiteral().stream()
-                .map(typeCtx-> typeCtx.accept(this))
-                .collect(Collectors.toList());
+            .map(typeCtx -> typeCtx.accept(this))
+            .collect(Collectors.toList());
         int lastElementIndex = typeList.size() - 1;
         List<Type> paramTypes = typeList.subList(0, lastElementIndex);
         Type returnType = typeList.get(lastElementIndex);
