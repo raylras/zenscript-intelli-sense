@@ -185,7 +185,7 @@ public class TypeService {
     }
 
     public boolean isSameType(ClassType first, ClassType second) {
-        return first.getName().equals(second.getName());
+        return first.getQualifiedName().equals(second.getQualifiedName());
     }
 
     public boolean isAssignableTo(ClassType currentType, ClassType targetType) {
@@ -199,7 +199,7 @@ public class TypeService {
 
         ArrayDeque<ClassSymbol> searchQueue = new ArrayDeque<>();
         ClassSymbol currentSymbol = currentType.getSymbol();
-        String targetName = targetType.getName();
+        String targetName = targetType.getQualifiedName();
 
         for (ClassSymbol parent : currentSymbol.getParents()) {
             searchQueue.push(parent);

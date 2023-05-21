@@ -15,6 +15,7 @@ import raylras.zen.service.LibraryService;
 import raylras.zen.util.StringUtils;
 import raylras.zen.util.SymbolUtils;
 
+import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -55,9 +56,10 @@ public class ClassSymbol extends Symbol {
         return isLibrarySymbol() && getAnnotations().containsKey("function");
     }
 
+    @Nonnull
     public List<ClassSymbol> getParents() {
         if (!isLibrarySymbol()) {
-            return null;
+            return Collections.emptyList();
         }
 
         String extendClasses = getAnnotations().get("extends");

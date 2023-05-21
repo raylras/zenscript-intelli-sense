@@ -144,11 +144,11 @@ public class CompilationUnit {
     public String relativePath() {
         Path root = context.compilationRoot;
         String scriptPackage = StreamSupport.stream(root.relativize(path).spliterator(), false)
-            .map(it -> it.getFileName().toString())
+            .map(Path::toString)
             .collect(Collectors.joining("."));
 
 
-        return "scripts." + scriptPackage;
+        return "scripts." + scriptPackage.substring(0, scriptPackage.length() - 2);
     }
 
 }
