@@ -5,6 +5,8 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
+import raylras.zen.code.scope.Scope;
+import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.*;
 
@@ -26,15 +28,15 @@ public class LiteralTypeResolver extends Visitor<Type> {
     }
 
 
-
     @Override
     public Type visitClassType(ClassTypeContext ctx) {
-        Symbol symbol = unit.lookupSymbol(ctx);
-        if (symbol != null && symbol.getKind().isTypeSymbol()) {
-            return symbol.getType();
+        Scope scope = unit.getScope(ctx);
+        String name = NameResolver.resolveName(ctx);
+        ClassSymbol classSymbol = unit.lookupClassSymbol(scope, name, true);
+        if (classSymbol != null) {
+            return classSymbol.getType();
         }
-        String qualifiedName = new NameResolver().resolve(ctx.qualifiedName());
-        return new ErrorType(qualifiedName);
+        return new ErrorType(name);
     }
 
     @Override

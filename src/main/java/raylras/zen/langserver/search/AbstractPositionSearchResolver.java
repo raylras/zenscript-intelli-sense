@@ -1,4 +1,4 @@
-package raylras.zen.code.type.resolve;
+package raylras.zen.langserver.search;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
@@ -6,7 +6,6 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import raylras.zen.code.Visitor;
-import raylras.zen.code.data.CompletionData;
 import raylras.zen.util.Range;
 import raylras.zen.util.Ranges;
 

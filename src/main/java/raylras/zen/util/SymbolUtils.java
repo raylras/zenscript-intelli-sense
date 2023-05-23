@@ -85,22 +85,22 @@ public class SymbolUtils {
             if (assignmentExpr.Op.getType() != ZenScriptParser.EQUAL) {
                 return null;
             }
-            return new NameResolver().resolve(assignmentExpr.Left);
+            return NameResolver.resolveName(assignmentExpr.Left);
         }
 
 
         if (parent instanceof ZenScriptParser.MapEntryContext) {
-            return new NameResolver().resolve(((ZenScriptParser.MapEntryContext) parent).Key);
+            return NameResolver.resolveName(((ZenScriptParser.MapEntryContext) parent).Key);
         }
 
         if (parent instanceof ZenScriptParser.InitializerContext) {
             ZenScriptParser.VariableDeclarationContext variableDeclaration = (ZenScriptParser.VariableDeclarationContext) parent.parent;
-            return new NameResolver().resolve(variableDeclaration.simpleName());
+            return NameResolver.resolveName(variableDeclaration.simpleName());
         }
 
         if (parent instanceof ZenScriptParser.DefaultValueContext) {
             ZenScriptParser.ParameterContext variableDeclaration = (ZenScriptParser.ParameterContext) parent.parent;
-            return new NameResolver().resolve(variableDeclaration.simpleName());
+            return NameResolver.resolveName(variableDeclaration.simpleName());
         }
 
         return null;

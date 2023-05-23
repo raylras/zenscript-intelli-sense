@@ -5,17 +5,6 @@ public enum ZenSymbolKind {
      * a import
      */
     IMPORT,
-    /**
-     * a package of java library
-     */
-    LIBRARY_PACKAGE,
-    /**
-     * a package of script folders
-     */
-    SCRIPT_PACKAGE,
-    /**
-     * a class created by .zs files
-     */
     ZEN_CLASS,
     /**
      * a class defined natively, like string
@@ -27,7 +16,6 @@ public enum ZenSymbolKind {
     LIBRARY_CLASS,
     /**
      * a class defined by java libraries, but do not have an constructor
-     * (TODO: is this should take original java interface into consideration?
      */
     INTERFACE,
     /**
@@ -74,10 +62,6 @@ public enum ZenSymbolKind {
 
     public boolean isClass() {
         return this == ZEN_CLASS || this == LIBRARY_CLASS || this == NATIVE_CLASS || this == INTERFACE || this == FUNCTIONAL_INTERFACE;
-    }
-
-    public boolean isPackage() {
-        return this == LIBRARY_PACKAGE || this == SCRIPT_PACKAGE;
     }
 
     public boolean isVariable() {

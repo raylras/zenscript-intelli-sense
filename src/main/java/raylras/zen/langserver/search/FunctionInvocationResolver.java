@@ -1,4 +1,4 @@
-package raylras.zen.code.type.resolve;
+package raylras.zen.langserver.search;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.parser.ZenScriptParser;

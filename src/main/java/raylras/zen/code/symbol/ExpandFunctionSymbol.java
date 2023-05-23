@@ -13,8 +13,14 @@ public class ExpandFunctionSymbol extends FunctionSymbol {
     }
 
 
+    @Override
+    protected List<VariableSymbol> resolveParams() {
+        List<VariableSymbol> params = super.resolveParams();
+        return params.subList(1, params.size());
+    }
+
     public Type getExpandTarget() {
-        return super.getParams().get(0).getType();
+        return super.resolveParams().get(0).getType();
     }
 
     @Override
@@ -22,9 +28,4 @@ public class ExpandFunctionSymbol extends FunctionSymbol {
         return ZenSymbolKind.EXPAND_FUNCTION;
     }
 
-    @Override
-    public List<VariableSymbol> getParams() {
-        List<VariableSymbol> allParams = super.getParams();
-        return allParams.subList(1, allParams.size());
-    }
 }

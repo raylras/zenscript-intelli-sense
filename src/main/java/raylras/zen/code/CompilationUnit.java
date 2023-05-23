@@ -5,22 +5,19 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser;
+import raylras.zen.code.symbol.*;
 import raylras.zen.code.type.ClassType;
+import raylras.zen.code.type.Type;
 import raylras.zen.code.type.resolve.DefinitionResolver;
-import raylras.zen.code.type.resolve.NameResolver;
 import raylras.zen.code.scope.Scope;
-import raylras.zen.code.symbol.Symbol;
+import raylras.zen.service.EnvironmentService;
 import raylras.zen.service.LibraryService;
 import raylras.zen.service.TypeService;
 import raylras.zen.util.ParseTreeProperty;
 
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+import java.util.*;
+import java.util.function.Predicate;
 
 public class CompilationUnit {
 
@@ -28,21 +25,17 @@ public class CompilationUnit {
     public static final String DZS_FILE_EXTENSION = ".d.zs";
 
     public final Path path;
-    public final CompilationContext context;
     private final ParseTreeProperty<Scope> scopeProp = new ParseTreeProperty<>();
     private final ParseTreeProperty<Symbol> symbolProp = new ParseTreeProperty<>();
     private final Map<String, ClassType> classTypes = new HashMap<>();
     public ParseTree parseTree;
     public CommonTokenStream tokenStream;
 
-    private final TypeService typeService;
-    private final LibraryService libraryService;
+    private final EnvironmentService environment;
 
-    public CompilationUnit(Path path, CompilationContext context, TypeService typeService, LibraryService libraryService) {
+    public CompilationUnit(Path path, EnvironmentService environment) {
         this.path = path;
-        this.context = context;
-        this.typeService = typeService;
-        this.libraryService = libraryService;
+        this.environment = environment;
     }
 
     public Scope lookupScope(ParseTree node) {
@@ -57,20 +50,75 @@ public class CompilationUnit {
         return null;
     }
 
+    public <T extends Symbol> T lookupSymbol(Class<T> type, Scope fromScope, String name, boolean searchGlobal) {
+        Symbol symbol = lookupLocalSymbol(fromScope,
+            s -> type.isInstance(s) && Objects.equals(s.getName(), name)
+        );
 
-    public <T extends Symbol> T lookupSymbol(ParseTree node) {
-        String name = new NameResolver().resolve(node);
-        Scope scope = lookupScope(node);
+        if (symbol == null && searchGlobal) {
+            symbol = environment().findSymbol(type, name);
+        }
+
+        return type.cast(symbol);
+    }
+
+
+    /**
+     * lookup class symbol, considering import
+     */
+    public ClassSymbol lookupClassSymbol(Scope fromScope, String name, boolean searchGlobal) {
+        // priority: local -> import -> global
+        Symbol symbol = lookupLocalSymbol(fromScope,
+            it -> (it instanceof ClassSymbol || it instanceof ImportSymbol) &&
+                Objects.equals(it.getName(), name)
+        );
+
+        if (symbol instanceof ClassSymbol) {
+            return (ClassSymbol) symbol;
+        }
+
+        if (symbol instanceof ImportSymbol) {
+            Symbol target = ((ImportSymbol) symbol).getSimpleTarget();
+            if (target instanceof ClassSymbol) {
+                return (ClassSymbol) target;
+            } else {
+                return null;
+            }
+        }
+
+        if (searchGlobal) {
+            return environment().findSymbol(ClassSymbol.class, name);
+        }
+
+        return null;
+    }
+
+    private Symbol lookupLocalSymbol(Scope fromScope, Predicate<Symbol> condition) {
+        Scope scope = fromScope;
         Symbol symbol = null;
         while (scope != null) {
-            symbol = scope.getSymbol(name);
+            symbol = scope.getSymbol(condition);
             if (symbol != null)
                 break;
             scope = scope.parent;
         }
-        if (symbol == null)
-            symbol = context.lookupGlobal(name);
-        return (T) symbol;
+
+        return symbol;
+    }
+
+    public <T extends Symbol> List<T> lookupLocalSymbols(Class<T> type, Scope fromScope, Predicate<T> condition) {
+        Scope scope = fromScope;
+        List<T> result = new ArrayList<>();
+        while (scope != null) {
+            for (Symbol symbol : scope.getSymbols()) {
+                if (type.isInstance(symbol) && condition.test(type.cast(symbol))) {
+                    result.add(type.cast(symbol));
+                }
+            }
+            scope = scope.parent;
+        }
+
+        return result;
     }
 
     public Scope getScope(ParseTree node) {
@@ -81,6 +129,7 @@ public class CompilationUnit {
         scopeProp.put(node, scope);
     }
 
+    @SuppressWarnings("unchecked")
     public <T extends Symbol> T getSymbol(ParseTree node) {
         return (T) symbolProp.get(node);
     }
@@ -101,11 +150,15 @@ public class CompilationUnit {
     }
 
     public LibraryService libraryService() {
-        return libraryService;
+        return environment().libraryService();
     }
 
     public TypeService typeService() {
-        return typeService;
+        return environment().typeService();
+    }
+
+    public EnvironmentService environment() {
+        return environment;
     }
 
     public Collection<Scope> getScopes() {
@@ -141,14 +194,8 @@ public class CompilationUnit {
     }
 
 
-    public String relativePath() {
-        Path root = context.compilationRoot;
-        String scriptPackage = StreamSupport.stream(root.relativize(path).spliterator(), false)
-            .map(Path::toString)
-            .collect(Collectors.joining("."));
-
-
-        return "scripts." + scriptPackage.substring(0, scriptPackage.length() - 2);
+    public String packageName() {
+        return environment.scriptService().packageName(this.path);
     }
 
 }

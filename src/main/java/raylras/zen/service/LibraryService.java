@@ -3,21 +3,23 @@ package raylras.zen.service;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.*;
-import raylras.zen.code.type.Type;
 import raylras.zen.util.StringUtils;
+import raylras.zen.util.SymbolUtils;
 
 import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
 public class LibraryService {
+
+    // NATIVE SYMBOL
     private final Scope rootScope;
 
     private final Map<String, ClassSymbol> classes = new HashMap<>();
     private final Map<String, List<FunctionSymbol>> globalFunctions = new HashMap<>();
     private final Map<String, VariableSymbol> globalVariables = new HashMap<>();
 
-    private final Map<String, LibraryPackageSymbol> packages = new HashMap<>();
+    private final Set<String> packages = new HashSet<>();
 
     private final Map<String, List<ExpandFunctionSymbol>> expandFunctions = new HashMap<>();
 
@@ -33,11 +35,11 @@ public class LibraryService {
             .add(function);
     }
 
-    private void getOrCreatePackage(String name) {
-        packages.computeIfAbsent(name, n -> new LibraryPackageSymbol(n, this));
+    private void addPackage(String name) {
+        packages.add(name);
     }
 
-    public void load(List<CompilationUnit> dtsUnits) {
+    public void load(Collection<CompilationUnit> dtsUnits) {
         for (CompilationUnit dtsUnit : dtsUnits) {
 
             for (Symbol topLevelSymbol : dtsUnit.getTopLevelSymbols()) {
@@ -46,7 +48,7 @@ public class LibraryService {
                     String qualifiedName = ((ClassSymbol) topLevelSymbol).getQualifiedName();
                     classes.put(qualifiedName, (ClassSymbol) topLevelSymbol);
                     String packageName = StringUtils.getPackageName(qualifiedName);
-                    getOrCreatePackage(packageName);
+                    addPackage(packageName);
                 } else if (topLevelSymbol.getKind().isFunction()) {
                     if (topLevelSymbol.getKind() == ZenSymbolKind.EXPAND_FUNCTION) {
                         String target = ((ExpandFunctionSymbol) topLevelSymbol).getExpandTarget().toString();
@@ -63,18 +65,6 @@ public class LibraryService {
         }
     }
 
-    public PackageSymbol getPackageSymbol(String packageName) {
-        return packages.get(packageName);
-    }
-
-    public List<PackageSymbol> getPackageSymbols(BiPredicate<String, PackageSymbol> predicate) {
-        return packages.entrySet()
-            .stream()
-            .filter(entry -> predicate.test(entry.getKey(), entry.getValue()))
-            .map(Map.Entry::getValue)
-            .collect(Collectors.toList());
-    }
-
     public ClassSymbol getClassSymbol(String qualifiedName) {
         return classes.get(qualifiedName);
     }
@@ -88,8 +78,24 @@ public class LibraryService {
     }
 
 
-    public List<ClassSymbol> getClassSymbolsByPackageName(String packageName) {
+    public List<ClassSymbol> getSymbolsOfPackage(String packageName) {
         return getClassSymbols((name, symbol) -> name.startsWith(packageName) && name.indexOf('.', packageName.length() + 1) < 0);
+    }
+
+    public List<Symbol> getNativeMembers(String nativeName) {
+        if (!SymbolUtils.isNativeClass(nativeName)) {
+            throw new IllegalStateException("not a native: " + nativeName);
+        }
+
+        return getClassSymbol(nativeName).getMembers();
+    }
+
+    public List<Symbol> getExpandFunctions(String type) {
+        return Collections.emptyList();
+    }
+
+    public List<FunctionSymbol> getGlobalFunctions(String name) {
+        return globalFunctions.getOrDefault(name, Collections.emptyList());
     }
 
     public List<FunctionSymbol> getGlobalFunctions(BiPredicate<String, FunctionSymbol> predicate) {
@@ -100,6 +106,10 @@ public class LibraryService {
                 .filter(it -> predicate.test(entry.getKey(), it))
             )
             .collect(Collectors.toList());
+    }
+
+    public VariableSymbol getGlobalVariable(String name) {
+        return globalVariables.get(name);
     }
 
     public List<VariableSymbol> getGlobalVariables(BiPredicate<String, VariableSymbol> predicate) {
@@ -114,8 +124,60 @@ public class LibraryService {
         return classes.keySet();
     }
 
+    public Collection<VariableSymbol> allGlobalVariables() {
+        return globalVariables.values();
+    }
+
+    public List<FunctionSymbol> allGlobalFunctions() {
+        return globalFunctions.values().stream().flatMap(Collection::stream).collect(Collectors.toList());
+    }
 
     public Scope getRootScope() {
         return rootScope;
+    }
+
+    public Collection<String> allPackageNames() {
+        return packages;
+    }
+
+    public <T extends Symbol> T findSymbol(Class<T> type, String name) {
+        ClassSymbol classSymbol = getClassSymbol(name);
+        if(type.isInstance(classSymbol)) {
+            return type.cast(classSymbol);
+        }
+
+        VariableSymbol variableSymbol = getGlobalVariable(name);
+        if(type.isInstance(variableSymbol)) {
+            return type.cast(variableSymbol);
+        }
+
+        List<FunctionSymbol> functionSymbols = getGlobalFunctions(name);
+        if (type.isAssignableFrom(VariableSymbol.class)) {
+            return type.cast(getGlobalVariable(name));
+        }
+
+        if (FunctionSymbol.class.isAssignableFrom(type)) {
+            return type.cast(getGlobalFunctions(name).get(0));
+        }
+
+        return null;
+    }
+
+    public <T extends Symbol> List<T> findSymbols(Class<T> type, String name) {
+        List<T> result = new ArrayList<>();
+
+        if (type.isAssignableFrom(ClassSymbol.class)) {
+            result.add(type.cast(getClassSymbol(name)));
+        }
+
+        if (type.isAssignableFrom(VariableSymbol.class)) {
+            result.add(type.cast(getGlobalVariable(name)));
+        }
+
+        if (type.isAssignableFrom(FunctionSymbol.class)) {
+            result.add(type.cast(getGlobalFunctions(name).get(0)));
+        }
+
+        return result;
     }
 }

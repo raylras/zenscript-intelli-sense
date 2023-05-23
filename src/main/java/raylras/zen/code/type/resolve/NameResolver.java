@@ -8,11 +8,16 @@ import raylras.zen.code.parser.ZenScriptParser.*;
 
 public class NameResolver extends Visitor<String> {
 
+    private static final NameResolver instance = new NameResolver();
 
-    public String resolve(ParseTree node) {
+    public static NameResolver getInstance() {
+        return instance;
+    }
+
+    public static String resolveName(ParseTree node) {
         if (node == null)
             return null;
-        return node.accept(this);
+        return node.accept(getInstance());
     }
 
     @Override

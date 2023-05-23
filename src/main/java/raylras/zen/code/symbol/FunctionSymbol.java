@@ -72,16 +72,29 @@ public class FunctionSymbol extends Symbol {
 
     @Override
     public String getName() {
-        return new NameResolver().resolve(getOwner());
+        return NameResolver.resolveName(getOwner());
     }
 
     @Override
     public FunctionType getType() {
-        List<Type> paramTypes = getParams().stream().map(Symbol::getType).collect(Collectors.toList());
+        List<Type> paramTypes = resolveParams()
+            .stream()
+            .map(Symbol::getType)
+            .collect(Collectors.toList());
         Type returnType = getReturnType();
         return new FunctionType(paramTypes, returnType);
     }
 
+    protected List<VariableSymbol> resolveParams() {
+        return new ParamsResolver(getUnit()).resolve(getOwner());
+    }
+
+    public List<String> getParamNames() {
+        return resolveParams()
+            .stream()
+            .map(Symbol::getName)
+            .collect(Collectors.toList());
+    }
 
     @Override
     public ZenSymbolKind getKind() {
@@ -97,10 +110,6 @@ public class FunctionSymbol extends Symbol {
     @Override
     public List<Symbol> getMembers() {
         return Collections.emptyList();
-    }
-
-    public List<VariableSymbol> getParams() {
-        return new ParamsResolver(getUnit()).resolve(getOwner());
     }
 
     public Type getReturnType() {

@@ -5,7 +5,6 @@ import com.google.common.collect.ImmutableSet;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.parser.ZenScriptParser;
-import raylras.zen.code.type.ErrorType;
 import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.resolve.NameResolver;
 import raylras.zen.code.scope.Scope;
@@ -20,27 +19,37 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class ClassSymbol extends Symbol {
-    private final ClassType type;
+    private final Type type;
+    // full name with package: scripts.a.prefix.Foo
     private final String qualifiedName;
-    private final String simpleName;
+
+    // actual symbol name
+    private final String symbolName;
+
+    protected ClassSymbol(Type type, String qualifiedName, String simpleName) {
+        super(null, null);
+        this.qualifiedName = qualifiedName;
+        this.symbolName = simpleName;
+        this.type = type;
+    }
 
     public ClassSymbol(ParseTree owner, CompilationUnit unit) {
         super(owner, unit);
 
-        String name = new NameResolver().resolve(owner);
+        String name = NameResolver.resolveName(owner);
         if (isLibrarySymbol()) {
             this.qualifiedName = name;
         } else {
-            String packagePrefix = unit.relativePath();
+            String packagePrefix = unit.packageName();
             this.qualifiedName = packagePrefix + "." + name;
         }
-        this.simpleName = StringUtils.getSimpleClassName(qualifiedName);
+        this.symbolName = name;
         this.type = new ClassType(qualifiedName, this);
     }
 
     @Override
     public String getName() {
-        return this.simpleName;
+        return this.symbolName;
     }
 
     public String getQualifiedName() {
@@ -103,9 +112,6 @@ public class ClassSymbol extends Symbol {
     public ZenSymbolKind getKind() {
         if (!this.isLibrarySymbol()) {
             return ZenSymbolKind.ZEN_CLASS;
-        }
-        if (SymbolUtils.isNativeClass(getName())) {
-            return ZenSymbolKind.NATIVE_CLASS;
         }
 
         if (getMembers().stream().anyMatch(it -> it.getKind() == ZenSymbolKind.CONSTRUCTOR)) {

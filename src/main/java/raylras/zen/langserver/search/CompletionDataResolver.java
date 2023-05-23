@@ -1,12 +1,12 @@
-package raylras.zen.code.type.resolve;
+package raylras.zen.langserver.search;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.data.CompletionData;
-import raylras.zen.code.data.CompletionKind;
+import raylras.zen.langserver.data.CompletionData;
+import raylras.zen.langserver.data.CompletionKind;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.util.Nodes;
 import raylras.zen.util.Range;
@@ -63,7 +63,7 @@ public class CompletionDataResolver extends AbstractPositionSearchResolver<Compl
         ZenScriptParser.QualifiedNameContext qualifiedNameContext = ctx.qualifiedName();
 
         TerminalNode nextDOTNode = findNextDOT(qualifiedNameContext);
-        if (isNodeContainsCursor(qualifiedNameContext, nextDOTNode)) {
+        if (!isNodeContainsCursor(qualifiedNameContext, nextDOTNode)) {
             return null;
         }
 
@@ -80,7 +80,7 @@ public class CompletionDataResolver extends AbstractPositionSearchResolver<Compl
             return CompletionData.NONE;
         }
         TerminalNode nextDOTNode = findNextDOT(ctx);
-        if (isNodeContainsCursor(ctx, nextDOTNode)) {
+        if (!isNodeContainsCursor(ctx, nextDOTNode)) {
             return null;
         }
 
@@ -108,7 +108,7 @@ public class CompletionDataResolver extends AbstractPositionSearchResolver<Compl
      * handle it.
      */
     private TerminalNode findNextDOT(ZenScriptParser.QualifiedNameContext expr) {
-        ParseTree possibleNext = Nodes.getNextSiblingNode(expr);
+        ParseTree possibleNext = Nodes.getNextNode(expr);
         if (possibleNext instanceof TerminalNode && ((TerminalNode) possibleNext).getSymbol().getType() == ZenScriptParser.DOT) {
             return (TerminalNode) possibleNext;
         }

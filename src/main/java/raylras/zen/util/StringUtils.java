@@ -29,15 +29,24 @@ public final class StringUtils {
             return "";
         }
 
-        return fullQualifiedName.substring(0, lastDotIndex - 1);
+        return fullQualifiedName.substring(0, lastDotIndex);
     }
 
-    public static String getSimpleClassName(String fullQualifiedName) {
+    public static String getSimpleName(String fullQualifiedName) {
         int lastDotIndex = fullQualifiedName.lastIndexOf(".");
         if (lastDotIndex < 0) {
             return fullQualifiedName;
         }
 
         return fullQualifiedName.substring(lastDotIndex + 1);
+    }
+
+    public static String getBeforeFirstDot(String fullQualifiedName) {
+        int dotIndex = fullQualifiedName.indexOf(".");
+        if (dotIndex < 0) {
+            return fullQualifiedName;
+        }
+
+        return fullQualifiedName.substring(0, dotIndex);
     }
 }

@@ -5,6 +5,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptParser.*;
+import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.*;
@@ -30,11 +31,12 @@ public class ExpressionTypeResolver extends Visitor<Type> {
 
     @Override
     public Type visitLocalAccessExpr(LocalAccessExprContext ctx) {
-        Symbol symbol = unit.lookupSymbol(ctx);
+        Scope scope = unit.getScope(ctx);
+        String name = NameResolver.resolveName(ctx);
+        Symbol symbol = unit.lookupSymbol(Symbol.class, scope, name, true);
         if (symbol != null) {
             return symbol.getType();
         }
-        String name = new NameResolver().resolve(ctx);
         return new ErrorType(name);
     }
 
@@ -81,7 +83,7 @@ public class ExpressionTypeResolver extends Visitor<Type> {
             return null;
 
 
-        String simpleName = new NameResolver().resolve(ctx.simpleName());
+        String simpleName = NameResolver.resolveName(ctx.simpleName());
         if (simpleName == null)
             return leftType;
 

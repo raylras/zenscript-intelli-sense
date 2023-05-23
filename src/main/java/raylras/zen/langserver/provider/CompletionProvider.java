@@ -1,24 +1,23 @@
 package raylras.zen.langserver.provider;
 
+import com.google.common.base.Strings;
 import org.eclipse.lsp4j.*;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.data.Declarator;
-import raylras.zen.code.data.CompletionData;
+import raylras.zen.code.symbol.*;
+import raylras.zen.code.type.resolve.NameResolver;
+import raylras.zen.langserver.data.CompletionData;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
-import raylras.zen.code.type.resolve.CompletionDataResolver;
-import raylras.zen.code.type.resolve.ExpressionSymbolResolver;
+import raylras.zen.langserver.search.CompletionDataResolver;
 import raylras.zen.code.type.resolve.ExpressionTypeResolver;
 import raylras.zen.code.scope.Scope;
-import raylras.zen.code.symbol.FunctionSymbol;
-import raylras.zen.code.symbol.Symbol;
-import raylras.zen.code.symbol.VariableSymbol;
 import raylras.zen.code.type.*;
 import raylras.zen.l10n.L10N;
+import raylras.zen.util.*;
 import raylras.zen.util.Range;
-import raylras.zen.util.Ranges;
-import raylras.zen.util.StringUtils;
 
+import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.*;
@@ -79,7 +78,40 @@ public class CompletionProvider {
     }
 
     private void completeImport() {
-        completeGlobalSymbols();
+
+        QualifiedNameContext qualifierExpr = ((ImportDeclarationContext) completionData.node).qualifiedName();
+        String qualifiedName = qualifierExpr.getText();
+
+        if (Strings.isNullOrEmpty(qualifiedName)) {
+            completeGlobalSymbols();
+        } else {
+
+            Map<String, CompletionItem> itemMap = new HashMap<>();
+
+            Tuple<String, Collection<String>> possiblePackage = MemberUtils.findPackages(unit, qualifiedName);
+
+            for (String child : possiblePackage.second) {
+                itemMap.put(child, makePackage(child));
+            }
+            if (possiblePackage.first != null) {
+                for (Symbol member : unit.environment().getSymbolsOfPackage(possiblePackage.first)) {
+                    itemMap.put(member.getName(), makeItem(member));
+                }
+            }
+
+            ClassSymbol availableClass = unit.environment().findSymbol(ClassSymbol.class, qualifiedName);
+            if (availableClass != null) {
+                MemberUtils.iterateMembers(unit.environment(), availableClass.getType(), true, member -> {
+                    if (!isNameMatchesCompleting(member.getName())) {
+                        return;
+                    }
+                    itemMap.put(member.getName(), makeItem(member));
+                });
+            }
+
+            data.addAll(itemMap.values());
+        }
+
     }
 
     private void completeBracketHandler() {
@@ -88,26 +120,36 @@ public class CompletionProvider {
 
     private void completeMemberAccess() {
         ExpressionContext qualifierExpr = completionData.getQualifierExpression();
-        if (qualifierExpr == null) {
-            return;
-        }
-        Symbol qualifierSymbol = unit.lookupSymbol(qualifierExpr);
 
-        boolean isStaticAccess = qualifierSymbol != null && qualifierSymbol.getKind().isClass();
-        Type type;
-        if (qualifierSymbol != null) {
-            type = qualifierSymbol.getType();
-        } else {
-            type = new ExpressionTypeResolver(unit).resolve(qualifierExpr);
-        }
 
-        if (type == null) {
-            return;
-        }
-
+        Tuple<Boolean, Type> qualifierType = MemberUtils.resolveQualifierTarget(unit, qualifierExpr);
         boolean endWithParen = completionData.isEndsWithParen();
 
-        addMemberAccess(type, isStaticAccess, endWithParen);
+        if (!TypeUtils.isValidType(qualifierType.second)) {
+            String text = qualifierExpr.getText();
+            Tuple<String, Collection<String>> possiblePackage = MemberUtils.findPackages(unit, text);
+            addPackageAndChildren(possiblePackage.first, possiblePackage.second, endWithParen);
+            return;
+        }
+
+
+        addMemberAccess(qualifierType.second, qualifierType.first, endWithParen);
+    }
+
+    private void addPackageAndChildren(@Nullable String packageName, Collection<String> childPackages, boolean endsWithParen) {
+        if (packageName != null) {
+
+            for (Symbol member : unit.environment().getSymbolsOfPackage(packageName)) {
+                if (member.getKind().isFunction()) {
+                    data.add(makeFunction((FunctionSymbol) member, !endsWithParen));
+                } else {
+                    data.add(makeItem(member));
+                }
+            }
+        }
+        for (String child : childPackages) {
+            data.add(makePackage(child));
+        }
     }
 
     private void completeDefault() {
@@ -119,24 +161,42 @@ public class CompletionProvider {
         Scope scope = unit.lookupScope(completionData.node);
         if (scope == null)
             return;
-        for (Symbol symbol : scope.symbols) {
-            if (isNameMatchesCompleting(symbol.getName())) {
-                CompletionItem item = new CompletionItem(symbol.getName());
-                item.setDetail(symbol.getType().toString());
-                item.setKind(getCompletionItemKind(symbol));
-                data.add(item);
+        boolean endWithParen = completionData.isEndsWithParen();
+
+        List<Symbol> symbols = unit.lookupLocalSymbols(Symbol.class, scope,
+            it -> isNameMatchesCompleting(it.getName())
+        );
+        for (Symbol symbol : symbols) {
+            if (symbol.getKind() == ZenSymbolKind.IMPORT) {
+                ImportSymbol importSymbol = (ImportSymbol) symbol;
+                if (importSymbol.isFunctionImport()) {
+                    for (FunctionSymbol functionTarget : importSymbol.getFunctionTargets()) {
+                        data.add(makeFunction(functionTarget, endWithParen));
+                    }
+                } else {
+                    Symbol target = importSymbol.getSimpleTarget();
+                    if (target != null) {
+                        data.add(makeItem(target));
+                    } else {
+                        data.add(makeItem(symbol));
+                    }
+                }
+            } else if (symbol.getKind().isFunction()) {
+                data.add(makeFunction((FunctionSymbol) symbol, endWithParen));
+            } else {
+                data.add(makeItem(symbol));
             }
         }
     }
 
     private void completeGlobalSymbols() {
-        for (Symbol member : unit.context.getGlobals()) {
+        for (Symbol member : unit.environment().getGlobals()) {
             if (isNameMatchesCompleting(member.getName())) {
-                CompletionItem item = new CompletionItem(member.getName());
-                item.setDetail(member.getType().toString());
-                item.setKind(getCompletionItemKind(member));
-                data.add(item);
+                data.add(makeItem(member));
             }
+        }
+        if (isNameMatchesCompleting("scripts")) {
+            data.add(makePackage("scripts"));
         }
     }
 
@@ -145,19 +205,11 @@ public class CompletionProvider {
     }
 
     private void addMemberAccess(Type type, boolean isStatic, boolean endsWithParen) {
-        Symbol target = type instanceof ClassType ? ((ClassType) type).getSymbol() : null;
-        // TODO：拓展方法
-
-        if (target == null)
-            return;
-
 //        HashMap<String, List<FunctionSymbol>> functions = new HashMap<>();
-        for (Symbol member : target.getMembers()) {
-            if (isStatic != member.isDeclaredBy(Declarator.STATIC))
-                continue;
+        MemberUtils.iterateMembers(unit.environment(), type, isStatic, member -> {
 
             if (!isNameMatchesCompleting(member.getName())) {
-                continue;
+                return;
             }
 
             if (member.getKind().isFunction()) {
@@ -168,7 +220,7 @@ public class CompletionProvider {
                 data.add(makeItem(member));
             }
 
-        }
+        });
 
 //        for (List<FunctionSymbol> overloads : functions.values()) {
 //            data.add(makeFunctions(overloads, !endsWithParen));
@@ -188,9 +240,6 @@ public class CompletionProvider {
 
     private static CompletionItemKind getCompletionItemKind(Symbol symbol) {
         switch (symbol.getKind()) {
-            case LIBRARY_PACKAGE:
-            case SCRIPT_PACKAGE:
-                return CompletionItemKind.Module;
             case ZEN_CLASS:
             case NATIVE_CLASS:
             case LIBRARY_CLASS:
@@ -240,16 +289,28 @@ public class CompletionProvider {
 
 
     private CompletionItem makeItem(Symbol symbol) {
-        if (symbol.getKind().isFunction())
-            throw new RuntimeException("Method symbol should use makeMethod()");
         CompletionItem item = new CompletionItem();
-        item.setLabel(symbol.getName());
+        if (symbol instanceof ClassSymbol) {
+            // class symbol name may contain package.
+            String name = StringUtils.getSimpleName(((ClassSymbol) symbol).getQualifiedName());
+            item.setLabel(name);
+        } else {
+            item.setLabel(symbol.getName());
+        }
         item.setKind(getCompletionItemKind(symbol));
         item.setDetail(symbol.toString());
 //        item.setData();
         return item;
     }
 
+    private CompletionItem makePackage(String packageName) {
+        CompletionItem item = new CompletionItem();
+        item.setLabel(packageName);
+        item.setKind(CompletionItemKind.Module);
+        item.setDetail(packageName);
+//        item.setData();
+        return item;
+    }
 
     private CompletionItem makeFunction(FunctionSymbol function, boolean addParens) {
         CompletionItem item = new CompletionItem();
@@ -258,11 +319,13 @@ public class CompletionProvider {
         StringBuilder labelBuilder = new StringBuilder();
         labelBuilder.append(function.getName()).append("(");
 
-        List<VariableSymbol> params = function.getParams();
-        for (int i = 0; i < params.size(); i++) {
-            VariableSymbol param = params.get(i);
-            labelBuilder.append(param.getName()).append(" as ").append(param.getType().toString());
-            if (i < params.size() - 1) {
+        List<Type> paramTypes = function.getType().paramTypes;
+        List<String> paramNames = function.getParamNames();
+        for (int i = 0; i < paramTypes.size(); i++) {
+            Type paramType = paramTypes.get(i);
+            String paramName = paramNames.get(i);
+            labelBuilder.append(paramName).append(" as ").append(paramType.toString());
+            if (i < paramTypes.size() - 1) {
                 labelBuilder.append(", ");
             }
         }
@@ -273,18 +336,18 @@ public class CompletionProvider {
         item.setDetail(function.getReturnType() + " " + function);
 //        item.setData();
         if (addParens) {
-            if (params.isEmpty()) {
+            if (paramTypes.isEmpty()) {
                 item.setInsertText(function.getName() + "()$0");
             } else {
                 StringBuilder insertTextBuilder = new StringBuilder();
                 insertTextBuilder.append(function.getName()).append("(");
 
-                for (int i = 0; i < params.size(); i++) {
-                    VariableSymbol param = params.get(i);
+                for (int i = 0; i < paramTypes.size(); i++) {
+                    String paramName = paramNames.get(i);
                     insertTextBuilder.append("${").append(i + 1).append(":")
-                        .append(param.getName())
+                        .append(paramName)
                         .append("}");
-                    if (i < params.size() - 1) {
+                    if (i < paramNames.size() - 1) {
                         insertTextBuilder.append(", ");
                     }
                 }
@@ -311,7 +374,8 @@ public class CompletionProvider {
         item.setDetail(first.getReturnType() + " " + first);
 //        item.setData();
         if (addParens) {
-            if (overloads.size() == 1 && first.getParams().isEmpty()) {
+            List<Type> paramTypes = first.getType().paramTypes;
+            if (overloads.size() == 1 && paramTypes.isEmpty()) {
                 item.setInsertText(first.getName() + "()$0");
             } else {
                 item.setInsertText(first.getName() + "($0)");

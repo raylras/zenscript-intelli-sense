@@ -20,7 +20,7 @@ public class VariableSymbol extends Symbol {
 
     @Override
     public String getName() {
-        return new NameResolver().resolve(getOwner());
+        return NameResolver.resolveName(getOwner());
     }
 
     @Override

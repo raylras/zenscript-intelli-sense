@@ -10,6 +10,10 @@ public class MapType extends Type {
         this.valueType = valueType;
     }
 
+    public MapEntryType getEntryType() {
+        return new MapEntryType(keyType, valueType);
+    }
+
     @Override
     public Kind getKind() {
         return Kind.MAP;

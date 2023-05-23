@@ -1,9 +1,8 @@
-package raylras.zen.code.data;
+package raylras.zen.langserver.data;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.util.Nodes;
 

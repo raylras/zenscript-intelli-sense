@@ -1,10 +1,18 @@
 package raylras.zen.code.type;
 
-public class IntRangeType extends NamedType {
+import raylras.zen.code.symbol.ClassSymbol;
+import raylras.zen.code.symbol.NativeClassSymbol;
+
+public class IntRangeType extends ClassType {
     public static final IntRangeType INSTANCE = new IntRangeType();
 
-    private IntRangeType() {
-        super("IntRange");
+    public IntRangeType() {
+        super("stanhebben.zenscript.value.IntRange", null);
+    }
+
+    @Override
+    public ClassSymbol getSymbol() {
+        return NativeClassSymbol.INT_RANGE;
     }
 
     @Override

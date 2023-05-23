@@ -9,7 +9,7 @@ public abstract class Type {
     public abstract Kind getKind();
 
     public enum Kind {
-        ANY, CLASS, FUNCTION, NUMBER, STRING, ARRAY, LIST, MAP, BOOL, VOID, NULL, INT_RANGE, NONE
+        ANY, CLASS, FUNCTION, NUMBER, STRING, ARRAY, LIST, MAP, BOOL, VOID, NULL, INT_RANGE, MAP_ENTRY, NONE
     }
 
 }

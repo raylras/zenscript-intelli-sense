@@ -11,7 +11,7 @@ public class ErrorType extends NamedType {
     }
 
     public ErrorType(ParseTree node) {
-        this(new NameResolver().resolve(node));
+        this(NameResolver.resolveName(node));
     }
 
     @Override

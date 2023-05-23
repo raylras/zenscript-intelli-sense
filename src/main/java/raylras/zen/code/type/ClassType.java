@@ -1,8 +1,6 @@
 package raylras.zen.code.type;
 
-import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.symbol.ClassSymbol;
-import raylras.zen.code.symbol.Symbol;
 import raylras.zen.util.StringUtils;
 
 public class ClassType extends NamedType {
@@ -11,7 +9,7 @@ public class ClassType extends NamedType {
     private final String qualifiedName;
 
     public ClassType(String qualifiedName, ClassSymbol classSymbol) {
-        super(StringUtils.getSimpleClassName(qualifiedName));
+        super(StringUtils.getSimpleName(qualifiedName));
         this.qualifiedName = qualifiedName;
         this.classSymbol = classSymbol;
     }

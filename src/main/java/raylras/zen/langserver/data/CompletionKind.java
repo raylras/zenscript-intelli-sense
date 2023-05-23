@@ -1,4 +1,4 @@
-package raylras.zen.code.data;
+package raylras.zen.langserver.data;
 
 public enum CompletionKind {
     // 普通标识符

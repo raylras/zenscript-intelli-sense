@@ -103,6 +103,18 @@ public class TypeService {
         return getAllDirectMembers(classSymbol);
     }
 
+    public <T> T findMember(Class<T> type, ClassSymbol classSymbol, String name) {
+        for (Symbol member : classSymbol.getMembers()) {
+            if (type.isInstance(member) && Objects.equals(member.getName(), name)) {
+                return type.cast(member);
+            }
+        }
+        for (ClassSymbol parent : classSymbol.getParents()) {
+            return findMember(type, parent, name);
+        }
+        return null;
+    }
+
 
     public List<Type> getCasters(ClassSymbol classSymbol) {
         List<Type> result = new ArrayList<>();

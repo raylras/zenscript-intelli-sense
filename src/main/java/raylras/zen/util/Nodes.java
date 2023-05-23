@@ -32,9 +32,12 @@ public class Nodes {
             return null;
         }
 
-        int index = node.getRuleIndex();
-        if (index < node.getParent().getChildCount() - 1) {
-            return node.getParent().getChild(index + 1);
+        int childCount = node.getParent().getChildCount();
+        RuleContext parent = node.getParent();
+        for (int i = 0; i < childCount - 1; i++) {
+            if (parent.getChild(i) == node) {
+                return parent.getChild(i + 1);
+            }
         }
         return null;
     }

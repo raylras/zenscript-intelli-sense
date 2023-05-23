@@ -1,20 +1,18 @@
 package raylras.zen.langserver.provider;
 
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.TerminalNode;
 import org.eclipse.lsp4j.*;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.data.Declarator;
 import raylras.zen.code.parser.ZenScriptParser;
-import raylras.zen.code.symbol.ClassSymbol;
-import raylras.zen.code.type.ClassType;
-import raylras.zen.code.type.resolve.ExpressionSymbolResolver;
 import raylras.zen.code.type.resolve.ExpressionTypeResolver;
-import raylras.zen.code.type.resolve.FunctionInvocationResolver;
+import raylras.zen.langserver.search.FunctionInvocationResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.FunctionSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.Type;
+import raylras.zen.util.*;
 import raylras.zen.util.Range;
-import raylras.zen.util.Ranges;
 
 import java.util.*;
 
@@ -51,7 +49,7 @@ public class SignatureProvider {
         List<ZenScriptParser.ExpressionContext> allExpressions = callExpr.expression();
         List<ZenScriptParser.ExpressionContext> argumentExpression = allExpressions.subList(1, allExpressions.size());
         int activeSignature = findActiveSignature(overloads, argumentExpression);
-        int activeParameter = findActiveParameter(argumentExpression, cursorPos);
+        int activeParameter = findActiveParameter(callExpr.COMMA() , cursorPos);
         return new SignatureHelp(signatures, activeSignature, activeParameter);
 
     }
@@ -60,7 +58,7 @@ public class SignatureProvider {
     public List<FunctionSymbol> methodOverloads(ZenScriptParser.ExpressionContext invoke) {
 
         if (invoke instanceof ZenScriptParser.LocalAccessExprContext) {
-            return scopeMethodOverloads((ZenScriptParser.LocalAccessExprContext) invoke);
+            return simpleMethodOverloads((ZenScriptParser.LocalAccessExprContext) invoke);
         }
 
         if (invoke instanceof ZenScriptParser.MemberAccessExprContext) {
@@ -76,60 +74,36 @@ public class SignatureProvider {
     }
 
     private List<FunctionSymbol> memberMethodOverloads(ZenScriptParser.ExpressionContext qualifierExpression, String name) {
-        Symbol target = unit.lookupSymbol(qualifierExpression);
-        Type type;
-        if (target != null) {
-            type = target.getType();
-        } else {
-            type = new ExpressionTypeResolver(unit).resolve(qualifierExpression);
-        }
-        if (type == null) return Collections.emptyList();
 
-        ClassSymbol typeSymbol = type instanceof ClassType ? ((ClassType) type).getSymbol() : null;
-        if (typeSymbol == null) {
+        Tuple<Boolean, Type> qualifierType = MemberUtils.resolveQualifierTarget(unit, qualifierExpression);
+
+        if (!TypeUtils.isValidType(qualifierType.second)) {
             return Collections.emptyList();
         }
-
-        boolean isStatic = target != null && target.getKind().isClass();
-
         List<FunctionSymbol> list = new ArrayList<>();
 
-        for (Symbol member : unit.typeService().getAllMembers(typeSymbol)) {
-            if (!member.getKind().isFunction()) continue;
-            if (!member.getName().equals(name)) continue;
-            if (isStatic != member.isDeclaredBy(Declarator.STATIC)) continue;
+        MemberUtils.iterateMembers(unit.environment(), qualifierType.second, qualifierType.first, member -> {
+
+            if (!member.getKind().isFunction()) return;
+            if (!member.getName().equals(name)) return;
             list.add((FunctionSymbol) member);
-        }
+        });
+
         return list;
 
     }
 
-    private List<FunctionSymbol> scopeMethodOverloads(ZenScriptParser.LocalAccessExprContext expr) {
-        List<FunctionSymbol> result = new ArrayList<>();
+    private List<FunctionSymbol> simpleMethodOverloads(ZenScriptParser.LocalAccessExprContext expr) {
         String methodName = expr.simpleName().getText();
-        // TODO: merge this code with those in CompletionProvider
         Scope localScope = unit.lookupScope(expr);
-        for (Symbol symbol : localScope.symbols) {
-            if (!symbol.getKind().isFunction()) {
-                continue;
-            }
-            if (!symbol.getName().equals(methodName)) {
-                continue;
-            }
-            result.add((FunctionSymbol) symbol);
+        List<FunctionSymbol> result = unit.lookupLocalSymbols(FunctionSymbol.class, localScope,
+            it -> Objects.equals(methodName, it.getName()));
+
+        if (result.isEmpty()) {
+            return Collections.singletonList(
+                unit.environment().findSymbol(FunctionSymbol.class, methodName)
+            );
         }
-
-        for (Symbol symbol : unit.context.getGlobals()) {
-            if (!symbol.getKind().isFunction()) {
-                continue;
-            }
-            if (!symbol.getName().equals(methodName)) {
-                continue;
-            }
-            result.add((FunctionSymbol) symbol);
-        }
-
-
         return result;
     }
 
@@ -169,21 +143,21 @@ public class SignatureProvider {
         return name + "(" + join + ")";
     }
 
-    private int findActiveParameter(List<ZenScriptParser.ExpressionContext> arguments, Range cursorPos) {
-        for (int i = 0; i < arguments.size(); i++) {
-            ZenScriptParser.ExpressionContext expr = arguments.get(i);
+    private int findActiveParameter(List<TerminalNode> commas, Range cursorPos) {
+        for (int i = 0; i < commas.size(); i++) {
+            Token comma = commas.get(i).getSymbol();
 
-            int exprEndLine = expr.stop.getLine() - 1;
-            int exprEndColumn = expr.stop.getCharPositionInLine() + expr.stop.getText().length();
+            int commaLine = comma.getLine() - 1;
+            int commaColumn = comma.getCharPositionInLine() + 1;
 
-            // if cursor is before expr
+            // if cursor is before comma
 
-            if (cursorPos.startLine < exprEndLine || (cursorPos.startLine == exprEndLine && cursorPos.endColumn <= exprEndColumn)) {
+            if (cursorPos.startLine < commaLine || (cursorPos.startLine == commaLine && cursorPos.startColumn <= commaColumn)) {
                 return i;
             }
 
         }
-        return arguments.size();
+        return commas.size();
     }
 
     private int findActiveSignature(List<FunctionSymbol> overloads, List<ZenScriptParser.ExpressionContext> arguments) {
