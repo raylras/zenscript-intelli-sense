@@ -28,7 +28,7 @@ public class MemberUtils {
         Symbol symbol = unit.lookupSymbol(Symbol.class, scope, name, true);
 
         if (symbol != null) {
-            return Tuple.of(symbol.getKind().isClass(), symbol.getType());
+            return Tuple.of(!symbol.getKind().isVariable(), symbol.getType());
         }
 
         // not a symbol
@@ -51,7 +51,7 @@ public class MemberUtils {
 
         List<Symbol> ret = new ArrayList<>();
         iterateMembers(env, result.first, result.second, symbol -> {
-            if (Objects.equals(name, symbol.getName())) {
+            if (Objects.equals(lastName, symbol.getName())) {
                 ret.add(symbol);
             }
         });
@@ -85,7 +85,7 @@ public class MemberUtils {
                 nameSoFar.append('.').append(part);
                 Symbol found = findMember(env, type, isTypeStatic, part);
 
-                if (found == null) {
+                if (!TypeUtils.isValidType(type)) {
                     type = new ErrorType("Could not find package or class: " + nameSoFar);
                     break;
                 }
@@ -94,9 +94,9 @@ public class MemberUtils {
                 isTypeStatic = false;
             }
 
-            if (type == null) {
-                type = new ErrorType("Could not find package: " + nameSoFar);
-            }
+        }
+        if (type == null) {
+            type = new ErrorType("Could not find package: " + nameSoFar);
         }
         return Tuple.of(type, isTypeStatic);
     }

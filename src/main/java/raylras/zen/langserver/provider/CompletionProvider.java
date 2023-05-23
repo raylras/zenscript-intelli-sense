@@ -171,7 +171,7 @@ public class CompletionProvider {
                 ImportSymbol importSymbol = (ImportSymbol) symbol;
                 if (importSymbol.isFunctionImport()) {
                     for (FunctionSymbol functionTarget : importSymbol.getFunctionTargets()) {
-                        data.add(makeFunction(functionTarget, endWithParen));
+                        data.add(makeFunction(functionTarget, !endWithParen));
                     }
                 } else {
                     Symbol target = importSymbol.getSimpleTarget();
@@ -182,7 +182,7 @@ public class CompletionProvider {
                     }
                 }
             } else if (symbol.getKind().isFunction()) {
-                data.add(makeFunction((FunctionSymbol) symbol, endWithParen));
+                data.add(makeFunction((FunctionSymbol) symbol, !endWithParen));
             } else {
                 data.add(makeItem(symbol));
             }
@@ -332,6 +332,7 @@ public class CompletionProvider {
         labelBuilder.append(")");
         item.setLabel(labelBuilder.toString());
         item.setKind(CompletionItemKind.Function);
+        item.setInsertText(function.getName());
         item.setFilterText(function.getName());
         item.setDetail(function.getReturnType() + " " + function);
 //        item.setData();

@@ -31,7 +31,7 @@ public class NativeClassSymbol extends ClassSymbol {
     }
 
     public static VariableSymbol fieldNative(String name, Type keyType) {
-        return new NativeField("key", keyType);
+        return new NativeField(name, keyType);
     }
 
 
