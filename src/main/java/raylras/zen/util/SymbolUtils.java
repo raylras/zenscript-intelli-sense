@@ -28,7 +28,7 @@ public class SymbolUtils {
 
         List<Token> tokens = unit.tokenStream.getHiddenTokensToLeft(
             locator.getTokenIndex(),
-            ZenScriptParser.LINE_COMMENT
+            ZenScriptLexer.COMMENTS_CHANNEL
         );
 
         if (tokens == null) {
@@ -37,6 +37,9 @@ public class SymbolUtils {
 
         Map<String, String> result = new HashMap<>();
         for (Token token : tokens) {
+            if (token.getType() != ZenScriptParser.LINE_COMMENT) {
+                continue;
+            }
             String annotation = token.getText().substring(2).trim();
 
             if (annotation.charAt(0) != '$') {
