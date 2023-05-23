@@ -140,14 +140,24 @@ public class LibraryService {
         return packages;
     }
 
+
+    public Collection<String> allRootPackageNames() {
+        Set<String> rootPackages = new HashSet<>();
+        for (String packageName : allPackageNames()) {
+            String rootName = StringUtils.getBeforeFirstDot(packageName);
+            rootPackages.add(packageName);
+        }
+        return rootPackages;
+    }
+
     public <T extends Symbol> T findSymbol(Class<T> type, String name) {
         ClassSymbol classSymbol = getClassSymbol(name);
-        if(type.isInstance(classSymbol)) {
+        if (type.isInstance(classSymbol)) {
             return type.cast(classSymbol);
         }
 
         VariableSymbol variableSymbol = getGlobalVariable(name);
-        if(type.isInstance(variableSymbol)) {
+        if (type.isInstance(variableSymbol)) {
             return type.cast(variableSymbol);
         }
 

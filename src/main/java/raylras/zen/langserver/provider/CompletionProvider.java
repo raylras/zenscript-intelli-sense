@@ -1,19 +1,19 @@
 package raylras.zen.langserver.provider;
 
+import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import org.eclipse.lsp4j.*;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.data.Declarator;
 import raylras.zen.code.symbol.*;
-import raylras.zen.code.type.resolve.NameResolver;
 import raylras.zen.langserver.data.CompletionData;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.langserver.search.CompletionDataResolver;
-import raylras.zen.code.type.resolve.ExpressionTypeResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.type.*;
 import raylras.zen.l10n.L10N;
+import raylras.zen.service.LibraryService;
 import raylras.zen.util.*;
 import raylras.zen.util.Range;
 
@@ -28,6 +28,8 @@ public class CompletionProvider {
 
     private final CompilationUnit unit;
     private final List<CompletionItem> data = new ArrayList<>();
+    private boolean isInComplete = false;
+    private static final int MAX_ITEMS = 50;
 
     private final CompletionData completionData;
 
@@ -38,12 +40,12 @@ public class CompletionProvider {
         this.completionData = completionNode;
     }
 
-    public static List<CompletionItem> completion(CompilationUnit unit, CompletionParams params) {
+    public static CompletionList completion(CompilationUnit unit, CompletionParams params) {
         Range cursorPos = Ranges.from(params.getPosition());
         CompletionData completionData = new CompletionDataResolver(unit, cursorPos).resolve(unit.parseTree);
         CompletionProvider provider = new CompletionProvider(unit, completionData);
         provider.complete();
-        return provider.data;
+        return new CompletionList(provider.isInComplete, provider.data);
     }
 
     private void complete() {
@@ -62,8 +64,10 @@ public class CompletionProvider {
             case BRACKET_HANDLER:
                 completeBracketHandler();
                 break;
-            case NONE:
+            case DEFAULT:
                 completeDefault();
+                break;
+            case NONE:
                 break;
         }
 
@@ -72,9 +76,15 @@ public class CompletionProvider {
 
     // basic completion methods
     private void completeIdentifier() {
-        completeLocalSymbols();
-        completeGlobalSymbols();
-        completeKeywords();
+        if (completionData.node instanceof LocalAccessExprContext) {
+            completeLocalSymbols(s -> true);
+            completeGlobalSymbols(s -> true, true);
+        } else {
+            completeLocalSymbols(s -> s.getKind().isClass());
+            completeGlobalSymbols(s -> s.getKind().isClass(), true);
+        }
+
+        completeAutoImportedClass();
     }
 
     private void completeImport() {
@@ -83,7 +93,7 @@ public class CompletionProvider {
         String qualifiedName = qualifierExpr.getText();
 
         if (Strings.isNullOrEmpty(qualifiedName)) {
-            completeGlobalSymbols();
+            completeGlobalSymbols(s -> !s.isDeclaredBy(Declarator.GLOBAL), true);
         } else {
 
             Map<String, CompletionItem> itemMap = new HashMap<>();
@@ -91,7 +101,7 @@ public class CompletionProvider {
             Tuple<String, Collection<String>> possiblePackage = MemberUtils.findPackages(unit, qualifiedName);
 
             for (String child : possiblePackage.second) {
-                itemMap.put(child, makePackage(child));
+                itemMap.put(child, makePackage(child, false));
             }
             if (possiblePackage.first != null) {
                 for (Symbol member : unit.environment().getSymbolsOfPackage(possiblePackage.first)) {
@@ -148,7 +158,7 @@ public class CompletionProvider {
             }
         }
         for (String child : childPackages) {
-            data.add(makePackage(child));
+            data.add(makePackage(child, false));
         }
     }
 
@@ -157,7 +167,7 @@ public class CompletionProvider {
     }
 
 
-    private void completeLocalSymbols() {
+    private void completeLocalSymbols(Predicate<Symbol> condition) {
         Scope scope = unit.lookupScope(completionData.node);
         if (scope == null)
             return;
@@ -167,14 +177,23 @@ public class CompletionProvider {
             it -> isNameMatchesCompleting(it.getName())
         );
         for (Symbol symbol : symbols) {
+            if (!condition.test(symbol)) {
+                continue;
+            }
             if (symbol.getKind() == ZenSymbolKind.IMPORT) {
                 ImportSymbol importSymbol = (ImportSymbol) symbol;
                 if (importSymbol.isFunctionImport()) {
                     for (FunctionSymbol functionTarget : importSymbol.getFunctionTargets()) {
+                        if (!condition.test(functionTarget)) {
+                            continue;
+                        }
                         data.add(makeFunction(functionTarget, !endWithParen));
                     }
                 } else {
                     Symbol target = importSymbol.getSimpleTarget();
+                    if (!condition.test(target)) {
+                        continue;
+                    }
                     if (target != null) {
                         data.add(makeItem(target));
                     } else {
@@ -189,16 +208,44 @@ public class CompletionProvider {
         }
     }
 
-    private void completeGlobalSymbols() {
+    private void completeGlobalSymbols(Predicate<Symbol> condition, boolean addPackages) {
         for (Symbol member : unit.environment().getGlobals()) {
+            if (!condition.test(member)) {
+                continue;
+            }
             if (isNameMatchesCompleting(member.getName())) {
                 data.add(makeItem(member));
             }
         }
-        if (isNameMatchesCompleting("scripts")) {
-            data.add(makePackage("scripts"));
+
+        if (addPackages) {
+            if (isNameMatchesCompleting("scripts")) {
+                data.add(makePackage("scripts", true));
+            }
+            for (String rootPackageName : unit.environment().libraryService().allRootPackageNames()) {
+                data.add(makePackage(rootPackageName, true));
+            }
         }
     }
+
+    private void completeAutoImportedClass() {
+        LibraryService libraryService = unit.environment().libraryService();
+        String completingString = completionData.completingString;
+        for (String clazzName : libraryService.allGlobalClasses()) {
+            if (data.size() > MAX_ITEMS) {
+                isInComplete = true;
+                break;
+            }
+            String simpleClassName = StringUtils.getSimpleName(clazzName);
+            if (StringUtils.matchesPartialName(simpleClassName, completingString)) {
+                ClassSymbol classSymbol = libraryService.getClassSymbol(clazzName);
+                CompletionItem item = makeItem(classSymbol);
+                item.setAdditionalTextEdits(makeAutoImports(classSymbol));
+                data.add(item);
+            }
+        }
+    }
+
 
     private boolean isNameMatchesCompleting(String candidate) {
         return StringUtils.matchesPartialName(candidate, completionData.completingString);
@@ -287,6 +334,24 @@ public class CompletionProvider {
         return new String[]{};
     }
 
+    private Range getImportInsertPlace() {
+        List<ImportDeclarationContext> imports = ((CompilationUnitContext) unit.parseTree).importDeclaration();
+        ImportDeclarationContext last = imports.get(imports.size() - 1);
+
+        int line = last.stop.getLine() - 1;
+        int column = last.stop.getCharPositionInLine() + last.stop.getText().length();
+
+        return new Range(line, column + 1, line, column + 1);
+
+    }
+
+    private List<TextEdit> makeAutoImports(ClassSymbol symbol) {
+        TextEdit textEdit = new TextEdit();
+
+        textEdit.setRange(Ranges.toLSPRange(getImportInsertPlace()));
+        textEdit.setNewText("\nimport " + symbol.getQualifiedName() + ";");
+        return Collections.singletonList(textEdit);
+    }
 
     private CompletionItem makeItem(Symbol symbol) {
         CompletionItem item = new CompletionItem();
@@ -303,7 +368,7 @@ public class CompletionProvider {
         return item;
     }
 
-    private CompletionItem makePackage(String packageName) {
+    private CompletionItem makePackage(String packageName, boolean isRoot) {
         CompletionItem item = new CompletionItem();
         item.setLabel(packageName);
         item.setKind(CompletionItemKind.Module);
