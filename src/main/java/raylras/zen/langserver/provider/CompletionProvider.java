@@ -79,6 +79,7 @@ public class CompletionProvider {
         if (completionData.node instanceof LocalAccessExprContext) {
             completeLocalSymbols(s -> true);
             completeGlobalSymbols(s -> true, true);
+            completeKeywords();
         } else {
             completeLocalSymbols(s -> s.getKind().isClass());
             completeGlobalSymbols(s -> s.getKind().isClass(), true);
@@ -232,6 +233,9 @@ public class CompletionProvider {
         LibraryService libraryService = unit.environment().libraryService();
         String completingString = completionData.completingString;
         for (String clazzName : libraryService.allGlobalClasses()) {
+            if (SymbolUtils.isNativeClass(clazzName)) {
+                continue;
+            }
             if (data.size() > MAX_ITEMS) {
                 isInComplete = true;
                 break;

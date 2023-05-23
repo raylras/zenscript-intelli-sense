@@ -145,7 +145,9 @@ public class LibraryService {
         Set<String> rootPackages = new HashSet<>();
         for (String packageName : allPackageNames()) {
             String rootName = StringUtils.getBeforeFirstDot(packageName);
-            rootPackages.add(packageName);
+            if(!rootName.isEmpty()) {
+                rootPackages.add(rootName);
+            }
         }
         return rootPackages;
     }
