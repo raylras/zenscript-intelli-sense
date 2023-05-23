@@ -30,7 +30,7 @@ public class LiteralTypeResolver extends Visitor<Type> {
 
     @Override
     public Type visitClassType(ClassTypeContext ctx) {
-        Scope scope = unit.getScope(ctx);
+        Scope scope = unit.lookupScope(ctx);
         String name = NameResolver.resolveName(ctx);
         ClassSymbol classSymbol = unit.lookupClassSymbol(scope, name, true);
         if (classSymbol != null) {

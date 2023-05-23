@@ -1,7 +1,6 @@
 package raylras.zen.util;
 
 import com.google.common.collect.Lists;
-import org.antlr.v4.runtime.ParserRuleContext;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.data.Declarator;
 import raylras.zen.code.parser.ZenScriptParser;
@@ -9,8 +8,9 @@ import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.*;
 import raylras.zen.code.type.*;
 import raylras.zen.code.type.resolve.ExpressionTypeResolver;
-import raylras.zen.code.type.resolve.NameResolver;
 import raylras.zen.service.EnvironmentService;
+import raylras.zen.service.MethodCallPriority;
+import raylras.zen.service.TypeService;
 
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -207,6 +207,112 @@ public class MemberUtils {
         } else {
             iterateNativeMembers(environmentService, type, consumer);
         }
+
+
+    }
+
+    public static int selectFunction(TypeService typeService, List<FunctionSymbol> functions, List<Type> arguments, boolean isForCompletion) {
+        if (functions.isEmpty()) {
+            return -1;
+        }
+
+        MethodCallPriority bestPriority = MethodCallPriority.INVALID;
+        int bestFunctionIndex = -1;
+        boolean isValid = false;
+
+        for (int i = 0; i < functions.size(); i++) {
+            FunctionSymbol functionSymbol = functions.get(i);
+
+            MethodCallPriority priority = typeService
+                .getMethodCallPriority(functionSymbol, arguments, isForCompletion);
+            if (priority == bestPriority) {
+                isValid = false;
+            } else if (priority.getPriority() > bestPriority.getPriority()) {
+                isValid = true;
+                bestFunctionIndex = i;
+                bestPriority = priority;
+            }
+        }
+
+        if (isValid) {
+            return bestFunctionIndex;
+        }
+
+        if (bestPriority != MethodCallPriority.INVALID) {
+            // multi method available
+            return -bestFunctionIndex - 2;
+        }
+        return -1;
+
+    }
+
+    public static FunctionType selectFunction(EnvironmentService environmentService, Type type, boolean isStatic, String name, List<Type> arguments) {
+        List<FunctionSymbol> functions = new ArrayList<>();
+        AtomicReference<Symbol> fallbackSymbol = new AtomicReference<>();
+        iterateMembers(environmentService, type, isStatic, symbol -> {
+            if (!Objects.equals(symbol.getName(), name)) {
+                return;
+            }
+            if (symbol.getKind().isFunction()) {
+                functions.add((FunctionSymbol) symbol);
+            } else if (symbol.getKind().isVariable()) {
+                fallbackSymbol.set(symbol);
+            }
+
+        });
+
+        return selectFunction(environmentService, arguments, functions, fallbackSymbol.get());
+    }
+
+    public static FunctionType selectFunction(EnvironmentService environmentService, List<Type> arguments, List<FunctionSymbol> functions, Symbol fallbackSymbol) {
+
+
+        int best = selectFunction(environmentService.typeService(), functions, arguments, false);
+
+        if (best >= 0) {
+            return functions.get(best).getType();
+        }
+
+
+        // fallback to other symbols
+        if (best == -1) {
+            if (fallbackSymbol != null) {
+                if (fallbackSymbol instanceof VariableSymbol) {
+                    Type fallbackType = fallbackSymbol.getType();
+                    FunctionType functionType = TypeUtils.extractFunctionType(fallbackType);
+
+                    if (functionType != null) {
+
+                        List<Type> paramsTypes = functionType.paramTypes;
+                        MethodCallPriority match = environmentService.typeService()
+                            .getMethodCallPriority(arguments, false, paramsTypes, -1, false);
+                        if (match != MethodCallPriority.INVALID) {
+                            return functionType;
+                        }
+                    }
+                }
+                if (fallbackSymbol instanceof ClassSymbol) {
+
+                    List<FunctionSymbol> ctors = ((ClassSymbol) fallbackSymbol).getConstructors();
+                    int selectedCtor = selectFunction(environmentService.typeService(), ctors, arguments, false);
+                    if (selectedCtor >= 0) {
+                        return ctors.get(selectedCtor).getType();
+                    }
+                }
+
+                if (fallbackSymbol instanceof FunctionSymbol) {
+                    FunctionType functionType = ((FunctionSymbol) fallbackSymbol).getType();
+                    List<Type> paramsTypes = functionType.paramTypes;
+                    MethodCallPriority match = environmentService.typeService()
+                        .getMethodCallPriority(arguments, false, paramsTypes, -1, false);
+                    if (match != MethodCallPriority.INVALID) {
+                        return functionType;
+                    }
+                }
+            }
+        }
+
+        return null;
 
 
     }

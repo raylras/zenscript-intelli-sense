@@ -134,4 +134,11 @@ public class ClassSymbol extends Symbol {
         return Collections.emptyList();
     }
 
+    public List<FunctionSymbol> getConstructors() {
+        return getMembers().stream()
+            .filter(it -> it.getKind() == ZenSymbolKind.CONSTRUCTOR)
+            .map(it -> (FunctionSymbol) it)
+            .collect(Collectors.toList());
+    }
+
 }

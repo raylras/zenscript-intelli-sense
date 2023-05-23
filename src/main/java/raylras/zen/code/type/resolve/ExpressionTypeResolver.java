@@ -7,10 +7,15 @@ import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.ClassSymbol;
+import raylras.zen.code.symbol.FunctionSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.*;
+import raylras.zen.util.MemberUtils;
+import raylras.zen.util.Tuple;
 import raylras.zen.util.TypeUtils;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -31,7 +36,7 @@ public class ExpressionTypeResolver extends Visitor<Type> {
 
     @Override
     public Type visitLocalAccessExpr(LocalAccessExprContext ctx) {
-        Scope scope = unit.getScope(ctx);
+        Scope scope = unit.lookupScope(ctx);
         String name = NameResolver.resolveName(ctx);
         Symbol symbol = unit.lookupSymbol(Symbol.class, scope, name, true);
         if (symbol != null) {
@@ -42,19 +47,59 @@ public class ExpressionTypeResolver extends Visitor<Type> {
 
     @Override
     public Type visitCallExpr(CallExprContext ctx) {
-        // TODO: handle method overrides
-        Type leftType = ctx.Left.accept(this);
-        if (leftType instanceof FunctionType) {
-            return ((FunctionType) leftType).returnType;
-        } else if (leftType instanceof ClassType) {
-            ClassSymbol classSymbol = ((ClassType) leftType).getSymbol();
-            if (classSymbol.isFunctionalInterface()) {
-                FunctionType functionType = classSymbol.getFunctionType();
-                if (functionType == null) {
-                    return null;
-                }
-                return classSymbol.getFunctionType().returnType;
+        // if left expr is member or local access, it is possible to have overload.
+
+        if (ctx.Left instanceof MemberAccessExprContext) {
+            MemberAccessExprContext accessExpr = (MemberAccessExprContext) ctx.Left;
+
+            Tuple<Boolean, Type> ownerType = MemberUtils.resolveQualifierTarget(unit, accessExpr.Left);
+            if (!TypeUtils.isValidType(ownerType.second))
+                return null;
+
+            List<Type> argumentTypes = TypeUtils.getArgumentTypes(this, ctx);
+            String simpleName = NameResolver.resolveName(accessExpr.simpleName());
+            FunctionType functionType = MemberUtils.selectFunction(unit.environment(), ownerType.second, ownerType.first, simpleName, argumentTypes);
+            if (functionType != null) {
+                return functionType.returnType;
             }
+            return null;
+        }
+
+        if (ctx.Left instanceof LocalAccessExprContext) {
+            LocalAccessExprContext accessExpr = (LocalAccessExprContext) ctx.Left;
+
+            List<Type> argumentTypes = TypeUtils.getArgumentTypes(this, ctx);
+
+            String simpleName = NameResolver.resolveName(accessExpr.simpleName());
+
+            Scope scope = unit.lookupScope(accessExpr);
+            List<FunctionSymbol> localFunctions = unit.lookupLocalSymbols(FunctionSymbol.class, scope,
+                it -> Objects.equals(it.getName(), simpleName)
+            );
+
+
+            if (!localFunctions.isEmpty()) {
+                FunctionType functionType = MemberUtils.selectFunction(unit.environment(), argumentTypes, localFunctions, null);
+                if (functionType != null) {
+                    return functionType.returnType;
+                }
+            } else {
+                Symbol global = unit.lookupSymbol(Symbol.class, scope, simpleName, true);
+
+                FunctionType functionType = MemberUtils.selectFunction(unit.environment(), argumentTypes, Collections.emptyList(), global);
+                if (functionType != null) {
+                    return functionType.returnType;
+                }
+
+            }
+
+
+        }
+
+        Type leftType = ctx.Left.accept(this);
+        FunctionType functionType = TypeUtils.extractFunctionType(leftType);
+        if (functionType != null) {
+            return functionType.returnType;
         }
         return null;
     }
@@ -78,27 +123,20 @@ public class ExpressionTypeResolver extends Visitor<Type> {
 
     @Override
     public Type visitMemberAccessExpr(MemberAccessExprContext ctx) {
-        Type leftType = ctx.Left.accept(this);
-        if (leftType == null || leftType instanceof ErrorType)
+        Tuple<Boolean, Type> ownerType = MemberUtils.resolveQualifierTarget(unit, ctx.Left);
+        if (!TypeUtils.isValidType(ownerType.second))
             return null;
-
-
         String simpleName = NameResolver.resolveName(ctx.simpleName());
+
         if (simpleName == null)
-            return leftType;
+            return ownerType.second;
 
-        if (leftType.getKind() == Type.Kind.CLASS) {
-            ClassSymbol symbol = ((ClassType) leftType).getSymbol();
+        Symbol member = MemberUtils.findMember(unit.environment(), ownerType.second, ownerType.first, simpleName);
 
-            for (Symbol member : unit.typeService().getAllMembers(symbol)) {
-                if (Objects.equals(member.getName(), simpleName)) {
-                    return member.getType();
-                }
-            }
+        if (member != null) {
+            return member.getType();
         }
-
-
-        return leftType;
+        return null;
     }
 
     @Override

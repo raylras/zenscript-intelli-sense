@@ -5,16 +5,22 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.eclipse.lsp4j.*;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.parser.ZenScriptParser;
+import raylras.zen.code.symbol.ClassSymbol;
+import raylras.zen.code.symbol.VariableSymbol;
+import raylras.zen.code.type.ClassType;
+import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.resolve.ExpressionTypeResolver;
 import raylras.zen.langserver.search.FunctionInvocationResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.FunctionSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.Type;
+import raylras.zen.service.MethodCallPriority;
 import raylras.zen.util.*;
 import raylras.zen.util.Range;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 
 public class SignatureProvider {
 
@@ -37,97 +43,136 @@ public class SignatureProvider {
             return NOT_SUPPORTED;
         }
         ZenScriptParser.ExpressionContext invoke = callExpr.Left;
-        List<FunctionSymbol> overloads = methodOverloads(invoke);
+        List<FunctionSymbol> overloads = new ArrayList<>();
+        Symbol fallback = methodOverloads(invoke, overloads);
         List<SignatureInformation> signatures = new ArrayList<>();
-        for (FunctionSymbol function : overloads) {
-            SignatureInformation info = makeSignatureInformation(function);
+        if (!overloads.isEmpty()) {
+            for (FunctionSymbol symbol : overloads) {
+                SignatureInformation info = makeSignatureInformation(symbol);
 //            addSourceInfo(task, method, info);
-            signatures.add(info);
+                signatures.add(info);
+            }
+        } else {
+            SignatureInformation info = makeSignatureInformation(fallback);
+            if (info != null) {
+                signatures.add(info);
+            }
         }
 
 
-        List<ZenScriptParser.ExpressionContext> allExpressions = callExpr.expression();
-        List<ZenScriptParser.ExpressionContext> argumentExpression = allExpressions.subList(1, allExpressions.size());
-        int activeSignature = findActiveSignature(overloads, argumentExpression);
-        int activeParameter = findActiveParameter(callExpr.COMMA() , cursorPos);
+        int activeSignature = 0;
+        if (!overloads.isEmpty()) {
+            activeSignature = findActiveSignature(overloads, callExpr);
+        }
+        int activeParameter = findActiveParameter(callExpr.COMMA(), cursorPos);
         return new SignatureHelp(signatures, activeSignature, activeParameter);
 
     }
 
 
-    public List<FunctionSymbol> methodOverloads(ZenScriptParser.ExpressionContext invoke) {
+    public Symbol methodOverloads(ZenScriptParser.ExpressionContext invoke, List<FunctionSymbol> output) {
 
         if (invoke instanceof ZenScriptParser.LocalAccessExprContext) {
-            return simpleMethodOverloads((ZenScriptParser.LocalAccessExprContext) invoke);
+            return simpleMethodOverloads((ZenScriptParser.LocalAccessExprContext) invoke, output);
         }
 
         if (invoke instanceof ZenScriptParser.MemberAccessExprContext) {
             ZenScriptParser.MemberAccessExprContext memberAccessExpr = (ZenScriptParser.MemberAccessExprContext) invoke;
-            return memberMethodOverloads(memberAccessExpr.Left, memberAccessExpr.simpleName().getText());
+            return memberMethodOverloads(memberAccessExpr.Left, memberAccessExpr.simpleName().getText(), output);
 
         }
 
-        // TODO: Other type of method?
         throw new IllegalArgumentException(invoke.toString());
 
 
     }
 
-    private List<FunctionSymbol> memberMethodOverloads(ZenScriptParser.ExpressionContext qualifierExpression, String name) {
+    private Symbol memberMethodOverloads(ZenScriptParser.ExpressionContext qualifierExpression, String name, List<FunctionSymbol> output) {
 
         Tuple<Boolean, Type> qualifierType = MemberUtils.resolveQualifierTarget(unit, qualifierExpression);
 
         if (!TypeUtils.isValidType(qualifierType.second)) {
-            return Collections.emptyList();
+            return null;
         }
-        List<FunctionSymbol> list = new ArrayList<>();
+        AtomicReference<Symbol> fallbackSymbol = new AtomicReference<>();
 
         MemberUtils.iterateMembers(unit.environment(), qualifierType.second, qualifierType.first, member -> {
 
-            if (!member.getKind().isFunction()) return;
             if (!member.getName().equals(name)) return;
-            list.add((FunctionSymbol) member);
+            if (member.getKind().isFunction()) {
+                output.add((FunctionSymbol) member);
+
+            } else if (member.getKind().isVariable()) {
+                fallbackSymbol.set(member);
+            }
         });
 
-        return list;
+        return fallbackSymbol.get();
 
     }
 
-    private List<FunctionSymbol> simpleMethodOverloads(ZenScriptParser.LocalAccessExprContext expr) {
+    private Symbol simpleMethodOverloads(ZenScriptParser.LocalAccessExprContext expr, List<FunctionSymbol> output) {
         String methodName = expr.simpleName().getText();
         Scope localScope = unit.lookupScope(expr);
         List<FunctionSymbol> result = unit.lookupLocalSymbols(FunctionSymbol.class, localScope,
             it -> Objects.equals(methodName, it.getName()));
 
-        if (result.isEmpty()) {
-            return Collections.singletonList(
-                unit.environment().findSymbol(FunctionSymbol.class, methodName)
-            );
+        if (!result.isEmpty()) {
+            output.addAll(result);
+            return null;
         }
-        return result;
+
+        Symbol symbol = unit.lookupSymbol(Symbol.class, localScope, methodName, true);
+        if (symbol instanceof ClassSymbol) {
+
+            output.addAll(((ClassSymbol) symbol).getConstructors());
+            return null;
+        }
+
+        if (symbol instanceof FunctionSymbol) {
+            output.add((FunctionSymbol) symbol);
+            return null;
+        }
+
+        if (symbol instanceof VariableSymbol) {
+            return symbol;
+        }
+        return null;
     }
 
-    private SignatureInformation makeSignatureInformation(FunctionSymbol method) {
+
+    private SignatureInformation makeSignatureInformation(String name, FunctionType type) {
         SignatureInformation info = new SignatureInformation();
-        String name = method.getName();
-        if (method.isConstructor()) {
-            ZenScriptParser.ClassDeclarationContext clazz = (ZenScriptParser.ClassDeclarationContext) method.getOwner().getParent();
-            String className = clazz.qualifiedName().getText();
-            int dotIndex = className.lastIndexOf(".");
-            if (dotIndex >= 0) {
-                className = className.substring(dotIndex + 1);
-            }
-            name = className;
-        }
-        List<ParameterInformation> params = makeSignatureParameters(method);
+        List<ParameterInformation> params = makeSignatureParameters(type);
         info.setParameters(params);
         info.setLabel(makeFunctionLabel(params, name));
         return info;
     }
 
-    private List<ParameterInformation> makeSignatureParameters(FunctionSymbol method) {
+
+    private SignatureInformation makeSignatureInformation(Symbol symbol) {
+        if (symbol instanceof FunctionSymbol) {
+            String name = symbol.getName();
+            if (((FunctionSymbol) symbol).isConstructor()) {
+                ZenScriptParser.ClassDeclarationContext clazz = (ZenScriptParser.ClassDeclarationContext) symbol.getOwner().getParent();
+                String className = clazz.qualifiedName().getText();
+                name = StringUtils.getSimpleName(className);
+            }
+            return makeSignatureInformation(name, (FunctionType) symbol.getType());
+        }
+
+        if (symbol instanceof VariableSymbol) {
+            Type symbolType = symbol.getType();
+            FunctionType functionType = TypeUtils.extractFunctionType(symbolType);
+            return makeSignatureInformation(symbol.getName(), functionType);
+        }
+
+        return null;
+    }
+
+    private List<ParameterInformation> makeSignatureParameters(FunctionType method) {
         List<ParameterInformation> list = new ArrayList<>();
-        for (Type p : method.getType().paramTypes) {
+        for (Type p : method.paramTypes) {
             ParameterInformation info = new ParameterInformation();
             info.setLabel(p.toString());
             list.add(info);
@@ -160,41 +205,15 @@ public class SignatureProvider {
         return commas.size();
     }
 
-    private int findActiveSignature(List<FunctionSymbol> overloads, List<ZenScriptParser.ExpressionContext> arguments) {
-        //TODO: 应该实际分析一下具体的重载逻辑，这里先简单写个遍历代替
+    private int findActiveSignature(List<FunctionSymbol> overloads, ZenScriptParser.CallExprContext callExpr) {
 
-        methodLoop:
-        for (int i = 0; i < overloads.size(); i++) {
-            FunctionSymbol method = overloads.get(i);
+        List<Type> argumentTypes = TypeUtils.getArgumentTypes(new ExpressionTypeResolver(unit), callExpr);
 
-            List<Type> parameterTypes = method.getType().paramTypes;
-            // TODO: 可变长方法？
-            if (arguments.size() > parameterTypes.size()) {
-                continue;
-            }
+        int index = MemberUtils.selectFunction(unit.environment().typeService(), overloads, argumentTypes, true);
 
-            for (int j = 0; j < arguments.size(); j++) {
-                ZenScriptParser.ExpressionContext arguementExpr = arguments.get(j);
-                Type parameterType = parameterTypes.get(j);
-
-                Type argumentType = findExprType(arguementExpr);
-
-                if (!isTypeCompatible(argumentType, parameterType)) {
-                    continue methodLoop;
-                }
-            }
-
-            return i;
+        if (index >= 0) {
+            return index;
         }
         return 0;
-    }
-
-    private boolean isTypeCompatible(Type argument, Type parameter) {
-        //TODO: 类型兼容处理，需要仔细做，暂时先简单比较相等（
-        return Objects.equals(argument, parameter);
-    }
-
-    private Type findExprType(ZenScriptParser.ExpressionContext expr) {
-        return new ExpressionTypeResolver(unit).resolve(expr);
     }
 }

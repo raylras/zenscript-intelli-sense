@@ -4,6 +4,7 @@ import com.google.common.collect.ImmutableSet;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
+import raylras.zen.code.data.Declarator;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.type.resolve.NameResolver;
 import raylras.zen.code.type.resolve.ParamsResolver;
@@ -64,6 +65,22 @@ public class FunctionSymbol extends Symbol {
             return OperatorType.CASTER;
         }
         return OperatorType.fromString(annotations.get("operator"));
+    }
+
+    public int getOptionalIndex() {
+        if (!isLibrarySymbol()) {
+            return -1;
+        }
+
+        List<VariableSymbol> params = resolveParams();
+        for (int i = 0; i < params.size(); i++) {
+            ZenScriptParser.ParameterContext parameterContext = (ZenScriptParser.ParameterContext) params.get(i).getOwner();
+            if (parameterContext.defaultValue() != null) {
+                return i;
+            }
+        }
+
+        return -1;
     }
 
     public boolean isHidden() {

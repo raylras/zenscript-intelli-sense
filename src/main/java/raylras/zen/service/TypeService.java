@@ -3,7 +3,6 @@ package raylras.zen.service;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
-import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.symbol.*;
 import raylras.zen.code.type.*;
 
@@ -315,6 +314,77 @@ public class TypeService {
 
         return false;
 
+    }
+
+    public MethodCallPriority getMethodCallPriority(FunctionSymbol symbol, List<Type> arguments, boolean isForCompletion) {
+
+        FunctionType functionType = symbol.getType();
+        List<Type> parameterTypes = functionType.paramTypes;
+        int firstOptionalIndex = symbol.getOptionalIndex();
+        boolean isVarargs = symbol.isVarargs();
+
+        return getMethodCallPriority(arguments, isForCompletion, parameterTypes, firstOptionalIndex, isVarargs);
+    }
+
+    public MethodCallPriority getMethodCallPriority(List<Type> arguments, boolean isForCompletion,  List<Type> parameterTypes, int firstOptionalIndex, boolean isVarargs) {
+        MethodCallPriority result = MethodCallPriority.HIGH;
+        if (arguments.size() > parameterTypes.size()) {
+            if (isVarargs) {
+                Type lastType = parameterTypes.get(parameterTypes.size() - 1);
+                Type varargsElementType = ((ArrayType) lastType).elementType;
+                for (int i = parameterTypes.size() - 1; i < arguments.size(); i++) {
+                    Type argType = arguments.get(i);
+                    if (argType.equals(varargsElementType)) {
+                        // OK
+                    } else if (canCast(argType, varargsElementType)) {
+                        result = MethodCallPriority.min(result, MethodCallPriority.LOW);
+                    } else {
+                        return MethodCallPriority.INVALID;
+                    }
+                }
+            } else {
+                return MethodCallPriority.INVALID;
+            }
+        } else if (arguments.size() < parameterTypes.size()) {
+            result = MethodCallPriority.MEDIUM;
+
+            if (firstOptionalIndex >= 0 && arguments.size() < firstOptionalIndex && !isForCompletion) {
+                return MethodCallPriority.INVALID;
+            }
+        }
+
+        int checkUntil = arguments.size();
+        if (isVarargs)
+            checkUntil = Math.min(checkUntil, parameterTypes.size() - 1);
+        if (arguments.size() == parameterTypes.size() && isVarargs) {
+            Type lastType = parameterTypes.get(parameterTypes.size() - 1);
+            Type varargsElementType = ((ArrayType) lastType).elementType;
+            Type argType = arguments.get(arguments.size() - 1);
+
+            if (argType.equals(lastType) || argType.equals(varargsElementType)) {
+                // OK
+            } else if (canCast(argType, lastType) || canCast(argType, varargsElementType)) {
+                result = MethodCallPriority.min(result, MethodCallPriority.LOW);
+            } else {
+                return MethodCallPriority.INVALID;
+            }
+
+            checkUntil = arguments.size() - 1;
+        }
+
+        for (int i = 0; i < checkUntil; i++) {
+            Type argType = arguments.get(i);
+            Type paramType = parameterTypes.get(i);
+            if (!argType.equals(paramType)) {
+                if (canCast(argType, paramType)) {
+                    result = MethodCallPriority.min(result, MethodCallPriority.LOW);
+                } else {
+                    return MethodCallPriority.INVALID;
+                }
+            }
+        }
+
+        return result;
     }
 
 

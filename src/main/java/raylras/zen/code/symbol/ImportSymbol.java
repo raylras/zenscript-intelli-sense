@@ -54,7 +54,7 @@ public class ImportSymbol extends Symbol {
 
         List<Symbol> symbols = MemberUtils.findImportedElement(env, target);
 
-        if (symbols.size() == 1 && symbols.get(0) instanceof FunctionSymbol) {
+        if (symbols.size() == 1 && !(symbols.get(0) instanceof FunctionSymbol)) {
             return Tuple.of(symbols.get(0), Collections.emptyList());
         } else {
             return Tuple.of(null, symbols
