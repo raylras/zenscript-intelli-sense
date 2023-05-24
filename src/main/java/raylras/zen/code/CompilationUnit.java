@@ -7,10 +7,8 @@ import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.symbol.*;
 import raylras.zen.code.type.ClassType;
-import raylras.zen.code.type.Type;
 import raylras.zen.code.type.resolve.DefinitionResolver;
 import raylras.zen.code.scope.Scope;
-import raylras.zen.service.EnvironmentService;
 import raylras.zen.service.LibraryService;
 import raylras.zen.service.TypeService;
 import raylras.zen.util.ParseTreeProperty;
@@ -25,17 +23,18 @@ public class CompilationUnit {
     public static final String DZS_FILE_EXTENSION = ".d.zs";
 
     public final Path path;
+
+    private final CompilationEnvironment env;
     private final ParseTreeProperty<Scope> scopeProp = new ParseTreeProperty<>();
     private final ParseTreeProperty<Symbol> symbolProp = new ParseTreeProperty<>();
     private final Map<String, ClassType> classTypes = new HashMap<>();
+
     public ParseTree parseTree;
     public CommonTokenStream tokenStream;
 
-    private final EnvironmentService environment;
-
-    public CompilationUnit(Path path, EnvironmentService environment) {
+    public CompilationUnit(Path path, CompilationEnvironment env) {
         this.path = path;
-        this.environment = environment;
+        this.env = env;
     }
 
     public Scope lookupScope(ParseTree node) {
@@ -157,8 +156,8 @@ public class CompilationUnit {
         return environment().typeService();
     }
 
-    public EnvironmentService environment() {
-        return environment;
+    public CompilationEnvironment environment() {
+        return env;
     }
 
     public Collection<Scope> getScopes() {
@@ -175,6 +174,7 @@ public class CompilationUnit {
 
     public void load(CharStream charStream) {
         parse(charStream);
+        new DefinitionResolver().resolve(this);
     }
 
     private void parse(CharStream charStream) {
@@ -183,11 +183,7 @@ public class CompilationUnit {
         ZenScriptParser parser = new ZenScriptParser(tokenStream);
         parser.removeErrorListeners();
         parseTree = parser.compilationUnit();
-
-
-        new DefinitionResolver(this, tokenStream).resolve();
     }
-
 
     public boolean isDzs() {
         return path.toString().endsWith(DZS_FILE_EXTENSION);
@@ -195,7 +191,7 @@ public class CompilationUnit {
 
 
     public String packageName() {
-        return environment.scriptService().packageName(this.path);
+        return env.scriptService().packageName(this.path);
     }
 
 }

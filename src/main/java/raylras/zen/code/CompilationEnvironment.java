@@ -1,30 +1,30 @@
-package raylras.zen.service;
+package raylras.zen.code;
 
 import com.google.common.collect.ImmutableList;
-import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.symbol.FunctionSymbol;
+import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.VariableSymbol;
-import raylras.zen.util.MemberUtils;
+import raylras.zen.service.LibraryService;
+import raylras.zen.service.ScriptService;
+import raylras.zen.service.TypeService;
 
 import java.nio.file.Path;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class EnvironmentService {
+public class CompilationEnvironment {
 
-    private final LibraryService libraryService;
-    private final ScriptService scriptService;
-    private final TypeService typeService;
+    public final LibraryService libraryService;
+    public final ScriptService scriptService;
+    public final TypeService typeService;
 
     private Map<Path, CompilationUnit> libraryDeclarations = new HashMap<>();
 
-    public EnvironmentService(LibraryService library, ScriptService scripts, TypeService typeService) {
-        this.libraryService = library;
-        this.scriptService = scripts;
-        this.typeService = typeService;
+    public CompilationEnvironment() {
+        this.libraryService = new LibraryService(new Scope(null, null));
+        this.scriptService = new ScriptService();
+        this.typeService = new TypeService();
     }
 
     public LibraryService libraryService() {

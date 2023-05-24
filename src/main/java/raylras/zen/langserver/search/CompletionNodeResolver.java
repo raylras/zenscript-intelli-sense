@@ -5,7 +5,7 @@ import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.langserver.data.CompletionData;
+import raylras.zen.langserver.data.CompletionNode;
 import raylras.zen.langserver.data.CompletionKind;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.util.Nodes;
@@ -31,35 +31,30 @@ import raylras.zen.util.Range;
  * - foo.bar. (with DOT suffix) will not recognize DOT as part of QualifierName
  * - foo..bar (two DOTS) will be recognized as IntRangeExpr
  */
-public class CompletionDataResolver extends AbstractPositionSearchResolver<CompletionData> {
+public class CompletionNodeResolver extends AbstractPositionSearchResolver<CompletionNode> {
 
     private final CompilationUnit unit;
 
-
-    public CompletionDataResolver(CompilationUnit unit, Range cursorPos) {
-        super(cursorPos);
+    public CompletionNodeResolver(CompilationUnit unit, Range cursor) {
+        super(cursor);
         this.unit = unit;
     }
 
-
-
-    public CompletionData resolve(ParseTree node) {
-        CompletionData result = null;
-        if (node != null) {
-            result = node.accept(this);
+    public CompletionNode resolve() {
+        CompletionNode result = null;
+        if (unit.parseTree != null) {
+            result = unit.parseTree.accept(this);
         }
 
         if (result != null) {
             return result;
         }
 
-        return CompletionData.NONE;
+        return CompletionNode.NONE;
     }
 
-
-
     @Override
-    public CompletionData visitImportDeclaration(ZenScriptParser.ImportDeclarationContext ctx) {
+    public CompletionNode visitImportDeclaration(ZenScriptParser.ImportDeclarationContext ctx) {
         ZenScriptParser.QualifiedNameContext qualifiedNameContext = ctx.qualifiedName();
 
         TerminalNode nextDOTNode = findNextDOT(qualifiedNameContext);
@@ -69,15 +64,14 @@ public class CompletionDataResolver extends AbstractPositionSearchResolver<Compl
 
         String completingString = getExprTextInQualifiedExpr(qualifiedNameContext, nextDOTNode != null);
 
-        return new CompletionData(CompletionKind.IMPORT, ctx, completingString);
+        return new CompletionNode(CompletionKind.IMPORT, ctx, completingString);
     }
 
-
     @Override
-    public CompletionData visitQualifiedName(ZenScriptParser.QualifiedNameContext ctx) {
+    public CompletionNode visitQualifiedName(ZenScriptParser.QualifiedNameContext ctx) {
 
         if (ctx.parent instanceof ZenScriptParser.ClassDeclarationContext) {
-            return CompletionData.NONE;
+            return CompletionNode.NONE;
         }
         TerminalNode nextDOTNode = findNextDOT(ctx);
         if (!isNodeContainsCursor(ctx, nextDOTNode)) {
@@ -86,20 +80,20 @@ public class CompletionDataResolver extends AbstractPositionSearchResolver<Compl
 
         String completingString = getExprTextInQualifiedExpr(ctx, nextDOTNode != null);
 
-        return new CompletionData(CompletionKind.IDENTIFIER, ctx, completingString);
+        return new CompletionNode(CompletionKind.IDENTIFIER, ctx, completingString);
     }
 
 
     // typeLiterals
 
     @Override
-    public CompletionData visitClassType(ZenScriptParser.ClassTypeContext ctx) {
+    public CompletionNode visitClassType(ZenScriptParser.ClassTypeContext ctx) {
         if (!isNodeContainsCursor(ctx)) {
             return null;
         }
 
         String completingString = getExprTextInQualifiedExpr(ctx.qualifiedName());
-        return new CompletionData(CompletionKind.IDENTIFIER, ctx, completingString);
+        return new CompletionNode(CompletionKind.IDENTIFIER, ctx, completingString);
     }
 
     /**
@@ -138,7 +132,7 @@ public class CompletionDataResolver extends AbstractPositionSearchResolver<Compl
     }
 
     @Override
-    public CompletionData visitMemberAccessExpr(ZenScriptParser.MemberAccessExprContext ctx) {
+    public CompletionNode visitMemberAccessExpr(ZenScriptParser.MemberAccessExprContext ctx) {
         // if cursor in left expr, not resolve this.
         if (isNodeContainsCursor(ctx.Left)) {
             return ctx.Left.accept(this);
@@ -148,29 +142,29 @@ public class CompletionDataResolver extends AbstractPositionSearchResolver<Compl
         }
         String completingString = getExprTextOrEmpty(ctx.simpleName());
 
-        return new CompletionData(CompletionKind.MEMBER_ACCESS, ctx, completingString);
+        return new CompletionNode(CompletionKind.MEMBER_ACCESS, ctx, completingString);
     }
 
     @Override
-    public CompletionData visitIntRangeExpr(ZenScriptParser.IntRangeExprContext ctx) {
+    public CompletionNode visitIntRangeExpr(ZenScriptParser.IntRangeExprContext ctx) {
         // Only when cursor is exactly between two DOTs of the expression:
         Token dotDot = ctx.Op;
         int tokenLine = dotDot.getLine() - 1;
         int tokenBegin = dotDot.getCharPositionInLine();
 
         if (dotDot.getType() == ZenScriptParser.DOT_DOT &&
-            tokenLine == cursorPos.startLine &&
-            tokenBegin + 1 == cursorPos.startColumn) {
+            tokenLine == cursor.startLine &&
+            tokenBegin + 1 == cursor.startColumn) {
             // consider this as MemberAccessExpression for completion
             String completingString = "";
-            return new CompletionData(CompletionKind.MEMBER_ACCESS, ctx, completingString);
+            return new CompletionNode(CompletionKind.MEMBER_ACCESS, ctx, completingString);
         }
         // default
         return visitChildren(ctx);
     }
 
     @Override
-    public CompletionData visitArrayIndexExpr(ZenScriptParser.ArrayIndexExprContext ctx) {
+    public CompletionNode visitArrayIndexExpr(ZenScriptParser.ArrayIndexExprContext ctx) {
         // if cursor in left expr, not resolve this.
         if (isNodeContainsCursor(ctx.Left)) {
             return ctx.Left.accept(this);
@@ -182,7 +176,7 @@ public class CompletionDataResolver extends AbstractPositionSearchResolver<Compl
 
         if (ctx.Index == null) {
             // TODO: Possibly here can still return something, like all members.
-            return CompletionData.NONE;
+            return CompletionNode.NONE;
         }
 
         if (ctx.Index instanceof ZenScriptParser.StringLiteralExprContext) {
@@ -191,7 +185,7 @@ public class CompletionDataResolver extends AbstractPositionSearchResolver<Compl
             String completingString = getExprTextOrEmpty(literal);
             // remove ""/''
             completingString = completingString.substring(1, completingString.length() - 2);
-            return new CompletionData(CompletionKind.MEMBER_ACCESS, ctx, completingString);
+            return new CompletionNode(CompletionKind.MEMBER_ACCESS, ctx, completingString);
         } else {
             // handle inner exprs
             return ctx.Index.accept(this);
@@ -199,17 +193,17 @@ public class CompletionDataResolver extends AbstractPositionSearchResolver<Compl
     }
 
     @Override
-    public CompletionData visitLocalAccessExpr(ZenScriptParser.LocalAccessExprContext ctx) {
+    public CompletionNode visitLocalAccessExpr(ZenScriptParser.LocalAccessExprContext ctx) {
         if (!isNodeContainsCursor(ctx)) {
             return null;
         }
 
         String completingString = getExprTextOrEmpty(ctx.simpleName());
-        return new CompletionData(CompletionKind.IDENTIFIER, ctx, completingString);
+        return new CompletionNode(CompletionKind.IDENTIFIER, ctx, completingString);
     }
 
     @Override
-    public CompletionData visitBracketHandlerExpr(ZenScriptParser.BracketHandlerExprContext ctx) {
+    public CompletionNode visitBracketHandlerExpr(ZenScriptParser.BracketHandlerExprContext ctx) {
         if (!isNodeContainsCursor(ctx)) {
             return null;
         }
@@ -217,18 +211,18 @@ public class CompletionDataResolver extends AbstractPositionSearchResolver<Compl
         String completingString = getExprTextOrEmpty(ctx);
         // remove <>
         completingString = completingString.substring(1, completingString.length() - 2);
-        return new CompletionData(CompletionKind.BRACKET_HANDLER, ctx, completingString);
+        return new CompletionNode(CompletionKind.BRACKET_HANDLER, ctx, completingString);
 
     }
 
     @Override
-    public CompletionData visitMapEntry(ZenScriptParser.MapEntryContext ctx) {
+    public CompletionNode visitMapEntry(ZenScriptParser.MapEntryContext ctx) {
         // replace default call of visitChildren, only visit value
         if (!isNodeContainsCursor(ctx.Value)) {
             return null;
         }
         if (ctx.Value == null) {
-            return CompletionData.NONE;
+            return CompletionNode.NONE;
         }
         return ctx.Value.accept(this);
     }

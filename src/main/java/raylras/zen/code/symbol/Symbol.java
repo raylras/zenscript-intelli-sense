@@ -1,10 +1,7 @@
 package raylras.zen.code.symbol;
 
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.data.Declarator;
 import raylras.zen.code.type.resolve.DeclaratorResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.type.Type;
@@ -16,7 +13,6 @@ import java.util.Map;
 public abstract class Symbol {
 
     private final ParseTree owner;
-
     private final CompilationUnit unit;
 
     public Symbol(ParseTree owner, CompilationUnit unit) {
@@ -55,7 +51,6 @@ public abstract class Symbol {
         return declarator == getDeclarator();
     }
 
-
     @Override
     public String toString() {
         return getName();
@@ -76,4 +71,5 @@ public abstract class Symbol {
     public boolean isHidden() {
         return false;
     }
+
 }

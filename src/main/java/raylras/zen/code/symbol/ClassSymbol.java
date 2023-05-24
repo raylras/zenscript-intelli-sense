@@ -11,7 +11,6 @@ import raylras.zen.code.scope.Scope;
 import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.Type;
 import raylras.zen.service.LibraryService;
-import raylras.zen.util.StringUtils;
 import raylras.zen.util.SymbolUtils;
 
 import javax.annotation.Nonnull;

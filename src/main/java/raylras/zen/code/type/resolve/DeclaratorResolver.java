@@ -1,7 +1,7 @@
 package raylras.zen.code.type.resolve;
 
 import org.antlr.v4.runtime.tree.ParseTree;
-import raylras.zen.code.data.Declarator;
+import raylras.zen.code.symbol.Declarator;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;

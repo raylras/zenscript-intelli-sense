@@ -122,7 +122,7 @@ public class TypeService {
                 continue;
             }
             FunctionSymbol op = (FunctionSymbol) member;
-            if (op.getOperatorType() != OperatorType.CASTER) {
+            if (op.getOperatorType() != Operator.CASTER) {
                 continue;
             }
             result.add(op.getReturnType());
@@ -136,18 +136,18 @@ public class TypeService {
     }
 
 
-    public FunctionSymbol getOperatorOf(ClassSymbol classSymbol, OperatorType operatorType) {
+    public FunctionSymbol getOperatorOf(ClassSymbol classSymbol, Operator operator) {
         for (Symbol member : classSymbol.getMembers()) {
             if (member.getKind() != ZenSymbolKind.OPERATOR) {
                 continue;
             }
             FunctionSymbol op = (FunctionSymbol) member;
-            if (op.getOperatorType() == operatorType) {
+            if (op.getOperatorType() == operator) {
                 return op;
             }
         }
         for (ClassSymbol parent : classSymbol.getParents()) {
-            FunctionSymbol found = getOperatorOf(parent, operatorType);
+            FunctionSymbol found = getOperatorOf(parent, operator);
             if (found != null) {
                 return found;
             }

@@ -5,7 +5,7 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.parser.ZenScriptParser.ImportDeclarationContext;
 import raylras.zen.code.type.*;
 import raylras.zen.code.type.resolve.NameResolver;
-import raylras.zen.service.EnvironmentService;
+import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.util.MemberUtils;
 import raylras.zen.util.Tuple;
 
@@ -50,7 +50,7 @@ public class ImportSymbol extends Symbol {
 
     private Tuple<Symbol, List<FunctionSymbol>> resolveTarget() {
         String target = NameResolver.resolveName(((ImportDeclarationContext) getOwner()).qualifiedName());
-        EnvironmentService env = getUnit().environment();
+        CompilationEnvironment env = getUnit().environment();
 
         List<Symbol> symbols = MemberUtils.findImportedElement(env, target);
 

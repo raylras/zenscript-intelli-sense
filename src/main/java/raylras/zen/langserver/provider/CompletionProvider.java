@@ -4,12 +4,12 @@ import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import org.eclipse.lsp4j.*;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.data.Declarator;
+import raylras.zen.code.symbol.Declarator;
 import raylras.zen.code.symbol.*;
-import raylras.zen.langserver.data.CompletionData;
+import raylras.zen.langserver.data.CompletionNode;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
-import raylras.zen.langserver.search.CompletionDataResolver;
+import raylras.zen.langserver.search.CompletionNodeResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.type.*;
 import raylras.zen.l10n.L10N;
@@ -26,32 +26,30 @@ import java.util.stream.Collectors;
 
 public class CompletionProvider {
 
+    public static final int MAX_ITEMS = 50;
+    public static final String[] KEYWORDS = makeKeywords();
+
     private final CompilationUnit unit;
-    private final List<CompletionItem> data = new ArrayList<>();
+    private final CompletionNode completionNode;
+
+    private final List<CompletionItem> items = new ArrayList<>();
     private boolean isInComplete = false;
-    private static final int MAX_ITEMS = 50;
 
-    private final CompletionData completionData;
-
-    private static final String[] KEYWORDS = makeKeywords();
-
-    public CompletionProvider(CompilationUnit unit, CompletionData completionNode) {
+    public CompletionProvider(CompilationUnit unit, CompletionNode completionNode) {
         this.unit = unit;
-        this.completionData = completionNode;
+        this.completionNode = completionNode;
     }
 
     public static CompletionList completion(CompilationUnit unit, CompletionParams params) {
-        Range cursorPos = Ranges.from(params.getPosition());
-        CompletionData completionData = new CompletionDataResolver(unit, cursorPos).resolve(unit.parseTree);
-        CompletionProvider provider = new CompletionProvider(unit, completionData);
+        Range cursor = Ranges.from(params.getPosition());
+        CompletionNode node = new CompletionNodeResolver(unit, cursor).resolve();
+        CompletionProvider provider = new CompletionProvider(unit, node);
         provider.complete();
-        return new CompletionList(provider.isInComplete, provider.data);
+        return new CompletionList(provider.isInComplete, provider.items);
     }
 
     private void complete() {
-
-
-        switch (completionData.kind) {
+        switch (completionNode.kind) {
             case IDENTIFIER:
                 completeIdentifier();
                 break;
@@ -70,13 +68,12 @@ public class CompletionProvider {
             case NONE:
                 break;
         }
-
     }
 
 
     // basic completion methods
     private void completeIdentifier() {
-        if (completionData.node instanceof LocalAccessExprContext) {
+        if (completionNode.node instanceof LocalAccessExprContext) {
             completeLocalSymbols(s -> true);
             completeGlobalSymbols(s -> true, true);
             completeKeywords();
@@ -90,7 +87,7 @@ public class CompletionProvider {
 
     private void completeImport() {
 
-        QualifiedNameContext qualifierExpr = ((ImportDeclarationContext) completionData.node).qualifiedName();
+        QualifiedNameContext qualifierExpr = ((ImportDeclarationContext) completionNode.node).qualifiedName();
         String qualifiedName = qualifierExpr.getText();
 
         if (Strings.isNullOrEmpty(qualifiedName)) {
@@ -120,7 +117,7 @@ public class CompletionProvider {
                 });
             }
 
-            data.addAll(itemMap.values());
+            items.addAll(itemMap.values());
         }
 
     }
@@ -130,11 +127,11 @@ public class CompletionProvider {
     }
 
     private void completeMemberAccess() {
-        ExpressionContext qualifierExpr = completionData.getQualifierExpression();
+        ExpressionContext qualifierExpr = completionNode.getQualifierExpression();
 
 
         Tuple<Boolean, Type> qualifierType = MemberUtils.resolveQualifierTarget(unit, qualifierExpr);
-        boolean endWithParen = completionData.isEndsWithParen();
+        boolean endWithParen = completionNode.isEndsWithParen();
 
         if (!TypeUtils.isValidType(qualifierType.second)) {
             String text = qualifierExpr.getText();
@@ -152,14 +149,14 @@ public class CompletionProvider {
 
             for (Symbol member : unit.environment().getSymbolsOfPackage(packageName)) {
                 if (member.getKind().isFunction()) {
-                    data.add(makeFunction((FunctionSymbol) member, !endsWithParen));
+                    items.add(makeFunction((FunctionSymbol) member, !endsWithParen));
                 } else {
-                    data.add(makeItem(member));
+                    items.add(makeItem(member));
                 }
             }
         }
         for (String child : childPackages) {
-            data.add(makePackage(child, false));
+            items.add(makePackage(child, false));
         }
     }
 
@@ -169,10 +166,10 @@ public class CompletionProvider {
 
 
     private void completeLocalSymbols(Predicate<Symbol> condition) {
-        Scope scope = unit.lookupScope(completionData.node);
+        Scope scope = unit.lookupScope(completionNode.node);
         if (scope == null)
             return;
-        boolean endWithParen = completionData.isEndsWithParen();
+        boolean endWithParen = completionNode.isEndsWithParen();
 
         List<Symbol> symbols = unit.lookupLocalSymbols(Symbol.class, scope,
             it -> isNameMatchesCompleting(it.getName())
@@ -188,7 +185,7 @@ public class CompletionProvider {
                         if (!condition.test(functionTarget)) {
                             continue;
                         }
-                        data.add(makeFunction(functionTarget, !endWithParen));
+                        items.add(makeFunction(functionTarget, !endWithParen));
                     }
                 } else {
                     Symbol target = importSymbol.getSimpleTarget();
@@ -196,15 +193,15 @@ public class CompletionProvider {
                         continue;
                     }
                     if (target != null) {
-                        data.add(makeItem(target));
+                        items.add(makeItem(target));
                     } else {
-                        data.add(makeItem(symbol));
+                        items.add(makeItem(symbol));
                     }
                 }
             } else if (symbol.getKind().isFunction()) {
-                data.add(makeFunction((FunctionSymbol) symbol, !endWithParen));
+                items.add(makeFunction((FunctionSymbol) symbol, !endWithParen));
             } else {
-                data.add(makeItem(symbol));
+                items.add(makeItem(symbol));
             }
         }
     }
@@ -215,28 +212,28 @@ public class CompletionProvider {
                 continue;
             }
             if (isNameMatchesCompleting(member.getName())) {
-                data.add(makeItem(member));
+                items.add(makeItem(member));
             }
         }
 
         if (addPackages) {
             if (isNameMatchesCompleting("scripts")) {
-                data.add(makePackage("scripts", true));
+                items.add(makePackage("scripts", true));
             }
             for (String rootPackageName : unit.environment().libraryService().allRootPackageNames()) {
-                data.add(makePackage(rootPackageName, true));
+                items.add(makePackage(rootPackageName, true));
             }
         }
     }
 
     private void completeAutoImportedClass() {
         LibraryService libraryService = unit.environment().libraryService();
-        String completingString = completionData.completingString;
+        String completingString = completionNode.completingString;
         for (String clazzName : libraryService.allGlobalClasses()) {
             if (SymbolUtils.isNativeClass(clazzName)) {
                 continue;
             }
-            if (data.size() > MAX_ITEMS) {
+            if (items.size() > MAX_ITEMS) {
                 isInComplete = true;
                 break;
             }
@@ -245,14 +242,14 @@ public class CompletionProvider {
                 ClassSymbol classSymbol = libraryService.getClassSymbol(clazzName);
                 CompletionItem item = makeItem(classSymbol);
                 item.setAdditionalTextEdits(makeAutoImports(classSymbol));
-                data.add(item);
+                items.add(item);
             }
         }
     }
 
 
     private boolean isNameMatchesCompleting(String candidate) {
-        return StringUtils.matchesPartialName(candidate, completionData.completingString);
+        return StringUtils.matchesPartialName(candidate, completionNode.completingString);
     }
 
     private void addMemberAccess(Type type, boolean isStatic, boolean endsWithParen) {
@@ -266,9 +263,9 @@ public class CompletionProvider {
             if (member.getKind().isFunction()) {
 //                functions.computeIfAbsent(member.getName(), n -> new ArrayList<>())
 //                    .add((FunctionSymbol) member);
-                data.add(makeFunction((FunctionSymbol) member, !endsWithParen));
+                items.add(makeFunction((FunctionSymbol) member, !endsWithParen));
             } else {
-                data.add(makeItem(member));
+                items.add(makeItem(member));
             }
 
         });
@@ -284,7 +281,7 @@ public class CompletionProvider {
                 CompletionItem item = new CompletionItem(keyword);
                 item.setKind(CompletionItemKind.Keyword);
                 item.setDetail(L10N.getString("l10n.keyword"));
-                data.add(item);
+                items.add(item);
             }
         }
     }

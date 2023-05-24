@@ -1,7 +1,7 @@
 package raylras.zen.service;
 
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.data.Declarator;
+import raylras.zen.code.symbol.Declarator;
 import raylras.zen.code.symbol.*;
 import raylras.zen.util.StringUtils;
 

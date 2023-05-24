@@ -6,12 +6,13 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.util.Nodes;
 
-public class CompletionData {
+public class CompletionNode {
+
     public final CompletionKind kind;
     public final ParserRuleContext node;
     public final String completingString;
 
-    public CompletionData(CompletionKind kind, ParserRuleContext node, String completingString) {
+    public CompletionNode(CompletionKind kind, ParserRuleContext node, String completingString) {
         this.kind = kind;
         this.node = node;
         this.completingString = completingString;
@@ -33,6 +34,6 @@ public class CompletionData {
         return next instanceof TerminalNode && ((TerminalNode) next).getSymbol().getType() == ZenScriptParser.PAREN_OPEN;
     }
 
-    public static final CompletionData NONE = new CompletionData(CompletionKind.NONE, null, "");
+    public static final CompletionNode NONE = new CompletionNode(CompletionKind.NONE, null, "");
 
 }

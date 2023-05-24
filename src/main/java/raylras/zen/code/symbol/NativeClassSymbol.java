@@ -3,7 +3,6 @@ package raylras.zen.code.symbol;
 import com.google.common.collect.ImmutableList;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.data.Declarator;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.type.*;
 import raylras.zen.util.StringUtils;

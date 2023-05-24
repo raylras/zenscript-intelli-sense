@@ -2,13 +2,13 @@ package raylras.zen.util;
 
 import com.google.common.collect.Lists;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.data.Declarator;
+import raylras.zen.code.symbol.Declarator;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.*;
 import raylras.zen.code.type.*;
 import raylras.zen.code.type.resolve.ExpressionTypeResolver;
-import raylras.zen.service.EnvironmentService;
+import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.service.MethodCallPriority;
 import raylras.zen.service.TypeService;
 
@@ -36,7 +36,7 @@ public class MemberUtils {
 
     }
 
-    public static List<Symbol> findImportedElement(EnvironmentService env, String name) {
+    public static List<Symbol> findImportedElement(CompilationEnvironment env, String name) {
         Symbol found = env.findSymbol(Symbol.class, name);
         if (found != null) {
             return Collections.singletonList(found);
@@ -58,7 +58,7 @@ public class MemberUtils {
         return ret;
     }
 
-    private static Tuple<Type, Boolean> findImportedElementType(EnvironmentService env, List<String> names) {
+    private static Tuple<Type, Boolean> findImportedElementType(CompilationEnvironment env, List<String> names) {
         StringBuilder nameSoFar = new StringBuilder();
         Type type = null;
         boolean isFirst = true;
@@ -106,7 +106,7 @@ public class MemberUtils {
 
         String result = null;
         Set<String> childPackages = new HashSet<>();
-        EnvironmentService env = unit.environment();
+        CompilationEnvironment env = unit.environment();
 
         if (name.startsWith("scripts")) {
             String selfPackageName = unit.packageName();
@@ -136,7 +136,7 @@ public class MemberUtils {
 
     }
 
-    private static void iterateNativeMembers(EnvironmentService environmentService, Type
+    private static void iterateNativeMembers(CompilationEnvironment environmentService, Type
         type, Consumer<Symbol> consumer) {
         if (type.getKind() == Type.Kind.CLASS) {
             return;
@@ -179,7 +179,7 @@ public class MemberUtils {
         environmentService.getExpandFunctions(type.toString()).forEach(consumer);
     }
 
-    public static void iterateMembers(EnvironmentService environmentService, Type type, boolean isStatic, Consumer<
+    public static void iterateMembers(CompilationEnvironment environmentService, Type type, boolean isStatic, Consumer<
         Symbol> consumer) {
         if (type == null) {
             return;
@@ -246,7 +246,7 @@ public class MemberUtils {
 
     }
 
-    public static FunctionType selectFunction(EnvironmentService environmentService, Type type, boolean isStatic, String name, List<Type> arguments) {
+    public static FunctionType selectFunction(CompilationEnvironment environmentService, Type type, boolean isStatic, String name, List<Type> arguments) {
         List<FunctionSymbol> functions = new ArrayList<>();
         AtomicReference<Symbol> fallbackSymbol = new AtomicReference<>();
         iterateMembers(environmentService, type, isStatic, symbol -> {
@@ -264,7 +264,7 @@ public class MemberUtils {
         return selectFunction(environmentService, arguments, functions, fallbackSymbol.get());
     }
 
-    public static FunctionType selectFunction(EnvironmentService environmentService, List<Type> arguments, List<FunctionSymbol> functions, Symbol fallbackSymbol) {
+    public static FunctionType selectFunction(CompilationEnvironment environmentService, List<Type> arguments, List<FunctionSymbol> functions, Symbol fallbackSymbol) {
 
 
         int best = selectFunction(environmentService.typeService(), functions, arguments, false);
@@ -317,7 +317,7 @@ public class MemberUtils {
 
     }
 
-    public static Symbol findMember(EnvironmentService environmentService, Type type, boolean isStatic, String name) {
+    public static Symbol findMember(CompilationEnvironment environmentService, Type type, boolean isStatic, String name) {
         if (isStatic) {
             if (type.getKind() != Type.Kind.CLASS) {
                 return null;

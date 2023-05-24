@@ -1,45 +1,26 @@
 package raylras.zen.code.type.resolve;
 
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Listener;
-import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.*;
 import raylras.zen.util.ArrayStack;
 import raylras.zen.util.Stack;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 public class DefinitionResolver extends Listener {
 
     private final Stack<Scope> stack = new ArrayStack<>();
-    private final CompilationUnit unit;
+    private CompilationUnit unit;
 
-    private final CommonTokenStream tokenStream;
+    public DefinitionResolver() {
+    }
 
-    public DefinitionResolver(CompilationUnit unit, CommonTokenStream tokenStream) {
+    public void resolve(CompilationUnit unit) {
         this.unit = unit;
-        this.tokenStream = tokenStream;
-        this.isLibrary = unit.isDzs();
-    }
-
-
-    private final boolean isLibrary;
-
-    private boolean isLibraryFile() {
-        return isLibrary;
-    }
-
-    public void resolve() {
         ParseTreeWalker.DEFAULT.walk(this, unit.parseTree);
     }
-
 
     private void enterScope(Scope scope) {
         unit.putScope(scope.owner, scope);

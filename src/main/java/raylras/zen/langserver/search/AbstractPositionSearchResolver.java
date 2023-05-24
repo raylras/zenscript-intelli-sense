@@ -10,10 +10,11 @@ import raylras.zen.util.Range;
 import raylras.zen.util.Ranges;
 
 public abstract class AbstractPositionSearchResolver<T> extends Visitor<T> {
-    protected final Range cursorPos;
 
-    protected AbstractPositionSearchResolver(Range cursorPos) {
-        this.cursorPos = cursorPos;
+    protected final Range cursor;
+
+    protected AbstractPositionSearchResolver(Range cursor) {
+        this.cursor = cursor;
     }
 
     @Override
@@ -45,7 +46,7 @@ public abstract class AbstractPositionSearchResolver<T> extends Visitor<T> {
             return false;
         }
         Range nodeRange = Ranges.from(node);
-        return Ranges.isRangeContainsPosition(nodeRange, cursorPos.startLine, cursorPos.startColumn);
+        return Ranges.isRangeContainsPosition(nodeRange, cursor.startLine, cursor.startColumn);
     }
 
     protected boolean isNodeContainsCursor(ParseTree node, TerminalNode possibleNextDOT) {
@@ -61,7 +62,7 @@ public abstract class AbstractPositionSearchResolver<T> extends Visitor<T> {
         Range nodeRange = new Range(
             previousToken.getLine() - 1, previousToken.getCharPositionInLine() + 1,
             parentNode.stop.getLine() - 1, parentNode.stop.getCharPositionInLine() + parentNode.stop.getText().length());
-        return Ranges.isRangeContainsPosition(nodeRange, cursorPos.startLine, cursorPos.startColumn);
+        return Ranges.isRangeContainsPosition(nodeRange, cursor.startLine, cursor.startColumn);
     }
 
 
@@ -69,7 +70,7 @@ public abstract class AbstractPositionSearchResolver<T> extends Visitor<T> {
         Range nodeRange = new Range(
             headToken.getLine() - 1, headToken.getCharPositionInLine() + 1,
             tailToken.getLine() - 1, tailToken.getCharPositionInLine() + tailToken.getText().length() - 1);
-        return Ranges.isRangeContainsPosition(nodeRange, cursorPos.startLine, cursorPos.startColumn);
+        return Ranges.isRangeContainsPosition(nodeRange, cursor.startLine, cursor.startColumn);
     }
 
 }

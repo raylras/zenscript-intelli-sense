@@ -4,7 +4,6 @@ import com.google.common.collect.ImmutableSet;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.data.Declarator;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.type.resolve.NameResolver;
 import raylras.zen.code.type.resolve.ParamsResolver;
@@ -22,12 +21,10 @@ public class FunctionSymbol extends Symbol {
 
     private final boolean isConstructor;
 
-
     public FunctionSymbol(ParseTree owner, CompilationUnit unit, boolean isConstructor) {
         super(owner, unit);
         this.isConstructor = isConstructor;
     }
-
 
     @Override
     public Map<String, String> getAnnotations() {
@@ -50,21 +47,20 @@ public class FunctionSymbol extends Symbol {
         );
     }
 
-
     public boolean isVarargs() {
         return isLibrarySymbol() && getAnnotations().containsKey("varargs");
     }
 
-    public OperatorType getOperatorType() {
+    public Operator getOperatorType() {
         if (!isLibrarySymbol()) {
-            return OperatorType.NOT_OPERATOR;
+            return Operator.NOT_OPERATOR;
         }
 
         Map<String, String> annotations = getAnnotations();
         if (annotations.containsKey("caster")) {
-            return OperatorType.CASTER;
+            return Operator.CASTER;
         }
-        return OperatorType.fromString(annotations.get("operator"));
+        return Operator.fromString(annotations.get("operator"));
     }
 
     public int getOptionalIndex() {
@@ -118,7 +114,7 @@ public class FunctionSymbol extends Symbol {
         if (isConstructor) {
             return ZenSymbolKind.CONSTRUCTOR;
         }
-        if (getOperatorType() != OperatorType.NOT_OPERATOR) {
+        if (getOperatorType() != Operator.NOT_OPERATOR) {
             return ZenSymbolKind.OPERATOR;
         }
         return ZenSymbolKind.FUNCTION;
@@ -136,6 +132,5 @@ public class FunctionSymbol extends Symbol {
     public boolean isConstructor() {
         return isConstructor;
     }
-
 
 }
