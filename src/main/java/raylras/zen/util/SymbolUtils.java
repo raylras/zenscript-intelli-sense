@@ -8,7 +8,6 @@ import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.type.Type;
 import raylras.zen.code.type.resolve.LiteralTypeResolver;
 import raylras.zen.code.type.resolve.NameResolver;
-import raylras.zen.service.LibraryService;
 
 import java.util.*;
 
@@ -26,7 +25,7 @@ public class SymbolUtils {
 
     public static Map<String, String> getAnnotations(CompilationUnit unit, Token locator, Set<String> validToken) {
 
-        List<Token> tokens = unit.tokenStream.getHiddenTokensToLeft(
+        List<Token> tokens = unit.getTokenStream().getHiddenTokensToLeft(
             locator.getTokenIndex(),
             ZenScriptLexer.COMMENTS_CHANNEL
         );

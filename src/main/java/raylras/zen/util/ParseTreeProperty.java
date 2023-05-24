@@ -26,4 +26,6 @@ public class ParseTreeProperty<V> {
 		return annotations.values();
 	}
 
+    public void clear() {
+    }
 }

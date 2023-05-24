@@ -7,23 +7,29 @@ import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.*;
 import raylras.zen.util.ArrayStack;
+import raylras.zen.util.ParseTreeProperty;
 import raylras.zen.util.Stack;
 
 public class DefinitionResolver extends Listener {
 
     private final Stack<Scope> stack = new ArrayStack<>();
-    private CompilationUnit unit;
+    private final CompilationUnit unit;
+    private final ParseTreeProperty<Scope> scopeProp;
+    private final ParseTreeProperty<Symbol> symbolProp;
 
-    public DefinitionResolver() {
+    public DefinitionResolver(CompilationUnit unit, ParseTreeProperty<Scope> scopeProp, ParseTreeProperty<Symbol> symbolProp) {
+        this.unit = unit;
+        this.scopeProp = scopeProp;
+        this.symbolProp = symbolProp;
     }
 
-    public void resolve(CompilationUnit unit) {
-        this.unit = unit;
-        ParseTreeWalker.DEFAULT.walk(this, unit.parseTree);
+    public void resolve() {
+        ParseTreeWalker.DEFAULT.walk(this, unit.getParseTree());
     }
 
     private void enterScope(Scope scope) {
-        unit.putScope(scope.owner, scope);
+
+        scopeProp.put(scope.owner, scope);
         stack.push(scope);
     }
 
@@ -36,7 +42,7 @@ public class DefinitionResolver extends Listener {
     }
 
     private void enterSymbol(Symbol symbol) {
-        unit.putSymbol(symbol.getOwner(), symbol);
+        symbolProp.put(symbol.getOwner(), symbol);
         currentScope().addSymbol(symbol);
     }
 

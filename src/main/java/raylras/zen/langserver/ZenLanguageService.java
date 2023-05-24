@@ -10,6 +10,8 @@ import raylras.zen.langserver.provider.CompletionProvider;
 import raylras.zen.langserver.provider.SemanticTokensProvider;
 import raylras.zen.langserver.provider.SignatureProvider;
 import raylras.zen.code.CompilationEnvironment;
+import raylras.zen.service.FileManager;
+import raylras.zen.util.Logger;
 import raylras.zen.util.Utils;
 
 import java.io.IOException;
@@ -23,31 +25,31 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Stream;
 
 public class ZenLanguageService implements TextDocumentService, WorkspaceService {
-
+    private static final raylras.zen.util.Logger logger = Logger.getLogger("main");
     public ZenLanguageServer server;
-    public CompilationEnvironment env;
+
+    public final FileManager fileManager;
 
     public ZenLanguageService(ZenLanguageServer server) {
         this.server = server;
-        this.env = new CompilationEnvironment();
+        this.fileManager = new FileManager();
     }
 
     /* Text Document Service */
 
     @Override
     public void didOpen(DidOpenTextDocumentParams params) {
-        checkEnv(params.getTextDocument().getUri());
+        fileManager.open(params);
     }
 
     @Override
     public void didChange(DidChangeTextDocumentParams params) {
-        CompilationUnit unit = getCompilationUnit(params.getTextDocument().getUri());
-        String source = params.getContentChanges().get(0).getText();
-        loadCompilationUnit(unit, source);
+        fileManager.change(params);
     }
 
     @Override
     public void didClose(DidCloseTextDocumentParams params) {
+        fileManager.close(params);
     }
 
     @Override
@@ -108,19 +110,15 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
         params.getChanges().forEach(event -> {
             Path documentPath = Utils.toPath(event.getUri());
-            CompilationUnit unit;
             switch (event.getType()) {
                 case Created:
-                    unit = new CompilationUnit(documentPath, env);
-                    loadCompilationUnit(unit);
-                    env.addCompilationUnit(unit);
+                    fileManager.externalCreate(documentPath);
                     break;
                 case Changed:
-                    unit = env.getCompilationUnit(documentPath);
-                    loadCompilationUnit(unit);
+                    fileManager.externalChange(documentPath);
                     break;
                 case Deleted:
-                    env.removeCompilationUnit(documentPath);
+                    fileManager.externalDelete(documentPath);
                     break;
             }
         });
@@ -128,67 +126,17 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public void didChangeWorkspaceFolders(DidChangeWorkspaceFoldersParams params) {
-        params.getEvent().getRemoved().forEach(workspace -> {
-            server.log("Removed workspace: " + workspace);
-        });
-        params.getEvent().getAdded().forEach(workspace -> {
-            server.log("Added workspace: " + workspace);
-        });
+        params.getEvent().getRemoved().forEach(fileManager::deleteWorkspace);
+        params.getEvent().getAdded().forEach(fileManager::addWorkspace);
     }
 
     /* End Workspace Service */
 
-
-    private void checkEnv(String uri) {
-        Path documentPath = Utils.toPath(uri);
-        if (env != null && Objects.equals(documentPath, env.scriptService.getRoot())) {
-            return;
-        }
-        createCompilationContext(documentPath);
-    }
-
-    private void createCompilationContext(Path documentPath) {
-        Path compilationRoot = Utils.findUpwards(documentPath, "scripts");
-        if (compilationRoot == null)
-            compilationRoot = documentPath;
-
-        env.scriptService.setRoot(compilationRoot);
-        loadCompilationUnits(compilationRoot);
-    }
-
-    private void loadCompilationUnits(Path compilationRoot) {
-        try (Stream<Path> pathStream = Files.walk(compilationRoot)) {
-            pathStream.filter(Files::isRegularFile)
-                .filter(path -> path.toString().endsWith(CompilationUnit.FILE_EXTENSION))
-                .forEach(unitPath -> {
-                    CompilationUnit unit = new CompilationUnit(unitPath, env);
-                    loadCompilationUnit(unit);
-                    env.addCompilationUnit(unit);
-                });
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void loadCompilationUnit(CompilationUnit unit) {
-        try {
-            unit.load(CharStreams.fromPath(unit.path, StandardCharsets.UTF_8));
-            if (unit.isDzs()) {
-                // TODO: redesign load method.
-                env.libraryService.load(Collections.singletonList(unit));
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void loadCompilationUnit(CompilationUnit unit, String source) {
-        unit.load(CharStreams.fromString(source, String.valueOf(unit.path)));
-    }
-
     private CompilationUnit getCompilationUnit(String uri) {
         Path documentPath = Utils.toPath(uri);
-        return env.getCompilationUnit(documentPath);
+        return fileManager.getCompilationUnit(documentPath);
     }
+
+
 
 }

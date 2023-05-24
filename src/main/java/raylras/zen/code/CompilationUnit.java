@@ -6,7 +6,6 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.symbol.*;
-import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.resolve.DefinitionResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.service.LibraryService;
@@ -27,10 +26,9 @@ public class CompilationUnit {
     private final CompilationEnvironment env;
     private final ParseTreeProperty<Scope> scopeProp = new ParseTreeProperty<>();
     private final ParseTreeProperty<Symbol> symbolProp = new ParseTreeProperty<>();
-    private final Map<String, ClassType> classTypes = new HashMap<>();
 
-    public ParseTree parseTree;
-    public CommonTokenStream tokenStream;
+    private ParseTree parseTree;
+    private CommonTokenStream tokenStream;
 
     public CompilationUnit(Path path, CompilationEnvironment env) {
         this.path = path;
@@ -124,28 +122,9 @@ public class CompilationUnit {
         return scopeProp.get(node);
     }
 
-    public void putScope(ParseTree node, Scope scope) {
-        scopeProp.put(node, scope);
-    }
-
     @SuppressWarnings("unchecked")
     public <T extends Symbol> T getSymbol(ParseTree node) {
         return (T) symbolProp.get(node);
-    }
-
-    public void putSymbol(ParseTree node, Symbol symbol) {
-        symbolProp.put(node, symbol);
-    }
-
-    public void putClassType(String name, ClassType type) {
-        if (classTypes.containsKey(name)) {
-            throw new IllegalStateException("Class " + name + " already exists");
-        }
-        classTypes.put(name, type);
-    }
-
-    public ClassType lookupClassType(String qualifiedName) {
-        return classTypes.get(qualifiedName);
     }
 
     public LibraryService libraryService() {
@@ -169,18 +148,20 @@ public class CompilationUnit {
     }
 
     public Collection<Symbol> getTopLevelSymbols() {
-        return getScope(parseTree).symbols;
+        return getScope(getParseTree()).symbols;
     }
 
     public void load(CharStream charStream) {
+        this.symbolProp.clear();
+        this.scopeProp.clear();
         parse(charStream);
-        new DefinitionResolver().resolve(this);
+        new DefinitionResolver(this, scopeProp, symbolProp).resolve();
     }
 
     private void parse(CharStream charStream) {
         ZenScriptLexer lexer = new ZenScriptLexer(charStream);
         tokenStream = new CommonTokenStream(lexer);
-        ZenScriptParser parser = new ZenScriptParser(tokenStream);
+        ZenScriptParser parser = new ZenScriptParser(getTokenStream());
         parser.removeErrorListeners();
         parseTree = parser.compilationUnit();
     }
@@ -194,4 +175,11 @@ public class CompilationUnit {
         return env.scriptService().packageName(this.path);
     }
 
+    public ParseTree getParseTree() {
+        return parseTree;
+    }
+
+    public CommonTokenStream getTokenStream() {
+        return tokenStream;
+    }
 }

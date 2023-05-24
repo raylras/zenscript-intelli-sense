@@ -20,12 +20,15 @@ import raylras.zen.util.Range;
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 public class CompletionProvider {
 
+    private static final Logger logger = Logger.getLogger("completion");
     public static final int MAX_ITEMS = 50;
     public static final String[] KEYWORDS = makeKeywords();
 
@@ -42,9 +45,18 @@ public class CompletionProvider {
 
     public static CompletionList completion(CompilationUnit unit, CompletionParams params) {
         Range cursor = Ranges.from(params.getPosition());
+        logger.info("Completing at %s(%d, %d)...", unit.path.getFileName(), cursor.startLine, cursor.endLine);
+        Instant started = Instant.now();
         CompletionNode node = new CompletionNodeResolver(unit, cursor).resolve();
         CompletionProvider provider = new CompletionProvider(unit, node);
         provider.complete();
+
+        long elapsedMs = Duration.between(started, Instant.now()).toMillis();
+        if (provider.isInComplete)
+            logger.info(String.format("Found %d items (incomplete) in %,d ms", provider.items.size(), elapsedMs));
+        else
+            logger.info(String.format("...found %d items in %,d ms", provider.items.size(), elapsedMs));
+
         return new CompletionList(provider.isInComplete, provider.items);
     }
 
@@ -336,7 +348,7 @@ public class CompletionProvider {
     }
 
     private Range getImportInsertPlace() {
-        List<ImportDeclarationContext> imports = ((CompilationUnitContext) unit.parseTree).importDeclaration();
+        List<ImportDeclarationContext> imports = ((CompilationUnitContext) unit.getParseTree()).importDeclaration();
         ImportDeclarationContext last = imports.get(imports.size() - 1);
 
         int line = last.stop.getLine() - 1;

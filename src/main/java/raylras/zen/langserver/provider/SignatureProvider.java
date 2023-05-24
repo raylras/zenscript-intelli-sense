@@ -7,7 +7,6 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.VariableSymbol;
-import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.resolve.ExpressionTypeResolver;
 import raylras.zen.langserver.search.FunctionInvocationResolver;
@@ -15,7 +14,6 @@ import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.FunctionSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.Type;
-import raylras.zen.service.MethodCallPriority;
 import raylras.zen.util.*;
 import raylras.zen.util.Range;
 
@@ -33,7 +31,7 @@ public class SignatureProvider {
 
     public static SignatureHelp signatureHelp(CompilationUnit unit, SignatureHelpParams params) {
         Range cursorPos = Ranges.from(params.getPosition());
-        ZenScriptParser.CallExprContext callExpr = new FunctionInvocationResolver(cursorPos).resolve(unit.parseTree);
+        ZenScriptParser.CallExprContext callExpr = new FunctionInvocationResolver(cursorPos).resolve(unit.getParseTree());
         return new SignatureProvider(unit).signatureHelp(callExpr, cursorPos);
     }
 

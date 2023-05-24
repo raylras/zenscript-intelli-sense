@@ -5,11 +5,13 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.*;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.l10n.L10N;
+import raylras.zen.util.Logger;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
+    private static final Logger logger = Logger.getLogger("main");
 
     public ZenLanguageService service;
     public LanguageClient client;
@@ -20,8 +22,10 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 
     @Override
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
+        List<WorkspaceFolder> workspaceFolders = params.getWorkspaceFolders();
+        service.fileManager.initializeWorkspaces(workspaceFolders);
         ServerCapabilities capabilities = new ServerCapabilities();
-        capabilities.setTextDocumentSync(TextDocumentSyncKind.Full);
+        capabilities.setTextDocumentSync(TextDocumentSyncKind.Incremental);
         CompletionOptions completionOptions = new CompletionOptions();
         completionOptions.setTriggerCharacters(Collections.singletonList("."));
         capabilities.setCompletionProvider(completionOptions);
@@ -45,7 +49,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
     @Override
     public void initialized(InitializedParams params) {
         startListeningFileChanges();
-        log("ZenScript Language Server initialized");
+        logger.info("ZenScript Language Server initialized");
     }
 
     @Override
@@ -71,11 +75,8 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
     @Override
     public void connect(LanguageClient client) {
         this.client = client;
-    }
+        Logger.connectClient(client);
 
-    public void log(String message) {
-        if (client == null) return;
-        client.logMessage(new MessageParams(MessageType.Log, "[info] [Server] " + message));
     }
 
     private void startListeningFileChanges() {

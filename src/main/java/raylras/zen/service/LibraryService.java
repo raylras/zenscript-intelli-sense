@@ -1,16 +1,21 @@
 package raylras.zen.service;
 
+import jdk.internal.net.http.common.Log;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.*;
+import raylras.zen.util.Logger;
 import raylras.zen.util.StringUtils;
 import raylras.zen.util.SymbolUtils;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
 public class LibraryService {
+    private static final Logger logger = Logger.getLogger("library");
 
     // NATIVE SYMBOL
     private final Scope rootScope;
@@ -39,7 +44,15 @@ public class LibraryService {
         packages.add(name);
     }
 
-    public void load(Collection<CompilationUnit> dtsUnits) {
+    public void reload(Collection<CompilationUnit> dtsUnits) {
+        logger.info("Begin building library index...");
+        Instant start = Instant.now();
+        classes.clear();
+        packages.clear();
+        globalFunctions.clear();
+        globalVariables.clear();
+        expandFunctions.clear();
+
         for (CompilationUnit dtsUnit : dtsUnits) {
 
             for (Symbol topLevelSymbol : dtsUnit.getTopLevelSymbols()) {
@@ -63,6 +76,8 @@ public class LibraryService {
                 }
             }
         }
+
+        logger.info("... Libray index loaded for %d ms", Duration.between(start, Instant.now()).toMillis());
     }
 
     public ClassSymbol getClassSymbol(String qualifiedName) {

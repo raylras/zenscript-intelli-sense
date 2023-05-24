@@ -42,8 +42,8 @@ public class CompletionNodeResolver extends AbstractPositionSearchResolver<Compl
 
     public CompletionNode resolve() {
         CompletionNode result = null;
-        if (unit.parseTree != null) {
-            result = unit.parseTree.accept(this);
+        if (unit.getParseTree() != null) {
+            result = unit.getParseTree().accept(this);
         }
 
         if (result != null) {

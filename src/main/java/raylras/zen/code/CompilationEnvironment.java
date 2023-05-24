@@ -7,6 +7,7 @@ import raylras.zen.code.symbol.VariableSymbol;
 import raylras.zen.service.LibraryService;
 import raylras.zen.service.ScriptService;
 import raylras.zen.service.TypeService;
+import raylras.zen.util.Logger;
 
 import java.nio.file.Path;
 import java.util.HashMap;
@@ -14,17 +15,20 @@ import java.util.List;
 import java.util.Map;
 
 public class CompilationEnvironment {
+    private static final Logger logger = Logger.getLogger("environment");
 
+    private final Path sourceRoot;
     public final LibraryService libraryService;
     public final ScriptService scriptService;
     public final TypeService typeService;
 
-    private Map<Path, CompilationUnit> libraryDeclarations = new HashMap<>();
+    private final Map<Path, CompilationUnit> libraryDeclarations = new HashMap<>();
 
-    public CompilationEnvironment() {
+    public CompilationEnvironment(Path sourceRoot) {
         this.libraryService = new LibraryService(new Scope(null, null));
-        this.scriptService = new ScriptService();
+        this.scriptService = new ScriptService(sourceRoot, fileManager);
         this.typeService = new TypeService();
+        this.sourceRoot = sourceRoot;
     }
 
     public LibraryService libraryService() {
@@ -39,11 +43,16 @@ public class CompilationEnvironment {
         return typeService;
     }
 
+    // about compliation units
 
+
+    public void reloadLibraries(List<CompilationUnit> dzsUnits) {
+
+    }
     public void addCompilationUnit(CompilationUnit unit) {
         if (unit.isDzs()) {
             libraryDeclarations.put(unit.path, unit);
-            libraryService().load(libraryDeclarations.values());
+            libraryService().reload(libraryDeclarations.values());
         } else {
             scriptService().load(unit);
         }
@@ -61,7 +70,7 @@ public class CompilationEnvironment {
     public void removeCompilationUnit(Path unitPath) {
         if (libraryDeclarations.containsKey(unitPath)) {
             libraryDeclarations.remove(unitPath);
-            libraryService().load(libraryDeclarations.values());
+            libraryService().reload(libraryDeclarations.values());
         } else {
             scriptService().unload(unitPath);
         }
@@ -102,5 +111,13 @@ public class CompilationEnvironment {
             .addAll(scriptService.getSymbolsOfPackage(packageName))
             .addAll(libraryService.getSymbolsOfPackage(packageName))
             .build();
+    }
+
+    public Path getSourceRoot() {
+        return sourceRoot;
+    }
+
+    public void unload() {
+        //
     }
 }
