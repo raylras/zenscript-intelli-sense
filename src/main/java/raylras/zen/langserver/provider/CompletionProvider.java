@@ -89,12 +89,12 @@ public class CompletionProvider {
             completeLocalSymbols(s -> true);
             completeGlobalSymbols(s -> true, true);
             completeAutoImportedClass();
+            completeAutoImportedStaticMethod();
             completeKeywords();
         } else {
             completeLocalSymbols(s -> s.getKind().isClass());
             completeGlobalSymbols(s -> s.getKind().isClass(), true);
             completeAutoImportedClass();
-            completeAutoImportedStaticMethod();
         }
     }
 
@@ -270,8 +270,6 @@ public class CompletionProvider {
 
     private void completeAutoImportedStaticMethod() {
         boolean endWithParen = completionNode.isEndsWithParen();
-        LibraryService libraryService = unit.environment().libraryService();
-        String completingString = completionNode.completingString;
 
         for (Symbol symbol : unit.getTopLevelSymbols()) {
             if (!(symbol instanceof ImportSymbol)) {
@@ -291,22 +289,26 @@ public class CompletionProvider {
             return;
         }
 
+        String completingString = completionNode.completingString;
 
         for (Symbol member : classSymbol.getMembers()) {
             if (!member.isDeclaredBy(Declarator.STATIC)) {
                 continue;
             }
 
-            if (!member.getKind().isFunction()) {
+            if (!member.getKind().isFunction() || member.getKind() == ZenSymbolKind.CONSTRUCTOR) {
                 continue;
             }
+            String memberName = member.getName();
 
-            if (existingItemNames.contains(member.getName())) {
+            if (existingItemNames.contains(memberName)) {
                 return;
             }
-            CompletionItem item = makeFunction((FunctionSymbol) member, !endsWithParen);
-            item.setAdditionalTextEdits(makeAutoImports(classSymbol.getQualifiedName() + "." + member.getName()));
-            addItem(item);
+            if (StringUtils.matchesPartialName(memberName, completingString)) {
+                CompletionItem item = makeFunction((FunctionSymbol) member, !endsWithParen);
+                item.setAdditionalTextEdits(makeAutoImports(classSymbol.getQualifiedName() + "." + memberName));
+                addItem(item);
+            }
 
 
         }
@@ -369,7 +371,8 @@ public class CompletionProvider {
     private Set<String> existingItemNames = new HashSet<>();
 
     private void addItem(CompletionItem item) {
-        existingItemNames.add(item.getFilterText());
+        String name = item.getFilterText() == null ? item.getLabel() : item.getFilterText();
+        existingItemNames.add(name);
         if (items.size() > MAX_ITEMS) {
             isInComplete = true;
             return;

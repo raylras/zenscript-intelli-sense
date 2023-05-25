@@ -1,9 +1,12 @@
 package raylras.zen.service;
 
 import jdk.internal.net.http.common.Log;
+import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
+import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.*;
+import raylras.zen.code.type.Type;
 import raylras.zen.util.Logger;
 import raylras.zen.util.StringUtils;
 import raylras.zen.util.SymbolUtils;
@@ -63,6 +66,9 @@ public class LibraryService {
                     String packageName = StringUtils.getPackageName(qualifiedName);
                     addPackage(packageName);
                 } else if (topLevelSymbol.getKind().isFunction()) {
+                    if (topLevelSymbol.getKind() == ZenSymbolKind.FUNCTION_EXPRESSION) {
+                        continue;
+                    }
                     if (topLevelSymbol.getKind() == ZenSymbolKind.EXPAND_FUNCTION) {
                         String target = ((ExpandFunctionSymbol) topLevelSymbol).getExpandTarget().toString();
                         putFunction(expandFunctions, target, ((ExpandFunctionSymbol) topLevelSymbol));
@@ -70,7 +76,20 @@ public class LibraryService {
                         putFunction(globalFunctions, topLevelSymbol.getName(), (FunctionSymbol) topLevelSymbol);
                     }
                 } else if (topLevelSymbol.getKind().isVariable()) {
+                    if (topLevelSymbol.getType().getKind() == Type.Kind.FUNCTION) {
+                        // variable but typeof function:
+                        ParseTree owner = topLevelSymbol.getOwner();
+                        if (owner instanceof ZenScriptParser.VariableDeclarationContext) {
+                            ZenScriptParser.InitializerContext initializer = ((ZenScriptParser.VariableDeclarationContext) owner).initializer();
+                            FunctionSymbol expressionFunction = dtsUnit.getSymbol(initializer.expression());
+                            if (expressionFunction != null) {
+                                putFunction(globalFunctions, topLevelSymbol.getName(), expressionFunction);
+                                continue;
+                            }
+                        }
+                    }
                     globalVariables.put(topLevelSymbol.getName(), (VariableSymbol) topLevelSymbol);
+
                 } else {
                     throw new IllegalArgumentException(topLevelSymbol.getKind() + " is not a valid global symbol in library");
                 }
@@ -160,7 +179,7 @@ public class LibraryService {
         Set<String> rootPackages = new HashSet<>();
         for (String packageName : allPackageNames()) {
             String rootName = StringUtils.getBeforeFirstDot(packageName);
-            if(!rootName.isEmpty()) {
+            if (!rootName.isEmpty()) {
                 rootPackages.add(rootName);
             }
         }

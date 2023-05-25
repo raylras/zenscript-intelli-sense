@@ -25,12 +25,14 @@ public class ScriptService {
 
     public Collection<VariableSymbol> getGlobalVariables() {
         return fileManager.getCompilationUnits(sourceRoot).stream()
+            .filter(it -> !it.isDzs())
             .flatMap(it -> it.getGlobalVariables().values().stream())
             .collect(Collectors.toList());
     }
 
     private Stream<CompilationUnit> findCompilationUnitByPackageName(String packageName) {
         return fileManager.getCompilationUnits(sourceRoot).stream()
+            .filter(it -> !it.isDzs())
             .filter(it -> packageName.startsWith(it.packageName()));
     }
 
@@ -45,6 +47,7 @@ public class ScriptService {
     // package names that only take filename into consideration
     public Collection<String> allScriptPackageNames() {
         return fileManager.getCompilationUnits(sourceRoot).stream()
+            .filter(it -> !it.isDzs())
             .map(CompilationUnit::packageName)
             .collect(Collectors.toList());
     }
