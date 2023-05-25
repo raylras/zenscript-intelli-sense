@@ -110,15 +110,25 @@ public class MemberUtils {
 
         if (name.startsWith("scripts")) {
             String selfPackageName = unit.packageName();
-            for (String packageName : env.scriptService().allPackageNames()) {
-                if (packageName.startsWith(selfPackageName)) {
+
+            for (String scriptPackageName : env.scriptService().allScriptPackageNames()) {
+                if (scriptPackageName.equals(selfPackageName)) {
                     continue;
                 }
-                if (packageName.equals(name)) {
-                    result = packageName;
-                } else if (packageName.startsWith(name)) {
-                    String subName = packageName.substring(name.length() + 1);
+                if (scriptPackageName.equals(name)) {
+                    result = scriptPackageName;
+                } else if (scriptPackageName.startsWith(name)) {
+                    String subName = scriptPackageName.substring(name.length() + 1);
                     childPackages.add(StringUtils.getBeforeFirstDot(subName));
+                } else if (name.startsWith(scriptPackageName)) {
+                    for (String subPackageName : env.scriptService().allSubPackageNames(name)) {
+                        if (subPackageName.equals(name)) {
+                            result = subPackageName;
+                        } else {
+                            String subName = subPackageName.substring(name.length() + 1);
+                            childPackages.add(StringUtils.getBeforeFirstDot(subName));
+                        }
+                    }
                 }
             }
         } else {

@@ -1,97 +1,73 @@
 package raylras.zen.service;
 
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.symbol.Declarator;
 import raylras.zen.code.symbol.*;
 import raylras.zen.util.StringUtils;
 
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
+import java.util.stream.Stream;
 
 /**
  * Service to process scripts
+ * TODO: could be moved.
  */
 public class ScriptService {
+    private final FileManager fileManager;
+    private final Path sourceRoot;
 
-    private Path root;
-    private final Map<Path, CompilationUnit> unitMap = new HashMap<>();
-
-    private final Map<String, VariableSymbol> globalVariables = new HashMap<>();
-
-    private final Map<String, List<Symbol>> publicSymbols = new HashMap<>();
-
-
-    public Path getRoot() {
-        return root;
+    public ScriptService(FileManager fileManager, Path sourceRoot) {
+        this.fileManager = fileManager;
+        this.sourceRoot = sourceRoot;
     }
 
-    public void setRoot(Path root) {
-        this.root = root;
-    }
-
-    public void unload(Path unitPath) {
-        unitMap.remove(unitPath);
-        // TODO: Invalid symbols
-    }
-
-
-    public CompilationUnit getUnit(Path unitPath) {
-        return unitMap.get(unitPath);
-    }
-
-    public void load(CompilationUnit unit) {
-        unitMap.put(unit.path, unit);
-
-        String packageName = packageName(unit.path);
-        for (Symbol topLevelSymbol : unit.getTopLevelSymbols()) {
-
-            if (topLevelSymbol.getKind().isVariable()) {
-                if (topLevelSymbol.getDeclarator() == Declarator.GLOBAL) {
-                    globalVariables.put(topLevelSymbol.getName(), (VariableSymbol) topLevelSymbol);
-                }
-            } else if (topLevelSymbol.getKind() == ZenSymbolKind.FUNCTION) {
-                publicSymbols.computeIfAbsent(packageName, i -> new ArrayList<>())
-                    .add(topLevelSymbol);
-            } else if (topLevelSymbol.getKind().isClass()) {
-                String className = ((ClassSymbol) topLevelSymbol).getQualifiedName();
-                publicSymbols.computeIfAbsent(className, i -> new ArrayList<>())
-                    .add(topLevelSymbol);
-            }
-
-        }
-    }
-
-
-    public String packageName(Path fileName) {
-        String scriptPackage = StreamSupport.stream(root.relativize(fileName).spliterator(), false)
-            .map(Path::toString)
-            .collect(Collectors.joining("."));
-
-        return "scripts." + scriptPackage.substring(0, scriptPackage.length() - 2);
-    }
 
     public Collection<VariableSymbol> getGlobalVariables() {
-        return globalVariables.values();
+        return fileManager.getCompilationUnits(sourceRoot).stream()
+            .flatMap(it -> it.getGlobalVariables().values().stream())
+            .collect(Collectors.toList());
+    }
+
+    private Stream<CompilationUnit> findCompilationUnitByPackageName(String packageName) {
+        return fileManager.getCompilationUnits(sourceRoot).stream()
+            .filter(it -> packageName.startsWith(it.packageName()));
     }
 
     public VariableSymbol getGlobalVariable(String name) {
-        return globalVariables.get(name);
+        return findCompilationUnitByPackageName(name)
+            .map(it -> it.getGlobalVariables().get(name))
+            .findFirst()
+            .orElse(null);
     }
 
-    public Collection<String> allPackageNames() {
-        return publicSymbols.keySet();
+
+    // package names that only take filename into consideration
+    public Collection<String> allScriptPackageNames() {
+        return fileManager.getCompilationUnits(sourceRoot).stream()
+            .map(CompilationUnit::packageName)
+            .collect(Collectors.toList());
+    }
+
+    public Collection<String> allSubPackageNames(String packageName) {
+
+        return findCompilationUnitByPackageName(packageName)
+            .flatMap(it -> it.getPublicSymbols().keySet().stream())
+            .filter(it -> it.startsWith(packageName))
+            .collect(Collectors.toList());
     }
 
     public List<Symbol> getSymbolsOfPackage(String packageName) {
-        return publicSymbols.getOrDefault(packageName, Collections.emptyList());
+        return findCompilationUnitByPackageName(packageName)
+            .map(it -> it.getPublicSymbols().get(packageName))
+            .findFirst()
+            .orElse(Collections.emptyList());
     }
 
     public <T extends Symbol> T findSymbol(Class<T> type, String name) {
         String packageName = StringUtils.getPackageName(name);
         String symbolName = StringUtils.getSimpleName(name);
-        List<Symbol> symbols = publicSymbols.get(packageName);
+        List<Symbol> symbols = getSymbolsOfPackage(packageName);
 
         if (symbols == null) {
             return null;

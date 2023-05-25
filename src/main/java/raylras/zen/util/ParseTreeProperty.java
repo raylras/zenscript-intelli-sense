@@ -22,10 +22,11 @@ public class ParseTreeProperty<V> {
         return annotations.remove(node);
     }
 
-	public Collection<V> getProperties() {
-		return annotations.values();
-	}
+    public Collection<V> getProperties() {
+        return annotations.values();
+    }
 
     public void clear() {
+        annotations.clear();
     }
 }

@@ -4,12 +4,16 @@ import com.google.common.collect.ImmutableList;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.VariableSymbol;
+import raylras.zen.service.FileManager;
 import raylras.zen.service.LibraryService;
 import raylras.zen.service.ScriptService;
 import raylras.zen.service.TypeService;
 import raylras.zen.util.Logger;
+import raylras.zen.util.Utils;
 
 import java.nio.file.Path;
+import java.time.Instant;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -22,11 +26,12 @@ public class CompilationEnvironment {
     public final ScriptService scriptService;
     public final TypeService typeService;
 
-    private final Map<Path, CompilationUnit> libraryDeclarations = new HashMap<>();
+    private final FileManager fileManager;
 
-    public CompilationEnvironment(Path sourceRoot) {
+    public CompilationEnvironment(Path sourceRoot, FileManager fileManager) {
+        this.fileManager = fileManager;
         this.libraryService = new LibraryService(new Scope(null, null));
-        this.scriptService = new ScriptService(sourceRoot, fileManager);
+        this.scriptService = new ScriptService(this.fileManager, sourceRoot);
         this.typeService = new TypeService();
         this.sourceRoot = sourceRoot;
     }
@@ -47,49 +52,29 @@ public class CompilationEnvironment {
 
 
     public void reloadLibraries(List<CompilationUnit> dzsUnits) {
-
+        libraryService.reload(dzsUnits);
     }
-    public void addCompilationUnit(CompilationUnit unit) {
-        if (unit.isDzs()) {
-            libraryDeclarations.put(unit.path, unit);
-            libraryService().reload(libraryDeclarations.values());
-        } else {
-            scriptService().load(unit);
-        }
-    }
-
-
-    public CompilationUnit getCompilationUnit(Path unitPath) {
-        if (libraryDeclarations.containsKey(unitPath)) {
-            return libraryDeclarations.get(unitPath);
-        } else {
-            return scriptService().getUnit(unitPath);
-        }
-    }
-
-    public void removeCompilationUnit(Path unitPath) {
-        if (libraryDeclarations.containsKey(unitPath)) {
-            libraryDeclarations.remove(unitPath);
-            libraryService().reload(libraryDeclarations.values());
-        } else {
-            scriptService().unload(unitPath);
-        }
-    }
-
 
     public <T extends Symbol> T findSymbol(Class<T> type, String name) {
+        Instant started = Instant.now();
+        T result = null;
         if (name.startsWith("scripts")) {
-            return scriptService.findSymbol(type, name);
-        }
-        if (type.isAssignableFrom(VariableSymbol.class)) {
+            result = scriptService.findSymbol(type, name);
+        } else if (type.isAssignableFrom(VariableSymbol.class)) {
             // script only has global variables, not having methods
             T scriptGlobal = type.cast(scriptService.getGlobalVariable(name));
             if (scriptGlobal != null) {
-                return scriptGlobal;
+                result = scriptGlobal;
             }
         }
+        if (result != null) {
+            result = libraryService.findSymbol(type, name);
+        }
 
-        return libraryService.findSymbol(type, name);
+        Utils.logLongTime(started, 10, time -> {
+            logger.warn("Find symbol used long times (%d ms), name=%s, type=%s", time, name, type);
+        });
+        return result;
     }
 
 
@@ -119,5 +104,9 @@ public class CompilationEnvironment {
 
     public void unload() {
         //
+    }
+
+    public String packageName(Path path) {
+        return fileManager.packageName(this.sourceRoot, path);
     }
 }

@@ -4,10 +4,14 @@ import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.function.Consumer;
 
 public final class Utils {
 
-    private Utils() {}
+    private Utils() {
+    }
 
     public static Path toPath(String uri) {
         return Paths.get(URI.create(uri));
@@ -41,4 +45,10 @@ public final class Utils {
         return null;
     }
 
+    public static void logLongTime(Instant started, long maxDurationMS, Consumer<Long> callback) {
+        long duration = Duration.between(started, Instant.now()).toMillis();
+        if (duration >= maxDurationMS) {
+            callback.accept(duration);
+        }
+    }
 }

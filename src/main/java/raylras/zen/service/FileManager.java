@@ -1,5 +1,7 @@
 package raylras.zen.service;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.eclipse.lsp4j.*;
@@ -31,7 +33,8 @@ public class FileManager {
 
     private final Map<Path, VersionedContent> activeDocuments = new HashMap<>();
 
-    private final TreeMap<Path, SourceInfo> zsSources = new TreeMap<>();
+    private final Map<Path, CompilationUnit> zsSources = new HashMap<>();
+    private final Multimap<Path, CompilationUnit> zsSourcesBySourceRoot = HashMultimap.create();
 
 
     public static boolean isZSFile(Path path) {
@@ -45,9 +48,12 @@ public class FileManager {
         }
         scriptSourceRoots.clear();
         zsSources.clear();
+        zsSourcesBySourceRoot.clear();
+        this.beginUpdate();
         for (WorkspaceFolder folder : workspaceFolders) {
             addWorkspace(folder);
         }
+        this.finishUpdate();
     }
 
     public void addWorkspace(WorkspaceFolder workspaceFolder) {
@@ -80,24 +86,16 @@ public class FileManager {
             if (env != null) {
                 env.unload();
             }
-        }
-
-        List<Path> toRemove = new ArrayList<>();
-        for (Map.Entry<Path, SourceInfo> entry : zsSources.entrySet()) {
-            if (sourcePaths.contains(entry.getValue().sourceRoot)) {
-                toRemove.add(entry.getKey());
+            Collection<CompilationUnit> toRemove = zsSourcesBySourceRoot.removeAll(sourcePath);
+            for (CompilationUnit unit : toRemove) {
+                zsSources.remove(unit.getFilePath());
             }
-        }
-        for (Path file : toRemove) {
-            zsSources.remove(file);
+
         }
     }
 
-    public CompilationEnvironment getOrCreateEnvironment(Path sourceRoot) {
-        if (!scriptSourceRoots.containsKey(sourceRoot)) {
-            throw new IllegalStateException(sourceRoot + "is not a 'scripts' folder!");
-        }
-        return scriptSourceRoots.computeIfAbsent(sourceRoot, path -> new CompilationEnvironment(sourceRoot));
+    private CompilationEnvironment getOrCreateEnvironment(Path sourceRoot) {
+        return scriptSourceRoots.computeIfAbsent(sourceRoot, path -> new CompilationEnvironment(sourceRoot, this));
     }
 
     private Set<Path> inferSourceRoots(Path workspaceRoot) {
@@ -128,7 +126,7 @@ public class FileManager {
             pathStream.filter(Files::isRegularFile)
                 .filter(path -> path.toString().endsWith(CompilationUnit.FILE_EXTENSION))
                 .forEach(unitPath -> {
-                    CompilationUnit unit = loadCompilationUnit(env, unitPath);
+                    loadCompilationUnit(env, unitPath);
                     loaded.incrementAndGet();
                 });
         } catch (IOException e) {
@@ -137,49 +135,73 @@ public class FileManager {
         logger.info("... loaded %d scripts in source root in %d ms", loaded.get(), Duration.between(start, Instant.now()).toMillis());
     }
 
+    private Set<Path> environmentToReload = new HashSet<>();
+    private boolean isBatchUpdating = false;
+
     private void scheduleEnvironmentReload(Path sourceRoot) {
-        // TODO:
+        if (!scriptSourceRoots.containsKey(sourceRoot)) {
+            logger.error("Could not find source root: " + sourceRoot);
+            return;
+        }
+        if (!isBatchUpdating) {
+            logger.warn("Reload environment not in batching...");
+            reloadEnvironment(sourceRoot);
+            return;
+        }
+        environmentToReload.add(sourceRoot);
+    }
+
+    private void reloadEnvironment(Path sourceRoot) {
+        logger.info("Begin reloading environment %s ...", sourceRoot);
+        Instant started = Instant.now();
+
+        CompilationEnvironment environment = scriptSourceRoots.get(sourceRoot);
+
+        List<CompilationUnit> libraries = zsSourcesBySourceRoot.get(sourceRoot)
+            .stream()
+            .filter(CompilationUnit::isDzs)
+            .collect(Collectors.toList());
+        environment.reloadLibraries(libraries);
+
+        logger.info("...Reloading environment finished in %d ms", Duration.between(started, Instant.now()).toMillis());
+    }
+
+    public void beginUpdate() {
+        isBatchUpdating = true;
+    }
+
+    public void finishUpdate() {
+        for (Path path : environmentToReload) {
+            reloadEnvironment(path);
+        }
+        environmentToReload.clear();
+        isBatchUpdating = false;
     }
 
     public void reloadCompilationUnit(Path path) {
 
-        SourceInfo sourceInfo = zsSources.get(path);
-        if (sourceInfo == null) {
+        CompilationUnit unit = zsSources.get(path);
+        if (unit == null) {
             logger.error("Could not get compliation unit at: %s", path);
             return;
         }
 
-        CompilationUnit unit = sourceInfo.unit;
-
-        unit.load(charStream(path));
-
-        SourceInfo newSourceInfo = new SourceInfo(
-            readModifiedTime(path),
-            packageName(sourceInfo.sourceRoot, path),
-            sourceInfo.sourceRoot,
-            unit
-        );
-        zsSources.put(path, newSourceInfo);
+        unit.load(charStream(path), readModifiedTime(path));
 
 
         if (unit.isDzs()) {
-            scheduleEnvironmentReload(sourceInfo.sourceRoot);
+            scheduleEnvironmentReload(unit.environment().getSourceRoot());
         }
     }
 
     public CompilationUnit loadCompilationUnit(CompilationEnvironment env, Path file) {
         Path sourceRoot = env.getSourceRoot();
         CompilationUnit unit = new CompilationUnit(file, env);
-        unit.load(charStream(file));
+        unit.load(charStream(file), readModifiedTime(file));
 
-        SourceInfo sourceInfo = new SourceInfo(
-            readModifiedTime(file),
-            packageName(sourceRoot, file),
-            sourceRoot,
-            unit
-        );
 
-        zsSources.put(file, sourceInfo);
+        zsSources.put(file, unit);
+        zsSourcesBySourceRoot.put(sourceRoot, unit);
         if (unit.isDzs()) {
             scheduleEnvironmentReload(sourceRoot);
         }
@@ -187,32 +209,30 @@ public class FileManager {
     }
 
 
-    public Stream<CompilationUnit> getCompilationUnits(Path sourceRoot) {
-        return zsSources.values()
-            .stream()
-            .filter(it -> Objects.equals(sourceRoot, it.sourceRoot))
-            .map(it -> it.unit);
+    public Collection<CompilationUnit> getCompilationUnits(Path sourceRoot) {
+        return zsSourcesBySourceRoot.get(sourceRoot);
     }
 
     public CompilationUnit getCompilationUnit(Path path) {
-        SourceInfo sourceInfo = zsSources.get(path);
-        if (sourceInfo == null) {
+        CompilationUnit compilationUnit = zsSources.get(path);
+        if (compilationUnit == null) {
             logger.error("Could not get compliation unit at: %s", path);
             return null;
         }
-        return sourceInfo.unit;
+        return compilationUnit;
     }
 
     public void removeCompilationUnit(Path path) {
-        SourceInfo sourceInfo = zsSources.get(path);
-        if (sourceInfo == null) {
+        CompilationUnit compilationUnit = zsSources.get(path);
+        if (compilationUnit == null) {
             logger.warn("Could not remove compliation unit at: %s", path);
             return;
         }
-        if (sourceInfo.unit.isDzs()) {
-            scheduleEnvironmentReload(sourceInfo.sourceRoot);
+        if (compilationUnit.isDzs()) {
+            scheduleEnvironmentReload(compilationUnit.environment().getSourceRoot());
         }
         zsSources.remove(path);
+        zsSourcesBySourceRoot.remove(path, compilationUnit);
     }
 
     public Path sourceRootOf(Path file) {
@@ -268,7 +288,6 @@ public class FileManager {
     }
 
     public void change(DidChangeTextDocumentParams params) {
-        logger.info("editing text document: %s", params.getTextDocument().getUri());
         Path file = Utils.toPath(params.getTextDocument().getUri());
         if (!isZSFile(file))
             return;
@@ -330,7 +349,24 @@ public class FileManager {
 
     }
 
+    public Instant modifiedTime(Path path) {
+        if (activeDocuments.containsKey(path)) {
+            return activeDocuments.get(path).modified;
+        }
+
+        CompilationUnit unit = getCompilationUnit(path);
+        if (unit == null) {
+            logger.warn("Could not find compliation unit: " + path);
+            return Instant.now();
+        }
+        return unit.getModifiedTime();
+    }
+
     private Instant readModifiedTime(Path path) {
+
+        if (activeDocuments.containsKey(path)) {
+            return activeDocuments.get(path).modified;
+        }
         try {
             return Files.getLastModifiedTime(path).toInstant();
         } catch (IOException e) {
@@ -364,23 +400,6 @@ public class FileManager {
         }
 
         return offset + character;
-    }
-
-
-    private static class SourceInfo {
-        final Instant modified;
-        final String packageName;
-
-        final Path sourceRoot;
-
-        final CompilationUnit unit;
-
-        SourceInfo(Instant modified, String packageName, Path sourceRoot, CompilationUnit unit) {
-            this.modified = modified;
-            this.packageName = packageName;
-            this.sourceRoot = sourceRoot;
-            this.unit = unit;
-        }
     }
 
 

@@ -13,6 +13,7 @@ import raylras.zen.service.TypeService;
 import raylras.zen.util.ParseTreeProperty;
 
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Predicate;
 
@@ -21,19 +22,26 @@ public class CompilationUnit {
     public static final String FILE_EXTENSION = ".zs";
     public static final String DZS_FILE_EXTENSION = ".d.zs";
 
-    public final Path path;
-
     private final CompilationEnvironment env;
     private final ParseTreeProperty<Scope> scopeProp = new ParseTreeProperty<>();
     private final ParseTreeProperty<Symbol> symbolProp = new ParseTreeProperty<>();
+    private final Path filePath;
 
+    // modifiable data
     private ParseTree parseTree;
     private CommonTokenStream tokenStream;
 
-    public CompilationUnit(Path path, CompilationEnvironment env) {
-        this.path = path;
+    private Instant fileModifyTime;
+
+
+    public CompilationUnit(Path filePath, CompilationEnvironment env) {
+        this.filePath = filePath;
         this.env = env;
     }
+
+    private Map<String, VariableSymbol> globalVariables;
+
+    private Map<String, List<Symbol>> publicSymbols;
 
     public Scope lookupScope(ParseTree node) {
         ParseTree n = node;
@@ -151,9 +159,12 @@ public class CompilationUnit {
         return getScope(getParseTree()).symbols;
     }
 
-    public void load(CharStream charStream) {
+    public void load(CharStream charStream, Instant fileModifyTime) {
         this.symbolProp.clear();
         this.scopeProp.clear();
+        this.publicSymbols = null;
+        this.globalVariables = null;
+        this.fileModifyTime = fileModifyTime;
         parse(charStream);
         new DefinitionResolver(this, scopeProp, symbolProp).resolve();
     }
@@ -167,12 +178,21 @@ public class CompilationUnit {
     }
 
     public boolean isDzs() {
-        return path.toString().endsWith(DZS_FILE_EXTENSION);
+        return filePath.toString().endsWith(DZS_FILE_EXTENSION);
+    }
+
+
+    public Path getFilePath() {
+        return this.filePath;
+    }
+
+    public Instant getModifiedTime() {
+        return fileModifyTime;
     }
 
 
     public String packageName() {
-        return env.scriptService().packageName(this.path);
+        return env.packageName(this.filePath);
     }
 
     public ParseTree getParseTree() {
@@ -182,4 +202,42 @@ public class CompilationUnit {
     public CommonTokenStream getTokenStream() {
         return tokenStream;
     }
+
+    // for script
+
+    private void loadScriptGlobals() {
+        globalVariables = new HashMap<>();
+        publicSymbols = new HashMap<>();
+        String packageName = this.packageName();
+        for (Symbol topLevelSymbol : this.getTopLevelSymbols()) {
+            if (topLevelSymbol.getKind().isVariable()) {
+                if (topLevelSymbol.getDeclarator() == Declarator.GLOBAL) {
+                    globalVariables.put(topLevelSymbol.getName(), (VariableSymbol) topLevelSymbol);
+                }
+            } else if (topLevelSymbol.getKind() == ZenSymbolKind.FUNCTION) {
+                publicSymbols.computeIfAbsent(packageName, i -> new ArrayList<>())
+                    .add(topLevelSymbol);
+            } else if (topLevelSymbol.getKind().isClass()) {
+                String className = ((ClassSymbol) topLevelSymbol).getQualifiedName();
+                publicSymbols.computeIfAbsent(className, i -> new ArrayList<>())
+                    .add(topLevelSymbol);
+            }
+
+        }
+    }
+
+    public Map<String, VariableSymbol> getGlobalVariables() {
+        if (globalVariables == null) {
+            loadScriptGlobals();
+        }
+        return globalVariables;
+    }
+
+    public Map<String, List<Symbol>> getPublicSymbols() {
+        if (globalVariables == null) {
+            loadScriptGlobals();
+        }
+        return publicSymbols;
+    }
+
 }

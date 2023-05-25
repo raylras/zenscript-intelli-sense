@@ -45,7 +45,7 @@ public class CompletionProvider {
 
     public static CompletionList completion(CompilationUnit unit, CompletionParams params) {
         Range cursor = Ranges.from(params.getPosition());
-        logger.info("Completing at %s(%d, %d)...", unit.path.getFileName(), cursor.startLine, cursor.endLine);
+        logger.info("Completing at %s(%d, %d)...", unit.getFilePath().getFileName(), cursor.startLine, cursor.endLine);
         Instant started = Instant.now();
         CompletionNode node = new CompletionNodeResolver(unit, cursor).resolve();
         CompletionProvider provider = new CompletionProvider(unit, node);

@@ -108,6 +108,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
+        fileManager.beginUpdate();
         params.getChanges().forEach(event -> {
             Path documentPath = Utils.toPath(event.getUri());
             switch (event.getType()) {
@@ -122,12 +123,16 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
                     break;
             }
         });
+
+        fileManager.finishUpdate();
     }
 
     @Override
     public void didChangeWorkspaceFolders(DidChangeWorkspaceFoldersParams params) {
+        fileManager.beginUpdate();
         params.getEvent().getRemoved().forEach(fileManager::deleteWorkspace);
         params.getEvent().getAdded().forEach(fileManager::addWorkspace);
+        fileManager.finishUpdate();
     }
 
     /* End Workspace Service */
