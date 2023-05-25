@@ -6,7 +6,9 @@ import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.parser.ZenScriptParser.ConstructorDeclarationContext;
 import raylras.zen.code.parser.ZenScriptParser.FunctionDeclarationContext;
+import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.AnyType;
+import raylras.zen.code.type.ErrorType;
 import raylras.zen.code.type.Type;
 import raylras.zen.code.type.VoidType;
 
@@ -42,8 +44,20 @@ public class ReturnTypeResolver extends Visitor<Type> {
 
     @Override
     public Type visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
-        return VoidType.INSTANCE;
+
+        // zs do not have new expression, thus make constructor return class type is better than void
+//        return VoidType.INSTANCE;
+        ZenScriptParser.ClassDeclarationContext clazz = (ZenScriptParser.ClassDeclarationContext) ctx.getParent();
+        Symbol symbol = unit.getSymbol(clazz);
+        if (symbol == null) {
+            return new ErrorType("unknown constructor");
+        }
+        Type type = symbol.getType();
+        if (type == null)
+            type = AnyType.INSTANCE;
+        return symbol.getType();
     }
+
 
     @Override
     public Type visitFunctionExpr(ZenScriptParser.FunctionExprContext ctx) {

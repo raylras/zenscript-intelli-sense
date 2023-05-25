@@ -281,12 +281,25 @@ public class CompletionProvider {
                 return;
             }
 
+            if (member.getKind() == ZenSymbolKind.CONSTRUCTOR) {
+                return;
+            }
+
             if (member.getKind().isFunction()) {
 //                functions.computeIfAbsent(member.getName(), n -> new ArrayList<>())
 //                    .add((FunctionSymbol) member);
                 items.add(makeFunction((FunctionSymbol) member, !endsWithParen));
             } else {
                 items.add(makeItem(member));
+
+                if (member.getKind().isClass()) {
+                    // add constructors
+                    for (Symbol memberMember : member.getMembers()) {
+                        if (memberMember.getKind() == ZenSymbolKind.CONSTRUCTOR) {
+                            items.add(makeFunction(member.getName(), (FunctionSymbol) memberMember, !endsWithParen));
+                        }
+                    }
+                }
             }
 
         });
@@ -423,11 +436,15 @@ public class CompletionProvider {
     }
 
     private CompletionItem makeFunction(FunctionSymbol function, boolean addParens) {
+        return makeFunction(function, addParens);
+    }
+
+    private CompletionItem makeFunction(String functionName, FunctionSymbol function, boolean addParens) {
         CompletionItem item = new CompletionItem();
 
         // build label
         StringBuilder labelBuilder = new StringBuilder();
-        labelBuilder.append(function.getName()).append("(");
+        labelBuilder.append(functionName).append("(");
 
         List<Type> paramTypes = function.getType().paramTypes;
         List<String> paramNames = function.getParamNames();
@@ -442,16 +459,16 @@ public class CompletionProvider {
         labelBuilder.append(")");
         item.setLabel(labelBuilder.toString());
         item.setKind(CompletionItemKind.Function);
-        item.setInsertText(function.getName());
-        item.setFilterText(function.getName());
+        item.setInsertText(functionName);
+        item.setFilterText(functionName);
         item.setDetail(function.getReturnType() + " " + function);
 //        item.setData();
         if (addParens) {
             if (paramTypes.isEmpty()) {
-                item.setInsertText(function.getName() + "()$0");
+                item.setInsertText(functionName + "()$0");
             } else {
                 StringBuilder insertTextBuilder = new StringBuilder();
-                insertTextBuilder.append(function.getName()).append("(");
+                insertTextBuilder.append(functionName).append("(");
 
                 for (int i = 0; i < paramTypes.size(); i++) {
                     String paramName = paramNames.get(i);
