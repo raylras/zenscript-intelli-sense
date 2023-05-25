@@ -1,22 +1,20 @@
 package raylras.zen.langserver.provider;
 
-import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
 import org.antlr.v4.runtime.Token;
 import org.eclipse.lsp4j.*;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.symbol.Declarator;
-import raylras.zen.code.symbol.*;
-import raylras.zen.langserver.data.CompletionNode;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
-import raylras.zen.langserver.search.CompletionNodeResolver;
 import raylras.zen.code.scope.Scope;
-import raylras.zen.code.type.*;
+import raylras.zen.code.symbol.*;
+import raylras.zen.code.type.Type;
 import raylras.zen.l10n.L10N;
+import raylras.zen.langserver.data.CompletionNode;
+import raylras.zen.langserver.search.CompletionNodeResolver;
 import raylras.zen.service.LibraryService;
-import raylras.zen.util.*;
 import raylras.zen.util.Range;
+import raylras.zen.util.*;
 
 import javax.annotation.Nullable;
 import java.lang.reflect.InvocationTargetException;
@@ -24,6 +22,7 @@ import java.lang.reflect.Method;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -223,17 +222,38 @@ public class CompletionProvider {
                 items.add(makeFunction((FunctionSymbol) symbol, !endWithParen));
             } else {
                 items.add(makeItem(symbol));
+                if (symbol.getKind().isClass()) {
+                    addClassConstructor((ClassSymbol) symbol, condition::test, endWithParen);
+                }
+            }
+        }
+    }
+
+    private void addClassConstructor(ClassSymbol classSymbol, Predicate<Symbol> condition, boolean endsWithParen) {
+
+        for (Symbol member : classSymbol.getMembers()) {
+            if (condition.test(member) && member.getKind() == ZenSymbolKind.CONSTRUCTOR) {
+                items.add(makeFunction(classSymbol.getName(), (FunctionSymbol) member, !endsWithParen));
             }
         }
     }
 
     private void completeGlobalSymbols(Predicate<Symbol> condition, boolean addPackages) {
-        for (Symbol member : unit.environment().getGlobals()) {
-            if (!condition.test(member)) {
+        boolean endWithParen = completionNode.isEndsWithParen();
+        for (Symbol symbol : unit.environment().getGlobals()) {
+            if (!condition.test(symbol)) {
                 continue;
             }
-            if (isNameMatchesCompleting(member.getName())) {
-                items.add(makeItem(member));
+            if (isNameMatchesCompleting(symbol.getName())) {
+
+                if (symbol.getKind().isFunction()) {
+                    items.add(makeFunction((FunctionSymbol) symbol, !endWithParen));
+                } else {
+                    items.add(makeItem(symbol));
+                    if (symbol.getKind().isClass()) {
+                        addClassConstructor((ClassSymbol) symbol, condition::test, endWithParen);
+                    }
+                }
             }
         }
 
@@ -247,6 +267,54 @@ public class CompletionProvider {
         }
     }
 
+    private void completeAutoImportedStaticMethod() {
+        boolean endWithParen = completionNode.isEndsWithParen();
+        LibraryService libraryService = unit.environment().libraryService();
+        String completingString = completionNode.completingString;
+
+        for (Symbol symbol : unit.getTopLevelSymbols()) {
+            if (!(symbol instanceof ImportSymbol)) {
+                continue;
+            }
+            ImportSymbol importSymbol = (ImportSymbol) symbol;
+            Symbol targetClass = importSymbol.getSimpleTarget();
+            if (!(targetClass instanceof ClassSymbol)) {
+                continue;
+            }
+            addAutoImportedStaticMethod((ClassSymbol) targetClass, endWithParen);
+        }
+    }
+
+    private void addAutoImportedStaticMethod(ClassSymbol classSymbol, boolean endsWithParen) {
+        if (!classSymbol.isLibrarySymbol()) {
+            return;
+        }
+
+
+        Map<String, List<FunctionSymbol>> xx = null;
+        for (Symbol member : classSymbol.getMembers()) {
+            if (!member.isDeclaredBy(Declarator.STATIC)) {
+                continue;
+            }
+
+            if (!member.getKind().isFunction()) {
+                continue;
+            }
+
+            CompletionItem item = makeFunction((FunctionSymbol) member, !endsWithParen);
+            item.setAdditionalTextEdits(makeAutoImports(classSymbol.getQualifiedName() + "." + member.getName()));
+            items.add(item);
+
+
+            if (items.size() > MAX_ITEMS) {
+                isInComplete = true;
+                return;
+            }
+        }
+
+
+    }
+
     private void completeAutoImportedClass() {
         LibraryService libraryService = unit.environment().libraryService();
         String completingString = completionNode.completingString;
@@ -254,15 +322,15 @@ public class CompletionProvider {
             if (SymbolUtils.isNativeClass(clazzName)) {
                 continue;
             }
-            if (items.size() > MAX_ITEMS) {
-                isInComplete = true;
-                break;
-            }
             String simpleClassName = StringUtils.getSimpleName(clazzName);
             if (StringUtils.matchesPartialName(simpleClassName, completingString)) {
+                if (items.size() > MAX_ITEMS) {
+                    isInComplete = true;
+                    break;
+                }
                 ClassSymbol classSymbol = libraryService.getClassSymbol(clazzName);
                 CompletionItem item = makeItem(classSymbol);
-                item.setAdditionalTextEdits(makeAutoImports(classSymbol));
+                item.setAdditionalTextEdits(makeAutoImports(classSymbol.getQualifiedName()));
                 items.add(item);
             }
         }
@@ -291,15 +359,6 @@ public class CompletionProvider {
                 items.add(makeFunction((FunctionSymbol) member, !endsWithParen));
             } else {
                 items.add(makeItem(member));
-
-                if (member.getKind().isClass()) {
-                    // add constructors
-                    for (Symbol memberMember : member.getMembers()) {
-                        if (memberMember.getKind() == ZenSymbolKind.CONSTRUCTOR) {
-                            items.add(makeFunction(member.getName(), (FunctionSymbol) memberMember, !endsWithParen));
-                        }
-                    }
-                }
             }
 
         });
@@ -398,15 +457,15 @@ public class CompletionProvider {
 
     }
 
-    private List<TextEdit> makeAutoImports(ClassSymbol symbol) {
+    private List<TextEdit> makeAutoImports(String importText) {
         TextEdit textEdit = new TextEdit();
 
         Range range = getImportInsertPlace();
         textEdit.setRange(Ranges.toLSPRange(range));
         if (range.startColumn == 0) {
-            textEdit.setNewText("import " + symbol.getQualifiedName() + ";\n");
+            textEdit.setNewText("import " + importText + ";\n");
         } else {
-            textEdit.setNewText("\nimport " + symbol.getQualifiedName() + ";");
+            textEdit.setNewText("\nimport " + importText + ";");
         }
         return Collections.singletonList(textEdit);
     }
@@ -436,7 +495,7 @@ public class CompletionProvider {
     }
 
     private CompletionItem makeFunction(FunctionSymbol function, boolean addParens) {
-        return makeFunction(function, addParens);
+        return makeFunction(function.getName(), function, addParens);
     }
 
     private CompletionItem makeFunction(String functionName, FunctionSymbol function, boolean addParens) {
