@@ -11,31 +11,31 @@ public abstract class Visitor<T> extends ZenScriptParserBaseVisitor<T> {
 
     @Override
     public T visitArrayType(ZenScriptParser.ArrayTypeContext ctx) {
-        return super.visitArrayType(ctx);
+        return visitTypeLiteral(ctx);
     }
 
     @Override
     public T visitFunctionType(ZenScriptParser.FunctionTypeContext ctx) {
-        return super.visitFunctionType(ctx);
+        return visitTypeLiteral(ctx);
     }
 
     @Override
     public T visitListType(ZenScriptParser.ListTypeContext ctx) {
-        return super.visitListType(ctx);
+        return visitTypeLiteral(ctx);
     }
 
     @Override
     public T visitPrimitiveType(ZenScriptParser.PrimitiveTypeContext ctx) {
-        return super.visitPrimitiveType(ctx);
+        return visitTypeLiteral(ctx);
     }
 
     @Override
     public T visitClassType(ZenScriptParser.ClassTypeContext ctx) {
-        return super.visitClassType(ctx);
+        return visitTypeLiteral(ctx);
     }
 
     @Override
     public T visitMapType(ZenScriptParser.MapTypeContext ctx) {
-        return super.visitMapType(ctx);
+        return visitTypeLiteral(ctx);
     }
 }

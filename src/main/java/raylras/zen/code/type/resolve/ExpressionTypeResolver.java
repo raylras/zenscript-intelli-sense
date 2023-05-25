@@ -239,6 +239,31 @@ public class ExpressionTypeResolver extends Visitor<Type> {
     }
 
     @Override
+    public Type visitNullLiteralExpr(NullLiteralExprContext ctx) {
+        return NullType.INSTANCE;
+    }
+
+    @Override
+    public Type visitIntLiteralExpr(IntLiteralExprContext ctx) {
+        return IntType.INSTANCE;
+    }
+
+    @Override
+    public Type visitDoubleLiteralExpr(DoubleLiteralExprContext ctx) {
+        return DoubleType.INSTANCE;
+    }
+
+    @Override
+    public Type visitFloatLiteralExpr(FloatLiteralExprContext ctx) {
+        return FloatType.INSTANCE;
+    }
+
+    @Override
+    public Type visitLongLiteralExpr(LongLiteralExprContext ctx) {
+        return LongType.INSTANCE;
+    }
+
+    @Override
     public Type visitTypeLiteral(TypeLiteralContext ctx) {
         return new LiteralTypeResolver(unit).resolve(ctx);
     }

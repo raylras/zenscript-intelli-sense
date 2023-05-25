@@ -236,8 +236,12 @@ public class TypeService {
      * check whether sourceType can be cast into target type
      */
     public boolean canCast(Type targetType, Type sourceType) {
-        if (sourceType.equals(targetType)) {
+        if (Objects.equals(sourceType, targetType)) {
             return true;
+        }
+
+        if (targetType == null || sourceType == null) {
+            return false;
         }
 
         Type.Kind sourceKind = sourceType.getKind();
@@ -326,7 +330,7 @@ public class TypeService {
         return getMethodCallPriority(arguments, isForCompletion, parameterTypes, firstOptionalIndex, isVarargs);
     }
 
-    public MethodCallPriority getMethodCallPriority(List<Type> arguments, boolean isForCompletion,  List<Type> parameterTypes, int firstOptionalIndex, boolean isVarargs) {
+    public MethodCallPriority getMethodCallPriority(List<Type> arguments, boolean isForCompletion, List<Type> parameterTypes, int firstOptionalIndex, boolean isVarargs) {
         MethodCallPriority result = MethodCallPriority.HIGH;
         if (arguments.size() > parameterTypes.size()) {
             if (isVarargs) {
@@ -334,9 +338,11 @@ public class TypeService {
                 Type varargsElementType = ((ArrayType) lastType).elementType;
                 for (int i = parameterTypes.size() - 1; i < arguments.size(); i++) {
                     Type argType = arguments.get(i);
-                    if (argType.equals(varargsElementType)) {
+                    if (Objects.equals(argType, varargsElementType)) {
                         // OK
                     } else if (canCast(argType, varargsElementType)) {
+                        result = MethodCallPriority.min(result, MethodCallPriority.LOW);
+                    } else if (isForCompletion && argType == null) {
                         result = MethodCallPriority.min(result, MethodCallPriority.LOW);
                     } else {
                         return MethodCallPriority.INVALID;
@@ -361,9 +367,11 @@ public class TypeService {
             Type varargsElementType = ((ArrayType) lastType).elementType;
             Type argType = arguments.get(arguments.size() - 1);
 
-            if (argType.equals(lastType) || argType.equals(varargsElementType)) {
+            if (Objects.equals(argType, lastType) || Objects.equals(argType, varargsElementType)) {
                 // OK
             } else if (canCast(argType, lastType) || canCast(argType, varargsElementType)) {
+                result = MethodCallPriority.min(result, MethodCallPriority.LOW);
+            } else if (isForCompletion && argType == null) {
                 result = MethodCallPriority.min(result, MethodCallPriority.LOW);
             } else {
                 return MethodCallPriority.INVALID;
@@ -375,8 +383,10 @@ public class TypeService {
         for (int i = 0; i < checkUntil; i++) {
             Type argType = arguments.get(i);
             Type paramType = parameterTypes.get(i);
-            if (!argType.equals(paramType)) {
+            if (!Objects.equals(argType, paramType)) {
                 if (canCast(argType, paramType)) {
+                    result = MethodCallPriority.min(result, MethodCallPriority.LOW);
+                } else if (isForCompletion && argType == null) {
                     result = MethodCallPriority.min(result, MethodCallPriority.LOW);
                 } else {
                     return MethodCallPriority.INVALID;
