@@ -105,7 +105,7 @@ public class CompletionNodeResolver extends AbstractPositionSearchResolver<Compl
         ParseTree possibleNext = Nodes.getNextNode(expr);
         if (possibleNext instanceof TerminalNode && ((TerminalNode) possibleNext).getSymbol().getType() == ZenScriptParser.DOT) {
             TerminalNode node = (TerminalNode) possibleNext;
-            if (node.getSymbol().getLine() > cursor.startLine || (node.getSymbol().getCharPositionInLine() + 1 > cursor.startColumn)) {
+            if (node.getSymbol().getLine() - 1 > cursor.startLine || (node.getSymbol().getCharPositionInLine() + 1 > cursor.startColumn)) {
                 return null;
             }
             return node;

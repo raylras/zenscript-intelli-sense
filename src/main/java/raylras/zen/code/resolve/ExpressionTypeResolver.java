@@ -1,4 +1,4 @@
-package raylras.zen.code.type.resolve;
+package raylras.zen.code.resolve;
 
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -14,7 +14,6 @@ import raylras.zen.util.MemberUtils;
 import raylras.zen.util.Tuple;
 import raylras.zen.util.TypeUtils;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;

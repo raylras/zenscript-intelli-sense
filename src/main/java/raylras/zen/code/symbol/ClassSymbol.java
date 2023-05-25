@@ -6,7 +6,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.type.FunctionType;
-import raylras.zen.code.type.resolve.NameResolver;
+import raylras.zen.code.resolve.NameResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.Type;

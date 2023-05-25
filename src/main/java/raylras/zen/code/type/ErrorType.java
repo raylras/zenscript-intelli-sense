@@ -1,7 +1,7 @@
 package raylras.zen.code.type;
 
 import org.antlr.v4.runtime.tree.ParseTree;
-import raylras.zen.code.type.resolve.NameResolver;
+import raylras.zen.code.resolve.NameResolver;
 
 public class ErrorType extends NamedType {
 

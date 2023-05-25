@@ -4,7 +4,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.parser.ZenScriptParser.ImportDeclarationContext;
 import raylras.zen.code.type.*;
-import raylras.zen.code.type.resolve.NameResolver;
+import raylras.zen.code.resolve.NameResolver;
 import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.util.MemberUtils;
 import raylras.zen.util.Tuple;

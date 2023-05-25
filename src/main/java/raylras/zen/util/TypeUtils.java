@@ -5,7 +5,7 @@ import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.Type;
-import raylras.zen.code.type.resolve.ExpressionTypeResolver;
+import raylras.zen.code.resolve.ExpressionTypeResolver;
 
 import java.util.List;
 import java.util.stream.Collectors;

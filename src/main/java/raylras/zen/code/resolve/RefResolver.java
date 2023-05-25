@@ -1,4 +1,4 @@
-package raylras.zen.code.type.resolve;
+package raylras.zen.code.resolve;
 
 import raylras.zen.code.CompilationUnit;
 

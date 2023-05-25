@@ -8,7 +8,7 @@ import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.VariableSymbol;
 import raylras.zen.code.type.FunctionType;
-import raylras.zen.code.type.resolve.ExpressionTypeResolver;
+import raylras.zen.code.resolve.ExpressionTypeResolver;
 import raylras.zen.langserver.search.FunctionInvocationResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.FunctionSymbol;

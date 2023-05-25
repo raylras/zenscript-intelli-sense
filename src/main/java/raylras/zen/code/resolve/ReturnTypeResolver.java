@@ -1,4 +1,4 @@
-package raylras.zen.code.type.resolve;
+package raylras.zen.code.resolve;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
@@ -10,7 +10,6 @@ import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.AnyType;
 import raylras.zen.code.type.ErrorType;
 import raylras.zen.code.type.Type;
-import raylras.zen.code.type.VoidType;
 
 public class ReturnTypeResolver extends Visitor<Type> {
 

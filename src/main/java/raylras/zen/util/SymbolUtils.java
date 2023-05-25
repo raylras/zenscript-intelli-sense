@@ -6,8 +6,8 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.type.Type;
-import raylras.zen.code.type.resolve.LiteralTypeResolver;
-import raylras.zen.code.type.resolve.NameResolver;
+import raylras.zen.code.resolve.LiteralTypeResolver;
+import raylras.zen.code.resolve.NameResolver;
 
 import java.util.*;
 
