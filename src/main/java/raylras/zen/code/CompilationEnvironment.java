@@ -67,7 +67,7 @@ public class CompilationEnvironment {
                 result = scriptGlobal;
             }
         }
-        if (result != null) {
+        if (result == null) {
             result = libraryService.findSymbol(type, name);
         }
 

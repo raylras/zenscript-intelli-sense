@@ -88,13 +88,14 @@ public class CompletionProvider {
         if (completionNode.node instanceof LocalAccessExprContext) {
             completeLocalSymbols(s -> true);
             completeGlobalSymbols(s -> true, true);
+            completeAutoImportedClass();
             completeKeywords();
         } else {
             completeLocalSymbols(s -> s.getKind().isClass());
             completeGlobalSymbols(s -> s.getKind().isClass(), true);
+            completeAutoImportedClass();
+            completeAutoImportedStaticMethod();
         }
-
-        completeAutoImportedClass();
     }
 
     private void completeImport() {
@@ -167,15 +168,15 @@ public class CompletionProvider {
             for (Symbol member : unit.environment().getSymbolsOfPackage(packageName)) {
                 isEmpty = false;
                 if (member.getKind().isFunction()) {
-                    items.add(makeFunction((FunctionSymbol) member, !endsWithParen));
+                    addItem(makeFunction((FunctionSymbol) member, !endsWithParen));
                 } else {
-                    items.add(makeItem(member));
+                    addItem(makeItem(member));
                 }
             }
         }
         for (String child : childPackages) {
             isEmpty = false;
-            items.add(makePackage(child, false));
+            addItem(makePackage(child, false));
         }
         return !isEmpty;
     }
@@ -205,7 +206,7 @@ public class CompletionProvider {
                         if (!condition.test(functionTarget)) {
                             continue;
                         }
-                        items.add(makeFunction(functionTarget, !endWithParen));
+                        addItem(makeFunction(functionTarget, !endWithParen));
                     }
                 } else {
                     Symbol target = importSymbol.getSimpleTarget();
@@ -213,15 +214,15 @@ public class CompletionProvider {
                         continue;
                     }
                     if (target != null) {
-                        items.add(makeItem(target));
+                        addItem(makeItem(target));
                     } else {
-                        items.add(makeItem(symbol));
+                        addItem(makeItem(symbol));
                     }
                 }
             } else if (symbol.getKind().isFunction()) {
-                items.add(makeFunction((FunctionSymbol) symbol, !endWithParen));
+                addItem(makeFunction((FunctionSymbol) symbol, !endWithParen));
             } else {
-                items.add(makeItem(symbol));
+                addItem(makeItem(symbol));
                 if (symbol.getKind().isClass()) {
                     addClassConstructor((ClassSymbol) symbol, condition::test, endWithParen);
                 }
@@ -233,7 +234,7 @@ public class CompletionProvider {
 
         for (Symbol member : classSymbol.getMembers()) {
             if (condition.test(member) && member.getKind() == ZenSymbolKind.CONSTRUCTOR) {
-                items.add(makeFunction(classSymbol.getName(), (FunctionSymbol) member, !endsWithParen));
+                addItem(makeFunction(classSymbol.getName(), (FunctionSymbol) member, !endsWithParen));
             }
         }
     }
@@ -247,9 +248,9 @@ public class CompletionProvider {
             if (isNameMatchesCompleting(symbol.getName())) {
 
                 if (symbol.getKind().isFunction()) {
-                    items.add(makeFunction((FunctionSymbol) symbol, !endWithParen));
+                    addItem(makeFunction((FunctionSymbol) symbol, !endWithParen));
                 } else {
-                    items.add(makeItem(symbol));
+                    addItem(makeItem(symbol));
                     if (symbol.getKind().isClass()) {
                         addClassConstructor((ClassSymbol) symbol, condition::test, endWithParen);
                     }
@@ -259,10 +260,10 @@ public class CompletionProvider {
 
         if (addPackages) {
             if (isNameMatchesCompleting("scripts")) {
-                items.add(makePackage("scripts", true));
+                addItem(makePackage("scripts", true));
             }
             for (String rootPackageName : unit.environment().libraryService().allRootPackageNames()) {
-                items.add(makePackage(rootPackageName, true));
+                addItem(makePackage(rootPackageName, true));
             }
         }
     }
@@ -291,7 +292,6 @@ public class CompletionProvider {
         }
 
 
-        Map<String, List<FunctionSymbol>> xx = null;
         for (Symbol member : classSymbol.getMembers()) {
             if (!member.isDeclaredBy(Declarator.STATIC)) {
                 continue;
@@ -301,15 +301,14 @@ public class CompletionProvider {
                 continue;
             }
 
-            CompletionItem item = makeFunction((FunctionSymbol) member, !endsWithParen);
-            item.setAdditionalTextEdits(makeAutoImports(classSymbol.getQualifiedName() + "." + member.getName()));
-            items.add(item);
-
-
-            if (items.size() > MAX_ITEMS) {
-                isInComplete = true;
+            if (existingItemNames.contains(member.getName())) {
                 return;
             }
+            CompletionItem item = makeFunction((FunctionSymbol) member, !endsWithParen);
+            item.setAdditionalTextEdits(makeAutoImports(classSymbol.getQualifiedName() + "." + member.getName()));
+            addItem(item);
+
+
         }
 
 
@@ -323,15 +322,14 @@ public class CompletionProvider {
                 continue;
             }
             String simpleClassName = StringUtils.getSimpleName(clazzName);
+            if (existingItemNames.contains(simpleClassName)) {
+                return;
+            }
             if (StringUtils.matchesPartialName(simpleClassName, completingString)) {
-                if (items.size() > MAX_ITEMS) {
-                    isInComplete = true;
-                    break;
-                }
                 ClassSymbol classSymbol = libraryService.getClassSymbol(clazzName);
                 CompletionItem item = makeItem(classSymbol);
                 item.setAdditionalTextEdits(makeAutoImports(classSymbol.getQualifiedName()));
-                items.add(item);
+                addItem(item);
             }
         }
     }
@@ -356,9 +354,9 @@ public class CompletionProvider {
             if (member.getKind().isFunction()) {
 //                functions.computeIfAbsent(member.getName(), n -> new ArrayList<>())
 //                    .add((FunctionSymbol) member);
-                items.add(makeFunction((FunctionSymbol) member, !endsWithParen));
+                addItem(makeFunction((FunctionSymbol) member, !endsWithParen));
             } else {
-                items.add(makeItem(member));
+                addItem(makeItem(member));
             }
 
         });
@@ -368,13 +366,24 @@ public class CompletionProvider {
 //        }
     }
 
+    private Set<String> existingItemNames = new HashSet<>();
+
+    private void addItem(CompletionItem item) {
+        existingItemNames.add(item.getFilterText());
+        if (items.size() > MAX_ITEMS) {
+            isInComplete = true;
+            return;
+        }
+        items.add(item);
+    }
+
     private void completeKeywords() {
         for (String keyword : KEYWORDS) {
             if (isNameMatchesCompleting(keyword)) {
                 CompletionItem item = new CompletionItem(keyword);
                 item.setKind(CompletionItemKind.Keyword);
                 item.setDetail(L10N.getString("l10n.keyword"));
-                items.add(item);
+                addItem(item);
             }
         }
     }
