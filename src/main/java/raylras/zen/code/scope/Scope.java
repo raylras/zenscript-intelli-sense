@@ -11,34 +11,12 @@ import java.util.Objects;
 import java.util.function.Predicate;
 
 public class Scope {
-    public static Scope EMPTY = new Scope(null, null) {
-        @Override
-        public Symbol getSymbol(Class<Symbol> symbolClass, String name) {
-            return null;
-        }
 
-        @Override
-        public Symbol getSymbol(Predicate<Symbol> condition) {
-            return null;
-        }
+    public static final Scope EMPTY = new Scope(null, null);
+    protected final Scope parent;
+    protected final ParseTree owner;
 
-        @Override
-        public List<Symbol> getSymbols() {
-            return Collections.emptyList();
-        }
-
-        @Override
-        public void addSymbol(Symbol symbol) {
-        }
-
-        @Override
-        public void removeSymbol(Symbol symbol) {
-        }
-    };
-
-    public final List<Symbol> symbols = new ArrayList<>();
-    public Scope parent;
-    public ParseTree owner;
+    private final List<Symbol> symbols = new ArrayList<>();
 
     public Scope(Scope parent, ParseTree owner) {
         this.parent = parent;
@@ -61,16 +39,57 @@ public class Scope {
         return null;
     }
 
-    public List<Symbol> getSymbols() {
-        return ImmutableList.copyOf(symbols);
-    }
-
     public void addSymbol(Symbol symbol) {
         symbols.add(symbol);
     }
 
     public void removeSymbol(Symbol symbol) {
         symbols.remove(symbol);
+    }
+
+    public List<Symbol> getSymbols() {
+        return symbols;
+    }
+
+    public Symbol lookupSymbol(String simpleName) {
+        return lookupSymbol(Symbol.class, simpleName);
+    }
+
+    public <T extends Symbol> T lookupSymbol(Class<T> clazz, String simpleName) {
+        Scope scope = this;
+        while (scope != null) {
+            for (Symbol symbol : scope.getSymbols()) {
+                if (clazz.isInstance(scope) && Objects.equals(symbol.getName(), simpleName))
+                    return clazz.cast(symbol);
+            }
+            scope = scope.parent;
+        }
+        return null;
+    }
+
+
+    public <T extends Symbol> List<T> lookupSymbols(Class<T> type, Predicate<T> condition) {
+        Scope scope = this;
+        List<T> result = new ArrayList<>();
+        while (scope != null) {
+            for (Symbol symbol : scope.getSymbols()) {
+                if (type.isInstance(symbol) && condition.test(type.cast(symbol))) {
+                    result.add(type.cast(symbol));
+                }
+            }
+            scope = scope.parent;
+        }
+
+        return result;
+    }
+
+
+    public Scope getParent() {
+        return parent;
+    }
+
+    public ParseTree getOwner() {
+        return owner;
     }
 
 }

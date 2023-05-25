@@ -5,6 +5,7 @@ import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
+import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.langserver.provider.CompletionProvider;
 import raylras.zen.langserver.provider.SemanticTokensProvider;
@@ -27,6 +28,7 @@ import java.util.stream.Stream;
 public class ZenLanguageService implements TextDocumentService, WorkspaceService {
     private static final raylras.zen.util.Logger logger = Logger.getLogger("main");
     public ZenLanguageServer server;
+    public CompilationEnvironment context;
 
     public final FileManager fileManager;
 

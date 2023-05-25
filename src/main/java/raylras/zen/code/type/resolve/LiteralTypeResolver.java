@@ -32,7 +32,13 @@ public class LiteralTypeResolver extends Visitor<Type> {
     public Type visitClassType(ClassTypeContext ctx) {
         Scope scope = unit.lookupScope(ctx);
         String name = NameResolver.resolveName(ctx);
-        ClassSymbol classSymbol = unit.lookupClassSymbol(scope, name, true);
+        Symbol symbol = scope.lookupSymbol(ClassSymbol.class, name);
+        if (symbol != null && symbol.getType().getKind() == Type.Kind.CLASS) {
+            return symbol.getType();
+        }
+
+
+        ClassSymbol classSymbol = unit.environment().findSymbol(ClassSymbol.class, name);
         if (classSymbol != null) {
             return classSymbol.getType();
         }

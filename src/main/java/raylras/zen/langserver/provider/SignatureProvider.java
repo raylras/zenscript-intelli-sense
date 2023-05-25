@@ -112,7 +112,7 @@ public class SignatureProvider {
     private Symbol simpleMethodOverloads(ZenScriptParser.LocalAccessExprContext expr, List<FunctionSymbol> output) {
         String methodName = expr.simpleName().getText();
         Scope localScope = unit.lookupScope(expr);
-        List<FunctionSymbol> result = unit.lookupLocalSymbols(FunctionSymbol.class, localScope,
+        List<FunctionSymbol> result = localScope.lookupSymbols(FunctionSymbol.class,
             it -> Objects.equals(methodName, it.getName()));
 
         if (!result.isEmpty()) {
@@ -120,7 +120,10 @@ public class SignatureProvider {
             return null;
         }
 
-        Symbol symbol = unit.lookupSymbol(Symbol.class, localScope, methodName, true);
+        Symbol symbol = localScope.lookupSymbol(Symbol.class, methodName);
+        if (symbol == null) {
+            symbol = unit.environment().findSymbol(Symbol.class, methodName);
+        }
         if (symbol instanceof ClassSymbol) {
 
             output.addAll(((ClassSymbol) symbol).getConstructors());

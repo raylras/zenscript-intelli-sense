@@ -25,7 +25,10 @@ public class MemberUtils {
         }
         Scope scope = unit.lookupScope(qualifier);
         String name = qualifier.getText();
-        Symbol symbol = unit.lookupSymbol(Symbol.class, scope, name, true);
+        Symbol symbol = scope.lookupSymbol(Symbol.class, name);
+        if (symbol == null) {
+            symbol = unit.environment().findSymbol(Symbol.class, name);
+        }
 
         if (symbol != null) {
             return Tuple.of(!symbol.getKind().isVariable(), symbol.getType());

@@ -192,7 +192,7 @@ public class CompletionProvider {
             return;
         boolean endWithParen = completionNode.isEndsWithParen();
 
-        List<Symbol> symbols = unit.lookupLocalSymbols(Symbol.class, scope,
+        List<Symbol> symbols = scope.lookupSymbols(Symbol.class,
             it -> isNameMatchesCompleting(it.getName())
         );
         for (Symbol symbol : symbols) {

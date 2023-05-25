@@ -1,4 +1,4 @@
-package raylras.zen.code.type.resolve;
+package raylras.zen.code.resolve;
 
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import raylras.zen.code.CompilationUnit;
@@ -10,14 +10,14 @@ import raylras.zen.util.ArrayStack;
 import raylras.zen.util.ParseTreeProperty;
 import raylras.zen.util.Stack;
 
-public class DefinitionResolver extends Listener {
+public class DeclarationResolver extends Listener {
 
     private final Stack<Scope> stack = new ArrayStack<>();
     private final CompilationUnit unit;
     private final ParseTreeProperty<Scope> scopeProp;
     private final ParseTreeProperty<Symbol> symbolProp;
 
-    public DefinitionResolver(CompilationUnit unit, ParseTreeProperty<Scope> scopeProp, ParseTreeProperty<Symbol> symbolProp) {
+    public DeclarationResolver(CompilationUnit unit, ParseTreeProperty<Scope> scopeProp, ParseTreeProperty<Symbol> symbolProp) {
         this.unit = unit;
         this.scopeProp = scopeProp;
         this.symbolProp = symbolProp;
@@ -29,7 +29,7 @@ public class DefinitionResolver extends Listener {
 
     private void enterScope(Scope scope) {
 
-        scopeProp.put(scope.owner, scope);
+        scopeProp.put(scope.getOwner(), scope);
         stack.push(scope);
     }
 

@@ -38,7 +38,10 @@ public class ExpressionTypeResolver extends Visitor<Type> {
     public Type visitLocalAccessExpr(LocalAccessExprContext ctx) {
         Scope scope = unit.lookupScope(ctx);
         String name = NameResolver.resolveName(ctx);
-        Symbol symbol = unit.lookupSymbol(Symbol.class, scope, name, true);
+        Symbol symbol = scope.lookupSymbol(Symbol.class, name);
+        if (symbol == null) {
+            symbol = unit.environment().findSymbol(Symbol.class, name);
+        }
         if (symbol != null) {
             return symbol.getType();
         }
@@ -73,7 +76,7 @@ public class ExpressionTypeResolver extends Visitor<Type> {
             String simpleName = NameResolver.resolveName(accessExpr.simpleName());
 
             Scope scope = unit.lookupScope(accessExpr);
-            List<FunctionSymbol> localFunctions = unit.lookupLocalSymbols(FunctionSymbol.class, scope,
+            List<FunctionSymbol> localFunctions = scope.lookupSymbols(FunctionSymbol.class,
                 it -> Objects.equals(it.getName(), simpleName)
             );
 
@@ -84,8 +87,10 @@ public class ExpressionTypeResolver extends Visitor<Type> {
                     return functionType.returnType;
                 }
             } else {
-                Symbol global = unit.lookupSymbol(Symbol.class, scope, simpleName, true);
-
+                Symbol global = scope.lookupSymbol(Symbol.class, simpleName);
+                if (global == null) {
+                    global = unit.environment().findSymbol(Symbol.class, simpleName);
+                }
                 FunctionType functionType = MemberUtils.selectFunction(unit.environment(), argumentTypes, Collections.emptyList(), global);
                 if (functionType != null) {
                     return functionType.returnType;
