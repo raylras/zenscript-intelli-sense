@@ -37,10 +37,12 @@ public class CompletionProvider {
 
     private final List<CompletionItem> items = new ArrayList<>();
     private boolean isInComplete = false;
+    private Range cursor;
 
-    public CompletionProvider(CompilationUnit unit, CompletionNode completionNode) {
+    public CompletionProvider(CompilationUnit unit, CompletionNode completionNode, Range cursor) {
         this.unit = unit;
         this.completionNode = completionNode;
+        this.cursor = cursor;
     }
 
     public static CompletionList completion(CompilationUnit unit, CompletionParams params) {
@@ -48,7 +50,7 @@ public class CompletionProvider {
         logger.info("Completing at %s(%d, %d)...", unit.getFilePath().getFileName(), cursor.startLine, cursor.endLine);
         Instant started = Instant.now();
         CompletionNode node = new CompletionNodeResolver(unit, cursor).resolve();
-        CompletionProvider provider = new CompletionProvider(unit, node);
+        CompletionProvider provider = new CompletionProvider(unit, node, cursor);
         provider.complete();
 
         long elapsedMs = Duration.between(started, Instant.now()).toMillis();
@@ -101,7 +103,8 @@ public class CompletionProvider {
     private void completeImport() {
 
         QualifiedNameContext qualifierExpr = ((ImportDeclarationContext) completionNode.node).qualifiedName();
-        String qualifiedName = qualifierExpr.getText();
+        String partialName = Nodes.getTextBefore(qualifierExpr, cursor.startLine, cursor.startColumn);
+        String qualifiedName = StringUtils.getPackageName(partialName);
 
         if (Strings.isNullOrEmpty(qualifiedName)) {
             completeGlobalSymbols(s -> !s.isDeclaredBy(Declarator.GLOBAL), true);

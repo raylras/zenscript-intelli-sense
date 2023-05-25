@@ -1,7 +1,9 @@
 package raylras.zen.util;
 
 import org.antlr.v4.runtime.RuleContext;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.ArrayDeque;
 import java.util.Queue;
@@ -26,6 +28,40 @@ public class Nodes {
         return found;
     }
 
+    public static String getTextBefore(ParseTree node, int line, int column) {
+        if (node instanceof TerminalNode) {
+            Token token = ((TerminalNode) node).getSymbol();
+
+            Range range = Ranges.from(token);
+            if (range.startLine < line || (range.startLine == line && range.startColumn < column)) {
+                return token.getText();
+            } else if (Ranges.isRangeContainsPosition(range, line, column)) {
+                String text = token.getText();
+                int length = range.endColumn - column + 1;
+                return text.substring(0, length);
+            } else {
+                return "";
+            }
+        }
+        if (node.getChildCount() == 0) {
+            return "";
+        }
+
+        StringBuilder builder = new StringBuilder();
+        for (int i = 0; i < node.getChildCount(); i++) {
+            ParseTree child = node.getChild(i);
+            Range range = Ranges.from(child);
+            if (range.startLine < line || (range.startLine == line && range.startColumn < column)) {
+                builder.append(node.getChild(i).getText());
+            } else if (Ranges.isRangeContainsPosition(range, line, column)) {
+                builder.append(getTextBefore(node, line, column));
+            } else {
+                // skip rest
+            }
+        }
+
+        return builder.toString();
+    }
 
     public static ParseTree getNextSiblingNode(RuleContext node) {
         if (node == null || node.getParent() == null) {

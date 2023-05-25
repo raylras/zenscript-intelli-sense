@@ -39,6 +39,7 @@ public class ScriptService {
     public VariableSymbol getGlobalVariable(String name) {
         return findCompilationUnitByPackageName(name)
             .map(it -> it.getGlobalVariables().get(name))
+            .filter(Objects::nonNull)
             .findFirst()
             .orElse(null);
     }
@@ -62,9 +63,13 @@ public class ScriptService {
 
     public List<Symbol> getSymbolsOfPackage(String packageName) {
         return findCompilationUnitByPackageName(packageName)
-            .map(it -> it.getPublicSymbols().get(packageName))
-            .findFirst()
-            .orElse(Collections.emptyList());
+            .flatMap(unit -> unit.getPublicSymbols()
+                .entrySet()
+                .stream()
+                .filter(it -> it.getKey().startsWith(packageName) && it.getKey().indexOf('.', packageName.length() + 1) < 0)
+                .flatMap(it -> it.getValue().stream())
+            )
+            .collect(Collectors.toList());
     }
 
     public <T extends Symbol> T findSymbol(Class<T> type, String name) {

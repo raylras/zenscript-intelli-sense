@@ -141,10 +141,10 @@ public class CompilationUnit {
             if (topLevelSymbol.getKind().isVariable()) {
                 if (topLevelSymbol.getDeclarator() == Declarator.GLOBAL) {
                     globalVariables.put(topLevelSymbol.getName(), (VariableSymbol) topLevelSymbol);
+                } else {
+                    publicSymbols.computeIfAbsent(packageName + "." + topLevelSymbol.getName(), i -> new ArrayList<>())
+                        .add(topLevelSymbol);
                 }
-            } else if (topLevelSymbol.getKind() == ZenSymbolKind.FUNCTION) {
-                publicSymbols.computeIfAbsent(packageName, i -> new ArrayList<>())
-                    .add(topLevelSymbol);
             } else if (topLevelSymbol.getKind().isClass()) {
                 String className = ((ClassSymbol) topLevelSymbol).getQualifiedName();
                 publicSymbols.computeIfAbsent(className, i -> new ArrayList<>())
@@ -162,7 +162,7 @@ public class CompilationUnit {
     }
 
     public Map<String, List<Symbol>> getPublicSymbols() {
-        if (globalVariables == null) {
+        if (publicSymbols == null) {
             loadScriptGlobals();
         }
         return publicSymbols;

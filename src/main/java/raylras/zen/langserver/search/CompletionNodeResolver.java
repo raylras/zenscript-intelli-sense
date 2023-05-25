@@ -104,7 +104,11 @@ public class CompletionNodeResolver extends AbstractPositionSearchResolver<Compl
     private TerminalNode findNextDOT(ZenScriptParser.QualifiedNameContext expr) {
         ParseTree possibleNext = Nodes.getNextNode(expr);
         if (possibleNext instanceof TerminalNode && ((TerminalNode) possibleNext).getSymbol().getType() == ZenScriptParser.DOT) {
-            return (TerminalNode) possibleNext;
+            TerminalNode node = (TerminalNode) possibleNext;
+            if (node.getSymbol().getLine() > cursor.startLine || (node.getSymbol().getCharPositionInLine() + 1 > cursor.startColumn)) {
+                return null;
+            }
+            return node;
         }
         return null;
     }
@@ -128,7 +132,7 @@ public class CompletionNodeResolver extends AbstractPositionSearchResolver<Compl
         if (expr == null) {
             return "";
         }
-        return expr.getText();
+        return Nodes.getTextBefore(expr, cursor.startLine, cursor.startColumn);
     }
 
     @Override

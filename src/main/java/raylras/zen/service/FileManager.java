@@ -345,7 +345,7 @@ public class FileManager {
             .map(Path::toString)
             .collect(Collectors.joining("."));
 
-        return "scripts." + scriptPackage.substring(0, scriptPackage.length() - 2);
+        return "scripts." + scriptPackage.substring(0, scriptPackage.length() - 3);
 
     }
 

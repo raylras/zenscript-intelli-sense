@@ -59,7 +59,7 @@ public class Scope {
         Scope scope = this;
         while (scope != null) {
             for (Symbol symbol : scope.getSymbols()) {
-                if (clazz.isInstance(scope) && Objects.equals(symbol.getName(), simpleName))
+                if (clazz.isInstance(symbol) && Objects.equals(symbol.getName(), simpleName))
                     return clazz.cast(symbol);
             }
             scope = scope.parent;
