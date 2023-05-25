@@ -9,21 +9,14 @@ import java.util.Objects;
 
 public class Scope {
 
-    public final List<Symbol> symbols = new ArrayList<>();
-    public Scope parent;
-    public ParseTree owner;
+    protected final Scope parent;
+    protected final ParseTree owner;
+
+    private final List<Symbol> symbols = new ArrayList<>();
 
     public Scope(Scope parent, ParseTree owner) {
         this.parent = parent;
         this.owner = owner;
-    }
-
-    public Symbol getSymbol(String name) {
-        for (Symbol symbol : symbols) {
-            if (Objects.equals(name, symbol.getName()))
-                return symbol;
-        }
-        return null;
     }
 
     public void addSymbol(Symbol symbol) {
@@ -32,6 +25,34 @@ public class Scope {
 
     public void removeSymbol(Symbol symbol) {
         symbols.remove(symbol);
+    }
+
+    public List<Symbol> getSymbols() {
+        return symbols;
+    }
+
+    public Symbol lookupSymbol(String simpleName) {
+        return lookupSymbol(Symbol.class, simpleName);
+    }
+
+    public <T extends Symbol> T lookupSymbol(Class<T> clazz, String simpleName) {
+        Scope scope = this;
+        while (scope != null) {
+            for (Symbol symbol : scope.getSymbols()) {
+                if (clazz.isInstance(scope) && Objects.equals(symbol.getName(), simpleName))
+                    return clazz.cast(symbol);
+            }
+            scope = scope.parent;
+        }
+        return null;
+    }
+
+    public Scope getParent() {
+        return parent;
+    }
+
+    public ParseTree getOwner() {
+        return owner;
     }
 
 }

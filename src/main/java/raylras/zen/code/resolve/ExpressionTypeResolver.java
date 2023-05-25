@@ -25,7 +25,7 @@ public class ExpressionTypeResolver extends Visitor<Type> {
 
     @Override
     public Type visitLocalAccessExpr(LocalAccessExprContext ctx) {
-        return unit.lookupType(ctx);
+        return new AnyType();
     }
 
     @Override

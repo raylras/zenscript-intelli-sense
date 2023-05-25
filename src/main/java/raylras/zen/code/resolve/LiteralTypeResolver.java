@@ -26,10 +26,7 @@ public class LiteralTypeResolver extends Visitor<Type> {
 
     @Override
     public Type visitClassType(ClassTypeContext ctx) {
-        Type type = unit.lookupType(ctx);
-        if (type == null)
-            type = new ClassType(ctx, unit);
-        return type;
+        return new AnyType();
     }
 
     @Override

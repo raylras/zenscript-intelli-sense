@@ -7,6 +7,8 @@ import raylras.zen.code.parser.ZenScriptParser.ConstructorDeclarationContext;
 import raylras.zen.code.parser.ZenScriptParser.FunctionDeclarationContext;
 import raylras.zen.code.symbol.VariableSymbol;
 
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,16 +28,12 @@ public class ParamsResolver extends Visitor<List<VariableSymbol>> {
 
     @Override
     public List<VariableSymbol> visitFunctionDeclaration(FunctionDeclarationContext ctx) {
-        return ctx.parameter().stream()
-                .map(unit::<VariableSymbol>getSymbol)
-                .collect(Collectors.toList());
+        return Collections.emptyList();
     }
 
     @Override
     public List<VariableSymbol> visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
-        return ctx.parameter().stream()
-                .map(unit::<VariableSymbol>getSymbol)
-                .collect(Collectors.toList());
+        return Collections.emptyList();
     }
 
 }

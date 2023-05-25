@@ -5,7 +5,7 @@ import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
-import raylras.zen.code.CompilationContext;
+import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.langserver.provider.CompletionProvider;
 import raylras.zen.langserver.provider.SemanticTokensProvider;
@@ -23,7 +23,7 @@ import java.util.stream.Stream;
 public class ZenLanguageService implements TextDocumentService, WorkspaceService {
 
     public ZenLanguageServer server;
-    public CompilationContext context;
+    public CompilationEnvironment context;
 
     public ZenLanguageService(ZenLanguageServer server) {
         this.server = server;
@@ -103,14 +103,14 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
                 case Created:
                     unit = new CompilationUnit(documentPath, context);
                     loadCompilationUnit(unit);
-                    context.addCompilationUnit(unit);
+                    context.addUnit(unit);
                     break;
                 case Changed:
-                    unit = context.getCompilationUnit(documentPath);
+                    unit = context.getUnit(documentPath);
                     loadCompilationUnit(unit);
                     break;
                 case Deleted:
-                    context.removeCompilationUnit(documentPath);
+                    context.removeUnit(documentPath);
                     break;
             }
         });
@@ -141,18 +141,18 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
         Path compilationRoot = Utils.findUpwards(documentPath, "scripts");
         if (compilationRoot == null)
             compilationRoot = documentPath;
-        context = new CompilationContext(compilationRoot);
+        context = new CompilationEnvironment(compilationRoot);
         loadCompilationUnits(context);
     }
 
-    private void loadCompilationUnits(CompilationContext context) {
+    private void loadCompilationUnits(CompilationEnvironment context) {
         try (Stream<Path> pathStream = Files.walk(context.compilationRoot)) {
             pathStream.filter(Files::isRegularFile)
                     .filter(path -> path.toString().endsWith(CompilationUnit.FILE_EXTENSION))
                     .forEach(unitPath -> {
                         CompilationUnit unit = new CompilationUnit(unitPath, context);
                         loadCompilationUnit(unit);
-                        context.addCompilationUnit(unit);
+                        context.addUnit(unit);
                     });
         } catch (IOException e) {
             throw new RuntimeException(e);
@@ -173,7 +173,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     private CompilationUnit getCompilationUnit(String uri) {
         Path documentPath = Utils.toPath(uri);
-        return context.getCompilationUnit(documentPath);
+        return context.getUnit(documentPath);
     }
 
 }

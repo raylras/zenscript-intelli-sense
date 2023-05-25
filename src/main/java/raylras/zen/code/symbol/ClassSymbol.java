@@ -30,7 +30,7 @@ public class ClassSymbol extends Symbol {
     public List<Symbol> getMembers() {
         Scope scope = unit.getScope(owner);
         if (scope != null)
-            return scope.symbols;
+            return scope.getSymbols();
         return Collections.emptyList();
     }
 

@@ -64,7 +64,7 @@ public class CompletionProvider {
         // matches local variables
         Scope scope = unit.lookupScope(node);
         while (scope != null) {
-            for (Symbol symbol : scope.symbols) {
+            for (Symbol symbol : scope.getSymbols()) {
                 if (!symbol.getName().startsWith(toBeCompleted))
                     continue;
                 CompletionItem item = new CompletionItem(symbol.getName());
@@ -72,11 +72,11 @@ public class CompletionProvider {
                 item.setKind(getCompletionItemKind(symbol.getType().getKind()));
                 data.add(item);
             }
-            scope = scope.parent;
+            scope = scope.getParent();
         }
 
         // matches global variables
-        for (CompilationUnit cu : unit.context.getCompilationUnits()) {
+        for (CompilationUnit cu : unit.env.getUnits()) {
             for (Symbol symbol : cu.getTopLevelSymbols()) {
                 if (!symbol.isDeclaredBy(Declarator.GLOBAL) || !symbol.getName().startsWith(toBeCompleted))
                     continue;
