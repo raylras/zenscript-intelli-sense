@@ -94,17 +94,45 @@ public class CompletionProvider {
             completeAutoImportedStaticMethod();
             completeKeywords();
         } else {
+            completeQualifiedName();
+        }
+    }
+
+    private void completeQualifiedName() {
+        QualifiedNameContext qualifierExpr = completionNode.getQualifiedName();
+        String qualifiedName = Nodes.getTextBefore(qualifierExpr, cursor.startLine, cursor.startColumn);
+
+        if (!completionNode.completingString.isEmpty() || qualifiedName.endsWith(".")) {
+            qualifiedName = StringUtils.getPackageName(qualifiedName);
+        }
+
+        if (Strings.isNullOrEmpty(qualifiedName)) {
             completeLocalSymbols(s -> s.getKind().isClass());
             completeGlobalSymbols(s -> s.getKind().isClass(), true);
             completeAutoImportedClass();
+        } else {
+            Tuple<String, Collection<String>> possiblePackage = MemberUtils.findPackages(unit, qualifiedName);
+
+            for (String child : possiblePackage.second) {
+                addItem(makePackage(child, false));
+            }
+            if (possiblePackage.first != null) {
+                for (Symbol member : unit.environment().getSymbolsOfPackage(possiblePackage.first)) {
+                    addItem(makeItem(member));
+                }
+            }
+
         }
     }
 
     private void completeImport() {
 
-        QualifiedNameContext qualifierExpr = ((ImportDeclarationContext) completionNode.node).qualifiedName();
-        String partialName = Nodes.getTextBefore(qualifierExpr, cursor.startLine, cursor.startColumn);
-        String qualifiedName = StringUtils.getPackageName(partialName);
+        QualifiedNameContext qualifierExpr = completionNode.getQualifiedName();
+        String qualifiedName = Nodes.getTextBefore(qualifierExpr, cursor.startLine, cursor.startColumn);
+
+        if (!completionNode.completingString.isEmpty() || qualifiedName.endsWith(".")) {
+            qualifiedName = StringUtils.getPackageName(qualifiedName);
+        }
 
         if (Strings.isNullOrEmpty(qualifiedName)) {
             completeGlobalSymbols(s -> !s.isDeclaredBy(Declarator.GLOBAL), true);

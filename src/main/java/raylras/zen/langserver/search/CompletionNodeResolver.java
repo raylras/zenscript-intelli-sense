@@ -88,11 +88,12 @@ public class CompletionNodeResolver extends AbstractPositionSearchResolver<Compl
 
     @Override
     public CompletionNode visitClassType(ZenScriptParser.ClassTypeContext ctx) {
-        if (!isNodeContainsCursor(ctx)) {
+        TerminalNode nextDOTNode = findNextDOT(ctx.qualifiedName());
+        if (!isNodeContainsCursor(ctx, nextDOTNode)) {
             return null;
         }
 
-        String completingString = getExprTextInQualifiedExpr(ctx.qualifiedName());
+        String completingString = getExprTextInQualifiedExpr(ctx.qualifiedName(), nextDOTNode != null);
         return new CompletionNode(CompletionKind.IDENTIFIER, ctx, completingString);
     }
 

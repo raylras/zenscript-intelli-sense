@@ -29,6 +29,18 @@ public class CompletionNode {
         return null;
     }
 
+
+    public ZenScriptParser.QualifiedNameContext getQualifiedName() {
+        if (node instanceof ZenScriptParser.ImportDeclarationContext) {
+            return ((ZenScriptParser.ImportDeclarationContext) node).qualifiedName();
+        } else if (node instanceof ZenScriptParser.ExpandFunctionDeclarationContext) {
+            return ((ZenScriptParser.ExpandFunctionDeclarationContext) node).qualifiedName();
+        } else if (node instanceof ZenScriptParser.ClassTypeContext) {
+            return ((ZenScriptParser.ClassTypeContext) node).qualifiedName();
+        }
+        return null;
+    }
+
     public boolean isEndsWithParen() {
         ParseTree next = Nodes.getNextNode(node);
         return next instanceof TerminalNode && ((TerminalNode) next).getSymbol().getType() == ZenScriptParser.PAREN_OPEN;
