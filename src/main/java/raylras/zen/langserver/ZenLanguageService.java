@@ -1,29 +1,24 @@
 package raylras.zen.langserver;
 
-import org.antlr.v4.runtime.CharStreams;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
-import raylras.zen.code.CompilationContext;
+import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.langserver.provider.CompletionProvider;
 import raylras.zen.langserver.provider.SemanticTokensProvider;
 import raylras.zen.util.Utils;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Stream;
 
 public class ZenLanguageService implements TextDocumentService, WorkspaceService {
 
     public ZenLanguageServer server;
-    public CompilationContext context;
+    public CompilationEnvironment env;
 
     public ZenLanguageService(ZenLanguageServer server) {
         this.server = server;
@@ -33,14 +28,14 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public void didOpen(DidOpenTextDocumentParams params) {
-        checkContext(params.getTextDocument().getUri());
+        checkEnvironment(params.getTextDocument().getUri());
     }
 
     @Override
     public void didChange(DidChangeTextDocumentParams params) {
-        CompilationUnit unit = getCompilationUnit(params.getTextDocument().getUri());
+        CompilationUnit unit = getUnit(params.getTextDocument().getUri());
         String source = params.getContentChanges().get(0).getText();
-        loadCompilationUnit(unit, source);
+        unit.load(source);
     }
 
     @Override
@@ -53,7 +48,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
-        CompilationUnit unit = getCompilationUnit(params.getTextDocument().getUri());
+        CompilationUnit unit = getUnit(params.getTextDocument().getUri());
         SemanticTokens data = SemanticTokensProvider.semanticTokensFull(unit, params);
         return CompletableFuture.completedFuture(data);
     }
@@ -76,7 +71,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
-        CompilationUnit unit = getCompilationUnit(params.getTextDocument().getUri());
+        CompilationUnit unit = getUnit(params.getTextDocument().getUri());
         List<CompletionItem> data = CompletionProvider.completion(unit, params);
         return CompletableFuture.completedFuture(Either.forLeft(data));
     }
@@ -101,16 +96,16 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
             CompilationUnit unit;
             switch (event.getType()) {
                 case Created:
-                    unit = new CompilationUnit(documentPath, context);
-                    loadCompilationUnit(unit);
-                    context.addCompilationUnit(unit);
+                    unit = new CompilationUnit(documentPath, env);
+                    unit.load();
+                    env.addUnit(unit);
                     break;
                 case Changed:
-                    unit = context.getCompilationUnit(documentPath);
-                    loadCompilationUnit(unit);
+                    unit = env.getUnit(documentPath);
+                    unit.load();
                     break;
                 case Deleted:
-                    context.removeCompilationUnit(documentPath);
+                    env.removeUnit(documentPath);
                     break;
             }
         });
@@ -128,52 +123,25 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     /* End Workspace Service */
 
-
-    private void checkContext(String uri) {
+    private void checkEnvironment(String uri) {
         Path documentPath = Utils.toPath(uri);
-        if (context != null && Objects.equals(documentPath, context.compilationRoot)) {
+        if (env != null && Objects.equals(documentPath, env.compilationRoot)) {
             return;
         }
-        createCompilationContext(documentPath);
+        createEnvironment(documentPath);
     }
 
-    private void createCompilationContext(Path documentPath) {
+    private void createEnvironment(Path documentPath) {
         Path compilationRoot = Utils.findUpwards(documentPath, "scripts");
         if (compilationRoot == null)
             compilationRoot = documentPath;
-        context = new CompilationContext(compilationRoot);
-        loadCompilationUnits(context);
+        env = new CompilationEnvironment(compilationRoot);
+        env.load();
     }
 
-    private void loadCompilationUnits(CompilationContext context) {
-        try (Stream<Path> pathStream = Files.walk(context.compilationRoot)) {
-            pathStream.filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(CompilationUnit.FILE_EXTENSION))
-                    .forEach(unitPath -> {
-                        CompilationUnit unit = new CompilationUnit(unitPath, context);
-                        loadCompilationUnit(unit);
-                        context.addCompilationUnit(unit);
-                    });
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void loadCompilationUnit(CompilationUnit unit) {
-        try {
-            unit.load(CharStreams.fromPath(unit.path, StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    private void loadCompilationUnit(CompilationUnit unit, String source) {
-        unit.load(CharStreams.fromString(source, String.valueOf(unit.path)));
-    }
-
-    private CompilationUnit getCompilationUnit(String uri) {
+    private CompilationUnit getUnit(String uri) {
         Path documentPath = Utils.toPath(uri);
-        return context.getCompilationUnit(documentPath);
+        return env.getUnit(documentPath);
     }
 
 }

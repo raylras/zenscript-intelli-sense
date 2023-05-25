@@ -25,7 +25,7 @@ public class ExpressionTypeResolver extends Visitor<Type> {
 
     @Override
     public Type visitLocalAccessExpr(LocalAccessExprContext ctx) {
-        return unit.lookupType(ctx);
+        return AnyType.INSTANCE;
     }
 
     @Override
@@ -52,7 +52,7 @@ public class ExpressionTypeResolver extends Visitor<Type> {
             return leftType;
 
         for (Symbol member : symbol.getMembers()) {
-            if (Objects.equals(member.getName(), simpleName)) {
+            if (Objects.equals(member.getSimpleName(), simpleName)) {
                 return member.getType();
             }
         }

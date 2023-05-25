@@ -22,7 +22,7 @@ public class ParseTreeProperty<V> {
         return annotations.remove(node);
     }
 
-	public Collection<V> getProperties() {
+	public Collection<V> values() {
 		return annotations.values();
 	}
 

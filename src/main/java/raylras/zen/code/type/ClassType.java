@@ -18,7 +18,7 @@ public class ClassType extends Type {
 
     @Override
     public Symbol lookupSymbol(CompilationUnit unit) {
-        return unit.lookupSymbol(qualifiedName);
+        return null;
     }
 
     @Override

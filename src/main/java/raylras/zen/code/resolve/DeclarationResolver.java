@@ -9,7 +9,7 @@ import raylras.zen.code.symbol.*;
 import raylras.zen.util.ArrayStack;
 import raylras.zen.util.Stack;
 
-public class DefinitionResolver extends Listener {
+public class DeclarationResolver extends Listener {
 
     private final Stack<Scope> stack = new ArrayStack<>();
     private CompilationUnit unit;
@@ -20,7 +20,7 @@ public class DefinitionResolver extends Listener {
     }
 
     private void enterScope(Scope scope) {
-        unit.putScope(scope.owner, scope);
+        unit.putScope(scope.getOwner(), scope);
         stack.push(scope);
     }
 
@@ -33,7 +33,7 @@ public class DefinitionResolver extends Listener {
     }
 
     private void enterSymbol(Symbol symbol) {
-        unit.putSymbol(symbol.owner, symbol);
+        unit.putSymbol(symbol.getOwner(), symbol);
         currentScope().addSymbol(symbol);
     }
 

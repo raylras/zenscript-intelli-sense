@@ -63,9 +63,9 @@ public class CompletionProvider {
         Scope scope = unit.lookupScope(completingNode);
         if (scope == null)
             return ;
-        for (Symbol symbol : scope.symbols) {
-            if (symbol.getName().startsWith(completingString)) {
-                CompletionItem item = new CompletionItem(symbol.getName());
+        for (Symbol symbol : scope.getSymbols()) {
+            if (symbol.getSimpleName().startsWith(completingString)) {
+                CompletionItem item = new CompletionItem(symbol.getSimpleName());
                 item.setDetail(symbol.getType().toString());
                 item.setKind(getCompletionItemKind(symbol.getKind()));
                 data.add(item);
@@ -74,9 +74,9 @@ public class CompletionProvider {
     }
 
     private void completeGlobalSymbols() {
-        for (Symbol member : unit.context.getGlobals()) {
-            if (member.getName().startsWith(completingString)) {
-                CompletionItem item = new CompletionItem(member.getName());
+        for (Symbol member : unit.env.getGlobalSymbols()) {
+            if (member.getSimpleName().startsWith(completingString)) {
+                CompletionItem item = new CompletionItem(member.getSimpleName());
                 item.setDetail(member.getType().toString());
                 item.setKind(getCompletionItemKind(member.getKind()));
                 data.add(item);
@@ -102,8 +102,8 @@ public class CompletionProvider {
         for (Symbol member : target.getMembers()) {
             if (!member.isDeclaredBy(Declarator.STATIC))
                 continue;
-            if (member.getName().startsWith(completingString)) {
-                CompletionItem item = new CompletionItem(member.getName());
+            if (member.getSimpleName().startsWith(completingString)) {
+                CompletionItem item = new CompletionItem(member.getSimpleName());
                 item.setDetail("static " + member.getType().toString());
                 item.setKind(getCompletionItemKind(member.getKind()));
                 data.add(item);
@@ -117,8 +117,8 @@ public class CompletionProvider {
         for (Symbol member : target.getMembers()) {
             if (member.isDeclaredBy(Declarator.STATIC))
                 continue;
-            if (member.getName().startsWith(completingString)) {
-                CompletionItem item = new CompletionItem(member.getName());
+            if (member.getSimpleName().startsWith(completingString)) {
+                CompletionItem item = new CompletionItem(member.getSimpleName());
                 item.setDetail(member.getType().toString());
                 item.setKind(getCompletionItemKind(member.getKind()));
                 data.add(item);

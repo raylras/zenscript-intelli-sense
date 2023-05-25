@@ -18,8 +18,13 @@ public class VariableSymbol extends Symbol {
     }
 
     @Override
-    public String getName() {
+    public String getSimpleName() {
         return new NameResolver().resolve(owner);
+    }
+
+    @Override
+    public String getQualifiedName() {
+        return getSimpleName();
     }
 
     @Override
@@ -35,16 +40,6 @@ public class VariableSymbol extends Symbol {
     @Override
     public List<Symbol> getMembers() {
         return Collections.emptyList();
-    }
-
-    @Override
-    public Declarator getDeclarator() {
-        return new DeclaratorResolver().resolve(owner);
-    }
-
-    @Override
-    public boolean isDeclaredBy(Declarator declarator) {
-        return declarator == getDeclarator();
     }
 
 }

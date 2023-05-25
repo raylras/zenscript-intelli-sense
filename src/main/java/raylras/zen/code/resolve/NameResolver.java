@@ -23,23 +23,20 @@ public class NameResolver extends Visitor<String> {
 
     @Override
     public String visitImportDeclaration(ImportDeclarationContext ctx) {
-        String name = visitAlias(ctx.alias());
-        if (name == null) {
-            int lastNameIndex = ctx.qualifiedName().simpleName().size() - 1;
-            name = visitSimpleName(ctx.qualifiedName().simpleName(lastNameIndex));
-        }
-        return name;
+        return visitQualifiedName(ctx.qualifiedName());
     }
 
     @Override
     public String visitQualifiedName(QualifiedNameContext ctx) {
-        if (ctx == null) return null;
+        if (ctx == null)
+            return null;
         return ctx.getText();
     }
 
     @Override
     public String visitAlias(AliasContext ctx) {
-        if (ctx == null) return null;
+        if (ctx == null)
+            return null;
         return ctx.getText();
     }
 
@@ -47,10 +44,10 @@ public class NameResolver extends Visitor<String> {
     public String visitSimpleName(SimpleNameContext ctx) {
         if (ctx == null)
             return null;
-        TerminalNode termNode = ctx.IDENTIFIER();
-        if (termNode == null)
-            termNode = ctx.TO();
-        return visitTerminal(termNode);
+        TerminalNode nameNode = ctx.IDENTIFIER();
+        if (nameNode == null)
+            nameNode = ctx.TO();
+        return visitTerminal(nameNode);
     }
 
     @Override
@@ -75,7 +72,7 @@ public class NameResolver extends Visitor<String> {
 
     @Override
     public String visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
-        return ZenScriptLexer.VOCABULARY.getLiteralName(ZenScriptLexer.ZEN_CONSTRUCTOR);
+        return visitTerminal(ctx.ZEN_CONSTRUCTOR());
     }
 
     @Override

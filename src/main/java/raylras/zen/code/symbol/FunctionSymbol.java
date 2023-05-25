@@ -19,8 +19,13 @@ public class FunctionSymbol extends Symbol {
     }
 
     @Override
-    public String getName() {
+    public String getSimpleName() {
         return new NameResolver().resolve(owner);
+    }
+
+    @Override
+    public String getQualifiedName() {
+        return getSimpleName();
     }
 
     @Override
