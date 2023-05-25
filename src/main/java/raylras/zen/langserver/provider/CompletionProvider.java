@@ -2,6 +2,7 @@ package raylras.zen.langserver.provider;
 
 import com.google.common.base.Predicate;
 import com.google.common.base.Strings;
+import org.antlr.v4.runtime.Token;
 import org.eclipse.lsp4j.*;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.symbol.Declarator;
@@ -148,7 +149,11 @@ public class CompletionProvider {
         if (!TypeUtils.isValidType(qualifierType.second)) {
             String text = qualifierExpr.getText();
             Tuple<String, Collection<String>> possiblePackage = MemberUtils.findPackages(unit, text);
-            addPackageAndChildren(possiblePackage.first, possiblePackage.second, endWithParen);
+            boolean success = addPackageAndChildren(possiblePackage.first, possiblePackage.second, endWithParen);
+
+            if (!success) {
+                logger.warn("Could not find members of expression, no such type or package: " + qualifierExpr.getText());
+            }
             return;
         }
 
@@ -156,10 +161,12 @@ public class CompletionProvider {
         addMemberAccess(qualifierType.second, qualifierType.first, endWithParen);
     }
 
-    private void addPackageAndChildren(@Nullable String packageName, Collection<String> childPackages, boolean endsWithParen) {
+    private boolean addPackageAndChildren(@Nullable String packageName, Collection<String> childPackages, boolean endsWithParen) {
+        boolean isEmpty = true;
         if (packageName != null) {
 
             for (Symbol member : unit.environment().getSymbolsOfPackage(packageName)) {
+                isEmpty = false;
                 if (member.getKind().isFunction()) {
                     items.add(makeFunction((FunctionSymbol) member, !endsWithParen));
                 } else {
@@ -168,8 +175,10 @@ public class CompletionProvider {
             }
         }
         for (String child : childPackages) {
+            isEmpty = false;
             items.add(makePackage(child, false));
         }
+        return !isEmpty;
     }
 
     private void completeDefault() {
@@ -349,20 +358,43 @@ public class CompletionProvider {
 
     private Range getImportInsertPlace() {
         List<ImportDeclarationContext> imports = ((CompilationUnitContext) unit.getParseTree()).importDeclaration();
-        ImportDeclarationContext last = imports.get(imports.size() - 1);
 
-        int line = last.stop.getLine() - 1;
-        int column = last.stop.getCharPositionInLine() + last.stop.getText().length();
+        if (!imports.isEmpty()) {
+            ImportDeclarationContext last = imports.get(imports.size() - 1);
 
-        return new Range(line, column + 1, line, column + 1);
+            int line = last.stop.getLine() - 1;
+            int column = last.stop.getCharPositionInLine() + last.stop.getText().length();
+
+            return new Range(line, column + 1, line, column + 1);
+        }
+        // no imports, add before first node
+        Token start = ((CompilationUnitContext) unit.getParseTree()).start;
+
+        List<Token> preprocessors = unit.getTokenStream().getHiddenTokensToLeft(start.getTokenIndex(), ZenScriptLexer.PREPROCESSOR_CHANNEL);
+        if (!preprocessors.isEmpty()) {
+            Token last = preprocessors.get(preprocessors.size() - 1);
+
+            int line = last.getLine() - 1;
+            int column = last.getCharPositionInLine() + last.getText().length();
+
+            return new Range(line, column + 1, line, column + 1);
+        }
+
+        // import at first line
+        return new Range(0, 0, 0, 0);
 
     }
 
     private List<TextEdit> makeAutoImports(ClassSymbol symbol) {
         TextEdit textEdit = new TextEdit();
 
-        textEdit.setRange(Ranges.toLSPRange(getImportInsertPlace()));
-        textEdit.setNewText("\nimport " + symbol.getQualifiedName() + ";");
+        Range range = getImportInsertPlace();
+        textEdit.setRange(Ranges.toLSPRange(range));
+        if (range.startColumn == 0) {
+            textEdit.setNewText("import " + symbol.getQualifiedName() + ";\n");
+        } else {
+            textEdit.setNewText("\nimport " + symbol.getQualifiedName() + ";");
+        }
         return Collections.singletonList(textEdit);
     }
 
