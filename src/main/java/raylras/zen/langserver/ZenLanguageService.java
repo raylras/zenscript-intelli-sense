@@ -12,28 +12,28 @@ import raylras.zen.util.Utils;
 
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 public class ZenLanguageService implements TextDocumentService, WorkspaceService {
 
     public ZenLanguageServer server;
-    public CompilationEnvironment env;
+    public WorkspaceManager manager;
 
     public ZenLanguageService(ZenLanguageServer server) {
         this.server = server;
+        this.manager = new WorkspaceManager();
     }
 
     /* Text Document Service */
 
     @Override
     public void didOpen(DidOpenTextDocumentParams params) {
-        checkEnvironment(params.getTextDocument().getUri());
+        manager.checkEnv(Utils.toPath(params.getTextDocument().getUri()));
     }
 
     @Override
     public void didChange(DidChangeTextDocumentParams params) {
-        CompilationUnit unit = getUnit(params.getTextDocument().getUri());
+        CompilationUnit unit = manager.getUnit(Utils.toPath(params.getTextDocument().getUri()));
         String source = params.getContentChanges().get(0).getText();
         unit.load(source);
     }
@@ -48,7 +48,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
-        CompilationUnit unit = getUnit(params.getTextDocument().getUri());
+        CompilationUnit unit = manager.getUnit(Utils.toPath(params.getTextDocument().getUri()));
         SemanticTokens data = SemanticTokensProvider.semanticTokensFull(unit, params);
         return CompletableFuture.completedFuture(data);
     }
@@ -71,7 +71,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
-        CompilationUnit unit = getUnit(params.getTextDocument().getUri());
+        CompilationUnit unit = manager.getUnit(Utils.toPath(params.getTextDocument().getUri()));
         List<CompletionItem> data = CompletionProvider.completion(unit, params);
         return CompletableFuture.completedFuture(Either.forLeft(data));
     }
@@ -93,16 +93,14 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
         params.getChanges().forEach(event -> {
             Path documentPath = Utils.toPath(event.getUri());
-            CompilationUnit unit;
+            manager.checkEnv(documentPath);
+            CompilationEnvironment env = manager.getEnv(documentPath);
             switch (event.getType()) {
                 case Created:
-                    unit = new CompilationUnit(documentPath, env);
-                    unit.load();
-                    env.addUnit(unit);
+                    env.createUnit(documentPath);
                     break;
                 case Changed:
-                    unit = env.getUnit(documentPath);
-                    unit.load();
+                    env.getUnit(documentPath).load();
                     break;
                 case Deleted:
                     env.removeUnit(documentPath);
@@ -114,34 +112,21 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public void didChangeWorkspaceFolders(DidChangeWorkspaceFoldersParams params) {
         params.getEvent().getRemoved().forEach(workspace -> {
+            manager.removeWorkspace(Utils.toPath(workspace.getUri()));
             server.log("Removed workspace: " + workspace);
         });
         params.getEvent().getAdded().forEach(workspace -> {
+            manager.addWorkspace(Utils.toPath(workspace.getUri()));
             server.log("Added workspace: " + workspace);
         });
     }
 
     /* End Workspace Service */
 
-    private void checkEnvironment(String uri) {
-        Path documentPath = Utils.toPath(uri);
-        if (env != null && Objects.equals(documentPath, env.compilationRoot)) {
-            return;
+    public void initializeWorkspaces(List<WorkspaceFolder> workspaces) {
+        for (WorkspaceFolder folder : workspaces) {
+            manager.addWorkspace(Utils.toPath(folder.getUri()));
         }
-        createEnvironment(documentPath);
-    }
-
-    private void createEnvironment(Path documentPath) {
-        Path compilationRoot = Utils.findUpwards(documentPath, "scripts");
-        if (compilationRoot == null)
-            compilationRoot = documentPath;
-        env = new CompilationEnvironment(compilationRoot);
-        env.load();
-    }
-
-    private CompilationUnit getUnit(String uri) {
-        Path documentPath = Utils.toPath(uri);
-        return env.getUnit(documentPath);
     }
 
 }

@@ -19,6 +19,10 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
     }
 
     @Override
+    public void setTrace(SetTraceParams params) {
+    }
+
+    @Override
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
         ServerCapabilities capabilities = new ServerCapabilities();
         capabilities.setTextDocumentSync(TextDocumentSyncKind.Full);
@@ -39,6 +43,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 //        capabilities.setHoverProvider(true);
 //        capabilities.setRenameProvider(true);
         L10N.setLocale(params.getLocale());
+        service.initializeWorkspaces(params.getWorkspaceFolders());
         return CompletableFuture.completedFuture(new InitializeResult(capabilities));
     }
 

@@ -11,14 +11,16 @@ import java.util.stream.Stream;
 
 public class CompilationEnvironment {
 
-    public final Path compilationRoot;
+    public final Path root;
     private final Map<Path, CompilationUnit> unitMap = new HashMap<>();
 
-    public CompilationEnvironment(Path compilationRoot) {
-        this.compilationRoot = compilationRoot;
+    public CompilationEnvironment(Path root) {
+        this.root = root;
     }
 
-    public void addUnit(CompilationUnit unit) {
+    public void createUnit(Path documentPath) {
+        CompilationUnit unit = new CompilationUnit(documentPath, this);
+        unit.load();
         unitMap.put(unit.path, unit);
     }
 
@@ -43,17 +45,22 @@ public class CompilationEnvironment {
 
     public void load() {
         unitMap.clear();
-        try (Stream<Path> pathStream = Files.walk(compilationRoot)) {
+        try (Stream<Path> pathStream = Files.walk(root)) {
             pathStream.filter(Files::isRegularFile)
                     .filter(path -> path.toString().endsWith(CompilationUnit.FILE_EXTENSION))
                     .forEach(unitPath -> {
                         CompilationUnit unit = new CompilationUnit(unitPath, this);
                         unit.load();
-                        addUnit(unit);
+                        unitMap.put(unit.path, unit);
                     });
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public String toString() {
+        return root.toString();
     }
 
 }

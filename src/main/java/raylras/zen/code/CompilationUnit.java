@@ -102,4 +102,9 @@ public class CompilationUnit {
         parseTree = parser.compilationUnit();
     }
 
+    @Override
+    public String toString() {
+        return path.toString();
+    }
+
 }
