@@ -41,7 +41,7 @@ public class CompletionProvider {
     }
 
     public static List<CompletionItem> completion(CompilationUnit unit, CompletionParams params) {
-        ParseTree completingNode = getNodeAtPosition(unit.parseTree, params.getPosition());
+        ParseTree completingNode = getNodeAtPosition(unit.getParseTree(), params.getPosition());
         String completingString = getCompletingString(completingNode);
         CompletionProvider provider = new CompletionProvider(unit, completingNode, completingString);
         provider.complete();
@@ -74,7 +74,7 @@ public class CompletionProvider {
     }
 
     private void completeGlobalSymbols() {
-        for (Symbol member : unit.env.getGlobalSymbols()) {
+        for (Symbol member : unit.getEnv().getGlobalSymbols()) {
             if (member.getSimpleName().startsWith(completingString)) {
                 CompletionItem item = new CompletionItem(member.getSimpleName());
                 item.setDetail(member.getType().toString());

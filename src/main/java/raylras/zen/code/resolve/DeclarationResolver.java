@@ -16,7 +16,7 @@ public class DeclarationResolver extends Listener {
 
     public void resolve(CompilationUnit unit) {
         this.unit = unit;
-        ParseTreeWalker.DEFAULT.walk(this, unit.parseTree);
+        ParseTreeWalker.DEFAULT.walk(this, unit.getParseTree());
     }
 
     private void enterScope(Scope scope) {

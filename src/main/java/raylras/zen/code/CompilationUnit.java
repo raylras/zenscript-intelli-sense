@@ -21,13 +21,13 @@ public class CompilationUnit {
     public static final String FILE_EXTENSION = ".zs";
     public static final String DZS_FILE_EXTENSION = ".d.zs";
 
-    public final Path path;
-    public final CompilationEnvironment env;
-    public CommonTokenStream tokenStream;
-    public ParseTree parseTree;
-
+    private final Path path;
+    private final CompilationEnvironment env;
     private final ParseTreeProperty<Scope> scopeProp = new ParseTreeProperty<>();
     private final ParseTreeProperty<Symbol> symbolProp = new ParseTreeProperty<>();
+
+    private CommonTokenStream tokenStream;
+    private ParseTree parseTree;
 
     public CompilationUnit(Path path, CompilationEnvironment env) {
         this.path = path;
@@ -71,6 +71,22 @@ public class CompilationUnit {
 
     public Collection<Symbol> getTopLevelSymbols() {
         return getScope(parseTree).getSymbols();
+    }
+
+    public Path getPath() {
+        return path;
+    }
+
+    public CompilationEnvironment getEnv() {
+        return env;
+    }
+
+    public ParseTree getParseTree() {
+        return parseTree;
+    }
+
+    public CommonTokenStream getTokenStream() {
+        return tokenStream;
     }
 
     public boolean isDzs() {

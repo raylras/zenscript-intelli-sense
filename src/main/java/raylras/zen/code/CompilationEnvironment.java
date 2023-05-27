@@ -5,23 +5,26 @@ import raylras.zen.code.symbol.Symbol;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class CompilationEnvironment {
 
-    public final Path root;
+    private final Path root;
     private final Map<Path, CompilationUnit> unitMap = new HashMap<>();
 
     public CompilationEnvironment(Path root) {
         this.root = root;
     }
 
-    public void createUnit(Path documentPath) {
-        CompilationUnit unit = new CompilationUnit(documentPath, this);
+    public void createUnit(Path unitPath) {
+        CompilationUnit unit = new CompilationUnit(unitPath, this);
         unit.load();
-        unitMap.put(unit.path, unit);
+        unitMap.put(unit.getPath(), unit);
     }
 
     public CompilationUnit getUnit(Path unitPath) {
@@ -43,6 +46,10 @@ public class CompilationEnvironment {
                 .collect(Collectors.toList());
     }
 
+    public Path getRoot() {
+        return root;
+    }
+
     public void load() {
         unitMap.clear();
         try (Stream<Path> pathStream = Files.walk(root)) {
@@ -51,7 +58,7 @@ public class CompilationEnvironment {
                     .forEach(unitPath -> {
                         CompilationUnit unit = new CompilationUnit(unitPath, this);
                         unit.load();
-                        unitMap.put(unit.path, unit);
+                        unitMap.put(unit.getPath(), unit);
                     });
         } catch (IOException e) {
             throw new RuntimeException(e);

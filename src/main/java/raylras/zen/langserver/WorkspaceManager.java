@@ -20,7 +20,7 @@ public class WorkspaceManager {
 
     public void removeWorkspace(Path workspacePath) {
         workspaceList.remove(workspacePath);
-        compilationList.removeIf(env -> Utils.isSubPath(workspacePath, env.root));
+        compilationList.removeIf(env -> Utils.isSubPath(workspacePath, env.getRoot()));
     }
 
     public CompilationUnit getUnit(Path documentPath) {
@@ -32,7 +32,7 @@ public class WorkspaceManager {
 
     public CompilationEnvironment getEnv(Path documentPath) {
         for (CompilationEnvironment env : compilationList) {
-            if (Utils.isSubPath(env.root, documentPath))
+            if (Utils.isSubPath(env.getRoot(), documentPath))
                 return env;
         }
         return null;
@@ -42,7 +42,7 @@ public class WorkspaceManager {
         CompilationEnvironment env = getEnv(documentPath);
         if (env == null) {
             createEnv(documentPath);
-        } else if (Files.notExists(env.root)) {
+        } else if (Files.notExists(env.getRoot())) {
             removeEnv(env);
         }
     }
