@@ -1,6 +1,5 @@
 package raylras.zen.code.resolve;
 
-import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Listener;
 import raylras.zen.code.parser.ZenScriptParser.*;
@@ -16,7 +15,7 @@ public class DeclarationResolver extends Listener {
 
     public void resolve(CompilationUnit unit) {
         this.unit = unit;
-        ParseTreeWalker.DEFAULT.walk(this, unit.getParseTree());
+        unit.accept(this);
     }
 
     private void enterScope(Scope scope) {

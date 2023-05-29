@@ -7,9 +7,9 @@ import java.util.Queue;
 
 public class Nodes {
 
-    public static ParseTree getNodeAtPosition(ParseTree start, int line, int column) {
+    public static ParseTree getNodeAtPosition(ParseTree root, int line, int column) {
         Queue<ParseTree> queue = new ArrayDeque<>();
-        queue.add(start);
+        queue.add(root);
         ParseTree found = null;
         while (!queue.isEmpty()) {
             ParseTree node = queue.poll();

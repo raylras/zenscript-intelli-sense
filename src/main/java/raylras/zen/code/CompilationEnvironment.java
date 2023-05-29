@@ -52,14 +52,10 @@ public class CompilationEnvironment {
 
     public void load() {
         unitMap.clear();
-        try (Stream<Path> pathStream = Files.walk(root)) {
-            pathStream.filter(Files::isRegularFile)
-                    .filter(path -> path.toString().endsWith(CompilationUnit.FILE_EXTENSION))
-                    .forEach(unitPath -> {
-                        CompilationUnit unit = new CompilationUnit(unitPath, this);
-                        unit.load();
-                        unitMap.put(unit.getPath(), unit);
-                    });
+        try (Stream<Path> walk = Files.walk(root)) {
+            walk.filter(Files::isRegularFile)
+                .filter(path -> path.toString().endsWith(CompilationUnit.FILE_EXTENSION))
+                .forEach(this::createUnit);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

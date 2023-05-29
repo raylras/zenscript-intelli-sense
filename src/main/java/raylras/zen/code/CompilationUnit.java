@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.resolve.DeclarationResolver;
@@ -112,10 +113,23 @@ public class CompilationUnit {
 
     public void parse(CharStream charStream) {
         ZenScriptLexer lexer = new ZenScriptLexer(charStream);
+        lexer.removeErrorListeners();
         tokenStream = new CommonTokenStream(lexer);
         ZenScriptParser parser = new ZenScriptParser(tokenStream);
         parser.removeErrorListeners();
         parseTree = parser.compilationUnit();
+    }
+
+    public <T> T accept(Visitor<T> visitor) {
+        if (parseTree == null)
+            return null;
+        return parseTree.accept(visitor);
+    }
+
+    public void accept(Listener listener) {
+        if (parseTree == null)
+            return;
+        ParseTreeWalker.DEFAULT.walk(listener, parseTree);
     }
 
     @Override
