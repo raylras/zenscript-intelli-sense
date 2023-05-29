@@ -36,9 +36,9 @@ public class Ranges {
     }
 
     public static Range from(ParserRuleContext node) {
-        int startLine = (node.start.getLine() - 1);
+        int startLine = node.start.getLine() - Range.ANTLR_FIRST_LINE;
         int startColumn = node.start.getCharPositionInLine();
-        int endLine = (node.stop.getLine() - 1);
+        int endLine = node.stop.getLine() - Range.ANTLR_FIRST_LINE;
         int endColumn = node.stop.getCharPositionInLine() + node.stop.getText().length();
         return new Range(startLine, startColumn, endLine, endColumn);
     }
@@ -48,7 +48,7 @@ public class Ranges {
     }
 
     public static Range from(Token node) {
-        int startLine = (node.getLine() - 1);
+        int startLine = node.getLine() - Range.ANTLR_FIRST_LINE;
         int startColumn = node.getCharPositionInLine();
         int endColumn = startColumn + node.getText().length();
         return new Range(startLine, startColumn, startLine, endColumn);

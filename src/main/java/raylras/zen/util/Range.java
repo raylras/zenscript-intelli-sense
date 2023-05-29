@@ -10,6 +10,11 @@ public class Range {
     public static final int NO_COLUMN = -1;
     public static final Range NO_RANGE = new Range(NO_LINE, NO_COLUMN, NO_LINE, NO_COLUMN);
 
+    public static final int ANTLR_FIRST_LINE = 1; // org.antlr.v4.runtime.Token.getLine()
+    public static final int ANTLR_FIRST_COLUMN = 0; // org.antlr.v4.runtime.Token.getCharPositionInLine()
+    public static final int LSP4J_FIRST_LINE = 0; // org.eclipse.lsp4j.Position.getLine()
+    public static final int LSP4J_FIRST_COLUMN = 0; // org.eclipse.lsp4j.Position.getCharacter()
+
     public final int startLine;
     public final int startColumn;
     public final int endLine;
