@@ -72,8 +72,8 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
         CompilationUnit unit = manager.getUnit(Utils.toPath(params.getTextDocument().getUri()));
-        List<CompletionItem> data = CompletionProvider.completion(unit, params);
-        return CompletableFuture.completedFuture(Either.forLeft(data));
+        CompletionList data = CompletionProvider.completion(unit, params);
+        return CompletableFuture.completedFuture(Either.forRight(data));
     }
 
     @Override
