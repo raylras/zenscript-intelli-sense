@@ -3,6 +3,8 @@ package raylras.zen.code.symbol;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Declarator;
+import raylras.zen.code.annotation.Annotation;
+import raylras.zen.code.resolve.AnnotationResolver;
 import raylras.zen.code.resolve.DeclaratorResolver;
 import raylras.zen.code.resolve.DeclaredNameResolver;
 import raylras.zen.code.type.Type;
@@ -35,6 +37,17 @@ public abstract class Symbol {
 
     public boolean isDeclaredBy(Declarator declarator) {
         return declarator == getDeclarator();
+    }
+
+    public Annotation getDeclaredAnnotation(String header) {
+        return getDeclaredAnnotations().stream()
+                .filter(anno -> anno.isAnnotation(header))
+                .findFirst()
+                .orElse(null);
+    }
+
+    public List<Annotation> getDeclaredAnnotations() {
+        return new AnnotationResolver(unit).resolve(owner);
     }
 
     public ParseTree getOwner() {

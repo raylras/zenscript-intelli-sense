@@ -3,8 +3,10 @@ package raylras.zen.code;
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
+import raylras.zen.code.annotation.Annotation;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.resolve.DeclarationResolver;
@@ -16,6 +18,8 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class CompilationUnit {
 
@@ -72,6 +76,14 @@ public class CompilationUnit {
 
     public Collection<Symbol> getTopLevelSymbols() {
         return getScope(parseTree).getSymbols();
+    }
+
+    public List<Annotation> getDeclaredAnnotations() {
+        List<Token> annoTokens = tokenStream.getHiddenTokensToRight(0, ZenScriptLexer.PREPROCESSOR_CHANNEL);
+        return annoTokens.stream()
+                .map(Token::getText)
+                .map(Annotation::create)
+                .collect(Collectors.toList());
     }
 
     public Path getPath() {
