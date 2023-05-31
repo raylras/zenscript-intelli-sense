@@ -2,7 +2,6 @@ package raylras.zen.code.symbol;
 
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.parser.ZenScriptParser.ImportDeclarationContext;
-import raylras.zen.code.resolve.NameResolver;
 import raylras.zen.code.type.AnyType;
 import raylras.zen.code.type.Type;
 
@@ -13,18 +12,6 @@ public class ImportSymbol extends Symbol {
 
     public ImportSymbol(ImportDeclarationContext owner, CompilationUnit unit) {
         super(owner, unit);
-    }
-
-    @Override
-    public String getSimpleName() {
-        return getQualifiedName();
-    }
-
-    @Override
-    public String getQualifiedName() {
-        if (owner == null)
-            return "";
-        return new NameResolver().resolve(getOwner().qualifiedName());
     }
 
     @Override

@@ -4,6 +4,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Declarator;
 import raylras.zen.code.resolve.DeclaratorResolver;
+import raylras.zen.code.resolve.DeclaredNameResolver;
 import raylras.zen.code.type.Type;
 
 import java.util.List;
@@ -18,15 +19,15 @@ public abstract class Symbol {
         this.unit = unit;
     }
 
-    public abstract String getSimpleName();
-
-    public abstract String getQualifiedName();
-
     public abstract Type getType();
 
     public abstract Kind getKind();
 
     public abstract List<Symbol> getMembers();
+
+    public String getDeclaredName() {
+        return new DeclaredNameResolver().resolve(owner);
+    }
 
     public Declarator getDeclarator() {
         return new DeclaratorResolver().resolve(owner);
@@ -46,7 +47,7 @@ public abstract class Symbol {
 
     @Override
     public String toString() {
-        return getSimpleName();
+        return getDeclaredName();
     }
 
     public enum Kind {

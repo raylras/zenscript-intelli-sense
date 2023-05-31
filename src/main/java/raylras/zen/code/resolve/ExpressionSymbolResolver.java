@@ -25,7 +25,7 @@ public class ExpressionSymbolResolver extends Visitor<Symbol> {
     @Override
     public Symbol visitLocalAccessExpr(ZenScriptParser.LocalAccessExprContext ctx) {
         Scope scope = unit.lookupScope(ctx);
-        String simpleName = new NameResolver().resolve(ctx.simpleName());
+        String simpleName = new DeclaredNameResolver().resolve(ctx.identifier());
         return scope.lookupSymbol(simpleName);
     }
 
@@ -46,12 +46,12 @@ public class ExpressionSymbolResolver extends Visitor<Symbol> {
         if (leftSymbol == null)
             return null;
 
-        String simpleName = new NameResolver().resolve(ctx.simpleName());
+        String simpleName = new DeclaredNameResolver().resolve(ctx.identifier());
         if (simpleName == null)
             return leftSymbol;
 
         for (Symbol member : leftSymbol.getMembers()) {
-            if (simpleName.equals(member.getSimpleName())) {
+            if (simpleName.equals(member.getDeclaredName())) {
                 return member;
             }
         }

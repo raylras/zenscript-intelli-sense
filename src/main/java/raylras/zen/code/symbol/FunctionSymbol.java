@@ -2,7 +2,6 @@ package raylras.zen.code.symbol;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.resolve.NameResolver;
 import raylras.zen.code.resolve.ParamsResolver;
 import raylras.zen.code.resolve.ReturnTypeResolver;
 import raylras.zen.code.type.FunctionType;
@@ -16,16 +15,6 @@ public class FunctionSymbol extends Symbol {
 
     public FunctionSymbol(ParseTree owner, CompilationUnit unit) {
         super(owner, unit);
-    }
-
-    @Override
-    public String getSimpleName() {
-        return new NameResolver().resolve(owner);
-    }
-
-    @Override
-    public String getQualifiedName() {
-        return getSimpleName();
     }
 
     @Override

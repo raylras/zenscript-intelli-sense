@@ -34,7 +34,7 @@ public class ReturnTypeResolver extends Visitor<Type> {
 
     @Override
     public Type visitExpandFunctionDeclaration(ZenScriptParser.ExpandFunctionDeclarationContext ctx) {
-        Type type = new LiteralTypeResolver(unit).resolve(ctx.typeLiteral());
+        Type type = new LiteralTypeResolver(unit).resolve(ctx.Expand);
         if (type == null)
             type = AnyType.INSTANCE;
         return type;

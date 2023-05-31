@@ -47,12 +47,12 @@ public class ExpressionTypeResolver extends Visitor<Type> {
         if (symbol == null)
             return leftType;
 
-        String simpleName = new NameResolver().resolve(ctx.simpleName());
+        String simpleName = new DeclaredNameResolver().resolve(ctx.identifier());
         if (simpleName == null)
             return leftType;
 
         for (Symbol member : symbol.getMembers()) {
-            if (Objects.equals(member.getSimpleName(), simpleName)) {
+            if (Objects.equals(member.getDeclaredName(), simpleName)) {
                 return member.getType();
             }
         }

@@ -54,7 +54,7 @@ public class CompletionContextResolver extends Visitor<Void> {
     }
 
     @Override
-    public Void visitSimpleName(SimpleNameContext ctx) {
+    public Void visitIdentifier(IdentifierContext ctx) {
         completingString = ctx.getText();
         return null;
     }

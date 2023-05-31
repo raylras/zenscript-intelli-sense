@@ -3,10 +3,9 @@ package raylras.zen.code.resolve;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import raylras.zen.code.Visitor;
-import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
 
-public class NameResolver extends Visitor<String> {
+public class DeclaredNameResolver extends Visitor<String> {
 
     public String resolve(ParseTree node) {
         if (node == null)
@@ -37,11 +36,11 @@ public class NameResolver extends Visitor<String> {
     public String visitAlias(AliasContext ctx) {
         if (ctx == null)
             return null;
-        return ctx.getText();
+        return visitIdentifier(ctx.identifier());
     }
 
     @Override
-    public String visitSimpleName(SimpleNameContext ctx) {
+    public String visitIdentifier(IdentifierContext ctx) {
         if (ctx == null)
             return null;
         TerminalNode nameNode = ctx.IDENTIFIER();
@@ -52,17 +51,17 @@ public class NameResolver extends Visitor<String> {
 
     @Override
     public String visitFunctionDeclaration(FunctionDeclarationContext ctx) {
-        return visitSimpleName(ctx.simpleName());
+        return visitIdentifier(ctx.identifier());
     }
 
     @Override
     public String visitExpandFunctionDeclaration(ExpandFunctionDeclarationContext ctx) {
-        return visitSimpleName(ctx.simpleName());
+        return visitIdentifier(ctx.identifier());
     }
 
     @Override
     public String visitParameter(ParameterContext ctx) {
-        return visitSimpleName(ctx.simpleName());
+        return visitIdentifier(ctx.identifier());
     }
 
     @Override
@@ -77,17 +76,17 @@ public class NameResolver extends Visitor<String> {
 
     @Override
     public String visitVariableDeclaration(VariableDeclarationContext ctx) {
-        return visitSimpleName(ctx.simpleName());
+        return visitIdentifier(ctx.identifier());
     }
 
     @Override
     public String visitSimpleVariable(SimpleVariableContext ctx) {
-        return visitSimpleName(ctx.simpleName());
+        return visitIdentifier(ctx.identifier());
     }
 
     @Override
     public String visitLocalAccessExpr(LocalAccessExprContext ctx) {
-        return visitSimpleName(ctx.simpleName());
+        return visitIdentifier(ctx.identifier());
     }
 
 }

@@ -17,28 +17,32 @@ importDeclaration
     ;
 
 qualifiedName
-    : simpleName ('.' simpleName)*
+    : qualifier identifier
+    ;
+
+qualifier
+    : (identifier '.')*
     ;
 
 alias
-    : simpleName
+    : identifier
     ;
 
-simpleName
+identifier
     : IDENTIFIER
     | 'to'
     ;
 
 functionDeclaration
-    : Declarator='static'? 'function' simpleName '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody
+    : Declarator='static'? 'function' identifier '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody
     ;
 
 expandFunctionDeclaration
-    : Declarator='$expand' qualifiedName '$' simpleName '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody
+    : Declarator='$expand' Expand=typeLiteral '$' identifier '(' (parameter (',' parameter)*)? ')' ('as' Return=typeLiteral)? functionBody
     ;
 
 parameter
-    : simpleName ('as' typeLiteral)? ('=' defaultValue)?
+    : identifier ('as' typeLiteral)? ('=' defaultValue)?
     ;
 
 defaultValue
@@ -62,7 +66,7 @@ constructorBody
     ;
 
 variableDeclaration
-    : Declarator=('var' | 'val' | 'static' | 'global') simpleName ('as' typeLiteral)? ('=' initializer)? ';'
+    : Declarator=('var' | 'val' | 'static' | 'global') identifier ('as' typeLiteral)? ('=' initializer)? ';'
     ;
 
 initializer
@@ -114,7 +118,7 @@ foreachStatement
     ;
 
 simpleVariable
-    : simpleName
+    : identifier
     ;
 
 foreachBody
@@ -132,7 +136,7 @@ expressionStatement
 expression
     : 'function' '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody # FunctionExpr
     | Left=expression '(' (expression (',' expression)*)? ')' # CallExpr
-    | Left=expression Op='.' simpleName # MemberAccessExpr
+    | Left=expression Op='.' identifier # MemberAccessExpr
     | Left=expression '[' Index=expression ']' # ArrayIndexExpr
     | expression 'as' typeLiteral # TypeCastExpr
     | <assoc=right> Op=('!' | '-' | '+') expression # UnaryExpr
@@ -165,7 +169,7 @@ expression
     | TRUE_LITERAL # TrueLiteralExpr
     | FALSE_LITERAL # FalseLiteralExpr
     | NULL_LITERAL # NullLiteralExpr
-    | simpleName # LocalAccessExpr
+    | identifier # LocalAccessExpr
     ;
 
 argument
