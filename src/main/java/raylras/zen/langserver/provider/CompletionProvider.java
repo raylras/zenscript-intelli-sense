@@ -15,6 +15,7 @@ import raylras.zen.code.type.Type;
 import raylras.zen.l10n.L10N;
 import raylras.zen.langserver.provider.data.CompletionContext;
 import raylras.zen.langserver.provider.data.CompletionContextResolver;
+import raylras.zen.langserver.provider.data.Keywords;
 import raylras.zen.util.Range;
 import raylras.zen.util.Ranges;
 
@@ -23,12 +24,9 @@ import java.util.List;
 
 public class CompletionProvider {
 
-    private static final String[] KEYWORDS = makeKeywords();
-
     private final CompilationUnit unit;
     private final CompletionContext context;
     private final List<CompletionItem> data = new ArrayList<>();
-
     public CompletionProvider(CompilationUnit unit, CompletionContext context) {
         this.unit = unit;
         this.context = context;
@@ -42,33 +40,32 @@ public class CompletionProvider {
         return new CompletionList(provider.data);
     }
 
-    private static String[] makeKeywords() {
-        return new String[]{
-                "var", "val", "global", "static", "import", "function",
-                "as", "in", "has", "instanceof", "this", "super",
-                "any", "byte", "short", "int", "long", "float", "double",
-                "bool", "void", "string", "if", "else", "for", "do", "while",
-                "break", "continue", "return", "frigginClass", "frigginConstructor",
-                "zenClass", "zenConstructor", "$expand",
-                "true", "false", "null"
-        };
-    }
-
     private void complete() {
         switch (context.kind) {
             case IMPORT:
                 completeImport();
                 break;
 
+            case LOCAL_STATEMENT:
+                completeLocalSymbols();
+                completeGlobalSymbols();
+                completeKeywords(Keywords.LOCAL_STATEMENT);
+                break;
+
+            case TOPLEVEL_STATEMENT:
+                completeKeywords(Keywords.TOPLEVEL_STATEMENT);
+
             case LOCAL_ACCESS:
                 completeLocalSymbols();
                 completeGlobalSymbols();
-                completeKeywords();
-                break;
 
             case MEMBER_ACCESS:
                 // completeStaticMembers();
                 // completeInstanceMembers();
+                break;
+
+            case CLASS_BODY:
+                completeKeywords(Keywords.CLASS_BODY);
                 break;
 
             case NONE:
@@ -147,8 +144,8 @@ public class CompletionProvider {
         }
     }
 
-    private void completeKeywords() {
-        for (String keyword : KEYWORDS) {
+    private void completeKeywords(String[] keywords) {
+        for (String keyword : keywords) {
             if (keyword.startsWith(context.completingString)) {
                 CompletionItem item = new CompletionItem(keyword);
                 item.setKind(CompletionItemKind.Keyword);

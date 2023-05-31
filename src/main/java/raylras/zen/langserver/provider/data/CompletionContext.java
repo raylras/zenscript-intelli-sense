@@ -15,7 +15,11 @@ public class CompletionContext {
     }
 
     public enum Kind {
-        IMPORT, LOCAL_ACCESS, MEMBER_ACCESS, NONE,
+        IMPORT,
+        LOCAL_STATEMENT, TOPLEVEL_STATEMENT,
+        LOCAL_ACCESS, MEMBER_ACCESS,
+        CLASS_BODY,
+        NONE;
     }
 
 }
