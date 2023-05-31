@@ -8,6 +8,7 @@ import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.langserver.provider.CompletionProvider;
 import raylras.zen.langserver.provider.SemanticTokensProvider;
+import raylras.zen.util.Logger;
 import raylras.zen.util.Utils;
 
 import java.nio.file.Path;
@@ -16,6 +17,7 @@ import java.util.concurrent.CompletableFuture;
 
 public class ZenLanguageService implements TextDocumentService, WorkspaceService {
 
+    private static final Logger logger = Logger.getLogger("service");
     public ZenLanguageServer server;
     public WorkspaceManager manager;
 
@@ -113,11 +115,11 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     public void didChangeWorkspaceFolders(DidChangeWorkspaceFoldersParams params) {
         params.getEvent().getRemoved().forEach(workspace -> {
             manager.removeWorkspace(Utils.toPath(workspace.getUri()));
-            server.log("Removed workspace: " + workspace);
+            logger.info("Removed workspace: " + workspace);
         });
         params.getEvent().getAdded().forEach(workspace -> {
             manager.addWorkspace(Utils.toPath(workspace.getUri()));
-            server.log("Added workspace: " + workspace);
+            logger.info("Added workspace: " + workspace);
         });
     }
 

@@ -16,27 +16,40 @@ import raylras.zen.l10n.L10N;
 import raylras.zen.langserver.provider.data.CompletionContext;
 import raylras.zen.langserver.provider.data.CompletionContextResolver;
 import raylras.zen.langserver.provider.data.Keywords;
+import raylras.zen.util.Logger;
 import raylras.zen.util.Range;
 import raylras.zen.util.Ranges;
 
+import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 public class CompletionProvider {
 
+    private static final Logger logger = Logger.getLogger("completion");
     private final CompilationUnit unit;
     private final CompletionContext context;
     private final List<CompletionItem> data = new ArrayList<>();
+
     public CompletionProvider(CompilationUnit unit, CompletionContext context) {
         this.unit = unit;
         this.context = context;
     }
 
     public static CompletionList completion(CompilationUnit unit, CompletionParams params) {
+        Instant started = Instant.now();
         Range cursor = Ranges.from(params.getPosition());
         CompletionContext context = new CompletionContextResolver(unit, cursor).resolve();
+        if(context == null) {
+            logger.warn("Could not find completion context at (%d, %d)", params.getPosition().getLine(), params.getPosition().getCharacter());
+        } else {
+            logger.info("Completing for %s at (%d, %d) with string %s ...", context.kind, params.getPosition().getLine(), params.getPosition().getCharacter(), context.completingString);
+        }
+
         CompletionProvider provider = new CompletionProvider(unit, context);
         provider.complete();
+        logger.info("Completion finished in %d ms with %d candidates", Duration.between(started, Instant.now()).toMillis(), provider.data.size());
         return new CompletionList(provider.data);
     }
 

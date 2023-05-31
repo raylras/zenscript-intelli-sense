@@ -1,10 +1,13 @@
 package raylras.zen.code;
 
 import raylras.zen.code.symbol.Symbol;
+import raylras.zen.util.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -13,7 +16,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class CompilationEnvironment {
-
+    private static final Logger logger = Logger.getLogger("env");
     private final Path root;
     private final Map<Path, CompilationUnit> unitMap = new HashMap<>();
 
@@ -41,9 +44,9 @@ public class CompilationEnvironment {
 
     public List<Symbol> getGlobalSymbols() {
         return getUnits().stream()
-                .flatMap(unit -> unit.getTopLevelSymbols().stream())
-                .filter(symbol -> symbol.isDeclaredBy(Declarator.GLOBAL))
-                .collect(Collectors.toList());
+            .flatMap(unit -> unit.getTopLevelSymbols().stream())
+            .filter(symbol -> symbol.isDeclaredBy(Declarator.GLOBAL))
+            .collect(Collectors.toList());
     }
 
     public Path getRoot() {
@@ -51,6 +54,7 @@ public class CompilationEnvironment {
     }
 
     public void load() {
+        Instant started = Instant.now();
         unitMap.clear();
         try (Stream<Path> walk = Files.walk(root)) {
             walk.filter(Files::isRegularFile)
@@ -59,6 +63,7 @@ public class CompilationEnvironment {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+        logger.info("Environment loaded in %d ms: %s", Duration.between(started, Instant.now()).toMillis(), root);
     }
 
     @Override
