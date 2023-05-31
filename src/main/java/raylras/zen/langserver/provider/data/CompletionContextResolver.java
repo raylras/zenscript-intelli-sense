@@ -9,6 +9,7 @@ import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.langserver.provider.data.CompletionContext.Kind;
+import raylras.zen.util.DebugUtils;
 import raylras.zen.util.Range;
 import raylras.zen.util.Ranges;
 
@@ -28,6 +29,9 @@ public class CompletionContextResolver extends Visitor<Void> {
 
     public CompletionContext resolve() {
         unit.accept(this);
+        if(kind == null) {
+            kind = Kind.NONE;
+        }
         return new CompletionContext(kind, completingNode, completingString);
     }
 
@@ -55,7 +59,7 @@ public class CompletionContextResolver extends Visitor<Void> {
 
     @Override
     public Void visitIdentifier(IdentifierContext ctx) {
-        completingString = ctx.getText();
+        completingString = getTextBeforeCursor(ctx);
         return null;
     }
 
@@ -110,8 +114,12 @@ public class CompletionContextResolver extends Visitor<Void> {
 
     @Override
     public Void visitTerminal(TerminalNode node) {
+        // skip eof
+        if (node.getSymbol().getType() == ZenScriptLexer.EOF) {
+            return null;
+        }
         if (node.getSymbol().getType() != ZenScriptLexer.DOT) {
-            completingString = node.getText();
+            completingString = getTextBeforeCursor(node);
         } else {
             completingString = "";
         }
@@ -130,6 +138,20 @@ public class CompletionContextResolver extends Visitor<Void> {
 
     private boolean isCursorInsideNode(ParseTree node) {
         return Ranges.isRangeContainsPosition(Ranges.from(node), cursor.startLine, cursor.startColumn);
+    }
+
+
+    private String getTextBeforeCursor(ParseTree node) {
+        Range range = Ranges.from(node);
+        if (range.startLine != cursor.startLine || range.startLine != range.endLine) {
+            return null;
+        }
+        int length = cursor.startColumn - range.startColumn;
+        String text = node.getText();
+        if (length > 0 && length <= text.length()) {
+            return text.substring(0, length);
+        }
+        return null;
     }
 
 }
