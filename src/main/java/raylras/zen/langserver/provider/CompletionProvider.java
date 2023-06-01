@@ -6,8 +6,6 @@ import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.Declarator;
-import raylras.zen.code.resolve.ExpressionSymbolResolver;
 import raylras.zen.code.resolve.ExpressionTypeResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.Symbol;
@@ -115,24 +113,10 @@ public class CompletionProvider {
         }
     }
 
-    private void completeSymbolMembers(Symbol target) {
-        switch (target.getKind()) {
-            case CLASS:
-                completeStaticMembers(target.getType().lookupSymbol(unit));
-                break;
-            case VARIABLE:
-            default:
-                completeInstanceMembers(target.getType().lookupSymbol(unit));
-                break;
-        }
-    }
-
-    private void completeStaticMembers(Symbol target) {
+    private void completeStaticMembers(Type target) {
         if (target == null)
             return;
-        for (Symbol member : target.getMembers()) {
-            if (!member.isDeclaredBy(Declarator.STATIC))
-                continue;
+        for (Symbol member : target.getStaticMembers()) {
             if (member.getDeclaredName().startsWith(context.completingString)) {
                 CompletionItem item = new CompletionItem(member.getDeclaredName());
                 item.setDetail("static " + member.getType().toString());
@@ -142,12 +126,10 @@ public class CompletionProvider {
         }
     }
 
-    private void completeInstanceMembers(Symbol target) {
+    private void completeInstanceMembers(Type target) {
         if (target == null)
             return;
-        for (Symbol member : target.getMembers()) {
-            if (member.isDeclaredBy(Declarator.STATIC))
-                continue;
+        for (Symbol member : target.getInstanceMembers()) {
             if (member.getDeclaredName().startsWith(context.completingString)) {
                 CompletionItem item = new CompletionItem(member.getDeclaredName());
                 item.setDetail(member.getType().toString());
@@ -170,10 +152,6 @@ public class CompletionProvider {
 
     private Type getTypeOfNode(ParseTree node) {
         return new ExpressionTypeResolver(unit).resolve(node);
-    }
-
-    private Symbol getSymbolOfNode(ParseTree node) {
-        return new ExpressionSymbolResolver(unit).resolve(node);
     }
 
     private CompletionItemKind getCompletionItemKind(Symbol.Kind kind) {

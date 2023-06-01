@@ -7,7 +7,6 @@ import raylras.zen.code.resolve.ReturnTypeResolver;
 import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.Type;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,11 +26,6 @@ public class FunctionSymbol extends Symbol {
     @Override
     public Kind getKind() {
         return Kind.FUNCTION;
-    }
-
-    @Override
-    public List<Symbol> getMembers() {
-        return Collections.emptyList();
     }
 
     public List<VariableSymbol> getParams() {

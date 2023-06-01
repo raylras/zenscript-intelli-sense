@@ -5,9 +5,6 @@ import raylras.zen.code.parser.ZenScriptParser.ImportDeclarationContext;
 import raylras.zen.code.type.AnyType;
 import raylras.zen.code.type.Type;
 
-import java.util.Collections;
-import java.util.List;
-
 public class ImportSymbol extends Symbol {
 
     public ImportSymbol(ImportDeclarationContext owner, CompilationUnit unit) {
@@ -22,11 +19,6 @@ public class ImportSymbol extends Symbol {
     @Override
     public Kind getKind() {
         return Kind.CLASS;
-    }
-
-    @Override
-    public List<Symbol> getMembers() {
-        return Collections.emptyList();
     }
 
     @Override

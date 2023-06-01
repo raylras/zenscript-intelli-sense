@@ -1,12 +1,8 @@
 package raylras.zen.code.type;
 
-public class VoidType extends ClassType {
+public class VoidType extends Type {
 
     public static final VoidType INSTANCE = new VoidType();
-
-    private VoidType() {
-        super("void");
-    }
 
     @Override
     public Kind getKind() {

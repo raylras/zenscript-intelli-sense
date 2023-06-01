@@ -4,8 +4,4 @@ public class DoubleType extends NumberType {
 
     public static final DoubleType INSTANCE = new DoubleType();
 
-    private DoubleType() {
-        super("double");
-    }
-
 }

@@ -43,19 +43,16 @@ public class ExpressionTypeResolver extends Visitor<Type> {
         if (leftType == null)
             return null;
 
-        Symbol symbol = leftType.lookupSymbol(unit);
-        if (symbol == null)
-            return leftType;
-
         String simpleName = new DeclaredNameResolver().resolve(ctx.identifier());
         if (simpleName == null)
             return leftType;
 
-        for (Symbol member : symbol.getMembers()) {
+        for (Symbol member : leftType.getMembers()) {
             if (Objects.equals(member.getDeclaredName(), simpleName)) {
                 return member.getType();
             }
         }
+
         return leftType;
     }
 

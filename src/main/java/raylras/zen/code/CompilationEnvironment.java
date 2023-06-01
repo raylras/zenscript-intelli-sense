@@ -1,6 +1,7 @@
 package raylras.zen.code;
 
 import raylras.zen.code.symbol.Symbol;
+import raylras.zen.code.type.ClassType;
 import raylras.zen.util.Logger;
 
 import java.io.IOException;
@@ -47,6 +48,11 @@ public class CompilationEnvironment {
             .flatMap(unit -> unit.getTopLevelSymbols().stream())
             .filter(symbol -> symbol.isDeclaredBy(Declarator.GLOBAL))
             .collect(Collectors.toList());
+    }
+
+    public ClassType getClassType(String qualifiedClassName) {
+        // TODO
+        return null;
     }
 
     public Path getRoot() {

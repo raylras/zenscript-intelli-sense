@@ -25,8 +25,6 @@ public abstract class Symbol {
 
     public abstract Kind getKind();
 
-    public abstract List<Symbol> getMembers();
-
     public String getDeclaredName() {
         return new DeclaredNameResolver().resolve(owner);
     }
