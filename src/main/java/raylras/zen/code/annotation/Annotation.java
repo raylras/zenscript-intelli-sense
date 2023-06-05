@@ -28,17 +28,8 @@ public class Annotation {
 
     public static Annotation create(String rawAnnotationString) {
         String[] raw = rawAnnotationString.split(" ");
-        String header;
-        String[] data;
-        if (raw.length > 1) {
-            header = raw[0];
-            data = Arrays.copyOfRange(raw, 1, raw.length);
-        } else if (raw.length == 1) {
-            header = raw[0];
-            data = new String[0];
-        } else {
-            return null;
-        }
+        String header = raw[0];
+        String[] data = Arrays.copyOfRange(raw, 1, raw.length);
         return new Annotation(header, data);
     }
 
