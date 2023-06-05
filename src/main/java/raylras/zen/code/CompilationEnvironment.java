@@ -1,5 +1,6 @@
 package raylras.zen.code;
 
+import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.ClassType;
 import raylras.zen.util.Logger;
@@ -50,9 +51,12 @@ public class CompilationEnvironment {
             .collect(Collectors.toList());
     }
 
-    public ClassType getClassType(String qualifiedClassName) {
-        // TODO
-        return null;
+    public Map<String, ClassType> getClassTypeMap() {
+        return getUnits().stream()
+                .flatMap(unit -> unit.getTopLevelSymbols().stream())
+                .filter(symbol -> symbol instanceof ClassSymbol)
+                .map(symbol -> (ClassSymbol) symbol)
+                .collect(Collectors.toMap(ClassSymbol::getFullyQualifiedName, ClassSymbol::getType));
     }
 
     public Path getRoot() {

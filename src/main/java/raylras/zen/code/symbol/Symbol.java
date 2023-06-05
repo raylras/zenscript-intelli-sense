@@ -10,6 +10,7 @@ import raylras.zen.code.resolve.DeclaredNameResolver;
 import raylras.zen.code.type.Type;
 
 import java.util.List;
+import java.util.Optional;
 
 public abstract class Symbol {
 
@@ -25,6 +26,10 @@ public abstract class Symbol {
 
     public abstract Kind getKind();
 
+    public String getFullyQualifiedName() {
+        return getDeclaredName();
+    }
+
     public String getDeclaredName() {
         return new DeclaredNameResolver().resolve(owner);
     }
@@ -37,11 +42,10 @@ public abstract class Symbol {
         return declarator == getDeclarator();
     }
 
-    public Annotation getDeclaredAnnotation(String header) {
+    public Optional<Annotation> getDeclaredAnnotation(String header) {
         return getDeclaredAnnotations().stream()
-                .filter(anno -> anno.isAnnotation(header))
-                .findFirst()
-                .orElse(null);
+                .filter(anno -> anno.getHeader().equals(header))
+                .findFirst();
     }
 
     public List<Annotation> getDeclaredAnnotations() {
