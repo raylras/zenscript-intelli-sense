@@ -43,7 +43,7 @@ public class DeclaratorResolver extends Visitor<Declarator> {
     }
 
     @Override
-    public Declarator visitSimpleVariable(SimpleVariableContext ctx) {
+    public Declarator visitForeachVariableDeclaration(ForeachVariableDeclarationContext ctx) {
         return Declarator.NONE;
     }
 

@@ -3,8 +3,8 @@ package raylras.zen.code.resolve;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Visitor;
+import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.parser.ZenScriptParser.ParameterContext;
-import raylras.zen.code.parser.ZenScriptParser.SimpleVariableContext;
 import raylras.zen.code.parser.ZenScriptParser.VariableDeclarationContext;
 import raylras.zen.code.type.AnyType;
 import raylras.zen.code.type.Type;
@@ -44,7 +44,7 @@ public class VariableTypeResolver extends Visitor<Type> {
     }
 
     @Override
-    public Type visitSimpleVariable(SimpleVariableContext ctx) {
+    public Type visitForeachVariableDeclaration(ZenScriptParser.ForeachVariableDeclarationContext ctx) {
         return AnyType.INSTANCE;
     }
 

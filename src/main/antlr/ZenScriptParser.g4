@@ -114,10 +114,10 @@ elseBody
     ;
 
 foreachStatement
-    : 'for' simpleVariable (',' simpleVariable)* 'in' expression foreachBody
+    : 'for' foreachVariableDeclaration (',' foreachVariableDeclaration)* 'in' expression foreachBody
     ;
 
-simpleVariable
+foreachVariableDeclaration
     : identifier
     ;
 
@@ -137,7 +137,7 @@ expression
     : 'function' '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody # FunctionExpr
     | Left=expression '(' (expression (',' expression)*)? ')' # CallExpr
     | Left=expression Op='.' identifier # MemberAccessExpr
-    | Left=expression '[' Index=expression ']' # ArrayIndexExpr
+    | Left=expression '[' Index=expression ']' # ArrayAccessExpr
     | expression 'as' typeLiteral # TypeCastExpr
     | <assoc=right> Op=('!' | '-' | '+') expression # UnaryExpr
     | Left=expression Op=('*' | '/' | '%') Right=expression # BinaryExpr

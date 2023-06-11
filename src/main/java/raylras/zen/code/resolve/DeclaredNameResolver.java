@@ -80,7 +80,7 @@ public class DeclaredNameResolver extends Visitor<String> {
     }
 
     @Override
-    public String visitSimpleVariable(SimpleVariableContext ctx) {
+    public String visitForeachVariableDeclaration(ForeachVariableDeclarationContext ctx) {
         return visitIdentifier(ctx.identifier());
     }
 

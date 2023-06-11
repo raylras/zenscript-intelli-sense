@@ -136,7 +136,7 @@ public class DeclarationResolver extends Listener {
     }
 
     @Override
-    public void enterSimpleVariable(SimpleVariableContext ctx) {
+    public void enterForeachVariableDeclaration(ForeachVariableDeclarationContext ctx) {
         enterSymbol(new VariableSymbol(ctx, unit));
     }
 
