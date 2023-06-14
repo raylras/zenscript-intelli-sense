@@ -22,7 +22,10 @@ public class DeclaredNameResolver extends Visitor<String> {
 
     @Override
     public String visitImportDeclaration(ImportDeclarationContext ctx) {
-        return visitQualifiedName(ctx.qualifiedName());
+        String identifier = visitAlias(ctx.alias());
+        if (identifier == null)
+            identifier = visitIdentifier(ctx.qualifiedName().identifier());
+        return identifier;
     }
 
     @Override

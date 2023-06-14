@@ -1,156 +1,115 @@
 package raylras.zen.langserver.provider.data;
 
-import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Visitor;
-import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.langserver.provider.data.CompletionContext.Kind;
-import raylras.zen.util.DebugUtils;
+import raylras.zen.util.Nodes;
 import raylras.zen.util.Range;
 import raylras.zen.util.Ranges;
 
-public class CompletionContextResolver extends Visitor<Void> {
+public class CompletionContextResolver extends Visitor<Object> {
 
     private final CompilationUnit unit;
     private final Range cursor;
+    private final ParseTree cursorNode;
+    private final String cursorString;
+    private final TerminalNode prevCursorNode;
+    private final Range pervCursorNodeRange;
 
-    private Kind kind;
-    private ParseTree completingNode;
+    private Kind kind = Kind.NONE;
     private String completingString;
+    private Object payload;
 
     public CompletionContextResolver(CompilationUnit unit, Range cursor) {
         this.unit = unit;
         this.cursor = cursor;
+        this.cursorNode = Nodes.getNodeAtLineAndColumn(unit.getParseTree(), cursor.startLine, cursor.startColumn);
+        this.cursorString = getTextBeforeCursor(cursorNode);
+        this.prevCursorNode = Nodes.getPrevTerminal(unit.getTokenStream(), cursorNode);
+        this.pervCursorNodeRange = Ranges.from(prevCursorNode);
     }
 
     public CompletionContext resolve() {
         unit.accept(this);
-        if(kind == null) {
-            kind = Kind.NONE;
-        }
-        return new CompletionContext(kind, completingNode, completingString);
+        return new CompletionContext(kind, completingString, payload);
     }
-
-    @Override
-    public Void visitImportDeclaration(ImportDeclarationContext ctx) {
-        completingNode = ctx;
-        kind = Kind.IMPORT;
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override
-    public Void visitQualifiedName(QualifiedNameContext ctx) {
-        completingNode = ctx;
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override
-    public Void visitAlias(AliasContext ctx) {
-        completingNode = ctx;
-        kind = Kind.NONE;
-        return null;
-    }
-
-    @Override
-    public Void visitIdentifier(IdentifierContext ctx) {
-        completingString = getTextBeforeCursor(ctx);
-        return null;
-    }
-
-    @Override
-    public Void visitParameter(ParameterContext ctx) {
-        completingNode = ctx;
-        kind = Kind.NONE;
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override
-    public Void visitDefaultValue(DefaultValueContext ctx) {
-        completingNode = ctx;
-        kind = Kind.LOCAL_ACCESS;
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override
-    public Void visitExpressionStatement(ExpressionStatementContext ctx) {
-        completingNode = ctx;
-        kind = Kind.LOCAL_ACCESS;
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override
-    public Void visitArgument(ArgumentContext ctx) {
-        completingNode = ctx;
-        kind = Kind.LOCAL_ACCESS;
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override
-    public Void visitMemberAccessExpr(MemberAccessExprContext ctx) {
-        kind = Kind.MEMBER_ACCESS;
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override
-    public Void visitChildren(RuleNode node) {
-        for (int i = 0; i < node.getChildCount(); i++) {
-            ParseTree child = node.getChild(i);
-            if (isCursorInsideNode(child))
-                child.accept(this);
-        }
-        return null;
-    }
-
-    @Override
-    public Void visitTerminal(TerminalNode node) {
-        // skip eof
-        if (node.getSymbol().getType() == ZenScriptLexer.EOF) {
-            return null;
-        }
-        if (node.getSymbol().getType() != ZenScriptLexer.DOT) {
-            completingString = getTextBeforeCursor(node);
-        } else {
-            completingString = "";
-        }
-        return null;
-    }
-
-    @Override
-    public Void visitErrorNode(ErrorNode node) {
-//        if (node.getSymbol().getType() != ZenScriptLexer.DOT) {
-//            completingString = node.getText();
-//        } else {
-//            completingString = "";
-//        }
-        return null;
-    }
-
-    private boolean isCursorInsideNode(ParseTree node) {
-        return Ranges.isRangeContainsLineAndColumn(Ranges.from(node), cursor.startLine, cursor.startColumn);
-    }
-
 
     private String getTextBeforeCursor(ParseTree node) {
-        Range range = Ranges.from(node);
-        if (range.startLine != cursor.startLine || range.startLine != range.endLine) {
-            return null;
+        Range nodeRange = Ranges.from(node);
+        if (nodeRange.startLine != cursor.startLine || nodeRange.startLine != nodeRange.endLine) {
+            return "";
         }
-        int length = cursor.startColumn - range.startColumn;
+        int length = cursor.startColumn - nodeRange.startColumn;
         String text = node.getText();
-        if (length > 0 && length <= text.length()) {
+        if (length > 0) {
             return text.substring(0, length);
         }
+        return "";
+    }
+
+    private boolean isCompleting(ParseTree node) {
+        return Ranges.from(node).contains(pervCursorNodeRange);
+    }
+
+    @Override
+    public Object visitChildren(RuleNode node) {
+        for (int i = 0; i < node.getChildCount(); i++) {
+            ParseTree child = node.getChild(i);
+            if (isCompleting(child)) {
+                child.accept(this);
+                break;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public Object visitImportDeclaration(ImportDeclarationContext ctx) {
+        if (isCompleting(ctx.qualifiedName())) {
+            if (Ranges.contains(ctx.qualifiedName(), cursorNode)) {
+                kind = Kind.IMPORT;
+                return null;
+            } else {
+                kind = Kind.KEYWORD;
+                completingString = cursorString;
+                return null;
+            }
+        }
+        if (isCompleting(ctx.AS())) {
+            kind = Kind.NONE;
+        }
+        if (isCompleting(ctx.alias())) {
+            kind = Kind.NONE;
+        }
+        return null;
+    }
+
+    @Override
+    public Object visitParameter(ParameterContext ctx) {
+        return null;
+    }
+
+    @Override
+    public Object visitExpressionStatement(ExpressionStatementContext ctx) {
+        return null;
+    }
+
+    @Override
+    public Object visitLocalAccessExpr(LocalAccessExprContext ctx) {
+        return null;
+    }
+
+    @Override
+    public Object visitMemberAccessExpr(MemberAccessExprContext ctx) {
+        return null;
+    }
+
+    @Override
+    public Object visitArgument(ArgumentContext ctx) {
         return null;
     }
 

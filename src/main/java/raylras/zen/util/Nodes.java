@@ -29,7 +29,7 @@ public class Nodes {
         return found;
     }
 
-    public static TerminalNode getPrevTerminal(ParseTree node, TokenStream tokenStream) {
+    public static TerminalNode getPrevTerminal(TokenStream tokenStream, ParseTree node) {
         ParseTree root = getRoot(node);
         Token prevToken = getPrevToken(node, tokenStream);
         if (prevToken == null)

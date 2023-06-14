@@ -53,7 +53,7 @@ class NodesTest {
     @MethodSource("getPrevTerminal")
     void getPrevTerminal(String expected, int line, int column) {
         ParseTree node = Nodes.getNodeAtLineAndColumn(unit, line, column);
-        TerminalNode prev = Nodes.getPrevTerminal(node, tokenStream);
+        TerminalNode prev = Nodes.getPrevTerminal(tokenStream, node);
         Assertions.assertEquals(expected, getText(prev));
     }
 

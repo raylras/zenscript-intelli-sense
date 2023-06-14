@@ -79,8 +79,11 @@ public class CompletionProvider {
                 completeKeywords(Keywords.CLASS_BODY);
                 break;
 
+            case KEYWORD:
+                completeKeywords(Keywords.ALL);
+                break;
+
             case NONE:
-            default:
         }
     }
 
@@ -89,17 +92,17 @@ public class CompletionProvider {
     }
 
     private void completeLocalSymbols() {
-        Scope scope = unit.lookupScope(context.completingNode);
-        if (scope == null)
-            return;
-        for (Symbol symbol : scope.getSymbols()) {
-            if (symbol.getDeclaredName().startsWith(context.completingString)) {
-                CompletionItem item = new CompletionItem(symbol.getDeclaredName());
-                item.setDetail(symbol.getType().toString());
-                item.setKind(getCompletionItemKind(symbol.getKind()));
-                data.add(item);
-            }
-        }
+//        Scope scope = unit.lookupScope(context.payload);
+//        if (scope == null)
+//            return;
+//        for (Symbol symbol : scope.getSymbols()) {
+//            if (symbol.getDeclaredName().startsWith(context.completingString)) {
+//                CompletionItem item = new CompletionItem(symbol.getDeclaredName());
+//                item.setDetail(symbol.getType().toString());
+//                item.setKind(getCompletionItemKind(symbol.getKind()));
+//                data.add(item);
+//            }
+//        }
     }
 
     private void completeGlobalSymbols() {

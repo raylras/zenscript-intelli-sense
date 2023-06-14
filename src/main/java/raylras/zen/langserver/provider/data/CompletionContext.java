@@ -1,17 +1,15 @@
 package raylras.zen.langserver.provider.data;
 
-import org.antlr.v4.runtime.tree.ParseTree;
-
 public class CompletionContext {
 
-    public final ParseTree completingNode;
-    public final String completingString;
     public final Kind kind;
+    public final String completingString;
+    public final Object payload;
 
-    public CompletionContext(Kind kind, ParseTree completingNode, String completingString) {
+    public CompletionContext(Kind kind, String completingString, Object payload) {
         this.kind = kind;
-        this.completingNode = completingNode;
         this.completingString = completingString;
+        this.payload = payload;
     }
 
     public enum Kind {
@@ -19,6 +17,7 @@ public class CompletionContext {
         LOCAL_STATEMENT, TOPLEVEL_STATEMENT,
         LOCAL_ACCESS, MEMBER_ACCESS,
         CLASS_BODY,
+        KEYWORD,
         NONE;
     }
 

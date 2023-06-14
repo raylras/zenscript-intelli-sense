@@ -12,6 +12,10 @@ public class Ranges {
         return range.contains(new Range(line, column, line, column));
     }
 
+    public static boolean contains(ParseTree a, ParseTree b) {
+        return from(a).contains(from(b));
+    }
+
     public static Range from(ParseTree node) {
         if (node instanceof ParserRuleContext) {
             return from((ParserRuleContext) node);
@@ -26,6 +30,8 @@ public class Ranges {
     }
 
     public static Range from(ParserRuleContext node) {
+        if (node == null)
+            return Range.NO_RANGE;
         int startLine = node.start.getLine() - Range.ANTLR_FIRST_LINE;
         int startColumn = node.start.getCharPositionInLine();
         int endLine = node.stop.getLine() - Range.ANTLR_FIRST_LINE;
@@ -34,10 +40,14 @@ public class Ranges {
     }
 
     public static Range from(TerminalNode node) {
+        if (node == null)
+            return Range.NO_RANGE;
         return from(node.getSymbol());
     }
 
     public static Range from(Token node) {
+        if (node == null)
+            return Range.NO_RANGE;
         int startLine = node.getLine() - Range.ANTLR_FIRST_LINE;
         int startColumn = node.getCharPositionInLine();
         int endColumn = startColumn + node.getText().length();

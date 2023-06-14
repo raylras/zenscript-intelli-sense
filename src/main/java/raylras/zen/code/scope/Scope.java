@@ -31,15 +31,15 @@ public class Scope {
         return symbols;
     }
 
-    public Symbol lookupSymbol(String simpleName) {
-        return lookupSymbol(Symbol.class, simpleName);
+    public Symbol lookupSymbol(String identifier) {
+        return lookupSymbol(Symbol.class, identifier);
     }
 
-    public <T extends Symbol> T lookupSymbol(Class<T> clazz, String simpleName) {
+    public <T extends Symbol> T lookupSymbol(Class<T> clazz, String identifier) {
         Scope scope = this;
         while (scope != null) {
             for (Symbol symbol : scope.getSymbols()) {
-                if (clazz.isInstance(symbol) && Objects.equals(symbol.getDeclaredName(), simpleName))
+                if (clazz.isInstance(symbol) && Objects.equals(symbol.getDeclaredName(), identifier))
                     return clazz.cast(symbol);
             }
             scope = scope.parent;
