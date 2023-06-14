@@ -137,7 +137,7 @@ public class CompletionContextResolver extends Visitor<Void> {
     }
 
     private boolean isCursorInsideNode(ParseTree node) {
-        return Ranges.isRangeContainsPosition(Ranges.from(node), cursor.startLine, cursor.startColumn);
+        return Ranges.isRangeContainsLineAndColumn(Ranges.from(node), cursor.startLine, cursor.startColumn);
     }
 
 

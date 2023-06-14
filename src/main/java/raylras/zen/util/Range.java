@@ -27,9 +27,22 @@ public class Range {
         this.endColumn = endColumn;
     }
 
+    public boolean contains(Range that) {
+        if (this.startLine > that.startLine || this.endLine < that.endLine) {
+            return false;
+        }
+        if (this.startLine == that.startLine && this.startColumn > that.startColumn) {
+            return false;
+        }
+        if (this.endLine == that.endLine && this.endColumn < that.endColumn) {
+            return false;
+        }
+        return true;
+    }
+
     @Override
     public String toString() {
-        return "(range " + startLine + ":" + startColumn + "-" + endLine + ":" + endColumn + ')';
+        return "(" + startLine + ":" + startColumn + ")-(" + endLine + ":" + endColumn + ')';
     }
 
 }

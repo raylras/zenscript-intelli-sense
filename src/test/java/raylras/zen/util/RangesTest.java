@@ -10,11 +10,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class RangesTest {
 
-    @MethodSource
     @ParameterizedTest
-    void isRangeContainsPosition(Range range, int line, int column, boolean condition) {
-        System.out.printf("Range(%d:%d-%d:%d) contains Position(%d:%d) should be %s%n", range.startLine, range.startColumn, range.endLine, range.endColumn, line, column, condition);
-        assertEquals(condition, Ranges.isRangeContainsPosition(range, line, column));
+    @MethodSource("isRangeContainsPosition")
+    void isRangeContainsPosition(Range range, int line, int column, boolean expected) {
+        System.out.printf("test: %s contains (%d:%d), expected: %s%n", range, line, column, expected);
+        assertEquals(expected, Ranges.isRangeContainsLineAndColumn(range, line, column));
     }
 
     static Stream<Arguments> isRangeContainsPosition() {

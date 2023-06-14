@@ -33,7 +33,7 @@ class NodesTest {
     @ParameterizedTest
     @MethodSource("getNodeAtLineAndColumn")
     void getNodeAtLineAndColumn(String expected, int line, int column) {
-        ParseTree node = Nodes.getNodeAtPosition(unit, line, column);
+        ParseTree node = Nodes.getNodeAtLineAndColumn(unit, line, column);
         Assertions.assertEquals(expected, getText(node));
     }
 
@@ -52,7 +52,7 @@ class NodesTest {
     @ParameterizedTest
     @MethodSource("getPrevTerminal")
     void getPrevTerminal(String expected, int line, int column) {
-        ParseTree node = Nodes.getNodeAtPosition(unit, line, column);
+        ParseTree node = Nodes.getNodeAtLineAndColumn(unit, line, column);
         TerminalNode prev = Nodes.getPrevTerminal(node, tokenStream);
         Assertions.assertEquals(expected, getText(prev));
     }
