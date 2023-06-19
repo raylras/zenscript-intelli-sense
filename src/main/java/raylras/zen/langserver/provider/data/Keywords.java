@@ -4,6 +4,7 @@ public class Keywords {
 
     public static final String[] ALL = makeAllKeywords();
     public static final String[] CLASS_BODY = makeClassBodyKeywords();
+    public static final String[] STATEMENT = makeStatementKeywords();
     public static final String[] LOCAL_STATEMENT = makeLocalStatementKeywords();
     public static final String[] TOPLEVEL_STATEMENT = makeToplevelStatementKeywords();
 
@@ -62,6 +63,15 @@ public class Keywords {
     private static String[] makeClassBodyKeywords() {
         return new String[]{
                 VAR, VAL, STATIC, FUNCTION, ZEN_CONSTRUCTOR
+        };
+    }
+
+    private static String[] makeStatementKeywords() {
+        return new String[]{
+                IMPORT,
+                VAR, VAL, STATIC, GLOBAL, FUNCTION, ZEN_CLASS, ZEN_CONSTRUCTOR,
+                IF, ELSE, FOR, WHILE, BREAK, CONTINUE, RETURN,
+                EXPAND
         };
     }
 

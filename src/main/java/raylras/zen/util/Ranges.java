@@ -12,8 +12,8 @@ public class Ranges {
         return range.contains(new Range(line, column, line, column));
     }
 
-    public static boolean contains(ParseTree a, ParseTree b) {
-        return of(a).contains(of(b));
+    public static boolean contains(ParseTree node, Range range) {
+        return of(node).contains(range);
     }
 
     public static Range of(ParseTree node) {
