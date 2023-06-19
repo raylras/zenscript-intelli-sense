@@ -30,7 +30,7 @@ public class CompletionContextResolver extends Visitor<Object> {
         this.cursorNode = Nodes.getNodeAtLineAndColumn(unit.getParseTree(), cursor.startLine, cursor.startColumn);
         this.cursorString = getTextBeforeCursor(cursorNode);
         this.prevCursorNode = Nodes.getPrevTerminal(unit.getTokenStream(), cursorNode);
-        this.pervCursorNodeRange = Ranges.from(prevCursorNode);
+        this.pervCursorNodeRange = Ranges.of(prevCursorNode);
     }
 
     public CompletionContext resolve() {
@@ -39,7 +39,7 @@ public class CompletionContextResolver extends Visitor<Object> {
     }
 
     private String getTextBeforeCursor(ParseTree node) {
-        Range nodeRange = Ranges.from(node);
+        Range nodeRange = Ranges.of(node);
         if (nodeRange.startLine != cursor.startLine || nodeRange.startLine != nodeRange.endLine) {
             return "";
         }
@@ -52,7 +52,7 @@ public class CompletionContextResolver extends Visitor<Object> {
     }
 
     private boolean isCompleting(ParseTree node) {
-        return Ranges.from(node).contains(pervCursorNodeRange);
+        return Ranges.of(node).contains(pervCursorNodeRange);
     }
 
     @Override

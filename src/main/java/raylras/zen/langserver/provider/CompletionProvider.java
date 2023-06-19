@@ -7,7 +7,6 @@ import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.resolve.ExpressionTypeResolver;
-import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.Type;
 import raylras.zen.l10n.L10N;
@@ -37,7 +36,7 @@ public class CompletionProvider {
 
     public static CompletionList completion(CompilationUnit unit, CompletionParams params) {
         Instant started = Instant.now();
-        Range cursor = Ranges.from(params.getPosition());
+        Range cursor = Ranges.of(params.getPosition());
         CompletionContext context = new CompletionContextResolver(unit, cursor).resolve();
         if(context == null) {
             logger.warn("Could not find completion context at (%d, %d)", params.getPosition().getLine(), params.getPosition().getCharacter());

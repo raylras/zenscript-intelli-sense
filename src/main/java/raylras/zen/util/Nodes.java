@@ -17,7 +17,7 @@ public class Nodes {
         ParseTree found = null;
         while (!queue.isEmpty()) {
             ParseTree node = queue.poll();
-            Range range = Ranges.from(node);
+            Range range = Ranges.of(node);
             if (Ranges.isRangeContainsLineAndColumn(range, line, column)) {
                 found = node;
                 queue.clear();
@@ -34,7 +34,7 @@ public class Nodes {
         Token prevToken = getPrevToken(node, tokenStream);
         if (prevToken == null)
             return null;
-        Range cursor = Ranges.from(prevToken);
+        Range cursor = Ranges.of(prevToken);
         ParseTree prevNode = getNodeAtLineAndColumn(root, cursor.endLine, cursor.endColumn);
         return (prevNode instanceof TerminalNode) ? (TerminalNode) prevNode : null;
     }
