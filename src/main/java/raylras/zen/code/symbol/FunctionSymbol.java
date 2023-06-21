@@ -2,13 +2,12 @@ package raylras.zen.code.symbol;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.resolve.ParamsResolver;
-import raylras.zen.code.resolve.ReturnTypeResolver;
+import raylras.zen.code.resolve.ParameterResolver;
+import raylras.zen.code.resolve.TypeResolver;
 import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.Type;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class FunctionSymbol extends Symbol {
 
@@ -16,24 +15,32 @@ public class FunctionSymbol extends Symbol {
         super(owner, unit);
     }
 
+    public List<VariableSymbol> getParameters() {
+        return new ParameterResolver(unit).resolve(owner);
+    }
+
+    public Type getReturnType() {
+        FunctionType type = getType();
+        if (type != null) {
+            return type.returnType;
+        } else {
+            return null;
+        }
+    }
+
     @Override
-    public Type getType() {
-        List<Type> paramTypes = getParams().stream().map(Symbol::getType).collect(Collectors.toList());
-        Type returnType = getReturnType();
-        return new FunctionType(paramTypes, returnType);
+    public FunctionType getType() {
+        Type type = new TypeResolver(unit).resolve(owner);
+        if (type instanceof FunctionType) {
+            return (FunctionType) type;
+        } else {
+            return null;
+        }
     }
 
     @Override
     public Kind getKind() {
         return Kind.FUNCTION;
-    }
-
-    public List<VariableSymbol> getParams() {
-        return new ParamsResolver(unit).resolve(owner);
-    }
-
-    public Type getReturnType() {
-        return new ReturnTypeResolver(unit).resolve(owner);
     }
 
 }

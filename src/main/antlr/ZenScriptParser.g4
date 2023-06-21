@@ -34,11 +34,11 @@ identifier
     ;
 
 functionDeclaration
-    : Declarator='static'? 'function' identifier '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody
+    : Declarator='static'? 'function' identifier '(' (parameter (',' parameter)*)? ')' ('as' returnType)? functionBody
     ;
 
 expandFunctionDeclaration
-    : Declarator='$expand' Expand=typeLiteral '$' identifier '(' (parameter (',' parameter)*)? ')' ('as' Return=typeLiteral)? functionBody
+    : Declarator='$expand' Expand=typeLiteral '$' identifier '(' (parameter (',' parameter)*)? ')' ('as' returnType)? functionBody
     ;
 
 parameter
@@ -47,6 +47,10 @@ parameter
 
 defaultValue
     : expression
+    ;
+
+returnType
+    : typeLiteral
     ;
 
 functionBody
@@ -135,7 +139,7 @@ expressionStatement
 
 expression
     : 'function' '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody # FunctionExpr
-    | Left=expression '(' (expression (',' expression)*)? ')' # CallExpr
+    | Left=expression '(' (argument (',' argument)*)? ')' # CallExpr
     | Left=expression Op='.' identifier # MemberAccessExpr
     | Left=expression '[' Index=expression ']' # ArrayAccessExpr
     | expression 'as' typeLiteral # TypeCastExpr
@@ -182,7 +186,7 @@ mapEntry
 
 typeLiteral
     : qualifiedName # ClassType
-    | 'function' '(' (typeLiteral (',' typeLiteral)*)? ')' Return=typeLiteral # FunctionType
+    | 'function' '(' (typeLiteral (',' typeLiteral)*)? ')' returnType # FunctionType
     | '[' typeLiteral ']' # ListType
     | typeLiteral '['']' # ArrayType
     | Value=typeLiteral '[' Key=typeLiteral ']' # MapType

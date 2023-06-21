@@ -62,6 +62,15 @@ public class CompilationUnit {
         return symbolProp.get(node);
     }
 
+    public <T extends Symbol> T getSymbol(ParseTree node, Class<T> clazz) {
+        Symbol symbol = symbolProp.get(node);
+        if (clazz.isInstance(symbol)) {
+            return clazz.cast(symbol);
+        } else {
+            return null;
+        }
+    }
+
     public void putSymbol(ParseTree node, Symbol symbol) {
         symbolProp.put(node, symbol);
     }

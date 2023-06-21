@@ -11,11 +11,6 @@ public class MapType extends Type {
     }
 
     @Override
-    public Kind getKind() {
-        return Kind.MAP;
-    }
-
-    @Override
     public String toString() {
         return valueType + "[" + keyType + "]";
     }

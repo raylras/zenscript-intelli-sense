@@ -9,11 +9,6 @@ public class ListType extends Type {
     }
 
     @Override
-    public Kind getKind() {
-        return Kind.LIST;
-    }
-
-    @Override
     public String toString() {
         return "[" + elementType + "]";
     }

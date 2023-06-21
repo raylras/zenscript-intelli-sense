@@ -8,6 +8,7 @@ import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
 import raylras.zen.code.CompilationUnit;
+import raylras.zen.code.Declarator;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.scope.Scope;
@@ -84,8 +85,9 @@ public class CompletionProvider extends Visitor<Void> {
     }
 
     private void completeStaticMembers(String completingString, Type type) {
-        for (Symbol member : type.getStaticMembers()) {
-            if (member.getDeclaredName().startsWith(completingString)) {
+        for (Symbol member : type.getMembers()) {
+            if (member.isDeclaredBy(Declarator.STATIC)
+                    && member.getDeclaredName().startsWith(completingString)) {
                 CompletionItem item = new CompletionItem(member.getDeclaredName());
                 item.setDetail("static " + member.getType().toString());
                 item.setKind(getCompletionItemKind(member.getKind()));
@@ -95,8 +97,9 @@ public class CompletionProvider extends Visitor<Void> {
     }
 
     private void completeInstanceMembers(String completingString, Type type) {
-        for (Symbol member : type.getInstanceMembers()) {
-            if (member.getDeclaredName().startsWith(completingString)) {
+        for (Symbol member : type.getMembers()) {
+            if (!member.isDeclaredBy(Declarator.STATIC)
+                    && member.getDeclaredName().startsWith(completingString)) {
                 CompletionItem item = new CompletionItem(member.getDeclaredName());
                 item.setDetail(member.getType().toString());
                 item.setKind(getCompletionItemKind(member.getKind()));

@@ -1,11 +1,9 @@
 package raylras.zen.code.type;
 
-import raylras.zen.code.Declarator;
 import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 public class ClassType extends Type {
 
@@ -17,25 +15,6 @@ public class ClassType extends Type {
 
     public ClassSymbol getSymbol() {
         return symbol;
-    }
-
-    @Override
-    public Kind getKind() {
-        return Kind.CLASS;
-    }
-
-    @Override
-    public List<Symbol> getInstanceMembers() {
-        return symbol.getMembers().stream()
-                .filter(symbol -> !symbol.isDeclaredBy(Declarator.STATIC))
-                .collect(Collectors.toList());
-    }
-
-    @Override
-    public List<Symbol> getStaticMembers() {
-        return symbol.getMembers().stream()
-                .filter(symbol -> symbol.isDeclaredBy(Declarator.STATIC))
-                .collect(Collectors.toList());
     }
 
     @Override

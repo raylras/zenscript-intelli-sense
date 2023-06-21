@@ -9,11 +9,6 @@ public class ArrayType extends Type {
     }
 
     @Override
-    public Kind getKind() {
-        return Kind.ARRAY;
-    }
-
-    @Override
     public String toString() {
         return elementType + "[]";
     }
