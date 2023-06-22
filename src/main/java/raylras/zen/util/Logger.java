@@ -1,83 +1,87 @@
 package raylras.zen.util;
 
-import org.eclipse.lsp4j.LogTraceParams;
 import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.services.LanguageClient;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.text.MessageFormat;
+import java.util.ArrayDeque;
+import java.util.Queue;
 
-public abstract class Logger {
-    protected abstract void log(MessageType messageType, String message);
+public class Logger {
 
-    public void info(String message, Object... args) {
-        log(MessageType.Info, String.format(message, args));
-    }
+    private final String name;
 
-    public void debug(String message, Object... args) {
-        log(MessageType.Log, String.format(message, args));
-    }
-
-    public void error(String message, Object... args) {
-        log(MessageType.Error, String.format(message, args));
-    }
-
-    public void warn(String message, Object... args) {
-        log(MessageType.Warning, String.format(message, args));
-    }
-
-    private static final List<MessageParams> pendingLogs = new ArrayList<>();
-    private static LanguageClient connectedClient;
-
-    public static void connectClient(LanguageClient client) {
-        connectedClient = client;
-        for (MessageParams pendingLog : pendingLogs) {
-            connectedClient.logMessage(pendingLog);
-        }
-        pendingLogs.clear();
-    }
-
-    private static void submitLog( String message) {
-        if (connectedClient == null) {
-            pendingLogs.add(new MessageParams(MessageType.Log, message));
-        } else {
-            connectedClient.logMessage(new MessageParams(MessageType.Log, message));
-        }
+    public Logger(String name) {
+        this.name = name;
     }
 
     public static Logger getLogger(String name) {
-        return new LoggerImpl(name);
+        return new Logger(name);
     }
 
-    private static class LoggerImpl extends Logger {
-        private final String name;
+    public void info(String pattern, Object... args) {
+        logMessage(MessageType.Info, null, pattern, args);
+    }
 
-        private LoggerImpl(String name) {
-            this.name = name;
-        }
+    public void warn(String pattern, Object... args) {
+        logMessage(MessageType.Warning, null, pattern, args);
+    }
 
-        private String buildMessage(String level, String message) {
-            return '[' + level + "] " + "[Server/" + name + "] " + message;
-        }
+    public void warn(Throwable thrown, String pattern, Object... args) {
+        logMessage(MessageType.Warning, thrown, pattern, args);
+    }
 
-        @Override
-        protected void log(MessageType messageType, String message) {
-            switch (messageType) {
+    public void error(String pattern, Object... args) {
+        logMessage(MessageType.Error, null, pattern, args);
+    }
 
-                case Error:
-                    Logger.submitLog( buildMessage("error", message));
-                    break;
-                case Warning:
-                    Logger.submitLog(buildMessage("warn", message));
-                    break;
-                case Info:
-                    Logger.submitLog(buildMessage("info", message));
-                    break;
-                case Log:
-                    Logger.submitLog(buildMessage("debug", message));
-                    break;
+    public void error(Throwable thrown, String pattern, Object... args) {
+        logMessage(MessageType.Error, thrown, pattern, args);
+    }
+
+    private static Queue<MessageParams> pendingLogs;
+    private static LanguageClient client;
+
+    public static void connect(LanguageClient client) {
+        Logger.client = client;
+        if (pendingLogs != null) {
+            for (MessageParams pendingLog : pendingLogs) {
+                Logger.client.logMessage(pendingLog);
             }
         }
+        pendingLogs = null;
     }
+
+    private void logMessage(MessageType level, Throwable thrown, String pattern, Object... args) {
+        MessageParams message = createMessage(level, thrown, pattern, args);
+        if (client != null) {
+            client.logMessage(message);
+        } else {
+            addToPendingQueue(message);
+        }
+    }
+
+    private MessageParams createMessage(MessageType level, Throwable thrown, String pattern, Object... args) {
+        String formatted = "[Server/" + name + "] " + MessageFormat.format(pattern, args);
+        if (thrown == null) {
+            return new MessageParams(level, formatted);
+        } else {
+            StringWriter buffer = new StringWriter();
+            PrintWriter printer = new PrintWriter(buffer, true);
+            printer.println(formatted);
+            thrown.printStackTrace(printer);
+            return new MessageParams(level, buffer.toString());
+        }
+    }
+
+    private static void addToPendingQueue(MessageParams message) {
+        if (pendingLogs == null) {
+            pendingLogs = new ArrayDeque<>();
+        }
+        pendingLogs.add(message);
+    }
+
 }

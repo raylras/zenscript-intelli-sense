@@ -115,11 +115,11 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     public void didChangeWorkspaceFolders(DidChangeWorkspaceFoldersParams params) {
         params.getEvent().getRemoved().forEach(workspace -> {
             manager.removeWorkspace(Utils.toPath(workspace.getUri()));
-            logger.info("Removed workspace: " + workspace);
+            logger.info("Removed workspace: {0}", workspace);
         });
         params.getEvent().getAdded().forEach(workspace -> {
             manager.addWorkspace(Utils.toPath(workspace.getUri()));
-            logger.info("Added workspace: " + workspace);
+            logger.info("Added workspace: {0}", workspace);
         });
     }
 

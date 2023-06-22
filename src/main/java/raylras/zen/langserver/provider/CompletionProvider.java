@@ -14,7 +14,7 @@ import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.Type;
-import raylras.zen.l10n.L10N;
+import raylras.zen.util.l10n.L10N;
 import raylras.zen.langserver.provider.data.Keywords;
 import raylras.zen.util.Logger;
 import raylras.zen.util.Nodes;
@@ -113,7 +113,7 @@ public class CompletionProvider extends Visitor<Void> {
             if (keyword.startsWith(completingString)) {
                 CompletionItem item = new CompletionItem(keyword);
                 item.setKind(CompletionItemKind.Keyword);
-                item.setDetail(L10N.getString("l10n.keyword"));
+                item.setDetail(L10N.getString("completion.keyword"));
                 data.add(item);
             }
         }

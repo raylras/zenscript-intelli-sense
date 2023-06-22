@@ -4,7 +4,7 @@ import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.*;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.l10n.L10N;
+import raylras.zen.util.l10n.L10N;
 import raylras.zen.util.Logger;
 
 import java.util.*;
@@ -79,7 +79,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
     @Override
     public void connect(LanguageClient client) {
         this.client = client;
-        Logger.connectClient(client);
+        Logger.connect(client);
     }
 
     private void startListeningFileChanges() {

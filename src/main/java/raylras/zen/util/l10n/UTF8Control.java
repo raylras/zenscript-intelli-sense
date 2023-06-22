@@ -1,4 +1,4 @@
-package raylras.zen.l10n;
+package raylras.zen.util.l10n;
 
 import java.io.IOException;
 import java.io.InputStream;
