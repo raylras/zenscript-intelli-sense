@@ -299,13 +299,16 @@ public class TypeResolver extends Visitor<Type> {
     @Override
     public Type visitMemberAccessExpr(MemberAccessExprContext ctx) {
         Type leftType = visit(ctx.Left);
+        if (leftType == null) {
+            return null;
+        }
         String identifier = ctx.identifier().getText();
         for (Symbol member : leftType.getMembers()) {
             if (Objects.equals(member.getDeclaredName(), identifier)) {
                 return member.getType();
             }
         }
-        return null;
+        return leftType;
     }
 
     @Override

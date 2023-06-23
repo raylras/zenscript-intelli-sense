@@ -1,18 +1,19 @@
 package raylras.zen.langserver.provider;
 
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.eclipse.lsp4j.CompletionItem;
-import org.eclipse.lsp4j.CompletionItemKind;
-import org.eclipse.lsp4j.CompletionList;
-import org.eclipse.lsp4j.CompletionParams;
+import org.eclipse.lsp4j.*;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Declarator;
 import raylras.zen.code.Visitor;
-import raylras.zen.code.parser.ZenScriptParser;
+import raylras.zen.code.parser.ZenScriptParser.*;
+import raylras.zen.code.resolve.TypeResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.Symbol;
+import raylras.zen.code.type.ClassType;
+import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.Type;
 import raylras.zen.util.l10n.L10N;
 import raylras.zen.langserver.provider.data.Keywords;
@@ -21,7 +22,9 @@ import raylras.zen.util.Nodes;
 import raylras.zen.util.Range;
 import raylras.zen.util.Ranges;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 public class CompletionProvider extends Visitor<Void> {
 
@@ -35,7 +38,7 @@ public class CompletionProvider extends Visitor<Void> {
     private final TerminalNode prevCursorNode;
     private final Range prevCursorNodeRange;
 
-    private final List<CompletionItem> data = new ArrayList<>();
+    private final List<CompletionItem> completionData = new ArrayList<>();
 
     public CompletionProvider(CompilationUnit unit, Range cursor) {
         this.unit = unit;
@@ -55,55 +58,47 @@ public class CompletionProvider extends Visitor<Void> {
 
     private List<CompletionItem> complete() {
         unit.accept(this);
-        return data;
+        return completionData;
     }
 
-    private void completeImport(String completingString) {
+    private void completeImports(String completingString) {
         // TODO
     }
 
-    private void completeLocalSymbols(String completingString, Scope scope) {
-        for (Symbol symbol : scope.getSymbols()) {
-            if (symbol.getDeclaredName().startsWith(completingString)) {
-                CompletionItem item = new CompletionItem(symbol.getDeclaredName());
-                item.setDetail(symbol.getType().toString());
-                item.setKind(getCompletionItemKind(symbol.getKind()));
-                data.add(item);
+    private void completeLocalSymbols(String completingString, Scope completingScope) {
+        Scope scope = completingScope;
+        while (scope != null) {
+            for (Symbol symbol : scope.getSymbols()) {
+                if (symbol.getDeclaredName().startsWith(completingString)) {
+                    addToCompletionData(symbol);
+                }
             }
+            scope = scope.getParent();
         }
     }
 
     private void completeGlobalSymbols(String completingString) {
-        for (Symbol member : unit.getEnv().getGlobalSymbols()) {
-            if (member.getDeclaredName().startsWith(completingString)) {
-                CompletionItem item = new CompletionItem(member.getDeclaredName());
-                item.setDetail(member.getType().toString());
-                item.setKind(getCompletionItemKind(member.getKind()));
-                data.add(item);
+        for (Symbol symbol : unit.getEnv().getGlobalSymbols()) {
+            if (symbol.getDeclaredName().startsWith(completingString)) {
+                addToCompletionData(symbol);
             }
         }
     }
 
     private void completeStaticMembers(String completingString, Type type) {
-        for (Symbol member : type.getMembers()) {
-            if (member.isDeclaredBy(Declarator.STATIC)
-                    && member.getDeclaredName().startsWith(completingString)) {
-                CompletionItem item = new CompletionItem(member.getDeclaredName());
-                item.setDetail("static " + member.getType().toString());
-                item.setKind(getCompletionItemKind(member.getKind()));
-                data.add(item);
+        for (Symbol symbol : type.getMembers()) {
+            if (symbol.getDeclaredName().startsWith(completingString)
+                    && symbol.isDeclaredBy(Declarator.STATIC)) {
+                addToCompletionData(symbol);
             }
         }
     }
 
     private void completeInstanceMembers(String completingString, Type type) {
-        for (Symbol member : type.getMembers()) {
-            if (!member.isDeclaredBy(Declarator.STATIC)
-                    && member.getDeclaredName().startsWith(completingString)) {
-                CompletionItem item = new CompletionItem(member.getDeclaredName());
-                item.setDetail(member.getType().toString());
-                item.setKind(getCompletionItemKind(member.getKind()));
-                data.add(item);
+        for (Symbol symbol : type.getMembers()) {
+            if (symbol.getDeclaredName().startsWith(completingString)
+                    && !symbol.isDeclaredBy(Declarator.STATIC)) {
+                addToCompletionData(symbol);
             }
         }
     }
@@ -111,26 +106,54 @@ public class CompletionProvider extends Visitor<Void> {
     private void completeKeywords(String completingString, String... keywords) {
         for (String keyword : keywords) {
             if (keyword.startsWith(completingString)) {
-                CompletionItem item = new CompletionItem(keyword);
-                item.setKind(CompletionItemKind.Keyword);
-                item.setDetail(L10N.getString("completion.keyword"));
-                data.add(item);
+                addToCompletionData(keyword);
             }
         }
     }
 
-    private CompletionItemKind getCompletionItemKind(Symbol.Kind kind) {
-        switch (kind) {
-            case FUNCTION:
-                return CompletionItemKind.Function;
+    private void addToCompletionData(Symbol symbol) {
+        CompletionItem item = new CompletionItem(symbol.getDeclaredName());
+        item.setDetail(toTypeName(symbol));
+        item.setKind(toCompletionKind(symbol));
+        completionData.add(item);
+    }
+
+    private void addToCompletionData(String keyword) {
+        CompletionItem item = new CompletionItem(keyword);
+        item.setDetail(L10N.getString("completion.keyword"));
+        item.setKind(CompletionItemKind.Keyword);
+        completionData.add(item);
+    }
+
+    private CompletionItemKind toCompletionKind(Symbol symbol) {
+        switch (symbol.getKind()) {
+            case IMPORT:
             case CLASS:
                 return CompletionItemKind.Class;
+            case FUNCTION:
+                return CompletionItemKind.Function;
             case VARIABLE:
-            case NONE:
                 return CompletionItemKind.Variable;
+            case BUILT_IN:
+                return toCompletionKind(symbol.getType());
+            case NONE:
             default:
                 return null;
         }
+    }
+
+    private CompletionItemKind toCompletionKind(Type type) {
+        if (type instanceof ClassType) {
+            return CompletionItemKind.Class;
+        } else if (type instanceof FunctionType) {
+            return CompletionItemKind.Function;
+        } else {
+            return CompletionItemKind.Variable;
+        }
+    }
+
+    private String toTypeName(Symbol symbol) {
+        return Objects.toString(symbol.getType());
     }
 
     private String getTextBeforeCursor(ParseTree node) {
@@ -150,6 +173,10 @@ public class CompletionProvider extends Visitor<Void> {
         return Ranges.contains(node, prevCursorNodeRange);
     }
 
+    private boolean isPrevCursor(Token token) {
+        return Ranges.contains(token, prevCursorNodeRange);
+    }
+
     /* Visitor Overrides */
 
     @Override
@@ -165,11 +192,11 @@ public class CompletionProvider extends Visitor<Void> {
     }
 
     @Override
-    public Void visitImportDeclaration(ZenScriptParser.ImportDeclarationContext ctx) {
+    public Void visitImportDeclaration(ImportDeclarationContext ctx) {
         if (isPrevCursor(ctx.qualifiedName())) {
             if (Ranges.contains(ctx.qualifiedName(), cursorNodeRange)) {
                 String completingString = getTextBeforeCursor(ctx.qualifiedName());
-                completeImport(completingString);
+                completeImports(completingString);
             } else {
                 completeKeywords(cursorString, Keywords.AS);
             }
@@ -178,12 +205,12 @@ public class CompletionProvider extends Visitor<Void> {
     }
 
     @Override
-    public Void visitParameter(ZenScriptParser.ParameterContext ctx) {
+    public Void visitParameter(ParameterContext ctx) {
         return null;
     }
 
     @Override
-    public Void visitVariableDeclaration(ZenScriptParser.VariableDeclarationContext ctx) {
+    public Void visitVariableDeclaration(VariableDeclarationContext ctx) {
         if (isPrevCursor(ctx.identifier())) {
             completeKeywords(cursorString, Keywords.AS);
         }
@@ -197,7 +224,32 @@ public class CompletionProvider extends Visitor<Void> {
     }
 
     @Override
-    public Void visitExpressionStatement(ZenScriptParser.ExpressionStatementContext ctx) {
+    public Void visitIfStatement(IfStatementContext ctx) {
+        if (isPrevCursor(ctx.IF())) {
+            visit(ctx.expression());
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitWhileStatement(WhileStatementContext ctx) {
+        if (isPrevCursor(ctx.PAREN_OPEN())) {
+            visit(ctx.expression());
+        }
+        if (isPrevCursor(ctx.expression())) {
+            visit(ctx.expression());
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitExpressionStatement(ExpressionStatementContext ctx) {
+        if (isPrevCursor(ctx.expression())) {
+            Type type = new TypeResolver(unit).resolve(ctx.expression());
+            if (type != null) {
+                completeInstanceMembers("", type);
+            }
+        }
         if (isPrevCursor(ctx.SEMICOLON())) {
             Scope scope = unit.lookupScope(cursorNode);
             completeLocalSymbols(cursorString, scope);
@@ -208,17 +260,77 @@ public class CompletionProvider extends Visitor<Void> {
     }
 
     @Override
-    public Void visitLocalAccessExpr(ZenScriptParser.LocalAccessExprContext ctx) {
+    public Void visitLocalAccessExpr(LocalAccessExprContext ctx) {
+        Scope scope = unit.lookupScope(cursorNode);
+        completeLocalSymbols(cursorString, scope);
+        completeGlobalSymbols(cursorString);
+        completeKeywords(cursorString, Keywords.TRUE, Keywords.FALSE);
         return null;
     }
 
     @Override
-    public Void visitMemberAccessExpr(ZenScriptParser.MemberAccessExprContext ctx) {
+    public Void visitCallExpr(CallExprContext ctx) {
+        if (isPrevCursor(ctx.PAREN_OPEN())) {
+            Scope scope = unit.lookupScope(cursorNode);
+            completeLocalSymbols(cursorString, scope);
+            completeGlobalSymbols(cursorString);
+        }
+        for (TerminalNode comma : ctx.COMMA()) {
+            if (isPrevCursor(comma)) {
+                Scope scope = unit.lookupScope(cursorNode);
+                completeLocalSymbols(cursorString, scope);
+                completeGlobalSymbols(cursorString);
+            }
+        }
         return null;
     }
 
     @Override
-    public Void visitArgument(ZenScriptParser.ArgumentContext ctx) {
+    public Void visitBinaryExpr(BinaryExprContext ctx) {
+        if (isPrevCursor(ctx.Op)) {
+            Scope scope = unit.lookupScope(cursorNode);
+            completeLocalSymbols(cursorString, scope);
+            completeGlobalSymbols(cursorString);
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitUnaryExpr(UnaryExprContext ctx) {
+        if (isPrevCursor(ctx.Op)) {
+            Scope scope = unit.lookupScope(cursorNode);
+            completeLocalSymbols(cursorString, scope);
+            completeGlobalSymbols(cursorString);
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitParensExpr(ParensExprContext ctx) {
+        if (isPrevCursor(ctx.PAREN_OPEN())) {
+            visit(ctx.expression());
+        }
+        if (isPrevCursor(ctx.expression())) {
+            visit(ctx.expression());
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitMemberAccessExpr(MemberAccessExprContext ctx) {
+        if (isPrevCursor(ctx.expression())) {
+            Type leftType = new TypeResolver(unit).resolve(ctx.Left);
+            completeInstanceMembers("", leftType);
+        }
+        if (isPrevCursor(ctx.Op)) {
+            Type leftType = new TypeResolver(unit).resolve(ctx.Left);
+            completeInstanceMembers(cursorString, leftType);
+        }
+        return null;
+    }
+
+    @Override
+    public Void visitArgument(ArgumentContext ctx) {
         return null;
     }
 

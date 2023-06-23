@@ -16,6 +16,10 @@ public class Ranges {
         return of(node).contains(range);
     }
 
+    public static boolean contains(Token token, Range range) {
+        return of(token).contains(range);
+    }
+
     public static Range of(ParseTree node) {
         if (node instanceof ParserRuleContext) {
             return of((ParserRuleContext) node);
