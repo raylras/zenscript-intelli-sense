@@ -21,7 +21,7 @@ public class ArrayType extends Type {
     public List<Symbol> getMembers() {
         // Members that cannot be represented by zenscript are represented as built-in symbols
         return BuiltinSymbol.List.builder()
-                .add("length", elementType)
+                .add("length", IntType.INSTANCE)
                 .build();
     }
 
