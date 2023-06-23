@@ -22,7 +22,7 @@ public class FunctionSymbol extends Symbol {
     public Type getReturnType() {
         FunctionType type = getType();
         if (type != null) {
-            return type.returnType;
+            return type.getReturnType();
         } else {
             return null;
         }

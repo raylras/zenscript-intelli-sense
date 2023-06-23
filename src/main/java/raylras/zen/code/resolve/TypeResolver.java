@@ -61,9 +61,9 @@ public class TypeResolver extends Visitor<Type> {
         List<Type> paramTypes = getParameterTypes(ctx.parameter());
         Type returnType = visit(ctx.returnType());
         if (returnType != null) {
-            return new FunctionType(paramTypes, returnType);
+            return new FunctionType(returnType, paramTypes);
         } else {
-            return new FunctionType(paramTypes, AnyType.INSTANCE);
+            return new FunctionType(AnyType.INSTANCE, paramTypes);
         }
     }
 
@@ -72,9 +72,9 @@ public class TypeResolver extends Visitor<Type> {
         List<Type> paramTypes = getParameterTypes(ctx.parameter());
         Type returnType = visit(ctx.returnType());
         if (returnType != null) {
-            return new FunctionType(paramTypes, returnType);
+            return new FunctionType(returnType, paramTypes);
         } else {
-            return new FunctionType(paramTypes, AnyType.INSTANCE);
+            return new FunctionType(AnyType.INSTANCE, paramTypes);
         }
     }
 
@@ -117,7 +117,7 @@ public class TypeResolver extends Visitor<Type> {
         List<Type> paramTypes = getParameterTypes(ctx.parameter());
         // FIXME: should be zen class type
         Type returnType = AnyType.INSTANCE;
-        return new FunctionType(paramTypes, returnType);
+        return new FunctionType(returnType, paramTypes);
     }
 
     @Override
@@ -199,7 +199,7 @@ public class TypeResolver extends Visitor<Type> {
         // FIXME: overloaded functions
         Type leftType = visit(ctx.Left);
         if (leftType instanceof FunctionType) {
-            return ((FunctionType) leftType).returnType;
+            return ((FunctionType) leftType).getReturnType();
         } else {
             return null;
         }
@@ -230,7 +230,7 @@ public class TypeResolver extends Visitor<Type> {
         } else {
             List<Type> paramTypes = getParameterTypes(ctx.parameter());
             Type returnType = AnyType.INSTANCE;
-            return new FunctionType(paramTypes, returnType);
+            return new FunctionType(returnType, paramTypes);
         }
     }
 
@@ -250,13 +250,13 @@ public class TypeResolver extends Visitor<Type> {
     public Type visitArrayAccessExpr(ArrayAccessExprContext ctx) {
         Type leftType = visit(ctx.Left);
         if (leftType instanceof ArrayType) {
-            return ((ArrayType) leftType).elementType;
+            return ((ArrayType) leftType).getElementType();
         }
         if (leftType instanceof ListType) {
-            return ((ListType) leftType).elementType;
+            return ((ListType) leftType).getElementType();
         }
         if (leftType instanceof MapType) {
-            return ((MapType) leftType).valueType;
+            return ((MapType) leftType).getValueType();
         }
         return null;
     }
@@ -330,7 +330,7 @@ public class TypeResolver extends Visitor<Type> {
                 .map(this::visit)
                 .collect(Collectors.toList());
         Type returnType = visit(ctx.returnType());
-        return new FunctionType(paramTypes, returnType);
+        return new FunctionType(returnType, paramTypes);
     }
 
     @Override

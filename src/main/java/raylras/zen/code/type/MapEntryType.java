@@ -5,12 +5,12 @@ import raylras.zen.code.symbol.Symbol;
 
 import java.util.List;
 
-public class MapType extends Type {
+public class MapEntryType extends Type {
 
     private final Type keyType;
     private final Type valueType;
 
-    public MapType(Type keyType, Type valueType) {
+    public MapEntryType(Type keyType, Type valueType) {
         this.keyType = keyType;
         this.valueType = valueType;
     }
@@ -27,18 +27,14 @@ public class MapType extends Type {
     public List<Symbol> getMembers() {
         // Members that cannot be represented by zenscript are represented as built-in symbols
         return BuiltinSymbol.List.builder()
-                .add("length", IntType.INSTANCE)
-                .add("keys", new ArrayType(keyType))
-                .add("keySet", new ArrayType(keyType))
-                .add("values", new ArrayType(valueType))
-                .add("valueSet", new ArrayType(valueType))
-                .add("entrySet", new ArrayType(new MapEntryType(keyType, valueType)))
+                .add("key", keyType)
+                .add("value", valueType)
                 .build();
     }
 
     @Override
     public String toString() {
-        return valueType + "[" + keyType + "]";
+        return keyType + ":" + valueType;
     }
 
 }
