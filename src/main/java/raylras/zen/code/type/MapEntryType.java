@@ -34,7 +34,7 @@ public class MapEntryType extends Type {
 
     @Override
     public String toString() {
-        return keyType + ":" + valueType;
+        return "Map.Entry<" + keyType + "," + valueType + ">";
     }
 
 }
