@@ -12,13 +12,13 @@ import java.util.concurrent.CompletableFuture;
 
 public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 
-    private static final Logger logger = Logger.getLogger("main");
+    private static final Logger logger = Logger.getLogger("server");
 
-    public ZenLanguageService service;
-    public LanguageClient client;
+    private final ZenLanguageService service;
+    private LanguageClient client;
 
     public ZenLanguageServer() {
-        this.service = new ZenLanguageService(this);
+        this.service = new ZenLanguageService();
     }
 
     @Override

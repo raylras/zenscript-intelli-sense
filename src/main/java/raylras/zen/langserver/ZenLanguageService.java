@@ -18,11 +18,10 @@ import java.util.concurrent.CompletableFuture;
 public class ZenLanguageService implements TextDocumentService, WorkspaceService {
 
     private static final Logger logger = Logger.getLogger("service");
-    public ZenLanguageServer server;
-    public WorkspaceManager manager;
 
-    public ZenLanguageService(ZenLanguageServer server) {
-        this.server = server;
+    private final WorkspaceManager manager;
+
+    public ZenLanguageService() {
         this.manager = new WorkspaceManager();
     }
 
@@ -30,14 +29,22 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public void didOpen(DidOpenTextDocumentParams params) {
-        manager.checkEnv(Utils.toPath(params.getTextDocument().getUri()));
+        try {
+            manager.checkEnv(Utils.toPath(params.getTextDocument().getUri()));
+        } catch (Exception e) {
+            logger.error(e, "Failed to open file: {0}", params.getTextDocument().getUri());
+        }
     }
 
     @Override
     public void didChange(DidChangeTextDocumentParams params) {
-        CompilationUnit unit = manager.getUnit(Utils.toPath(params.getTextDocument().getUri()));
-        String source = params.getContentChanges().get(0).getText();
-        unit.load(source);
+        try {
+            CompilationUnit unit = manager.getUnit(Utils.toPath(params.getTextDocument().getUri()));
+            String source = params.getContentChanges().get(0).getText();
+            unit.load(source);
+        } catch (Exception e) {
+            logger.error(e, "Failed to change file: {0}", params.getTextDocument().getUri());
+        }
     }
 
     @Override
@@ -50,9 +57,14 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
-        CompilationUnit unit = manager.getUnit(Utils.toPath(params.getTextDocument().getUri()));
-        SemanticTokens data = SemanticTokensProvider.semanticTokensFull(unit, params);
-        return CompletableFuture.completedFuture(data);
+        try {
+            CompilationUnit unit = manager.getUnit(Utils.toPath(params.getTextDocument().getUri()));
+            SemanticTokens data = SemanticTokensProvider.semanticTokensFull(unit, params);
+            return CompletableFuture.completedFuture(data);
+        } catch (Exception e) {
+            logger.error(e, "Failed to load semantic tokens: {0}", params.getTextDocument().getUri());
+            return CompletableFuture.completedFuture(null);
+        }
     }
 
     @Override
@@ -73,9 +85,14 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
-        CompilationUnit unit = manager.getUnit(Utils.toPath(params.getTextDocument().getUri()));
-        CompletionList data = CompletionProvider.completion(unit, params);
-        return CompletableFuture.completedFuture(Either.forRight(data));
+        try {
+            CompilationUnit unit = manager.getUnit(Utils.toPath(params.getTextDocument().getUri()));
+            CompletionList data = CompletionProvider.completion(unit, params);
+            return CompletableFuture.completedFuture(Either.forRight(data));
+        } catch (Exception e) {
+            logger.error(e, "Failed to load completion: ", params.getTextDocument().getUri());
+            return CompletableFuture.completedFuture(null);
+        }
     }
 
     @Override
@@ -94,19 +111,23 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
         params.getChanges().forEach(event -> {
-            Path documentPath = Utils.toPath(event.getUri());
-            manager.checkEnv(documentPath);
-            CompilationEnvironment env = manager.getEnv(documentPath);
-            switch (event.getType()) {
-                case Created:
-                    env.createUnit(documentPath);
-                    break;
-                case Changed:
-                    env.getUnit(documentPath).load();
-                    break;
-                case Deleted:
-                    env.removeUnit(documentPath);
-                    break;
+            try {
+                Path documentPath = Utils.toPath(event.getUri());
+                manager.checkEnv(documentPath);
+                CompilationEnvironment env = manager.getEnv(documentPath);
+                switch (event.getType()) {
+                    case Created:
+                        env.createUnit(documentPath);
+                        break;
+                    case Changed:
+                        env.getUnit(documentPath).load();
+                        break;
+                    case Deleted:
+                        env.removeUnit(documentPath);
+                        break;
+                }
+            } catch (Exception e) {
+                logger.error(e, "Failed to change watched file: {0}", event);
             }
         });
     }

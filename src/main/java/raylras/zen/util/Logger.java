@@ -65,7 +65,7 @@ public class Logger {
     }
 
     private MessageParams createMessage(MessageType level, Throwable thrown, String pattern, Object... args) {
-        String formatted = "[Server/" + name + "] " + MessageFormat.format(pattern, args);
+        String formatted = "[" + name + "] " + MessageFormat.format(pattern, args);
         if (thrown == null) {
             return new MessageParams(level, formatted);
         } else {
