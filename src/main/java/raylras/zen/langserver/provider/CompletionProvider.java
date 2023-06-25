@@ -69,7 +69,8 @@ public class CompletionProvider extends Visitor<Void> {
         Scope scope = completingScope;
         while (scope != null) {
             for (Symbol symbol : scope.getSymbols()) {
-                if (symbol.getDeclaredName().startsWith(completingString)) {
+                if (symbol.getDeclaredName().startsWith(completingString)
+                        && isPrevCursor(symbol)) {
                     addToCompletionData(symbol);
                 }
             }
@@ -167,6 +168,11 @@ public class CompletionProvider extends Visitor<Void> {
             return text.substring(0, length);
         }
         return "";
+    }
+
+    private boolean isPrevCursor(Symbol symbol) {
+        Range symbolRange = Ranges.of(symbol.getOwner());
+        return symbolRange.startLine < cursor.startLine;
     }
 
     private boolean isPrevCursor(ParseTree node) {
