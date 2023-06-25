@@ -79,6 +79,16 @@ public class DeclarationResolver extends Listener {
     }
 
     @Override
+    public void enterFunctionBody(FunctionBodyContext ctx) {
+        enterScope(new Scope(currentScope(), ctx));
+    }
+
+    @Override
+    public void exitFunctionBody(FunctionBodyContext ctx) {
+        exitScope();
+    }
+
+    @Override
     public void enterClassDeclaration(ClassDeclarationContext ctx) {
         enterSymbol(new ClassSymbol(ctx, unit));
         enterScope(new Scope(currentScope(), ctx));
@@ -147,6 +157,16 @@ public class DeclarationResolver extends Listener {
 
     @Override
     public void exitWhileStatement(WhileStatementContext ctx) {
+        exitScope();
+    }
+
+    @Override
+    public void enterFunctionExpr(FunctionExprContext ctx) {
+        enterScope(new Scope(currentScope(), ctx));
+    }
+
+    @Override
+    public void exitFunctionExpr(FunctionExprContext ctx) {
         exitScope();
     }
 
