@@ -73,6 +73,7 @@ repository:
             name: punctuation.definition.block.zs
         patterns:
           - include: '#comments'
+          - include: '#preprocessor'
           - include: '#constructor-declaration'
           - include: '#function-declaration'
           - include: '#variable-declaration'
