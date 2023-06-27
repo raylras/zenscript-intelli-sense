@@ -31,7 +31,7 @@ public class Nodes {
 
     public static TerminalNode getPrevTerminal(TokenStream tokenStream, ParseTree node) {
         ParseTree root = getRoot(node);
-        Token prevToken = getPrevToken(node, tokenStream);
+        Token prevToken = getPrevToken(tokenStream, node);
         if (prevToken == null)
             return null;
         Range cursor = Ranges.of(prevToken);
@@ -39,7 +39,7 @@ public class Nodes {
         return (prevNode instanceof TerminalNode) ? (TerminalNode) prevNode : null;
     }
 
-    private static Token getPrevToken(ParseTree node, TokenStream tokenStream) {
+    public static Token getPrevToken(TokenStream tokenStream, ParseTree node) {
         int i = getStartTokenIndex(node) - 1;
         while (i >= 0) {
             Token token = tokenStream.get(i);
@@ -50,12 +50,15 @@ public class Nodes {
         return null;
     }
 
-    private static ParseTree getRoot(ParseTree node) {
-        ParseTree root = node;
-        while (root != null && root.getParent() != null) {
-            root = root.getParent();
+    public static Token getNextToken(TokenStream tokenStream, ParseTree node) {
+        int i = getStopTokenIndex(node) + 1;
+        while (i <= tokenStream.size()) {
+            Token token = tokenStream.get(i);
+            if (token.getChannel() == Token.DEFAULT_CHANNEL)
+                return token;
+            i++;
         }
-        return root;
+        return null;
     }
 
     private static int getStartTokenIndex(ParseTree node) {
@@ -64,6 +67,22 @@ public class Nodes {
         if (node instanceof ParserRuleContext)
             return ((ParserRuleContext) node).getStart().getTokenIndex();
         return -1;
+    }
+
+    private static int getStopTokenIndex(ParseTree node) {
+        if (node instanceof TerminalNode)
+            return ((TerminalNode) node).getSymbol().getTokenIndex();
+        if (node instanceof ParserRuleContext)
+            return ((ParserRuleContext) node).getStop().getTokenIndex();
+        return -1;
+    }
+
+    private static ParseTree getRoot(ParseTree node) {
+        ParseTree root = node;
+        while (root != null && root.getParent() != null) {
+            root = root.getParent();
+        }
+        return root;
     }
 
 }

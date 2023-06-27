@@ -134,7 +134,7 @@ whileStatement
     ;
 
 expressionStatement
-    : expression ';'
+    : expression ';'?
     ;
 
 expression
