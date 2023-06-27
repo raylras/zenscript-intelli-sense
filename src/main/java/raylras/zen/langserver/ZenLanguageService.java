@@ -32,7 +32,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
         try {
             manager.checkEnv(Utils.toPath(params.getTextDocument().getUri()));
         } catch (Exception e) {
-            logger.error(e, "Failed to open file: {0}", params.getTextDocument().getUri());
+            logger.logError(e, "Failed to open file: {0}", params.getTextDocument().getUri());
         }
     }
 
@@ -43,7 +43,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
             String source = params.getContentChanges().get(0).getText();
             unit.load(source);
         } catch (Exception e) {
-            logger.error(e, "Failed to change file: {0}", params.getTextDocument().getUri());
+            logger.logError(e, "Failed to change file: {0}", params.getTextDocument().getUri());
         }
     }
 
@@ -62,7 +62,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
             SemanticTokens data = SemanticTokensProvider.semanticTokensFull(unit, params);
             return CompletableFuture.completedFuture(data);
         } catch (Exception e) {
-            logger.error(e, "Failed to load semantic tokens: {0}", params.getTextDocument().getUri());
+            logger.logError(e, "Failed to load semantic tokens: {0}", params.getTextDocument().getUri());
             return CompletableFuture.completedFuture(null);
         }
     }
@@ -90,7 +90,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
             CompletionList data = CompletionProvider.completion(unit, params);
             return CompletableFuture.completedFuture(Either.forRight(data));
         } catch (Exception e) {
-            logger.error(e, "Failed to load completion: ", params.getTextDocument().getUri());
+            logger.logError(e, "Failed to load completion: ", params.getTextDocument().getUri());
             return CompletableFuture.completedFuture(null);
         }
     }
@@ -127,7 +127,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
                         break;
                 }
             } catch (Exception e) {
-                logger.error(e, "Failed to change watched file: {0}", event);
+                logger.logError(e, "Failed to change watched file: {0}", event);
             }
         });
     }
@@ -136,11 +136,11 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     public void didChangeWorkspaceFolders(DidChangeWorkspaceFoldersParams params) {
         params.getEvent().getRemoved().forEach(workspace -> {
             manager.removeWorkspace(Utils.toPath(workspace.getUri()));
-            logger.info("Removed workspace: {0}", workspace);
+            logger.logInfo("Removed workspace: {0}", workspace);
         });
         params.getEvent().getAdded().forEach(workspace -> {
             manager.addWorkspace(Utils.toPath(workspace.getUri()));
-            logger.info("Added workspace: {0}", workspace);
+            logger.logInfo("Added workspace: {0}", workspace);
         });
     }
 

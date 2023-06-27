@@ -73,7 +73,7 @@ public class CompilationEnvironment {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-        logger.info("Loaded project environment in {0} ms: {1}", Duration.between(started, Instant.now()).toMillis(), root);
+        logger.logInfo("Loaded project environment in {0} ms: {1}", Duration.between(started, Instant.now()).toMillis(), root);
     }
 
     @Override

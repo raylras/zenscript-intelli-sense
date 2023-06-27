@@ -22,49 +22,68 @@ public class Logger {
         return new Logger(name);
     }
 
-    public void info(String pattern, Object... args) {
+    public void logInfo(String pattern, Object... args) {
         logMessage(MessageType.Info, null, pattern, args);
     }
 
-    public void warn(String pattern, Object... args) {
+    public void logWarn(String pattern, Object... args) {
         logMessage(MessageType.Warning, null, pattern, args);
     }
 
-    public void warn(Throwable thrown, String pattern, Object... args) {
+    public void logWarn(Throwable thrown, String pattern, Object... args) {
         logMessage(MessageType.Warning, thrown, pattern, args);
     }
 
-    public void error(String pattern, Object... args) {
+    public void logError(String pattern, Object... args) {
         logMessage(MessageType.Error, null, pattern, args);
     }
 
-    public void error(Throwable thrown, String pattern, Object... args) {
+    public void logError(Throwable thrown, String pattern, Object... args) {
         logMessage(MessageType.Error, thrown, pattern, args);
     }
 
-    private static Queue<MessageParams> pendingLogs;
+    public void showInfo(String pattern, Object... args) {
+        showMessage(MessageType.Info, pattern, args);
+    }
+
+    public void showWarn(String pattern, Object... args) {
+        showMessage(MessageType.Warning, pattern, args);
+    }
+
+    public void showError(String pattern, Object... args) {
+        showMessage(MessageType.Error, pattern, args);
+    }
+
+    private static Queue<MessageParams> pendingLogMessages;
+    private static Queue<MessageParams> pendingShowMessages;
     private static LanguageClient client;
 
     public static void connect(LanguageClient client) {
         Logger.client = client;
-        if (pendingLogs != null) {
-            for (MessageParams pendingLog : pendingLogs) {
+        if (pendingLogMessages != null) {
+            for (MessageParams pendingLog : pendingLogMessages) {
                 Logger.client.logMessage(pendingLog);
             }
+            pendingLogMessages = null;
         }
-        pendingLogs = null;
+        if (pendingShowMessages != null) {
+            for (MessageParams pendingShow : pendingShowMessages) {
+                Logger.client.showMessage(pendingShow);
+            }
+            pendingShowMessages = null;
+        }
     }
 
     private void logMessage(MessageType level, Throwable thrown, String pattern, Object... args) {
-        MessageParams message = createMessage(level, thrown, pattern, args);
+        MessageParams message = createLogMessage(level, thrown, pattern, args);
         if (client != null) {
             client.logMessage(message);
         } else {
-            addToPendingQueue(message);
+            addToPendingLogMessages(message);
         }
     }
 
-    private MessageParams createMessage(MessageType level, Throwable thrown, String pattern, Object... args) {
+    private MessageParams createLogMessage(MessageType level, Throwable thrown, String pattern, Object... args) {
         String formatted = "[" + name + "] " + MessageFormat.format(pattern, args);
         if (thrown == null) {
             return new MessageParams(level, formatted);
@@ -77,11 +96,32 @@ public class Logger {
         }
     }
 
-    private static void addToPendingQueue(MessageParams message) {
-        if (pendingLogs == null) {
-            pendingLogs = new ArrayDeque<>();
+    private static void addToPendingLogMessages(MessageParams message) {
+        if (pendingLogMessages == null) {
+            pendingLogMessages = new ArrayDeque<>();
         }
-        pendingLogs.add(message);
+        pendingLogMessages.add(message);
+    }
+
+    private void showMessage(MessageType level, String pattern, Object... args) {
+        MessageParams message = createLogMessage(level, null, pattern, args);
+        if (client!= null) {
+            client.showMessage(message);
+        } else {
+            addToPendingLogMessages(message);
+        }
+    }
+
+    private MessageParams createShowMessage(MessageType level, String pattern, Object... args) {
+        String formatted = MessageFormat.format(pattern, args);
+        return new MessageParams(level, formatted);
+    }
+
+    private static void addToPendingShowMessages(MessageParams message) {
+        if (pendingShowMessages == null) {
+            pendingShowMessages = new ArrayDeque<>();
+        }
+        pendingShowMessages.add(message);
     }
 
 }

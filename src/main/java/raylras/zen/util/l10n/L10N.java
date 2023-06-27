@@ -15,7 +15,7 @@ public class L10N {
         try {
             return bundle.getString(key);
         } catch (Exception e) {
-            logger.error(e, "Failed to get string for key: {0} ", key);
+            logger.logError(e, "Failed to get string for key: {0} ", key);
             return "";
         }
     }
@@ -24,7 +24,7 @@ public class L10N {
         try {
             bundle = ResourceBundle.getBundle("l10n", new Locale(locale), new UTF8Control());
         } catch (Exception e) {
-            logger.error(e, "Failed to set locale: {0}", locale);
+            logger.logError(e, "Failed to set locale: {0}", locale);
         }
     }
 

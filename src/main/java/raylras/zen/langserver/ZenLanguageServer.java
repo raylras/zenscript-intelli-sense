@@ -53,7 +53,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
     @Override
     public void initialized(InitializedParams params) {
         startListeningFileChanges();
-        logger.info("ZenScript Language Server initialized");
+        logger.logInfo("ZenScript Language Server initialized");
     }
 
     @Override
