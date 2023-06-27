@@ -104,7 +104,7 @@ public class Logger {
     }
 
     private void showMessage(MessageType level, String pattern, Object... args) {
-        MessageParams message = createLogMessage(level, null, pattern, args);
+        MessageParams message = createShowMessage(level, pattern, args);
         if (client!= null) {
             client.showMessage(message);
         } else {
