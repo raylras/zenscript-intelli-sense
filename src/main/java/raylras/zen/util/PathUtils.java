@@ -5,9 +5,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-public final class Utils {
+public final class PathUtils {
 
-    private Utils() {}
+    private PathUtils() {}
 
     public static Path toPath(String uri) {
         return Paths.get(URI.create(uri));

@@ -9,9 +9,8 @@ import java.util.Objects;
 
 public class Scope {
 
-    protected Scope parent;
-    protected ParseTree owner;
-
+    private final Scope parent;
+    private final ParseTree owner;
     private final List<Symbol> symbols = new ArrayList<>();
 
     public Scope(Scope parent, ParseTree owner) {
@@ -27,10 +26,6 @@ public class Scope {
         symbols.remove(symbol);
     }
 
-    public List<Symbol> getSymbols() {
-        return symbols;
-    }
-
     public Symbol lookupSymbol(String identifier) {
         return lookupSymbol(Symbol.class, identifier);
     }
@@ -39,8 +34,10 @@ public class Scope {
         Scope scope = this;
         while (scope != null) {
             for (Symbol symbol : scope.getSymbols()) {
-                if (clazz.isInstance(symbol) && Objects.equals(symbol.getDeclaredName(), identifier))
+                if (clazz.isInstance(symbol)
+                        && Objects.equals(symbol.getDeclaredName(), identifier)) {
                     return clazz.cast(symbol);
+                }
             }
             scope = scope.parent;
         }
@@ -53,6 +50,10 @@ public class Scope {
 
     public ParseTree getOwner() {
         return owner;
+    }
+
+    public List<Symbol> getSymbols() {
+        return symbols;
     }
 
 }

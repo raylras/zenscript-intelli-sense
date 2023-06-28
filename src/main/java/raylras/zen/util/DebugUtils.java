@@ -9,35 +9,39 @@ import raylras.zen.code.parser.ZenScriptParser;
 
 public class DebugUtils {
 
-
     public static String prettyPrintTree(ParseTree node) {
         StringBuilder builder = new StringBuilder();
         prettyPrintTree(builder, "", node, true);
         return builder.toString();
     }
 
-    private static void prettyPrintTree(StringBuilder builder, String prefix, ParseTree n, boolean isLast) {
-        if (n != null) {
-            String display;
-            if (n instanceof TerminalNode) {
-                Token token = ((TerminalNode) n).getSymbol();
-                int index = token.getType();
-                if (index == -1) {
-                    display = "<EOF>";
-                } else {
-                    display = ZenScriptLexer.ruleNames[index - 1] + ":" + token.getText();
-                }
+    private static void prettyPrintTree(StringBuilder builder, String indent, ParseTree node, boolean last) {
+        if (node == null) {
+            return;
+        }
+
+        String text;
+        if (node instanceof TerminalNode) {
+            Token token = ((TerminalNode) node).getSymbol();
+            int tokenType = token.getType();
+            if (tokenType == -1) {
+                text = "<EOF>";
             } else {
-                int index = ((RuleContext) n).getRuleIndex();
-                display = ZenScriptParser.ruleNames[index];
+                text = ZenScriptLexer.ruleNames[tokenType - 1] + ":" + token.getText();
             }
+        } else if (node instanceof RuleContext){
+            int ruleIndex = ((RuleContext) node).getRuleIndex();
+            text = ZenScriptParser.ruleNames[ruleIndex];
+        } else {
+            text = null;
+        }
 
-            builder.append(prefix).append(isLast ? "\\-- " : "|-- ").append(display).append("\n");
+        builder.append(indent).append(last ? "\\-- " : "|-- ").append(text).append("\n");
 
-            int childCount = n.getChildCount();
-            for (int i = 0; i < childCount; i++) {
-                prettyPrintTree(builder, prefix + (isLast ? "    " : "|   "), n.getChild(i), i == childCount - 1);
-            }
+        int childCount = node.getChildCount();
+        for (int i = 0; i < childCount; i++) {
+            prettyPrintTree(builder, indent + (last ? "    " : "|   "), node.getChild(i), i == childCount - 1);
         }
     }
+
 }

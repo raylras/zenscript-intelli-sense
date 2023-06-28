@@ -39,13 +39,14 @@ public class CompilationUnit {
         this.env = env;
     }
 
-    public Scope lookupScope(ParseTree node) {
-        ParseTree n = node;
-        while (n != null) {
-            Scope scope = scopeProp.get(n);
-            if (scope != null)
+    public Scope lookupScope(ParseTree lookupNode) {
+        ParseTree node = lookupNode;
+        while (node != null) {
+            Scope scope = scopeProp.get(node);
+            if (scope != null) {
                 return scope;
-            n = n.getParent();
+            }
+            node = node.getParent();
         }
         return null;
     }

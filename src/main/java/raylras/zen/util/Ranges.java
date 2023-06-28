@@ -34,8 +34,9 @@ public class Ranges {
     }
 
     public static Range of(ParserRuleContext node) {
-        if (node == null)
+        if (node == null) {
             return Range.NO_RANGE;
+        }
         int startLine = node.start.getLine() - Range.ANTLR_FIRST_LINE;
         int startColumn = node.start.getCharPositionInLine();
         int endLine = node.stop.getLine() - Range.ANTLR_FIRST_LINE;
@@ -44,14 +45,16 @@ public class Ranges {
     }
 
     public static Range of(TerminalNode node) {
-        if (node == null)
+        if (node == null) {
             return Range.NO_RANGE;
+        }
         return of(node.getSymbol());
     }
 
     public static Range of(Token node) {
-        if (node == null)
+        if (node == null) {
             return Range.NO_RANGE;
+        }
         int startLine = node.getLine() - Range.ANTLR_FIRST_LINE;
         int startColumn = node.getCharPositionInLine();
         int endColumn = startColumn + node.getText().length();

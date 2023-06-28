@@ -8,48 +8,56 @@ import raylras.zen.code.parser.ZenScriptParser.*;
 public class DeclaredNameResolver extends Visitor<String> {
 
     public String resolve(ParseTree node) {
-        if (node == null)
+        if (node != null) {
+            return node.accept(this);
+        } else {
             return null;
-        return node.accept(this);
+        }
     }
 
     @Override
     public String visitTerminal(TerminalNode node) {
-        if (node == null)
+        if (node != null) {
+            return node.getText();
+        } else {
             return null;
-        return node.getText();
+        }
     }
 
     @Override
     public String visitImportDeclaration(ImportDeclarationContext ctx) {
-        String identifier = visitAlias(ctx.alias());
-        if (identifier == null)
-            identifier = visitIdentifier(ctx.qualifiedName().identifier());
-        return identifier;
+        if (ctx.alias() != null) {
+            return visitAlias(ctx.alias());
+        } else {
+            return visit(ctx.qualifiedName().identifier());
+        }
     }
 
     @Override
     public String visitQualifiedName(QualifiedNameContext ctx) {
-        if (ctx == null)
+        if (ctx != null) {
+            return ctx.getText();
+        } else {
             return null;
-        return ctx.getText();
+        }
     }
 
     @Override
     public String visitAlias(AliasContext ctx) {
-        if (ctx == null)
+        if (ctx != null) {
+            return visitIdentifier(ctx.identifier());
+        } else {
             return null;
-        return visitIdentifier(ctx.identifier());
+        }
     }
 
     @Override
     public String visitIdentifier(IdentifierContext ctx) {
-        if (ctx == null)
+        if (ctx != null) {
+            return ctx.getText();
+        } else {
             return null;
-        TerminalNode nameNode = ctx.IDENTIFIER();
-        if (nameNode == null)
-            nameNode = ctx.TO();
-        return visitTerminal(nameNode);
+        }
     }
 
     @Override

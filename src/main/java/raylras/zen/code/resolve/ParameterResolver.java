@@ -21,31 +21,33 @@ public class ParameterResolver extends Visitor<List<VariableSymbol>> {
     }
 
     public List<VariableSymbol> resolve(ParseTree node) {
-        if (node == null)
+        if (node != null) {
+            return node.accept(this);
+        } else {
             return null;
-        return node.accept(this);
-    }
-
-    private List<VariableSymbol> map(List<ParameterContext> list) {
-        return list.stream()
-                .map(unit::getSymbol)
-                .map(VariableSymbol.class::cast)
-                .collect(Collectors.toList());
+        }
     }
 
     @Override
     public List<VariableSymbol> visitFunctionDeclaration(FunctionDeclarationContext ctx) {
-        return map(ctx.parameter());
+        return toSymbols(ctx.parameter());
     }
 
     @Override
     public List<VariableSymbol> visitExpandFunctionDeclaration(ZenScriptParser.ExpandFunctionDeclarationContext ctx) {
-        return map(ctx.parameter());
+        return toSymbols(ctx.parameter());
     }
 
     @Override
     public List<VariableSymbol> visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
-        return map(ctx.parameter());
+        return toSymbols(ctx.parameter());
+    }
+
+    private List<VariableSymbol> toSymbols(List<ParameterContext> list) {
+        return list.stream()
+                .map(unit::getSymbol)
+                .map(VariableSymbol.class::cast)
+                .collect(Collectors.toList());
     }
 
 }

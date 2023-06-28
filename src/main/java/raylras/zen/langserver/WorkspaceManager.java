@@ -3,7 +3,7 @@ package raylras.zen.langserver;
 import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.util.Logger;
-import raylras.zen.util.Utils;
+import raylras.zen.util.PathUtils;
 import raylras.zen.util.l10n.L10N;
 
 import java.nio.file.Files;
@@ -24,20 +24,23 @@ public class WorkspaceManager {
 
     public void removeWorkspace(Path workspacePath) {
         workspaceList.remove(workspacePath);
-        compilationList.removeIf(env -> Utils.isSubPath(workspacePath, env.getRoot()));
+        compilationList.removeIf(env -> PathUtils.isSubPath(workspacePath, env.getRoot()));
     }
 
     public CompilationUnit getUnit(Path documentPath) {
         CompilationEnvironment env = getEnv(documentPath);
-        if (env != null)
+        if (env != null) {
             return env.getUnit(documentPath);
-        return null;
+        } else {
+            return null;
+        }
     }
 
     public CompilationEnvironment getEnv(Path documentPath) {
         for (CompilationEnvironment env : compilationList) {
-            if (Utils.isSubPath(env.getRoot(), documentPath))
+            if (PathUtils.isSubPath(env.getRoot(), documentPath)) {
                 return env;
+            }
         }
         return null;
     }
@@ -52,7 +55,7 @@ public class WorkspaceManager {
     }
 
     public void createEnv(Path documentPath) {
-        Path compilationRoot = Utils.findUpwards(documentPath, "scripts");
+        Path compilationRoot = PathUtils.findUpwards(documentPath, "scripts");
         if (compilationRoot == null || !isPathInWorkspace(compilationRoot))
             compilationRoot = documentPath;
         CompilationEnvironment env = new CompilationEnvironment(compilationRoot);
@@ -70,8 +73,9 @@ public class WorkspaceManager {
 
     private boolean isPathInWorkspace(Path documentPath) {
         for (Path workspace : workspaceList) {
-            if (Utils.isSubPath(workspace, documentPath))
+            if (PathUtils.isSubPath(workspace, documentPath)) {
                 return true;
+            }
         }
         return false;
     }

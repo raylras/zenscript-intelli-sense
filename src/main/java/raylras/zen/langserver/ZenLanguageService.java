@@ -9,7 +9,7 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.langserver.provider.CompletionProvider;
 import raylras.zen.langserver.provider.SemanticTokensProvider;
 import raylras.zen.util.Logger;
-import raylras.zen.util.Utils;
+import raylras.zen.util.PathUtils;
 
 import java.nio.file.Path;
 import java.util.List;
@@ -30,7 +30,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public void didOpen(DidOpenTextDocumentParams params) {
         try {
-            manager.checkEnv(Utils.toPath(params.getTextDocument().getUri()));
+            manager.checkEnv(PathUtils.toPath(params.getTextDocument().getUri()));
         } catch (Exception e) {
             logger.logError(e, "Failed to open file: {0}", params.getTextDocument().getUri());
         }
@@ -39,7 +39,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public void didChange(DidChangeTextDocumentParams params) {
         try {
-            CompilationUnit unit = manager.getUnit(Utils.toPath(params.getTextDocument().getUri()));
+            CompilationUnit unit = manager.getUnit(PathUtils.toPath(params.getTextDocument().getUri()));
             String source = params.getContentChanges().get(0).getText();
             unit.load(source);
         } catch (Exception e) {
@@ -58,7 +58,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
         try {
-            CompilationUnit unit = manager.getUnit(Utils.toPath(params.getTextDocument().getUri()));
+            CompilationUnit unit = manager.getUnit(PathUtils.toPath(params.getTextDocument().getUri()));
             SemanticTokens data = SemanticTokensProvider.semanticTokensFull(unit, params);
             return CompletableFuture.completedFuture(data);
         } catch (Exception e) {
@@ -86,7 +86,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
         try {
-            CompilationUnit unit = manager.getUnit(Utils.toPath(params.getTextDocument().getUri()));
+            CompilationUnit unit = manager.getUnit(PathUtils.toPath(params.getTextDocument().getUri()));
             CompletionList data = CompletionProvider.completion(unit, params);
             return CompletableFuture.completedFuture(Either.forRight(data));
         } catch (Exception e) {
@@ -112,7 +112,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
         params.getChanges().forEach(event -> {
             try {
-                Path documentPath = Utils.toPath(event.getUri());
+                Path documentPath = PathUtils.toPath(event.getUri());
                 manager.checkEnv(documentPath);
                 CompilationEnvironment env = manager.getEnv(documentPath);
                 switch (event.getType()) {
@@ -135,11 +135,11 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public void didChangeWorkspaceFolders(DidChangeWorkspaceFoldersParams params) {
         params.getEvent().getRemoved().forEach(workspace -> {
-            manager.removeWorkspace(Utils.toPath(workspace.getUri()));
+            manager.removeWorkspace(PathUtils.toPath(workspace.getUri()));
             logger.logInfo("Removed workspace: {0}", workspace);
         });
         params.getEvent().getAdded().forEach(workspace -> {
-            manager.addWorkspace(Utils.toPath(workspace.getUri()));
+            manager.addWorkspace(PathUtils.toPath(workspace.getUri()));
             logger.logInfo("Added workspace: {0}", workspace);
         });
     }
@@ -148,7 +148,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     public void initializeWorkspaces(List<WorkspaceFolder> workspaces) {
         for (WorkspaceFolder folder : workspaces) {
-            manager.addWorkspace(Utils.toPath(folder.getUri()));
+            manager.addWorkspace(PathUtils.toPath(folder.getUri()));
         }
     }
 

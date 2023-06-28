@@ -18,8 +18,8 @@ import java.util.Arrays;
  */
 public class Annotation {
 
-    protected final String header;
-    protected final String[] data;
+    private final String header;
+    private final String[] data;
 
     public Annotation(String header, String[] data) {
         this.header = header;

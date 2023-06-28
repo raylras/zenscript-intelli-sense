@@ -9,9 +9,11 @@ import raylras.zen.code.parser.ZenScriptParser.*;
 public class DeclaratorResolver extends Visitor<Declarator> {
 
     public Declarator resolve(ParseTree node) {
-        if (node == null)
+        if (node != null) {
+            return node.accept(this);
+        } else {
             return null;
-        return node.accept(this);
+        }
     }
 
     @Override
@@ -49,10 +51,12 @@ public class DeclaratorResolver extends Visitor<Declarator> {
 
     @Override
     public Declarator visitFunctionDeclaration(FunctionDeclarationContext ctx) {
-        if (ctx.Declarator != null && ctx.Declarator.getType() == ZenScriptLexer.STATIC) {
+        if (ctx.Declarator != null
+                && ctx.Declarator.getType() == ZenScriptLexer.STATIC) {
             return Declarator.STATIC;
+        } else {
+            return null;
         }
-        return null;
     }
 
     @Override

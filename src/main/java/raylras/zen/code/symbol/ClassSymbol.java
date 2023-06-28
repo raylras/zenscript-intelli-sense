@@ -22,9 +22,11 @@ public class ClassSymbol extends Symbol {
 
     public List<Symbol> getMembers() {
         Scope scope = unit.getScope(owner);
-        if (scope != null)
+        if (scope != null) {
             return scope.getSymbols();
-        return Collections.emptyList();
+        } else {
+            return Collections.emptyList();
+        }
     }
 
     public List<ClassType> getInterfaces() {
@@ -34,8 +36,9 @@ public class ClassSymbol extends Symbol {
         List<ClassType> interfaces = new ArrayList<>();
         for (String name : interfaceNames) {
             ClassType type = classTypeMap.get(name);
-            if (type != null)
+            if (type != null) {
                 interfaces.add(type);
+            }
         }
         return interfaces;
     }

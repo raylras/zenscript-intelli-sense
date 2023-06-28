@@ -18,7 +18,9 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class CompilationEnvironment {
-    private static final Logger logger = Logger.getLogger("env");
+
+    private static final Logger logger = Logger.getLogger("environment");
+
     private final Path root;
     private final Map<Path, CompilationUnit> unitMap = new HashMap<>();
 
@@ -46,9 +48,9 @@ public class CompilationEnvironment {
 
     public List<Symbol> getGlobalSymbols() {
         return getUnits().stream()
-            .flatMap(unit -> unit.getTopLevelSymbols().stream())
-            .filter(symbol -> symbol.isDeclaredBy(Declarator.GLOBAL))
-            .collect(Collectors.toList());
+                .flatMap(unit -> unit.getTopLevelSymbols().stream())
+                .filter(symbol -> symbol.isDeclaredBy(Declarator.GLOBAL))
+                .collect(Collectors.toList());
     }
 
     public Map<String, ClassType> getClassTypeMap() {

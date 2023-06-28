@@ -30,10 +30,11 @@ public class Nodes {
     }
 
     public static TerminalNode getPrevTerminal(TokenStream tokenStream, ParseTree node) {
-        ParseTree root = getRoot(node);
         Token prevToken = getPrevToken(tokenStream, node);
-        if (prevToken == null)
+        if (prevToken == null) {
             return null;
+        }
+        ParseTree root = getRoot(node);
         Range cursor = Ranges.of(prevToken);
         ParseTree prevNode = getNodeAtLineAndColumn(root, cursor.endLine, cursor.endColumn);
         return (prevNode instanceof TerminalNode) ? (TerminalNode) prevNode : null;
@@ -43,8 +44,9 @@ public class Nodes {
         int i = getStartTokenIndex(node) - 1;
         while (i >= 0) {
             Token token = tokenStream.get(i);
-            if (token.getChannel() == Token.DEFAULT_CHANNEL)
+            if (token.getChannel() == Token.DEFAULT_CHANNEL) {
                 return token;
+            }
             i--;
         }
         return null;
@@ -54,26 +56,31 @@ public class Nodes {
         int i = getStopTokenIndex(node) + 1;
         while (i <= tokenStream.size()) {
             Token token = tokenStream.get(i);
-            if (token.getChannel() == Token.DEFAULT_CHANNEL)
+            if (token.getChannel() == Token.DEFAULT_CHANNEL) {
                 return token;
+            }
             i++;
         }
         return null;
     }
 
     private static int getStartTokenIndex(ParseTree node) {
-        if (node instanceof TerminalNode)
+        if (node instanceof TerminalNode) {
             return ((TerminalNode) node).getSymbol().getTokenIndex();
-        if (node instanceof ParserRuleContext)
+        }
+        if (node instanceof ParserRuleContext) {
             return ((ParserRuleContext) node).getStart().getTokenIndex();
+        }
         return -1;
     }
 
     private static int getStopTokenIndex(ParseTree node) {
-        if (node instanceof TerminalNode)
+        if (node instanceof TerminalNode) {
             return ((TerminalNode) node).getSymbol().getTokenIndex();
-        if (node instanceof ParserRuleContext)
+        }
+        if (node instanceof ParserRuleContext) {
             return ((ParserRuleContext) node).getStop().getTokenIndex();
+        }
         return -1;
     }
 
