@@ -55,7 +55,7 @@ public class WorkspaceManager {
     }
 
     public void createEnv(Path documentPath) {
-        Path compilationRoot = PathUtils.findUpwards(documentPath, "scripts");
+        Path compilationRoot = PathUtils.findUpwards(documentPath, CompilationEnvironment.DEFAULT_ROOT_DIRECTORY);
         if (compilationRoot == null || !isPathInWorkspace(compilationRoot))
             compilationRoot = documentPath;
         CompilationEnvironment env = new CompilationEnvironment(compilationRoot);

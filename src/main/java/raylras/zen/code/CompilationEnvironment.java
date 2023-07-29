@@ -19,6 +19,8 @@ import java.util.stream.Stream;
 
 public class CompilationEnvironment {
 
+    public static final String DEFAULT_ROOT_DIRECTORY = "scripts";
+
     private static final Logger logger = Logger.getLogger("environment");
 
     private final Path root;
