@@ -1,21 +1,14 @@
 package raylras.zen.code;
 
-import org.antlr.v4.runtime.CharStream;
-import org.antlr.v4.runtime.CharStreams;
-import org.antlr.v4.runtime.CommonTokenStream;
-import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import raylras.zen.code.annotation.Annotation;
 import raylras.zen.code.parser.ZenScriptLexer;
-import raylras.zen.code.parser.ZenScriptParser;
-import raylras.zen.code.resolve.DeclarationResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.util.ParseTreeProperty;
 
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
@@ -23,7 +16,7 @@ import java.util.stream.Collectors;
 
 public class CompilationUnit {
 
-    public static final String FILE_EXTENSION = ".zs";
+    public static final String ZS_FILE_EXTENSION = ".zs";
     public static final String DZS_FILE_EXTENSION = ".d.zs";
 
     private final Path path;
@@ -108,55 +101,35 @@ public class CompilationUnit {
         return parseTree;
     }
 
+    public void setParseTree(ParseTree parseTree) {
+        this.parseTree = parseTree;
+    }
+
     public CommonTokenStream getTokenStream() {
         return tokenStream;
     }
 
-    public boolean isDzs() {
-        return path.toString().endsWith(DZS_FILE_EXTENSION);
-    }
-
-    public void load() {
-        try {
-            load(CharStreams.fromPath(path, StandardCharsets.UTF_8));
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public void load(String source) {
-        load(CharStreams.fromString(source, String.valueOf(path)));
-    }
-
-    public void load(CharStream charStream) {
-        parse(charStream);
-        new DeclarationResolver().resolve(this);
-    }
-
-    public void parse(CharStream charStream) {
-        ZenScriptLexer lexer = new ZenScriptLexer(charStream);
-        lexer.removeErrorListeners();
-        tokenStream = new CommonTokenStream(lexer);
-        ZenScriptParser parser = new ZenScriptParser(tokenStream);
-        parser.removeErrorListeners();
-        parseTree = parser.compilationUnit();
+    public void setTokenStream(CommonTokenStream tokenStream) {
+        this.tokenStream = tokenStream;
     }
 
     public <T> T accept(Visitor<T> visitor) {
-        if (parseTree == null)
+        if (parseTree != null) {
+            return parseTree.accept(visitor);
+        } else {
             return null;
-        return parseTree.accept(visitor);
+        }
     }
 
     public void accept(Listener listener) {
-        if (parseTree == null)
-            return;
-        ParseTreeWalker.DEFAULT.walk(listener, parseTree);
+        if (parseTree != null) {
+            ParseTreeWalker.DEFAULT.walk(listener, parseTree);
+        }
     }
 
     @Override
     public String toString() {
-        return path.toString();
+        return String.valueOf(path);
     }
 
 }

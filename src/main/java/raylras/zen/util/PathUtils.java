@@ -1,5 +1,7 @@
 package raylras.zen.util;
 
+import raylras.zen.code.CompilationUnit;
+
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -39,6 +41,18 @@ public final class PathUtils {
             current = current.getParent();
         }
         return null;
+    }
+
+    public static boolean isSourceFile(Path path) {
+        return isZsFile(path) || isDzsFile(path);
+    }
+
+    public static boolean isZsFile(Path path) {
+        return String.valueOf(path).endsWith(CompilationUnit.ZS_FILE_EXTENSION);
+    }
+
+    public static boolean isDzsFile(Path path) {
+        return String.valueOf(path).endsWith(CompilationUnit.DZS_FILE_EXTENSION);
     }
 
 }

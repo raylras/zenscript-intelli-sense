@@ -8,6 +8,7 @@ import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.langserver.provider.CompletionProvider;
 import raylras.zen.langserver.provider.SemanticTokensProvider;
+import raylras.zen.util.Compilations;
 import raylras.zen.util.Logger;
 import raylras.zen.util.PathUtils;
 
@@ -41,7 +42,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
         try {
             CompilationUnit unit = manager.getUnit(PathUtils.toPath(params.getTextDocument().getUri()));
             String source = params.getContentChanges().get(0).getText();
-            unit.load(source);
+            Compilations.loadUnit(unit, source);
         } catch (Exception e) {
             logger.logError(e, "Failed to change file: {0}", params.getTextDocument().getUri());
         }
@@ -116,15 +117,20 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
                 manager.checkEnv(documentPath);
                 CompilationEnvironment env = manager.getEnv(documentPath);
                 switch (event.getType()) {
-                    case Created:
-                        env.createUnit(documentPath);
+                    case Created: {
+                        CompilationUnit unit = env.createUnit(documentPath);
+                        Compilations.loadUnit(unit);
                         break;
-                    case Changed:
-                        env.getUnit(documentPath).load();
+                    }
+                    case Changed: {
+                        CompilationUnit unit = env.getUnit(documentPath);
+                        Compilations.loadUnit(unit);
                         break;
-                    case Deleted:
+                    }
+                    case Deleted: {
                         env.removeUnit(documentPath);
                         break;
+                    }
                 }
             } catch (Exception e) {
                 logger.logError(e, "Failed to change watched file: {0}", event);

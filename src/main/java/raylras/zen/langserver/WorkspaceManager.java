@@ -2,6 +2,7 @@ package raylras.zen.langserver;
 
 import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.CompilationUnit;
+import raylras.zen.util.Compilations;
 import raylras.zen.util.Logger;
 import raylras.zen.util.PathUtils;
 import raylras.zen.util.l10n.L10N;
@@ -59,8 +60,8 @@ public class WorkspaceManager {
         if (compilationRoot == null || !isPathInWorkspace(compilationRoot))
             compilationRoot = documentPath;
         CompilationEnvironment env = new CompilationEnvironment(compilationRoot);
-        env.load();
-        if (!hasDzsFile(env)) {
+        Compilations.loadEnv(env);
+        if (!Compilations.hasDzsUnit(env)) {
             logger.logInfo("Could not find *.d.zs files in project environment: {0}", env);
             logger.showInfo(L10N.getString("environment.dzs_not_found"));
         }
@@ -74,15 +75,6 @@ public class WorkspaceManager {
     private boolean isPathInWorkspace(Path documentPath) {
         for (Path workspace : workspaceList) {
             if (PathUtils.isSubPath(workspace, documentPath)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    private boolean hasDzsFile(CompilationEnvironment env) {
-        for (CompilationUnit unit : env.getUnits()) {
-            if (unit.isDzs()) {
                 return true;
             }
         }

@@ -55,12 +55,8 @@ public class ClassSymbol extends Symbol {
 
     @Override
     public String getFullyQualifiedName() {
-        if (unit.isDzs()) {
-            return getDeclaredName();
-        }
-
-        // TODO: fully qualified name under relative path
-        return getDeclaredName();
+        // TODO: qualified name
+        throw new RuntimeException("TODO");
     }
 
     @Override

@@ -5,23 +5,18 @@ import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.ClassType;
 import raylras.zen.util.Logger;
 
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class CompilationEnvironment {
 
     public static final String DEFAULT_ROOT_DIRECTORY = "scripts";
 
-    private static final Logger logger = Logger.getLogger("environment");
+    private static final Logger logger = Logger.getLogger("env");
 
     private final Path root;
     private final Map<Path, CompilationUnit> unitMap = new HashMap<>();
@@ -30,10 +25,10 @@ public class CompilationEnvironment {
         this.root = root;
     }
 
-    public void createUnit(Path unitPath) {
+    public CompilationUnit createUnit(Path unitPath) {
         CompilationUnit unit = new CompilationUnit(unitPath, this);
-        unit.load();
-        unitMap.put(unit.getPath(), unit);
+        unitMap.put(unitPath, unit);
+        return unit;
     }
 
     public CompilationUnit getUnit(Path unitPath) {
@@ -46,6 +41,10 @@ public class CompilationEnvironment {
 
     public Collection<CompilationUnit> getUnits() {
         return unitMap.values();
+    }
+
+    public Map<Path, CompilationUnit> getUnitMap() {
+        return unitMap;
     }
 
     public List<Symbol> getGlobalSymbols() {
@@ -65,19 +64,6 @@ public class CompilationEnvironment {
 
     public Path getRoot() {
         return root;
-    }
-
-    public void load() {
-        Instant started = Instant.now();
-        unitMap.clear();
-        try (Stream<Path> walk = Files.walk(root)) {
-            walk.filter(Files::isRegularFile)
-                .filter(path -> path.toString().endsWith(CompilationUnit.FILE_EXTENSION))
-                .forEach(this::createUnit);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        logger.logInfo("Loaded project environment in {0} ms: {1}", Duration.between(started, Instant.now()).toMillis(), root);
     }
 
     @Override

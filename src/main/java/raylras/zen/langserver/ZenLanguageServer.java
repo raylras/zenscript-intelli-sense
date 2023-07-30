@@ -84,7 +84,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 
     private void startListeningFileChanges() {
         List<FileSystemWatcher> watchers = new ArrayList<>(1);
-        watchers.add(new FileSystemWatcher(Either.forLeft("**/*" + CompilationUnit.FILE_EXTENSION), WatchKind.Create + WatchKind.Change + WatchKind.Delete));
+        watchers.add(new FileSystemWatcher(Either.forLeft("**/*" + CompilationUnit.ZS_FILE_EXTENSION), WatchKind.Create + WatchKind.Change + WatchKind.Delete));
         Object options = new DidChangeWatchedFilesRegistrationOptions(watchers);
         Registration registration = new Registration(UUID.randomUUID().toString(), "workspace/didChangeWatchedFiles", options);
         client.registerCapability(new RegistrationParams(Collections.singletonList(registration)));
