@@ -16,7 +16,7 @@ import raylras.zen.code.parser.ZenScriptParser;
 
 import java.util.stream.Stream;
 
-class NodesTest {
+class CstTest {
 
     static TokenStream tokenStream;
     static ZenScriptParser.CompilationUnitContext unit;
@@ -33,8 +33,8 @@ class NodesTest {
     @ParameterizedTest
     @MethodSource("getNodeAtLineAndColumn")
     void getNodeAtLineAndColumn(String expected, int line, int column) {
-        ParseTree node = Nodes.getNodeAtLineAndColumn(unit, line, column);
-        Assertions.assertEquals(expected, getText(node));
+        ParseTree cst = CSTNodes.getCstAtLineAndColumn(unit, line, column);
+        Assertions.assertEquals(expected, getText(cst));
     }
 
     static Stream<Arguments> getNodeAtLineAndColumn() {
@@ -52,8 +52,8 @@ class NodesTest {
     @ParameterizedTest
     @MethodSource("getPrevTerminal")
     void getPrevTerminal(String expected, int line, int column) {
-        ParseTree node = Nodes.getNodeAtLineAndColumn(unit, line, column);
-        TerminalNode prev = Nodes.getPrevTerminal(tokenStream, node);
+        ParseTree cst = CSTNodes.getCstAtLineAndColumn(unit, line, column);
+        TerminalNode prev = CSTNodes.getPrevTerminal(tokenStream, cst);
         Assertions.assertEquals(expected, getText(prev));
     }
 

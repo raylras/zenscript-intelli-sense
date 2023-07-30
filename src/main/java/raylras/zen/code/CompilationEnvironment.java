@@ -59,7 +59,7 @@ public class CompilationEnvironment {
                 .flatMap(unit -> unit.getTopLevelSymbols().stream())
                 .filter(symbol -> symbol instanceof ClassSymbol)
                 .map(symbol -> (ClassSymbol) symbol)
-                .collect(Collectors.toMap(ClassSymbol::getFullyQualifiedName, ClassSymbol::getType));
+                .collect(Collectors.toMap(ClassSymbol::getQualifiedName, ClassSymbol::getType));
     }
 
     public Path getRoot() {

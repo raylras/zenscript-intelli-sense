@@ -8,22 +8,18 @@ import java.util.Map;
 
 public class ParseTreeProperty<V> {
 
-    private final Map<ParseTree, V> annotations = new IdentityHashMap<>();
+    private final Map<ParseTree, V> properties = new IdentityHashMap<>();
 
-    public V get(ParseTree node) {
-        return annotations.get(node);
+    public V get(ParseTree cst) {
+        return properties.get(cst);
     }
 
-    public void put(ParseTree node, V value) {
-        annotations.put(node, value);
-    }
-
-    public V removeFrom(ParseTree node) {
-        return annotations.remove(node);
+    public void put(ParseTree cst, V value) {
+        properties.put(cst, value);
     }
 
 	public Collection<V> values() {
-		return annotations.values();
+		return properties.values();
 	}
 
 }

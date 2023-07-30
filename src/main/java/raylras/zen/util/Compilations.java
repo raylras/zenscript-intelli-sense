@@ -53,7 +53,7 @@ public class Compilations {
             ParseTree parseTree = fastParse(tokenStream);
             unit.setTokenStream(tokenStream);
             unit.setParseTree(parseTree);
-            new DeclarationResolver().resolve(unit);
+            DeclarationResolver.resolveDeclarations(unit);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -70,7 +70,7 @@ public class Compilations {
         ParseTree parseTree = parse(tokenStream);
         unit.setTokenStream(tokenStream);
         unit.setParseTree(parseTree);
-        new DeclarationResolver().resolve(unit);
+        DeclarationResolver.resolveDeclarations(unit);
     }
 
     public static CommonTokenStream lex(CharStream charStream) {

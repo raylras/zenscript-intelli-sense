@@ -2,7 +2,7 @@ package raylras.zen.code.symbol;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.resolve.ParameterResolver;
+import raylras.zen.code.resolve.FormalParameterResolver;
 import raylras.zen.code.resolve.TypeResolver;
 import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.Type;
@@ -11,12 +11,12 @@ import java.util.List;
 
 public class FunctionSymbol extends Symbol {
 
-    public FunctionSymbol(ParseTree owner, CompilationUnit unit) {
-        super(owner, unit);
+    public FunctionSymbol(ParseTree cst, CompilationUnit unit) {
+        super(cst, unit);
     }
 
-    public List<VariableSymbol> getParameters() {
-        return new ParameterResolver(unit).resolve(owner);
+    public List<VariableSymbol> getFormalParameterList() {
+        return FormalParameterResolver.getFormalParameterList(cst, unit);
     }
 
     public Type getReturnType() {
@@ -30,7 +30,7 @@ public class FunctionSymbol extends Symbol {
 
     @Override
     public FunctionType getType() {
-        Type type = new TypeResolver(unit).resolve(owner);
+        Type type = TypeResolver.getType(cst, unit);
         if (type instanceof FunctionType) {
             return (FunctionType) type;
         } else {
@@ -41,6 +41,12 @@ public class FunctionSymbol extends Symbol {
     @Override
     public Kind getKind() {
         return Kind.FUNCTION;
+    }
+
+    @Override
+    public String getQualifiedName() {
+        // TODO: getQualifiedName
+        throw new RuntimeException("TODO");
     }
 
 }

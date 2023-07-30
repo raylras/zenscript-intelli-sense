@@ -7,18 +7,24 @@ import raylras.zen.code.type.Type;
 
 public class VariableSymbol extends Symbol {
 
-    public VariableSymbol(ParseTree owner, CompilationUnit unit) {
-        super(owner, unit);
+    public VariableSymbol(ParseTree cst, CompilationUnit unit) {
+        super(cst, unit);
     }
 
     @Override
     public Type getType() {
-        return new TypeResolver(unit).resolve(owner);
+        return TypeResolver.getType(cst, unit);
     }
 
     @Override
     public Kind getKind() {
         return Kind.VARIABLE;
+    }
+
+    @Override
+    public String getQualifiedName() {
+        // TODO: getQualifiedName
+        throw new RuntimeException("TODO");
     }
 
 }

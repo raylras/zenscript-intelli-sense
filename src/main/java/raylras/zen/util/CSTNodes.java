@@ -9,9 +9,9 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import java.util.ArrayDeque;
 import java.util.Queue;
 
-public class Nodes {
+public class CSTNodes {
 
-    public static ParseTree getNodeAtLineAndColumn(ParseTree root, int line, int column) {
+    public static ParseTree getCstAtLineAndColumn(ParseTree root, int line, int column) {
         Queue<ParseTree> queue = new ArrayDeque<>();
         queue.add(root);
         ParseTree found = null;
@@ -36,7 +36,7 @@ public class Nodes {
         }
         ParseTree root = getRoot(node);
         Range cursor = Ranges.of(prevToken);
-        ParseTree prevNode = getNodeAtLineAndColumn(root, cursor.endLine, cursor.endColumn);
+        ParseTree prevNode = getCstAtLineAndColumn(root, cursor.endLine, cursor.endColumn);
         return (prevNode instanceof TerminalNode) ? (TerminalNode) prevNode : null;
     }
 

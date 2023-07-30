@@ -15,13 +15,13 @@ public class ClassSymbol extends Symbol {
 
     private final ClassType type;
 
-    public ClassSymbol(ClassDeclarationContext owner, CompilationUnit unit) {
-        super(owner, unit);
+    public ClassSymbol(ClassDeclarationContext cst, CompilationUnit unit) {
+        super(cst, unit);
         this.type = new ClassType(this);
     }
 
     public List<Symbol> getMembers() {
-        Scope scope = unit.getScope(owner);
+        Scope scope = unit.getScope(cst);
         if (scope != null) {
             return scope.getSymbols();
         } else {
@@ -54,14 +54,14 @@ public class ClassSymbol extends Symbol {
     }
 
     @Override
-    public String getFullyQualifiedName() {
-        // TODO: qualified name
+    public String getQualifiedName() {
+        // TODO: getQualifiedName
         throw new RuntimeException("TODO");
     }
 
     @Override
-    public ClassDeclarationContext getOwner() {
-        return (ClassDeclarationContext) owner;
+    public ClassDeclarationContext getCst() {
+        return (ClassDeclarationContext) cst;
     }
 
 }

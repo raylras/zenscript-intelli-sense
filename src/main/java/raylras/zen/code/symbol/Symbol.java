@@ -14,28 +14,26 @@ import java.util.Optional;
 
 public abstract class Symbol {
 
-    protected ParseTree owner;
-    protected CompilationUnit unit;
+    protected final ParseTree cst;
+    protected final CompilationUnit unit;
 
-    public Symbol(ParseTree owner, CompilationUnit unit) {
-        this.owner = owner;
+    public Symbol(ParseTree cst, CompilationUnit unit) {
         this.unit = unit;
+        this.cst = cst;
     }
 
     public abstract Type getType();
 
     public abstract Kind getKind();
 
-    public String getFullyQualifiedName() {
-        return getDeclaredName();
-    }
+    public abstract String getQualifiedName();
 
-    public String getDeclaredName() {
-        return new DeclaredNameResolver().resolve(owner);
+    public String getSimpleName() {
+        return DeclaredNameResolver.getDeclaredName(cst);
     }
 
     public Declarator getDeclarator() {
-        return new DeclaratorResolver().resolve(owner);
+        return DeclaratorResolver.getDeclarator(cst);
     }
 
     public boolean isDeclaredBy(Declarator declarator) {
@@ -49,11 +47,11 @@ public abstract class Symbol {
     }
 
     public List<Annotation> getDeclaredAnnotations() {
-        return new AnnotationResolver(unit).resolve(owner);
+        return AnnotationResolver.getAnnotations(cst, unit.getTokenStream());
     }
 
-    public ParseTree getOwner() {
-        return owner;
+    public ParseTree getCst() {
+        return cst;
     }
 
     public CompilationUnit getUnit() {
@@ -62,7 +60,7 @@ public abstract class Symbol {
 
     @Override
     public String toString() {
-        return getDeclaredName();
+        return getSimpleName();
     }
 
     public enum Kind {

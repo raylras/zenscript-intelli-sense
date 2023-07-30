@@ -30,12 +30,12 @@ public class BuiltinSymbol extends Symbol {
     }
 
     @Override
-    public String getFullyQualifiedName() {
+    public String getQualifiedName() {
         return name;
     }
 
     @Override
-    public String getDeclaredName() {
+    public String getSimpleName() {
         return name;
     }
 

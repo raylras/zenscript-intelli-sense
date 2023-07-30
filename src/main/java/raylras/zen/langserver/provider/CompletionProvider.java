@@ -20,8 +20,8 @@ import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.Type;
 import raylras.zen.langserver.provider.data.Keywords;
+import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Logger;
-import raylras.zen.util.Nodes;
 import raylras.zen.util.Range;
 import raylras.zen.util.Ranges;
 import raylras.zen.util.l10n.L10N;
@@ -50,11 +50,11 @@ public class CompletionProvider extends Visitor<Void> {
     public CompletionProvider(CompilationUnit unit, Range cursor) {
         this.unit = unit;
         this.cursor = cursor;
-        this.cursorNode = Nodes.getNodeAtLineAndColumn(unit.getParseTree(), cursor.startLine, cursor.startColumn);
+        this.cursorNode = CSTNodes.getCstAtLineAndColumn(unit.getParseTree(), cursor.startLine, cursor.startColumn);
         this.cursorNodeRange = Ranges.of(cursorNode);
         this.cursorNodeScope = unit.lookupScope(cursorNode);
         this.cursorString = getTextBeforeCursor(cursorNode);
-        this.prevNode = Nodes.getPrevTerminal(unit.getTokenStream(), cursorNode);
+        this.prevNode = CSTNodes.getPrevTerminal(unit.getTokenStream(), cursorNode);
         this.prevNodeRange = Ranges.of(prevNode);
     }
 
@@ -175,7 +175,7 @@ public class CompletionProvider extends Visitor<Void> {
     public Void visitExpressionStatement(ExpressionStatementContext ctx) {
         if (isPrevNodeOfCursor(ctx.expression())
                 && isNextTokenOfNode(ZenScriptLexer.DOT, ctx.expression())) {
-            Type type = new TypeResolver(unit).resolve(ctx.expression());
+            Type type = TypeResolver.getType(ctx.expression(), unit);
             if (type != null) {
                 completeInstanceMembers("", type);
             }
@@ -260,7 +260,7 @@ public class CompletionProvider extends Visitor<Void> {
             if (symbol != null) {
                 completeStaticMembers("", symbol.getType());
             } else {
-                Type leftType = new TypeResolver(unit).resolve(ctx.Left);
+                Type leftType = TypeResolver.getType(ctx.Left, unit);
                 completeInstanceMembers("", leftType);
             }
             return null;
@@ -270,7 +270,7 @@ public class CompletionProvider extends Visitor<Void> {
             if (symbol != null) {
                 completeStaticMembers(cursorString, symbol.getType());
             } else {
-                Type leftType = new TypeResolver(unit).resolve(ctx.Left);
+                Type leftType = TypeResolver.getType(ctx.Left, unit);
                 completeInstanceMembers(cursorString, leftType);
             }
             return null;
@@ -307,7 +307,7 @@ public class CompletionProvider extends Visitor<Void> {
         Scope scope = cursorNodeScope;
         while (scope != null) {
             for (Symbol symbol : scope.getSymbols()) {
-                if (symbol.getDeclaredName().startsWith(completingString)
+                if (symbol.getSimpleName().startsWith(completingString)
                         && isPrevSymbolOfCursor(symbol)) {
                     addToCompletionData(symbol, toTypeName(symbol.getType()));
                 }
@@ -318,7 +318,7 @@ public class CompletionProvider extends Visitor<Void> {
 
     private void completeGlobalSymbols(String completingString) {
         for (Symbol symbol : unit.getEnv().getGlobalSymbols()) {
-            if (symbol.getDeclaredName().startsWith(completingString)) {
+            if (symbol.getSimpleName().startsWith(completingString)) {
                 addToCompletionData(symbol, "global " + toTypeName(symbol.getType()));
             }
         }
@@ -326,7 +326,7 @@ public class CompletionProvider extends Visitor<Void> {
 
     private void completeStaticMembers(String completingString, Type type) {
         for (Symbol symbol : type.getMembers()) {
-            if (symbol.getDeclaredName().startsWith(completingString)
+            if (symbol.getSimpleName().startsWith(completingString)
                     && symbol.isDeclaredBy(Declarator.STATIC)) {
                 addToCompletionData(symbol, "static " + toTypeName(symbol.getType()));
             }
@@ -335,7 +335,7 @@ public class CompletionProvider extends Visitor<Void> {
 
     private void completeInstanceMembers(String completingString, Type type) {
         for (Symbol symbol : type.getMembers()) {
-            if (symbol.getDeclaredName().startsWith(completingString)
+            if (symbol.getSimpleName().startsWith(completingString)
                     && !symbol.isDeclaredBy(Declarator.STATIC)) {
                 addToCompletionData(symbol, toTypeName(symbol.getType()));
             }
@@ -351,7 +351,7 @@ public class CompletionProvider extends Visitor<Void> {
     }
 
     private void addToCompletionData(Symbol symbol, String detail) {
-        CompletionItem item = new CompletionItem(symbol.getDeclaredName());
+        CompletionItem item = new CompletionItem(symbol.getSimpleName());
         item.setKind(toCompletionKind(symbol));
         item.setDetail(detail);
         completionData.add(item);
@@ -416,7 +416,7 @@ public class CompletionProvider extends Visitor<Void> {
     }
 
     private boolean isPrevSymbolOfCursor(Symbol symbol) {
-        return Ranges.of(symbol.getOwner()).startLine < cursor.startLine;
+        return Ranges.of(symbol.getCst()).startLine < cursor.startLine;
     }
 
     /**
@@ -448,7 +448,7 @@ public class CompletionProvider extends Visitor<Void> {
      * false if the type is not equal or the next token is not found.
      */
     private boolean isNextTokenOfNode(int nextTokenType, ParseTree node) {
-        Token nextToken = Nodes.getNextToken(unit.getTokenStream(), node);
+        Token nextToken = CSTNodes.getNextToken(unit.getTokenStream(), node);
         if (nextToken != null) {
             return nextToken.getType() == nextTokenType;
         } else {

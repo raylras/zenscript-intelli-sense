@@ -12,6 +12,7 @@ import raylras.zen.util.ParseTreeProperty;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class CompilationUnit {
@@ -32,32 +33,32 @@ public class CompilationUnit {
         this.env = env;
     }
 
-    public Scope lookupScope(ParseTree lookupNode) {
-        ParseTree node = lookupNode;
-        while (node != null) {
-            Scope scope = scopeProp.get(node);
+    public Scope lookupScope(ParseTree lookupCst) {
+        ParseTree cst = lookupCst;
+        while (cst != null) {
+            Scope scope = scopeProp.get(cst);
             if (scope != null) {
                 return scope;
             }
-            node = node.getParent();
+            cst = cst.getParent();
         }
         return null;
     }
 
-    public Scope getScope(ParseTree node) {
-        return scopeProp.get(node);
+    public Scope getScope(ParseTree cst) {
+        return scopeProp.get(cst);
     }
 
-    public void putScope(ParseTree node, Scope scope) {
-        scopeProp.put(node, scope);
+    public void addScope(Scope scope) {
+        scopeProp.put(scope.getCst(), scope);
     }
 
-    public Symbol getSymbol(ParseTree node) {
-        return symbolProp.get(node);
+    public Symbol getSymbol(ParseTree cst) {
+        return symbolProp.get(cst);
     }
 
-    public <T extends Symbol> T getSymbol(ParseTree node, Class<T> clazz) {
-        Symbol symbol = symbolProp.get(node);
+    public <T extends Symbol> T getSymbol(ParseTree cst, Class<T> clazz) {
+        Symbol symbol = symbolProp.get(cst);
         if (clazz.isInstance(symbol)) {
             return clazz.cast(symbol);
         } else {
@@ -65,8 +66,8 @@ public class CompilationUnit {
         }
     }
 
-    public void putSymbol(ParseTree node, Symbol symbol) {
-        symbolProp.put(node, symbol);
+    public void addSymbol(Symbol symbol) {
+        symbolProp.put(symbol.getCst(), symbol);
     }
 
     public Collection<Scope> getScopes() {
@@ -113,18 +114,14 @@ public class CompilationUnit {
         this.tokenStream = tokenStream;
     }
 
-    public <T> T accept(Visitor<T> visitor) {
-        if (parseTree != null) {
-            return parseTree.accept(visitor);
-        } else {
-            return null;
-        }
+    public void accept(Visitor<?> visitor) {
+        Objects.requireNonNull(visitor);
+        parseTree.accept(visitor);
     }
 
     public void accept(Listener listener) {
-        if (parseTree != null) {
-            ParseTreeWalker.DEFAULT.walk(listener, parseTree);
-        }
+        Objects.requireNonNull(listener);
+        ParseTreeWalker.DEFAULT.walk(listener, parseTree);
     }
 
     @Override

@@ -10,12 +10,12 @@ import java.util.Objects;
 public class Scope {
 
     private final Scope parent;
-    private final ParseTree owner;
     private final List<Symbol> symbols = new ArrayList<>();
+    private final ParseTree cst;
 
-    public Scope(Scope parent, ParseTree owner) {
+    public Scope(Scope parent, ParseTree cst) {
         this.parent = parent;
-        this.owner = owner;
+        this.cst = cst;
     }
 
     public void addSymbol(Symbol symbol) {
@@ -35,7 +35,7 @@ public class Scope {
         while (scope != null) {
             for (Symbol symbol : scope.getSymbols()) {
                 if (clazz.isInstance(symbol)
-                        && Objects.equals(symbol.getDeclaredName(), identifier)) {
+                        && Objects.equals(symbol.getSimpleName(), identifier)) {
                     return clazz.cast(symbol);
                 }
             }
@@ -48,12 +48,12 @@ public class Scope {
         return parent;
     }
 
-    public ParseTree getOwner() {
-        return owner;
-    }
-
     public List<Symbol> getSymbols() {
         return symbols;
+    }
+
+    public ParseTree getCst() {
+        return cst;
     }
 
 }

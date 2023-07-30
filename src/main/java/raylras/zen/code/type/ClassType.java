@@ -24,7 +24,7 @@ public class ClassType extends Type {
 
     @Override
     public String toString() {
-        return symbol.getDeclaredName();
+        return symbol.getSimpleName();
     }
 
 }
