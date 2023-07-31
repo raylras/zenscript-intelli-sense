@@ -11,6 +11,7 @@ import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.ImportSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.*;
+import raylras.zen.util.CSTNodes;
 
 import java.util.List;
 import java.util.Objects;
@@ -33,22 +34,25 @@ public final class TypeResolver {
             this.unit = unit;
         }
 
-        private List<Type> getParameterTypeList(List<ParameterContext> params) {
-            return params.stream().map(this::visit).collect(Collectors.toList());
+        private List<Type> toTypeList(FormalParameterListContext ctx) {
+            return ctx.formalParameter().stream()
+                    .map(this::visit)
+                    .collect(Collectors.toList());
         }
 
-        @Override
-        public Type visit(ParseTree node) {
-            if (node != null) {
-                return node.accept(this);
+        private List<Type> toTypeList(TypeLiteralListContext ctx) {
+            return ctx.typeLiteral().stream()
+                    .map(this::visit)
+                    .collect(Collectors.toList());
+        }
+
+        private Symbol lookupSymbol(ParseTree cst, String simpleName) {
+            Scope scope = unit.lookupScope(cst);
+            if (scope != null) {
+                return scope.lookupSymbol(simpleName);
             } else {
                 return null;
             }
-        }
-
-        @Override
-        public Type visitChildren(RuleNode node) {
-            return null;
         }
 
         @Override
@@ -57,44 +61,37 @@ public final class TypeResolver {
             if (symbol != null) {
                 return symbol.getType();
             } else {
-                return null;
+                return AnyType.INSTANCE;
             }
         }
 
         @Override
         public Type visitFunctionDeclaration(FunctionDeclarationContext ctx) {
-            List<Type> paramTypes = getParameterTypeList(ctx.parameter());
+            List<Type> paramTypes = toTypeList(ctx.formalParameterList());
             Type returnType = visit(ctx.returnType());
-            if (returnType != null) {
-                return new FunctionType(returnType, paramTypes);
-            } else {
-                return new FunctionType(AnyType.INSTANCE, paramTypes);
+            if (returnType == null) {
+                returnType = AnyType.INSTANCE;
             }
+            return new FunctionType(returnType, paramTypes);
         }
 
         @Override
         public Type visitExpandFunctionDeclaration(ExpandFunctionDeclarationContext ctx) {
-            List<Type> paramTypes = getParameterTypeList(ctx.parameter());
+            List<Type> paramTypes = toTypeList(ctx.formalParameterList());
             Type returnType = visit(ctx.returnType());
-            if (returnType != null) {
-                return new FunctionType(returnType, paramTypes);
-            } else {
-                return new FunctionType(AnyType.INSTANCE, paramTypes);
+            if (returnType == null) {
+                returnType = AnyType.INSTANCE;
             }
+            return new FunctionType(returnType, paramTypes);
         }
 
         @Override
-        public Type visitParameter(ParameterContext ctx) {
-            Type declaredType = visit(ctx.typeLiteral());
-            if (declaredType != null) {
-                return declaredType;
+        public Type visitFormalParameter(FormalParameterContext ctx) {
+            if (ctx.typeLiteral() != null) {
+                return visit(ctx.typeLiteral());
             } else {
-                Type exprType = visit(ctx.defaultValue());
-                if (exprType != null) {
-                    return exprType;
-                }
+                return visit(ctx.defaultValue());
             }
-            return AnyType.INSTANCE;
         }
 
         @Override
@@ -113,13 +110,13 @@ public final class TypeResolver {
             if (symbol != null) {
                 return symbol.getType();
             } else {
-                return null;
+                return AnyType.INSTANCE;
             }
         }
 
         @Override
         public Type visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
-            List<Type> paramTypes = getParameterTypeList(ctx.parameter());
+            List<Type> paramTypes = toTypeList(ctx.formalParameterList());
             // FIXME: should be zen class type
             Type returnType = AnyType.INSTANCE;
             return new FunctionType(returnType, paramTypes);
@@ -127,9 +124,8 @@ public final class TypeResolver {
 
         @Override
         public Type visitVariableDeclaration(VariableDeclarationContext ctx) {
-            Type declaredType = visit(ctx.typeLiteral());
-            if (declaredType != null) {
-                return declaredType;
+            if (ctx.typeLiteral() != null) {
+                return visit(ctx.typeLiteral());
             } else {
                 return visit(ctx.initializer());
             }
@@ -141,24 +137,31 @@ public final class TypeResolver {
         }
 
         @Override
-        public Type visitForeachVariableDeclaration(ForeachVariableDeclarationContext ctx) {
+        public Type visitForeachVariable(ForeachVariableContext ctx) {
             // FIXME: inferring the type of foreach variable
             return AnyType.INSTANCE;
         }
 
         @Override
-        public Type visitTrueLiteralExpr(TrueLiteralExprContext ctx) {
-            return BoolType.INSTANCE;
+        public Type visitAssignmentExpr(AssignmentExprContext ctx) {
+            return visit(ctx.left);
         }
 
         @Override
-        public Type visitFalseLiteralExpr(FalseLiteralExprContext ctx) {
-            return BoolType.INSTANCE;
+        public Type visitThisExpr(ThisExprContext ctx) {
+            // FIXME: inferring the type of this expression
+            return AnyType.INSTANCE;
         }
 
         @Override
-        public Type visitStringLiteralExpr(StringLiteralExprContext ctx) {
-            return StringType.INSTANCE;
+        public Type visitMapLiteralExpr(MapLiteralExprContext ctx) {
+            if (ctx.mapEntryList() == null) {
+                return new MapType(AnyType.INSTANCE, AnyType.INSTANCE);
+            }
+            MapEntryContext firstEntry = ctx.mapEntryList().mapEntry(0);
+            Type keyType = visit(firstEntry.key);
+            Type valueType = visit(firstEntry.value);
+            return new MapType(keyType, valueType);
         }
 
         @Override
@@ -167,46 +170,37 @@ public final class TypeResolver {
         }
 
         @Override
-        public Type visitArrayInitializerExpr(ArrayInitializerExprContext ctx) {
-            Type firstElementType = visit(ctx.expression(0));
-            if (firstElementType != null) {
-                return new ArrayType(firstElementType);
+        public Type visitSimpleNameExpr(SimpleNameExprContext ctx) {
+            Symbol symbol = lookupSymbol(ctx, ctx.simpleName().getText());
+            if (symbol != null) {
+                return symbol.getType();
             } else {
-                return new ArrayType(AnyType.INSTANCE);
+                return AnyType.INSTANCE;
             }
         }
 
         @Override
-        public Type visitFloatLiteralExpr(FloatLiteralExprContext ctx) {
-            return FloatType.INSTANCE;
+        public Type visitBinaryExpr(BinaryExprContext ctx) {
+            return visit(ctx.left);
         }
 
         @Override
-        public Type visitLongLiteralExpr(LongLiteralExprContext ctx) {
-            return LongType.INSTANCE;
+        public Type visitParensExpr(ParensExprContext ctx) {
+            return visit(ctx.expression());
         }
 
         @Override
-        public Type visitLocalAccessExpr(LocalAccessExprContext ctx) {
-            Scope scope = unit.lookupScope(ctx);
-            if (scope != null) {
-                String identifier = ctx.identifier().getText();
-                Symbol symbol = scope.lookupSymbol(identifier);
-                if (symbol != null) {
-                    return symbol.getType();
-                }
-            }
-            return null;
+        public Type visitTypeCastExpr(TypeCastExprContext ctx) {
+            return visit(ctx.typeLiteral());
         }
 
         @Override
-        public Type visitCallExpr(CallExprContext ctx) {
-            // FIXME: overloaded functions
-            Type leftType = visit(ctx.Left);
-            if (leftType instanceof FunctionType) {
-                return ((FunctionType) leftType).getReturnType();
+        public Type visitFunctionExpr(FunctionExprContext ctx) {
+            if (ctx.typeLiteral() != null) {
+                return visit(ctx.typeLiteral());
             } else {
-                return null;
+                List<Type> paramTypes = toTypeList(ctx.formalParameterList());
+                return new FunctionType(AnyType.INSTANCE, paramTypes);
             }
         }
 
@@ -217,43 +211,84 @@ public final class TypeResolver {
         }
 
         @Override
-        public Type visitThisExpr(ThisExprContext ctx) {
-            // FIXME: inferring the type of this expression
-            return AnyType.INSTANCE;
+        public Type visitUnaryExpr(UnaryExprContext ctx) {
+            return visit(ctx.expression());
         }
 
         @Override
         public Type visitTernaryExpr(TernaryExprContext ctx) {
-            return visit(ctx.TruePart);
+            return visit(ctx.truePart);
         }
 
         @Override
-        public Type visitFunctionExpr(FunctionExprContext ctx) {
-            Type declaredType = visit(ctx.typeLiteral());
-            if (declaredType != null) {
-                return declaredType;
-            } else {
-                List<Type> paramTypes = getParameterTypeList(ctx.parameter());
-                Type returnType = AnyType.INSTANCE;
-                return new FunctionType(returnType, paramTypes);
+        public Type visitLiteralExpr(LiteralExprContext ctx) {
+            switch (CSTNodes.getTokenType(ctx.start)) {
+                case ZenScriptLexer.INT_LITERAL:
+                    return IntType.INSTANCE;
+
+                case ZenScriptLexer.LONG_LITERAL:
+                    return LongType.INSTANCE;
+
+                case ZenScriptLexer.FLOAT_LITERAL:
+                    return FloatType.INSTANCE;
+
+                case ZenScriptLexer.DOUBLE_LITERAL:
+                    return DoubleType.INSTANCE;
+
+                case ZenScriptLexer.STRING_LITERAL:
+                    return StringType.INSTANCE;
+
+                case ZenScriptLexer.TRUE_LITERAL:
+                case ZenScriptLexer.FALSE_LITERAL:
+                    return BoolType.INSTANCE;
+
+                case ZenScriptLexer.NULL_LITERAL:
+                    return AnyType.INSTANCE;
+
+                default:
+                    return null;
             }
         }
 
         @Override
-        public Type visitMapInitializerExpr(MapInitializerExprContext ctx) {
-            MapEntryContext firstEntry = ctx.mapEntry(0);
-            if (firstEntry != null) {
-                Type keyType = visit(firstEntry.Key);
-                Type valueType = visit(firstEntry.Value);
-                return new MapType(keyType, valueType);
+        public Type visitMemberAccessExpr(MemberAccessExprContext ctx) {
+            Type leftType = visit(ctx.expression());
+            if (leftType == null) {
+                return null;
+            }
+            String simpleName = ctx.simpleName().getText();
+            for (Symbol member : leftType.getMembers()) {
+                if (Objects.equals(member.getSimpleName(), simpleName)) {
+                    return member.getType();
+                }
+            }
+            return leftType;
+        }
+
+        @Override
+        public Type visitArrayLiteralExpr(ArrayLiteralExprContext ctx) {
+            Type firstElementType = visit(ctx.expressionList().expression(0));
+            if (firstElementType != null) {
+                return new ArrayType(firstElementType);
             } else {
-                return new MapType(AnyType.INSTANCE, AnyType.INSTANCE);
+                return new ArrayType(AnyType.INSTANCE);
             }
         }
 
         @Override
-        public Type visitArrayAccessExpr(ArrayAccessExprContext ctx) {
-            Type leftType = visit(ctx.Left);
+        public Type visitCallExpr(CallExprContext ctx) {
+            // FIXME: overloaded functions
+            Type leftType = visit(ctx.expression());
+            if (leftType instanceof FunctionType) {
+                return ((FunctionType) leftType).getReturnType();
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        public Type visitMemberIndexExpr(MemberIndexExprContext ctx) {
+            Type leftType = visit(ctx.left);
             if (leftType instanceof ArrayType) {
                 return ((ArrayType) leftType).getElementType();
             }
@@ -267,77 +302,22 @@ public final class TypeResolver {
         }
 
         @Override
-        public Type visitBinaryExpr(BinaryExprContext ctx) {
-            return visit(ctx.Left);
-        }
-
-        @Override
-        public Type visitAssignmentExpr(AssignmentExprContext ctx) {
-            return visit(ctx.Left);
-        }
-
-        @Override
-        public Type visitUnaryExpr(UnaryExprContext ctx) {
-            return visit(ctx.expression());
-        }
-
-        @Override
-        public Type visitNullLiteralExpr(NullLiteralExprContext ctx) {
-            return AnyType.INSTANCE;
-        }
-
-        @Override
-        public Type visitIntLiteralExpr(IntLiteralExprContext ctx) {
-            return IntType.INSTANCE;
-        }
-
-        @Override
-        public Type visitDoubleLiteralExpr(DoubleLiteralExprContext ctx) {
-            return DoubleType.INSTANCE;
-        }
-
-        @Override
-        public Type visitParensExpr(ParensExprContext ctx) {
-            return visit(ctx.expression());
-        }
-
-        @Override
-        public Type visitMemberAccessExpr(MemberAccessExprContext ctx) {
-            Type leftType = visit(ctx.Left);
-            if (leftType == null) {
-                return null;
-            }
-            String identifier = ctx.identifier().getText();
-            for (Symbol member : leftType.getMembers()) {
-                if (Objects.equals(member.getSimpleName(), identifier)) {
-                    return member.getType();
-                }
-            }
-            return leftType;
-        }
-
-        @Override
-        public Type visitTypeCastExpr(TypeCastExprContext ctx) {
-            return visit(ctx.typeLiteral());
-        }
-
-        @Override
-        public Type visitArgument(ArgumentContext ctx) {
-            return visit(ctx.expression());
-        }
-
-        @Override
         public Type visitArrayType(ArrayTypeContext ctx) {
             Type elementType = visit(ctx.typeLiteral());
             return new ArrayType(elementType);
         }
 
         @Override
+        public Type visitMapType(MapTypeContext ctx) {
+            Type keyType = visit(ctx.key);
+            Type valueType = visit(ctx.value);
+            return new MapType(keyType, valueType);
+        }
+
+        @Override
         public Type visitFunctionType(FunctionTypeContext ctx) {
-            List<Type> paramTypes = ctx.typeLiteral().stream()
-                    .map(this::visit)
-                    .collect(Collectors.toList());
-            Type returnType = visit(ctx.returnType());
+            List<Type> paramTypes = toTypeList(ctx.typeLiteralList());
+            Type returnType = visitReturnType(ctx.returnType());
             return new FunctionType(returnType, paramTypes);
         }
 
@@ -349,7 +329,7 @@ public final class TypeResolver {
 
         @Override
         public Type visitPrimitiveType(PrimitiveTypeContext ctx) {
-            switch (ctx.start.getType()) {
+            switch (CSTNodes.getTokenType(ctx.start)) {
                 case ZenScriptLexer.ANY:
                     return AnyType.INSTANCE;
 
@@ -388,8 +368,8 @@ public final class TypeResolver {
         @Override
         public Type visitClassType(ClassTypeContext ctx) {
             Scope scope = unit.getScope(unit.getParseTree());
-            String identifier = ctx.getText();
-            Symbol symbol = scope.lookupSymbol(identifier);
+            String qualifiedName = ctx.qualifiedName().getText();
+            Symbol symbol = scope.lookupSymbol(qualifiedName);
             if (symbol != null) {
                 return symbol.getType();
             } else {
@@ -398,10 +378,17 @@ public final class TypeResolver {
         }
 
         @Override
-        public Type visitMapType(MapTypeContext ctx) {
-            Type keyType = visit(ctx.Key);
-            Type valueType = visit(ctx.Value);
-            return new MapType(keyType, valueType);
+        public Type visit(ParseTree node) {
+            if (node != null) {
+                return node.accept(this);
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        public Type visitChildren(RuleNode node) {
+            return null;
         }
     }
 

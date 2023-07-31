@@ -3,7 +3,7 @@ package raylras.zen.langserver;
 import org.eclipse.lsp4j.SemanticTokenModifiers;
 import org.eclipse.lsp4j.SemanticTokenTypes;
 import org.eclipse.lsp4j.SemanticTokensLegend;
-import raylras.zen.code.Declarator;
+import raylras.zen.code.symbol.Symbol.Modifier;
 
 import java.util.Arrays;
 import java.util.List;
@@ -19,11 +19,11 @@ public class Semantics {
         SEMANTIC_TOKENS_LEGEND = new SemanticTokensLegend(tokenTypes, tokenModifiers);
     }
 
-    public static int getTokenModifiers(Declarator declarator) {
+    public static int getTokenModifiers(Modifier modifier) {
         int tokenModifiers = 0;
-        switch (declarator) {
-            case GLOBAL:
+        switch (modifier) {
             case STATIC:
+            case GLOBAL:
                 tokenModifiers |= TokenModifier.STATIC.flag;
             case VAL:
                 tokenModifiers |= TokenModifier.READONLY.flag;

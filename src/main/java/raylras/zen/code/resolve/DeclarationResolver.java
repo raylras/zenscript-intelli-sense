@@ -83,7 +83,7 @@ public final class DeclarationResolver {
         }
 
         @Override
-        public void enterParameter(ParameterContext ctx) {
+        public void enterFormalParameter(FormalParameterContext ctx) {
             enterSymbol(new VariableSymbol(ctx, unit));
         }
 
@@ -125,22 +125,22 @@ public final class DeclarationResolver {
         }
 
         @Override
-        public void enterThenBody(ThenBodyContext ctx) {
+        public void enterThenPart(ThenPartContext ctx) {
             enterScope(new Scope(currentScope(), ctx));
         }
 
         @Override
-        public void exitThenBody(ThenBodyContext ctx) {
+        public void exitThenPart(ThenPartContext ctx) {
             exitScope();
         }
 
         @Override
-        public void enterElseBody(ElseBodyContext ctx) {
+        public void enterElsePart(ElsePartContext ctx) {
             enterScope(new Scope(currentScope(), ctx));
         }
 
         @Override
-        public void exitElseBody(ElseBodyContext ctx) {
+        public void exitElsePart(ElsePartContext ctx) {
             exitScope();
         }
 
@@ -155,7 +155,7 @@ public final class DeclarationResolver {
         }
 
         @Override
-        public void enterForeachVariableDeclaration(ForeachVariableDeclarationContext ctx) {
+        public void enterForeachVariable(ForeachVariableContext ctx) {
             enterSymbol(new VariableSymbol(ctx, unit));
         }
 

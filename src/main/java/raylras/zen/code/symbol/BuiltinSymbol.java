@@ -1,6 +1,5 @@
 package raylras.zen.code.symbol;
 
-import raylras.zen.code.Declarator;
 import raylras.zen.code.annotation.Annotation;
 import raylras.zen.code.type.Type;
 
@@ -40,8 +39,8 @@ public class BuiltinSymbol extends Symbol {
     }
 
     @Override
-    public Declarator getDeclarator() {
-        return Declarator.NONE;
+    public Modifier getModifier() {
+        return Modifier.NONE;
     }
 
     @Override

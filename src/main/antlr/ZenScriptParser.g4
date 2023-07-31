@@ -3,13 +3,15 @@ parser grammar ZenScriptParser;
 options { tokenVocab = ZenScriptLexer; }
 
 compilationUnit
-    :   ( importDeclaration
-        | functionDeclaration
-        | expandFunctionDeclaration
-        | classDeclaration
-        | statement
-        )*
-        EOF
+    : topLevelElement* EOF
+    ;
+
+topLevelElement
+    : importDeclaration
+    | classDeclaration
+    | functionDeclaration
+    | expandFunctionDeclaration
+    | statement
     ;
 
 importDeclaration
@@ -17,32 +19,34 @@ importDeclaration
     ;
 
 qualifiedName
-    : qualifier identifier
-    ;
-
-qualifier
-    : (identifier '.')*
+    : simpleName ('.' simpleName)*
     ;
 
 alias
-    : identifier
+    : simpleName
     ;
 
-identifier
+simpleName
     : IDENTIFIER
     | 'to'
     ;
 
 functionDeclaration
-    : Declarator='static'? 'function' identifier '(' (parameter (',' parameter)*)? ')' ('as' returnType)? functionBody
+    : prefix='static'? 'function' simpleName '(' formalParameterList ')' ('as' returnType)? functionBody
+    | prefix=('static' | 'global')? 'function' simpleName '(' formalParameterList ')' 'as' returnType ';'
     ;
 
 expandFunctionDeclaration
-    : Declarator='$expand' Expand=typeLiteral '$' identifier '(' (parameter (',' parameter)*)? ')' ('as' returnType)? functionBody
+    : '$expand' typeLiteral '$' simpleName '(' formalParameterList ')' ('as' returnType)? functionBody
     ;
 
-parameter
-    : identifier ('as' typeLiteral)? ('=' defaultValue)?
+formalParameterList
+    : formalParameter (',' formalParameter)*
+    |
+    ;
+
+formalParameter
+    : simpleName ('as' typeLiteral)? ('=' defaultValue)?
     ;
 
 defaultValue
@@ -58,11 +62,35 @@ functionBody
     ;
 
 classDeclaration
-    : 'zenClass' qualifiedName '{' (variableDeclaration | constructorDeclaration | functionDeclaration)* '}'
+    : 'zenClass' simpleNameOrPrimitiveType classBody
+    ;
+
+simpleNameOrPrimitiveType
+    : simpleName
+    | 'any'
+    | 'byte'
+    | 'short'
+    | 'int'
+    | 'long'
+    | 'float'
+    | 'double'
+    | 'bool'
+    | 'void'
+    | 'string'
+    ;
+
+classBody
+    : '{' classMemberDeclaration* '}'
+    ;
+
+classMemberDeclaration
+    : variableDeclaration
+    | constructorDeclaration
+    | functionDeclaration
     ;
 
 constructorDeclaration
-    : 'zenConstructor' '(' (parameter (',' parameter)*)? ')' constructorBody
+    : 'zenConstructor' '(' formalParameterList ')' constructorBody
     ;
 
 constructorBody
@@ -70,7 +98,7 @@ constructorBody
     ;
 
 variableDeclaration
-    : Declarator=('var' | 'val' | 'static' | 'global') identifier ('as' typeLiteral)? ('=' initializer)? ';'
+    : prefix=('var' | 'val' | 'static' | 'global') simpleName ('as' typeLiteral)? ('=' initializer)? ';'
     ;
 
 initializer
@@ -106,23 +134,27 @@ continueStatement
     ;
 
 ifStatement
-    : 'if' expression thenBody ('else' elseBody)?
+    : 'if' expression thenPart ('else' elsePart)?
     ;
 
-thenBody
+thenPart
     : statement
     ;
 
-elseBody
+elsePart
     : statement
     ;
 
 foreachStatement
-    : 'for' foreachVariableDeclaration (',' foreachVariableDeclaration)* 'in' expression foreachBody
+    : 'for' foreachVariableList 'in' expression foreachBody
     ;
 
-foreachVariableDeclaration
-    : identifier
+foreachVariableList
+    : foreachVariable (',' foreachVariable)*
+    ;
+
+foreachVariable
+    : simpleName
     ;
 
 foreachBody
@@ -134,70 +166,84 @@ whileStatement
     ;
 
 expressionStatement
-    : expression ';'?
+    : expression ';'
     ;
 
+// Paraphrased from https://github.com/CraftTweaker/ZenScript/blob/master/src/main/java/stanhebben/zenscript/parser/expression/ParsedExpression.java
 expression
-    : 'function' '(' (parameter (',' parameter)*)? ')' ('as' typeLiteral)? functionBody # FunctionExpr
-    | Left=expression '(' (argument (',' argument)*)? ')' # CallExpr
-    | Left=expression Op='.' identifier # MemberAccessExpr
-    | Left=expression '[' Index=expression ']' # ArrayAccessExpr
-    | expression 'as' typeLiteral # TypeCastExpr
-    | <assoc=right> Op=('!' | '-' | '+') expression # UnaryExpr
-    | Left=expression Op=('*' | '/' | '%') Right=expression # BinaryExpr
-    | Left=expression Op=('+' | '-') Right=expression # BinaryExpr
-    | Left=expression Op='~' Right=expression # BinaryExpr
-    | Left=expression Op=('<' | '<=' | '>' | '>=') Right=expression # BinaryExpr
-    | Left=expression Op=('==' | '!=') Right=expression # BinaryExpr
-    | Left=expression Op='instanceof' Right=expression # BinaryExpr
-    | Left=expression Op=('in' | 'has') Right=expression # BinaryExpr
-    | Left=expression Op='&' Right=expression # BinaryExpr
-    | Left=expression Op='|' Right=expression # BinaryExpr
-    | Left=expression Op='^'Right=expression # BinaryExpr
-    | Left=expression Op='&&' Right=expression # BinaryExpr
-    | Left=expression Op='||' Right=expression # BinaryExpr
-    | <assoc=right> Condition=expression '?' TruePart=expression ':' FalsePart=expression # TernaryExpr
-    | <assoc=right> Left=expression Op=('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '~=' | '&=' | '|=' | '^=') Right=expression # AssignmentExpr
-    | '<' (~'>')*? '>' # BracketHandlerExpr
-    | From=expression Op=('..' | 'to') To=expression # IntRangeExpr
-    | '[' (expression (',' expression)*)? ','? ']' # ArrayInitializerExpr
-    | '{' (mapEntry (',' mapEntry)*)? ','? '}' # MapInitializerExpr
-    | '(' expression ')' # ParensExpr
-    | 'this' # ThisExpr
-    | 'super' # SuperExpr
-    | INT_LITERAL # IntLiteralExpr
-    | LONG_LITERAL # LongLiteralExpr
-    | FLOAT_LITERAL # FloatLiteralExpr
-    | DOUBLE_LITERAL # DoubleLiteralExpr
-    | STRING_LITERAL # StringLiteralExpr
-    | TRUE_LITERAL # TrueLiteralExpr
-    | FALSE_LITERAL # FalseLiteralExpr
-    | NULL_LITERAL # NullLiteralExpr
-    | identifier # LocalAccessExpr
+    // Not really sure about this
+    : 'this'  #thisExpr
+
+    // ParsedExpression.java: L308-L453
+    | literal     #literalExpr
+    | simpleName  #simpleNameExpr
+    | 'function' '(' formalParameterList ')' ('as' typeLiteral)? functionBody  #functionExpr
+    | '<' (~'>')*? '>'              #bracketHandlerExpr
+    | '[' expressionList ','? ']'  #arrayLiteralExpr
+    | '{' mapEntryList ','? '}'    #mapLiteralExpr
+    | '(' expression ')'            #parensExpr
+
+    // ParsedExpression.java: L35-L306
+    | left=expression op='instanceof' right=expression       #instanceOfExpr
+    | expression 'as' typeLiteral                            #typeCastExpr
+    | expression '(' expressionList ')'                     #callExpr
+    | left=expression '[' index=expression ']'               #memberIndexExpr
+    | from=expression op=('..' | 'to') to=expression         #intRangeExpr
+    | expression op='.' (simpleName | STRING_LITERAL)        #memberAccessExpr
+    | <assoc=right> op=('!' | '-') expression                #unaryExpr
+    | left=expression op=('*' | '/' | '%') right=expression  #binaryExpr
+    | left=expression op=('+' | '-' | '~') right=expression  #binaryExpr
+    | left=expression op=('==' | '!=' | '<' | '<=' | '>' | '>=' | 'in' | 'has') right=expression  #compareExpr
+    | left=expression op=('|' | '^' | '&') right=expression                  #binaryExpr
+    | left=expression op=('||' | '&&') right=expression                      #binaryExpr
+    | condition=expression '?' truePart=expression ':' falsePart=expression  #ternaryExpr
+    | <assoc=right> left=expression op=('=' | '+=' | '-=' | '~=' | '*=' | '/=' | '%=' | '|=' | '&=' | '^=') right=expression  #assignmentExpr
     ;
 
-argument
-    : expression
+literal
+    : INT_LITERAL
+    | LONG_LITERAL
+    | FLOAT_LITERAL
+    | DOUBLE_LITERAL
+    | STRING_LITERAL
+    | TRUE_LITERAL
+    | FALSE_LITERAL
+    | NULL_LITERAL
+    ;
+
+expressionList
+    : expression (',' expression)*
+    |
+    ;
+
+mapEntryList
+    : mapEntry (',' mapEntry)*
+    |
     ;
 
 mapEntry
-    : Key=expression ':' Value=expression
+    : key=expression ':' value=expression
     ;
 
 typeLiteral
-    : qualifiedName # ClassType
-    | 'function' '(' (typeLiteral (',' typeLiteral)*)? ')' returnType # FunctionType
-    | '[' typeLiteral ']' # ListType
-    | typeLiteral '['']' # ArrayType
-    | Value=typeLiteral '[' Key=typeLiteral ']' # MapType
-    | ANY # PrimitiveType
-    | BYTE # PrimitiveType
-    | SHORT # PrimitiveType
-    | INT # PrimitiveType
-    | LONG # PrimitiveType
-    | FLOAT # PrimitiveType
-    | DOUBLE # PrimitiveType
-    | BOOL # PrimitiveType
-    | VOID # PrimitiveType
-    | STRING # PrimitiveType
+    : qualifiedName                                  #classType
+    | 'function' '(' typeLiteralList ')' returnType  #functionType
+    | '[' typeLiteral ']'                            #listType
+    | typeLiteral '['']'                             #arrayType
+    | value=typeLiteral '[' key=typeLiteral ']'      #mapType
+    | ANY     #primitiveType
+    | BYTE    #primitiveType
+    | SHORT   #primitiveType
+    | INT     #primitiveType
+    | LONG    #primitiveType
+    | FLOAT   #primitiveType
+    | DOUBLE  #primitiveType
+    | BOOL    #primitiveType
+    | VOID    #primitiveType
+    | STRING  #primitiveType
+    ;
+
+typeLiteralList
+    : typeLiteral (',' typeLiteral)*
+    |
     ;

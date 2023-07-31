@@ -50,7 +50,7 @@ public class CompilationEnvironment {
     public List<Symbol> getGlobalSymbols() {
         return getUnits().stream()
                 .flatMap(unit -> unit.getTopLevelSymbols().stream())
-                .filter(symbol -> symbol.isDeclaredBy(Declarator.GLOBAL))
+                .filter(symbol -> symbol.isModifiedBy(Symbol.Modifier.GLOBAL))
                 .collect(Collectors.toList());
     }
 

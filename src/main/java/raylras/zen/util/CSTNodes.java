@@ -29,6 +29,14 @@ public class CSTNodes {
         return found;
     }
 
+    public static int getTokenType(Token token) {
+        if (token != null) {
+            return token.getType();
+        } else {
+            return Token.INVALID_TYPE;
+        }
+    }
+
     public static TerminalNode getPrevTerminal(TokenStream tokenStream, ParseTree node) {
         Token prevToken = getPrevToken(tokenStream, node);
         if (prevToken == null) {

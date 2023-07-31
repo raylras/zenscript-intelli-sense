@@ -9,7 +9,6 @@ import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.CompletionList;
 import org.eclipse.lsp4j.CompletionParams;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.Declarator;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
@@ -91,7 +90,7 @@ public class CompletionProvider extends Visitor<Void> {
     }
 
     @Override
-    public Void visitParameter(ParameterContext ctx) {
+    public Void visitFormalParameter(FormalParameterContext ctx) {
         visitChildren(ctx);
         return null;
     }
@@ -110,7 +109,7 @@ public class CompletionProvider extends Visitor<Void> {
 
     @Override
     public Void visitVariableDeclaration(VariableDeclarationContext ctx) {
-        if (isPrevNodeOfCursor(ctx.identifier())) {
+        if (isPrevNodeOfCursor(ctx.simpleName())) {
             completeKeywords(cursorString, Keywords.AS);
             return null;
         }
@@ -192,7 +191,7 @@ public class CompletionProvider extends Visitor<Void> {
     }
 
     @Override
-    public Void visitLocalAccessExpr(LocalAccessExprContext ctx) {
+    public Void visitSimpleNameExpr(SimpleNameExprContext ctx) {
         completeLocalSymbols(cursorString);
         completeGlobalSymbols(cursorString);
         completeKeywords(cursorString, Keywords.TRUE, Keywords.FALSE);
@@ -205,18 +204,19 @@ public class CompletionProvider extends Visitor<Void> {
             completeLocalSymbols(cursorString);
             completeGlobalSymbols(cursorString);
         }
-        for (TerminalNode comma : ctx.COMMA()) {
-            if (isPrevNodeOfCursor(comma)) {
-                completeLocalSymbols(cursorString);
-                completeGlobalSymbols(cursorString);
-            }
-        }
+        // FIXME
+//        for (TerminalNode comma : ctx.COMMA()) {
+//            if (isPrevNodeOfCursor(comma)) {
+//                completeLocalSymbols(cursorString);
+//                completeGlobalSymbols(cursorString);
+//            }
+//        }
         return null;
     }
 
     @Override
     public Void visitBinaryExpr(BinaryExprContext ctx) {
-        if (isPrevTokenOfCursor(ctx.Op)) {
+        if (isPrevTokenOfCursor(ctx.op)) {
             completeLocalSymbols(cursorString);
             completeGlobalSymbols(cursorString);
         }
@@ -225,7 +225,7 @@ public class CompletionProvider extends Visitor<Void> {
 
     @Override
     public Void visitAssignmentExpr(AssignmentExprContext ctx) {
-        if (isPrevTokenOfCursor(ctx.Op)) {
+        if (isPrevTokenOfCursor(ctx.op)) {
             completeLocalSymbols(cursorString);
             completeGlobalSymbols(cursorString);
         }
@@ -235,7 +235,7 @@ public class CompletionProvider extends Visitor<Void> {
 
     @Override
     public Void visitUnaryExpr(UnaryExprContext ctx) {
-        if (isPrevTokenOfCursor(ctx.Op)) {
+        if (isPrevTokenOfCursor(ctx.op)) {
             completeLocalSymbols(cursorString);
             completeGlobalSymbols(cursorString);
         }
@@ -256,31 +256,25 @@ public class CompletionProvider extends Visitor<Void> {
     @Override
     public Void visitMemberAccessExpr(MemberAccessExprContext ctx) {
         if (isPrevNodeOfCursor(ctx.expression())) {
-            Symbol symbol = cursorNodeScope.lookupSymbol(ctx.Left.getText());
+            Symbol symbol = cursorNodeScope.lookupSymbol(ctx.expression().getText());
             if (symbol != null) {
                 completeStaticMembers("", symbol.getType());
             } else {
-                Type leftType = TypeResolver.getType(ctx.Left, unit);
+                Type leftType = TypeResolver.getType(ctx.expression(), unit);
                 completeInstanceMembers("", leftType);
             }
             return null;
         }
-        if (isPrevTokenOfCursor(ctx.Op)) {
-            Symbol symbol = cursorNodeScope.lookupSymbol(ctx.Left.getText());
+        if (isPrevTokenOfCursor(ctx.op)) {
+            Symbol symbol = cursorNodeScope.lookupSymbol(ctx.expression().getText());
             if (symbol != null) {
                 completeStaticMembers(cursorString, symbol.getType());
             } else {
-                Type leftType = TypeResolver.getType(ctx.Left, unit);
+                Type leftType = TypeResolver.getType(ctx.expression(), unit);
                 completeInstanceMembers(cursorString, leftType);
             }
             return null;
         }
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override
-    public Void visitArgument(ArgumentContext ctx) {
         visitChildren(ctx);
         return null;
     }
@@ -327,7 +321,7 @@ public class CompletionProvider extends Visitor<Void> {
     private void completeStaticMembers(String completingString, Type type) {
         for (Symbol symbol : type.getMembers()) {
             if (symbol.getSimpleName().startsWith(completingString)
-                    && symbol.isDeclaredBy(Declarator.STATIC)) {
+                    && symbol.isModifiedBy(Symbol.Modifier.STATIC)) {
                 addToCompletionData(symbol, "static " + toTypeName(symbol.getType()));
             }
         }
@@ -336,7 +330,7 @@ public class CompletionProvider extends Visitor<Void> {
     private void completeInstanceMembers(String completingString, Type type) {
         for (Symbol symbol : type.getMembers()) {
             if (symbol.getSimpleName().startsWith(completingString)
-                    && !symbol.isDeclaredBy(Declarator.STATIC)) {
+                    && !symbol.isModifiedBy(Symbol.Modifier.STATIC)) {
                 addToCompletionData(symbol, toTypeName(symbol.getType()));
             }
         }
@@ -449,11 +443,7 @@ public class CompletionProvider extends Visitor<Void> {
      */
     private boolean isNextTokenOfNode(int nextTokenType, ParseTree node) {
         Token nextToken = CSTNodes.getNextToken(unit.getTokenStream(), node);
-        if (nextToken != null) {
-            return nextToken.getType() == nextTokenType;
-        } else {
-            return false;
-        }
+        return nextTokenType == CSTNodes.getTokenType(nextToken);
     }
 
 }

@@ -43,12 +43,12 @@ public final class AnnotationResolver {
 
         @Override
         public List<Annotation> visitFunctionDeclaration(FunctionDeclarationContext ctx) {
-            return getLeft(ctx.Declarator);
+            return getLeft(ctx.prefix);
         }
 
         @Override
         public List<Annotation> visitExpandFunctionDeclaration(ExpandFunctionDeclarationContext ctx) {
-            return getLeft(ctx.Declarator);
+            return getLeft(ctx.EXPAND());
         }
 
         @Override
@@ -63,7 +63,7 @@ public final class AnnotationResolver {
 
         @Override
         public List<Annotation> visitVariableDeclaration(VariableDeclarationContext ctx) {
-            return getLeft(ctx.Declarator);
+            return getLeft(ctx.prefix);
         }
 
         private List<Annotation> getLeft(TerminalNode node) {

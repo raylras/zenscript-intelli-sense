@@ -5,6 +5,7 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptParser.*;
 
+import java.util.List;
 import java.util.Objects;
 
 public final class DeclaredNameResolver {
@@ -37,7 +38,9 @@ public final class DeclaredNameResolver {
             if (ctx.alias() != null) {
                 return getText(ctx.alias());
             } else {
-                return getText(ctx.qualifiedName().identifier());
+                List<SimpleNameContext> simpleNameList = ctx.qualifiedName().simpleName();
+                SimpleNameContext lastSimpleName = simpleNameList.get(simpleNameList.size() - 1);
+                return getText(lastSimpleName);
             }
         }
 
@@ -52,28 +55,28 @@ public final class DeclaredNameResolver {
         }
 
         @Override
-        public String visitIdentifier(IdentifierContext ctx) {
+        public String visitSimpleName(SimpleNameContext ctx) {
             return getText(ctx);
         }
 
         @Override
         public String visitFunctionDeclaration(FunctionDeclarationContext ctx) {
-            return getText(ctx.identifier());
+            return getText(ctx.simpleName());
         }
 
         @Override
         public String visitExpandFunctionDeclaration(ExpandFunctionDeclarationContext ctx) {
-            return getText(ctx.identifier());
+            return getText(ctx.simpleName());
         }
 
         @Override
-        public String visitParameter(ParameterContext ctx) {
-            return getText(ctx.identifier());
+        public String visitFormalParameter(FormalParameterContext ctx) {
+            return getText(ctx.simpleName());
         }
 
         @Override
         public String visitClassDeclaration(ClassDeclarationContext ctx) {
-            return getText(ctx.qualifiedName());
+            return getText(ctx.simpleNameOrPrimitiveType());
         }
 
         @Override
@@ -83,17 +86,17 @@ public final class DeclaredNameResolver {
 
         @Override
         public String visitVariableDeclaration(VariableDeclarationContext ctx) {
-            return getText(ctx.identifier());
+            return getText(ctx.simpleName());
         }
 
         @Override
-        public String visitForeachVariableDeclaration(ForeachVariableDeclarationContext ctx) {
-            return getText(ctx.identifier());
+        public String visitForeachVariable(ForeachVariableContext ctx) {
+            return getText(ctx.simpleName());
         }
 
         @Override
-        public String visitLocalAccessExpr(LocalAccessExprContext ctx) {
-            return getText(ctx.identifier());
+        public String visitSimpleNameExpr(SimpleNameExprContext ctx) {
+            return getText(ctx.simpleName());
         }
     }
 

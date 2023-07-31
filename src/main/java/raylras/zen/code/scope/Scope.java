@@ -26,16 +26,16 @@ public class Scope {
         symbols.remove(symbol);
     }
 
-    public Symbol lookupSymbol(String identifier) {
-        return lookupSymbol(Symbol.class, identifier);
+    public Symbol lookupSymbol(String simpleName) {
+        return lookupSymbol(Symbol.class, simpleName);
     }
 
-    public <T extends Symbol> T lookupSymbol(Class<T> clazz, String identifier) {
+    public <T extends Symbol> T lookupSymbol(Class<T> clazz, String simpleName) {
         Scope scope = this;
         while (scope != null) {
             for (Symbol symbol : scope.getSymbols()) {
                 if (clazz.isInstance(symbol)
-                        && Objects.equals(symbol.getSimpleName(), identifier)) {
+                        && Objects.equals(symbol.getSimpleName(), simpleName)) {
                     return clazz.cast(symbol);
                 }
             }

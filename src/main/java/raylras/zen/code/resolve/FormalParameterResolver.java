@@ -6,7 +6,6 @@ import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.parser.ZenScriptParser.ConstructorDeclarationContext;
 import raylras.zen.code.parser.ZenScriptParser.FunctionDeclarationContext;
-import raylras.zen.code.parser.ZenScriptParser.ParameterContext;
 import raylras.zen.code.symbol.VariableSymbol;
 
 import java.util.List;
@@ -32,21 +31,22 @@ public final class FormalParameterResolver {
 
         @Override
         public List<VariableSymbol> visitFunctionDeclaration(FunctionDeclarationContext ctx) {
-            return toVariableSymbolList(ctx.parameter());
+            return visitFormalParameterList(ctx.formalParameterList());
         }
 
         @Override
         public List<VariableSymbol> visitExpandFunctionDeclaration(ZenScriptParser.ExpandFunctionDeclarationContext ctx) {
-            return toVariableSymbolList(ctx.parameter());
+            return visitFormalParameterList(ctx.formalParameterList());
         }
 
         @Override
         public List<VariableSymbol> visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
-            return toVariableSymbolList(ctx.parameter());
+            return visitFormalParameterList(ctx.formalParameterList());
         }
 
-        private List<VariableSymbol> toVariableSymbolList(List<ParameterContext> ctxList) {
-            return ctxList.stream()
+        @Override
+        public List<VariableSymbol> visitFormalParameterList(ZenScriptParser.FormalParameterListContext ctx) {
+            return ctx.formalParameter().stream()
                     .map(unit::getSymbol)
                     .map(VariableSymbol.class::cast)
                     .collect(Collectors.toList());

@@ -2,10 +2,9 @@ package raylras.zen.code.symbol;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.Declarator;
 import raylras.zen.code.annotation.Annotation;
 import raylras.zen.code.resolve.AnnotationResolver;
-import raylras.zen.code.resolve.DeclaratorResolver;
+import raylras.zen.code.resolve.ModifierResolver;
 import raylras.zen.code.resolve.DeclaredNameResolver;
 import raylras.zen.code.type.Type;
 
@@ -32,12 +31,12 @@ public abstract class Symbol {
         return DeclaredNameResolver.getDeclaredName(cst);
     }
 
-    public Declarator getDeclarator() {
-        return DeclaratorResolver.getDeclarator(cst);
+    public Modifier getModifier() {
+        return ModifierResolver.getModifier(cst);
     }
 
-    public boolean isDeclaredBy(Declarator declarator) {
-        return declarator == getDeclarator();
+    public boolean isModifiedBy(Modifier modifier) {
+        return modifier == getModifier();
     }
 
     public Optional<Annotation> getDeclaredAnnotation(String header) {
@@ -65,6 +64,10 @@ public abstract class Symbol {
 
     public enum Kind {
         IMPORT, CLASS, VARIABLE, FUNCTION, BUILT_IN, NONE
+    }
+
+    public enum Modifier {
+        VAR, VAL, STATIC, GLOBAL, EXPAND, NONE
     }
 
 }
