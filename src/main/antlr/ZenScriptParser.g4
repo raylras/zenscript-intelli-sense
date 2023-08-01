@@ -178,15 +178,15 @@ expression
     | literal     #literalExpr
     | simpleName  #simpleNameExpr
     | 'function' '(' formalParameterList ')' ('as' typeLiteral)? functionBody  #functionExpr
-    | '<' (~'>')*? '>'              #bracketHandlerExpr
+    | '<' (~'>')*? '>'             #bracketHandlerExpr
     | '[' expressionList ','? ']'  #arrayLiteralExpr
     | '{' mapEntryList ','? '}'    #mapLiteralExpr
-    | '(' expression ')'            #parensExpr
+    | '(' expression ')'           #parensExpr
 
     // ParsedExpression.java: L35-L306
     | left=expression op='instanceof' right=expression       #instanceOfExpr
     | expression 'as' typeLiteral                            #typeCastExpr
-    | expression '(' expressionList ')'                     #callExpr
+    | expression '(' expressionList ')'                      #callExpr
     | left=expression '[' index=expression ']'               #memberIndexExpr
     | from=expression op=('..' | 'to') to=expression         #intRangeExpr
     | expression op='.' (simpleName | STRING_LITERAL)        #memberAccessExpr

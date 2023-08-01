@@ -12,35 +12,35 @@ public class Ranges {
         return range.contains(new Range(line, column, line, column));
     }
 
-    public static boolean contains(ParseTree node, Range range) {
-        return of(node).contains(range);
+    public static boolean contains(ParseTree a, ParseTree b) {
+        return of(a).contains(of(b));
     }
 
-    public static boolean contains(Token token, Range range) {
-        return of(token).contains(range);
+    public static boolean contains(Token token, ParseTree cst) {
+        return of(token).contains(of(cst));
     }
 
-    public static Range of(ParseTree node) {
-        if (node instanceof ParserRuleContext) {
-            return of((ParserRuleContext) node);
+    public static Range of(ParseTree cst) {
+        if (cst instanceof ParserRuleContext) {
+            return of((ParserRuleContext) cst);
         }
-        if (node instanceof TerminalNode) {
-            return of((TerminalNode) node);
+        if (cst instanceof TerminalNode) {
+            return of((TerminalNode) cst);
         }
-        if (node instanceof Token) {
-            return of((Token) node);
+        if (cst instanceof Token) {
+            return of((Token) cst);
         }
         return Range.NO_RANGE;
     }
 
-    public static Range of(ParserRuleContext node) {
-        if (node == null) {
+    public static Range of(ParserRuleContext cst) {
+        if (cst == null) {
             return Range.NO_RANGE;
         }
-        int startLine = node.start.getLine() - Range.ANTLR_FIRST_LINE;
-        int startColumn = node.start.getCharPositionInLine();
-        int endLine = node.stop.getLine() - Range.ANTLR_FIRST_LINE;
-        int endColumn = node.stop.getCharPositionInLine() + node.stop.getText().length();
+        int startLine = cst.start.getLine() - Range.ANTLR_FIRST_LINE;
+        int startColumn = cst.start.getCharPositionInLine();
+        int endLine = cst.stop.getLine() - Range.ANTLR_FIRST_LINE;
+        int endColumn = cst.stop.getCharPositionInLine() + cst.stop.getText().length();
         return new Range(startLine, startColumn, endLine, endColumn);
     }
 
@@ -51,13 +51,13 @@ public class Ranges {
         return of(node.getSymbol());
     }
 
-    public static Range of(Token node) {
-        if (node == null) {
+    public static Range of(Token token) {
+        if (token == null) {
             return Range.NO_RANGE;
         }
-        int startLine = node.getLine() - Range.ANTLR_FIRST_LINE;
-        int startColumn = node.getCharPositionInLine();
-        int endColumn = startColumn + node.getText().length();
+        int startLine = token.getLine() - Range.ANTLR_FIRST_LINE;
+        int startColumn = token.getCharPositionInLine();
+        int endColumn = startColumn + token.getText().length();
         return new Range(startLine, startColumn, startLine, endColumn);
     }
 

@@ -88,8 +88,8 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
         try {
             CompilationUnit unit = manager.getUnit(PathUtils.toPath(params.getTextDocument().getUri()));
-            CompletionList data = CompletionProvider.completion(unit, params);
-            return CompletableFuture.completedFuture(Either.forRight(data));
+            List<CompletionItem> data = CompletionProvider.completion(unit, params);
+            return CompletableFuture.completedFuture(Either.forLeft(data));
         } catch (Exception e) {
             logger.logError(e, "Failed to load completion: ", params.getTextDocument().getUri());
             return CompletableFuture.completedFuture(null);
