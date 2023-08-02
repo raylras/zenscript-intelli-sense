@@ -89,16 +89,17 @@ public final class DocumentSymbolProvider {
             pop();
         }
 
-        private void push(ParseTree cst, ParseTree name, SymbolKind kind) {
-            Range range = Ranges.toLSPRange(cst);
-            Range selectionRange = Ranges.toLSPRange(name);
-            String text = name.getText();
-            push(new DocumentSymbol(text, kind, range, selectionRange));
+        private void push(ParseTree enclose, ParseTree selection, SymbolKind kind) {
+            Range encloseRange = Ranges.toLSPRange(enclose);
+            Range selectionRange = Ranges.toLSPRange(selection);
+            String name = selection.getText();
+            push(new DocumentSymbol(name, kind, encloseRange, selectionRange));
         }
 
-        private void push(ParseTree cst, String name, SymbolKind kind) {
-            Range range = Ranges.toLSPRange(cst);
-            push(new DocumentSymbol(name, kind, range, range));
+        private void push(ParseTree enclose, ParseTree selection, String name, SymbolKind kind) {
+            Range encloseRange = Ranges.toLSPRange(enclose);
+            Range selectionRange = Ranges.toLSPRange(selection);
+            push(new DocumentSymbol(name, kind, encloseRange, selectionRange));
         }
 
         private void push(DocumentSymbol symbol) {
