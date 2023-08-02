@@ -7,6 +7,7 @@ import org.eclipse.lsp4j.services.WorkspaceService;
 import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.langserver.provider.CompletionProvider;
+import raylras.zen.langserver.provider.DocumentSymbolProvider;
 import raylras.zen.langserver.provider.SemanticTokensProvider;
 import raylras.zen.util.Compilations;
 import raylras.zen.util.Logger;
@@ -15,6 +16,7 @@ import raylras.zen.util.PathUtils;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 public class ZenLanguageService implements TextDocumentService, WorkspaceService {
 
@@ -81,7 +83,17 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @SuppressWarnings("deprecation")
     @Override
     public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(DocumentSymbolParams params) {
-        return CompletableFuture.completedFuture(null);
+        try {
+            CompilationUnit unit = manager.getUnit(PathUtils.toPath(params.getTextDocument().getUri()));
+            List<DocumentSymbol> documentSymbols = DocumentSymbolProvider.documentSymbol(unit, params);
+            List<Either<SymbolInformation, DocumentSymbol>> data = documentSymbols.stream()
+                    .map(Either::<SymbolInformation, DocumentSymbol>forRight)
+                    .collect(Collectors.toList());
+            return CompletableFuture.completedFuture(data);
+        } catch (Exception e) {
+            logger.logError(e, "Failed to load document symbol: ", params.getTextDocument().getUri());
+            return CompletableFuture.completedFuture(null);
+        }
     }
 
     @Override

@@ -32,7 +32,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
         CompletionOptions completionOptions = new CompletionOptions();
         completionOptions.setTriggerCharacters(Collections.singletonList("."));
         capabilities.setCompletionProvider(completionOptions);
-//        capabilities.setDocumentSymbolProvider(true);
+        capabilities.setDocumentSymbolProvider(true);
 //        capabilities.setWorkspaceSymbolProvider(true);
 //        capabilities.setDocumentHighlightProvider(true);
 //        SignatureHelpOptions signatureHelpOptions = new SignatureHelpOptions();

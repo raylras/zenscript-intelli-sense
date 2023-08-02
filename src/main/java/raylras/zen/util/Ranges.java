@@ -75,6 +75,10 @@ public class Ranges {
         return new Range(startLine, startColumn, startLine, startColumn);
     }
 
+    public static org.eclipse.lsp4j.Range toLSPRange(ParseTree cst) {
+        return toLSPRange(of(cst));
+    }
+
     public static org.eclipse.lsp4j.Range toLSPRange(Range range) {
         return new org.eclipse.lsp4j.Range(new Position(range.startLine, range.startColumn), new Position(range.endLine, range.endColumn));
     }
