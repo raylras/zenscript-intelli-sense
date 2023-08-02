@@ -234,6 +234,15 @@ public final class CompletionProvider {
 
         @Override
         public Void visitExpressionStatement(ExpressionStatementContext ctx) {
+            // text|
+            // ____
+            if (containsTailing(ctx.expression())) {
+                completeLocalSymbols(text);
+                completeGlobalSymbols(text);
+                completeKeywords(text, Keywords.STATEMENT);
+                return null;
+            }
+
             // expr; text|
             //     ^ ____
             if (containsLeading(ctx.SEMICOLON())) {
@@ -361,6 +370,10 @@ public final class CompletionProvider {
             for (int i = 0; i < node.getChildCount(); i++) {
                 ParseTree child = node.getChild(i);
                 if (containsLeading(child)) {
+                    child.accept(this);
+                    break;
+                }
+                if (containsTailing(child)) {
                     child.accept(this);
                     break;
                 }
