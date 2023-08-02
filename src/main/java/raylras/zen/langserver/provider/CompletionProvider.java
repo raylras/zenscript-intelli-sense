@@ -60,30 +60,36 @@ public final class CompletionProvider {
 
         @Override
         public Void visitImportDeclaration(ZenScriptParser.ImportDeclarationContext ctx) {
-            if (containsLeading(ctx.qualifiedName())) {
-                if (Ranges.contains(ctx.qualifiedName(), tailing)) {
-                    // import foo.bar|
-                    //           ^___
-
-                    // or
-
-                    // import foo.|bar
-                    //        ^^^_
-
-                    // complete the package names
-                    String text = getTextUntilCursor(ctx.qualifiedName());
-                    completeImports(text);
-                } else {
-                    // import foo.bar |
-                    //           ^___
-
-                    // only the keyword 'as'
-                    completeKeywords(text, Keywords.AS);
-                }
+            // import text|
+            // ^^^^^^ ____
+            if (containsLeading(ctx.IMPORT())) {
+                completeImports(text);
                 return null;
             }
 
-            visitChildren(ctx);
+            // import foo.text|
+            //           ^___
+            if (containsLeading(ctx.qualifiedName().DOT())) {
+                String text = getTextUntilCursor(ctx.qualifiedName());
+                completeImports(text);
+                return null;
+            }
+
+            // import foo.|bar
+            //        ^^^_
+            if (containsTailing(ctx.qualifiedName().DOT())) {
+                String text = getTextUntilCursor(ctx.qualifiedName());
+                completeImports(text);
+                return null;
+            }
+
+            // import foo.bar text|
+            //            ^^^ ____
+            if (!containsTailing(ctx.qualifiedName())) {
+                completeKeywords(text, Keywords.AS);
+                return null;
+            }
+
             return null;
         }
 
@@ -340,7 +346,7 @@ public final class CompletionProvider {
 
             // expr,|
             // ^^^^_
-            if (containsLeading(ctx.expression())) {
+            if (containsTailing(ctx.COMMA())) {
                 completeLocalSymbols("");
                 completeGlobalSymbols("");
                 return null;
@@ -373,6 +379,19 @@ public final class CompletionProvider {
         private boolean containsLeading(List<? extends ParseTree> cstList) {
             for (ParseTree cst : cstList) {
                 if (Ranges.contains(cst, leading)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private boolean containsTailing(ParseTree cst) {
+            return Ranges.contains(cst, tailing);
+        }
+
+        private boolean containsTailing(List<? extends ParseTree> cstList) {
+            for (ParseTree cst : cstList) {
+                if (Ranges.contains(cst, tailing)) {
                     return true;
                 }
             }
