@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 public class CompilationUnit {
 
     public static final String ZS_FILE_EXTENSION = ".zs";
-    public static final String DZS_FILE_EXTENSION = ".d.zs";
+    public static final String DZS_FILE_EXTENSION = ".dzs";
 
     private final Path path;
     private final CompilationEnvironment env;

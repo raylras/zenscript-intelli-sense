@@ -38,7 +38,7 @@ public class Compilations {
         try {
             return Files.walk(env.getRoot())
                     .filter(Files::isRegularFile)
-                    .filter(PathUtils::isZsFile)
+                    .filter(PathUtils::isSourceFile)
                     .map(env::createUnit);
         } catch (IOException e) {
             throw new RuntimeException(e);
