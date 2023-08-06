@@ -73,7 +73,7 @@ public class HoverProvider {
                 return properties;
             } catch (IOException e) {
                 System.out.println(e.getMessage());
-                return Collections.emptyMap();
+                return new HashMap<>();
             }
         }
 
