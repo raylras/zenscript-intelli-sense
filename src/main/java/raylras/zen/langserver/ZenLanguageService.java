@@ -8,6 +8,7 @@ import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.langserver.provider.CompletionProvider;
 import raylras.zen.langserver.provider.DocumentSymbolProvider;
+import raylras.zen.langserver.provider.HoverProvider;
 import raylras.zen.langserver.provider.SemanticTokensProvider;
 import raylras.zen.util.Compilations;
 import raylras.zen.util.Logger;
@@ -72,7 +73,14 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public CompletableFuture<Hover> hover(HoverParams params) {
-        return CompletableFuture.completedFuture(null);
+        try {
+            CompilationUnit unit = manager.getUnit(PathUtils.toPath(params.getTextDocument().getUri()));
+            Hover hover = HoverProvider.hover(unit, params);
+            return CompletableFuture.completedFuture(hover);
+        } catch (Exception e) {
+            logger.logError(e, "Failed to load hover: ", params.getTextDocument().getUri());
+            return CompletableFuture.completedFuture(null);
+        }
     }
 
     @Override

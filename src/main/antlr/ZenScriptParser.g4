@@ -178,7 +178,7 @@ expression
     | literal     #literalExpr
     | simpleName  #simpleNameExpr
     | 'function' '(' formalParameterList ')' ('as' typeLiteral)? functionBody  #functionExpr
-    | '<' (~'>')*? '>'             #bracketHandlerExpr
+    | '<' raw '>'                  #bracketHandlerExpr
     | '[' expressionList ','? ']'  #arrayLiteralExpr
     | '{' mapEntryList ','? '}'    #mapLiteralExpr
     | '(' expression ')'           #parensExpr
@@ -209,6 +209,10 @@ literal
     | TRUE_LITERAL
     | FALSE_LITERAL
     | NULL_LITERAL
+    ;
+
+raw
+    : (~'>')*
     ;
 
 expressionList

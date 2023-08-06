@@ -43,7 +43,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 //        capabilities.setDeclarationProvider(true);
 //        capabilities.setDefinitionProvider(true);
 //        capabilities.setTypeDefinitionProvider(true);
-//        capabilities.setHoverProvider(true);
+        capabilities.setHoverProvider(true);
 //        capabilities.setRenameProvider(true);
         L10N.setLocale(params.getLocale());
         service.initializeWorkspaces(params.getWorkspaceFolders());

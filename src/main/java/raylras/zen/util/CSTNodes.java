@@ -7,26 +7,32 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 
 import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.Queue;
 
 public class CSTNodes {
 
     public static ParseTree getCstAtLineAndColumn(ParseTree root, int line, int column) {
-        Queue<ParseTree> queue = new ArrayDeque<>();
-        queue.add(root);
-        ParseTree found = null;
-        while (!queue.isEmpty()) {
-            ParseTree node = queue.poll();
-            Range range = Ranges.of(node);
+        Deque<ParseTree> deque = getCstStackAtLineAndColumn(root, line, column);
+        return deque.peekFirst();
+    }
+
+    public static Deque<ParseTree> getCstStackAtLineAndColumn(ParseTree root, int line, int column) {
+        Queue<ParseTree> tempQueue = new ArrayDeque<>();
+        tempQueue.add(root);
+        Deque<ParseTree> result = new ArrayDeque<>();
+        while (!tempQueue.isEmpty()) {
+            ParseTree cst = tempQueue.poll();
+            Range range = Ranges.of(cst);
             if (Ranges.isRangeContainsLineAndColumn(range, line, column)) {
-                found = node;
-                queue.clear();
-                for (int i = 0; i < node.getChildCount(); i++) {
-                    queue.add(node.getChild(i));
+                result.addFirst(cst);
+                tempQueue.clear();
+                for (int i = 0; i < cst.getChildCount(); i++) {
+                    tempQueue.add(cst.getChild(i));
                 }
             }
         }
-        return found;
+        return result;
     }
 
     public static int getTokenType(Token token) {
