@@ -71,8 +71,8 @@ task copyDependencies(type: Copy) {
     include 'jackson-core-*.jar'
     include 'jackson-annotations-*.jar'
     include 'slf4j-api-*.jar'
-    include 'logback-core-*.jar'
-    include 'logback-classic-*.jar'
+//    include 'logback-core-*.jar'
+//    include 'logback-classic-*.jar'
 }
 
 build.finalizedBy(deleteOldLibs, copyArtifact, copyDependencies)
