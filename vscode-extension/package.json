@@ -81,7 +81,7 @@
 		"@types/node": "^18.17.1",
 		"@types/vscode": "^1.78.0",
 		"@vscode/vsce": "^2.19.0",
-		"typescript": "^5.0.4",
+		"typescript": "^5.1.6",
 		"yamljson": "^1.0.70"
 	}
 }
