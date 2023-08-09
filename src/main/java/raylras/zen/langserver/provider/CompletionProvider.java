@@ -433,7 +433,7 @@ public final class CompletionProvider {
             while (scope != null) {
                 for (Symbol symbol : scope.getSymbols()) {
                     if (symbol.getSimpleName().startsWith(text)) {
-                        addToCompletionList(symbol, symbol.getSimpleName());
+                        addToCompletionList(symbol, symbol.getType().toString());
                     }
                 }
                 scope = scope.getParent();

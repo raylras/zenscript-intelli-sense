@@ -8,8 +8,10 @@ import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.util.ParseTreeProperty;
+import raylras.zen.util.PathUtils;
 
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -22,6 +24,7 @@ public class CompilationUnit {
 
     private final Path path;
     private final CompilationEnvironment env;
+    private final String zsPackage;
     private final ParseTreeProperty<Scope> scopeProp = new ParseTreeProperty<>();
     private final ParseTreeProperty<Symbol> symbolProp = new ParseTreeProperty<>();
 
@@ -31,6 +34,7 @@ public class CompilationUnit {
     public CompilationUnit(Path path, CompilationEnvironment env) {
         this.path = path;
         this.env = env;
+        this.zsPackage = processPackage();
     }
 
     public Scope lookupScope(ParseTree lookupCst) {
@@ -94,6 +98,10 @@ public class CompilationUnit {
         return path;
     }
 
+    public String getPackage() {
+        return zsPackage;
+    }
+
     public CompilationEnvironment getEnv() {
         return env;
     }
@@ -127,6 +135,43 @@ public class CompilationUnit {
     @Override
     public String toString() {
         return String.valueOf(path);
+    }
+
+    private String processPackage() {
+        StringBuilder sb = new StringBuilder();
+        if (PathUtils.isZsFile(path)) {
+            Path current = path;
+            List<String> strings = new ArrayList<>();
+            do {
+                strings.add(current.getFileName().toString());
+                current = current.getParent();
+            } while (!"scripts".equals(current.getFileName().toString()));
+            sb.append("scripts.");
+            for (int i = strings.size() - 1; i >= 0 ; i--) {
+                sb.append(strings.get(i));
+                if (i != 0) {
+                    sb.append('.');
+                }
+            }
+            // remove .zs suffix
+            return sb.substring(0, sb.capacity() - 4);
+        } else if (PathUtils.isDzsFile(path)) {
+            Path current = path.getParent();
+            List<String> strings = new ArrayList<>();
+            while (!"generated".equals(current.getFileName().toString())) {
+                strings.add(current.getFileName().toString());
+                current = current.getParent();
+            }
+            for (int i = strings.size() - 1; i >= 0 ; i--) {
+                sb.append(strings.get(i));
+                if (i != 0) {
+                    sb.append('.');
+                }
+            }
+            return sb.toString();
+        } else  {
+            return sb.toString();
+        }
     }
 
 }

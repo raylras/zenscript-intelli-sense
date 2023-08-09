@@ -2,6 +2,7 @@ package raylras.zen.code.symbol;
 
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.annotation.Annotation;
+import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.parser.ZenScriptParser.ClassDeclarationContext;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.type.ClassType;
@@ -14,10 +15,12 @@ import java.util.Map;
 public class ClassSymbol extends Symbol {
 
     private final ClassType type;
+    private final String qualifiedName;
 
     public ClassSymbol(ClassDeclarationContext cst, CompilationUnit unit) {
         super(cst, unit);
         this.type = new ClassType(this);
+        this.qualifiedName = unit.getPackage() + '.' + cst.simpleNameOrPrimitiveType().getText();
     }
 
     public List<Symbol> getMembers() {
@@ -55,8 +58,7 @@ public class ClassSymbol extends Symbol {
 
     @Override
     public String getQualifiedName() {
-        // TODO: getQualifiedName
-        throw new RuntimeException("TODO");
+        return qualifiedName;
     }
 
     @Override
