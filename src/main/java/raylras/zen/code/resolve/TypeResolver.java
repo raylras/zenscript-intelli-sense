@@ -24,7 +24,8 @@ public final class TypeResolver {
     public static Type getType(ParseTree cst, CompilationUnit unit) {
         Objects.requireNonNull(cst);
         Objects.requireNonNull(unit);
-        return cst.accept(new TypeVisitor(unit));
+        Type type = cst.accept(new TypeVisitor(unit));
+        return type == null ? AnyType.INSTANCE : type;
     }
 
     private static final class TypeVisitor extends Visitor<Type> {
