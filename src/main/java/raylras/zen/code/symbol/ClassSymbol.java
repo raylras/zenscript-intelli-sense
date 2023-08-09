@@ -7,26 +7,32 @@ import raylras.zen.code.scope.Scope;
 import raylras.zen.code.type.ClassType;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
 public class ClassSymbol extends Symbol {
 
     private final ClassType type;
+    private final String qualifiedName;
 
     public ClassSymbol(ClassDeclarationContext cst, CompilationUnit unit) {
         super(cst, unit);
         this.type = new ClassType(this);
+        String decalredName = cst.simpleNameOrPrimitiveType().getText();
+        String packageName = unit.getPackage();
+        this.qualifiedName = packageName.isEmpty() ? decalredName : packageName + "." + decalredName;
     }
 
     public List<Symbol> getMembers() {
+        List<Symbol> symbols = new ArrayList<>();
         Scope scope = unit.getScope(cst);
         if (scope != null) {
-            return scope.getSymbols();
-        } else {
-            return Collections.emptyList();
+            symbols.addAll(scope.getSymbols());
         }
+        for (ClassType anInterface : getInterfaces()) {
+            symbols.addAll(anInterface.getMembers());
+        }
+        return symbols;
     }
 
     public List<ClassType> getInterfaces() {
@@ -55,8 +61,7 @@ public class ClassSymbol extends Symbol {
 
     @Override
     public String getQualifiedName() {
-        // TODO: getQualifiedName
-        throw new RuntimeException("TODO");
+        return qualifiedName;
     }
 
     @Override

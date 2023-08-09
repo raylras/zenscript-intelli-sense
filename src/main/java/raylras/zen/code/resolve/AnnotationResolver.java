@@ -93,6 +93,9 @@ public final class AnnotationResolver {
         }
 
         private List<Annotation> toAnnotationList(List<Token> tokens) {
+            if (tokens == null) {
+                return Collections.emptyList();
+            }
             return tokens.stream()
                     .map(Token::getText)
                     .map(Annotation::create)

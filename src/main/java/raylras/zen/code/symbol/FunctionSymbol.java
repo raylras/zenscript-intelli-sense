@@ -8,6 +8,7 @@ import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.Type;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class FunctionSymbol extends Symbol {
 
@@ -45,8 +46,9 @@ public class FunctionSymbol extends Symbol {
 
     @Override
     public String getQualifiedName() {
-        // TODO: getQualifiedName
-        throw new RuntimeException("TODO");
+        return getFormalParameterList().stream()
+                .map(VariableSymbol::getQualifiedName)
+                .collect(Collectors.joining(", ", getSimpleName() + "(", ") as " + getReturnType().toString()));
     }
 
 }
