@@ -29,11 +29,6 @@ public class BuiltinSymbol extends Symbol {
     }
 
     @Override
-    public String getQualifiedName() {
-        return name;
-    }
-
-    @Override
     public String getSimpleName() {
         return name;
     }
@@ -51,11 +46,6 @@ public class BuiltinSymbol extends Symbol {
     @Override
     public java.util.List<Annotation> getDeclaredAnnotations() {
         return Collections.emptyList();
-    }
-
-    @Override
-    public String toString() {
-        return name;
     }
 
     public static class List {

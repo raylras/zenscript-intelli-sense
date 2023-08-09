@@ -45,10 +45,11 @@ public class FunctionSymbol extends Symbol {
     }
 
     @Override
-    public String getQualifiedName() {
+    public String getNameWithType() {
+        // add(a as int, b as int) as int
         return getFormalParameterList().stream()
-                .map(VariableSymbol::getQualifiedName)
-                .collect(Collectors.joining(", ", getSimpleName() + "(", ") as " + getReturnType().toString()));
+                .map(VariableSymbol::getNameWithType)
+                .collect(Collectors.joining(", ", getSimpleName() + "(", ") as " + getReturnType()));
     }
 
 }

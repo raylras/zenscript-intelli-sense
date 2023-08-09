@@ -21,9 +21,4 @@ public class VariableSymbol extends Symbol {
         return Kind.VARIABLE;
     }
 
-    @Override
-    public String getQualifiedName() {
-        return getSimpleName() + " as " + getType().toString();
-    }
-
 }

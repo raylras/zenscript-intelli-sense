@@ -25,10 +25,12 @@ public abstract class Symbol {
 
     public abstract Kind getKind();
 
-    public abstract String getQualifiedName();
-
     public String getSimpleName() {
         return DeclaredNameResolver.getDeclaredName(cst);
+    }
+
+    public String getNameWithType() {
+        return getSimpleName() + " as " + getType();
     }
 
     public Modifier getModifier() {
@@ -59,7 +61,7 @@ public abstract class Symbol {
 
     @Override
     public String toString() {
-        return getSimpleName();
+        return getNameWithType();
     }
 
     public enum Kind {

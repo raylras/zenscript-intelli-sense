@@ -39,11 +39,6 @@ public class ImportSymbol extends Symbol {
     }
 
     @Override
-    public String getQualifiedName() {
-        return getTarget().getQualifiedName();
-    }
-
-    @Override
     public ImportDeclarationContext getCst() {
         return (ImportDeclarationContext) cst;
     }

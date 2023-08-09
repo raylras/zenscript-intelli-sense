@@ -441,7 +441,7 @@ public final class CompletionProvider {
             while (scope != null) {
                 for (Symbol symbol : scope.getSymbols()) {
                     if (symbol.getSimpleName().startsWith(text)) {
-                        addToCompletionList(symbol, symbol.getType().toString());
+                        addToCompletionList(symbol, symbol.getNameWithType());
                     }
                 }
                 scope = scope.getParent();
@@ -451,7 +451,7 @@ public final class CompletionProvider {
         private void completeGlobalSymbols(String text) {
             for (Symbol symbol : unit.getEnv().getGlobalSymbols()) {
                 if (symbol.getSimpleName().startsWith(text)) {
-                    addToCompletionList(symbol, "global " + symbol.getQualifiedName());
+                    addToCompletionList(symbol, "global " + symbol.getNameWithType());
                 }
             }
         }
@@ -459,7 +459,7 @@ public final class CompletionProvider {
         private void completeMemberSymbols(String text, Type type) {
             for (Symbol member : type.getMembers()) {
                 if (member.getSimpleName().startsWith(text)) {
-                    addToCompletionList(member, member.getQualifiedName());
+                    addToCompletionList(member, member.getNameWithType());
                 }
             }
         }

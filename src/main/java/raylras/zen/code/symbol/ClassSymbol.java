@@ -49,6 +49,10 @@ public class ClassSymbol extends Symbol {
         return interfaces;
     }
 
+    public String getQualifiedName() {
+        return qualifiedName;
+    }
+
     @Override
     public ClassType getType() {
         return type;
@@ -60,8 +64,8 @@ public class ClassSymbol extends Symbol {
     }
 
     @Override
-    public String getQualifiedName() {
-        return qualifiedName;
+    public String getNameWithType() {
+        return getQualifiedName();
     }
 
     @Override
