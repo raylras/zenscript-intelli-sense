@@ -12,6 +12,7 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.parser.ZenScriptParser.*;
+import raylras.zen.code.resolve.TypeResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.ClassType;
@@ -236,7 +237,7 @@ public final class CompletionProvider {
         public Void visitExpressionStatement(ExpressionStatementContext ctx) {
             // text|
             // ____
-            if (containsTailing(ctx.expression())) {
+            if (ctx.expression() instanceof SimpleNameExprContext && containsTailing(ctx.expression())) {
                 completeLocalSymbols(text);
                 completeGlobalSymbols(text);
                 completeKeywords(text, Keywords.STATEMENT);
@@ -316,7 +317,14 @@ public final class CompletionProvider {
 
         @Override
         public Void visitMemberAccessExpr(MemberAccessExprContext ctx) {
-            // TODO: complete member access expressions
+            // expr.text|
+            //     ^____
+            if (containsLeading(ctx.DOT())) {
+                Type type = TypeResolver.getType(ctx.expression(), unit);
+                completeMemberSymbols(text, type);
+                return null;
+            }
+
             visitChildren(ctx);
             return null;
         }
@@ -444,6 +452,14 @@ public final class CompletionProvider {
             for (Symbol symbol : unit.getEnv().getGlobalSymbols()) {
                 if (symbol.getSimpleName().startsWith(text)) {
                     addToCompletionList(symbol, "global " + symbol.getSimpleName());
+                }
+            }
+        }
+
+        private void completeMemberSymbols(String text, Type type) {
+            for (Symbol member : type.getMembers()) {
+                if (member.getSimpleName().startsWith(text)) {
+                    addToCompletionList(member, member.getSimpleName());
                 }
             }
         }
