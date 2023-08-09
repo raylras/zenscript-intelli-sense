@@ -451,7 +451,7 @@ public final class CompletionProvider {
         private void completeGlobalSymbols(String text) {
             for (Symbol symbol : unit.getEnv().getGlobalSymbols()) {
                 if (symbol.getSimpleName().startsWith(text)) {
-                    addToCompletionList(symbol, "global " + symbol.getSimpleName());
+                    addToCompletionList(symbol, "global " + symbol.getQualifiedName());
                 }
             }
         }
@@ -459,7 +459,7 @@ public final class CompletionProvider {
         private void completeMemberSymbols(String text, Type type) {
             for (Symbol member : type.getMembers()) {
                 if (member.getSimpleName().startsWith(text)) {
-                    addToCompletionList(member, member.getSimpleName());
+                    addToCompletionList(member, member.getQualifiedName());
                 }
             }
         }

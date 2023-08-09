@@ -23,8 +23,7 @@ public class VariableSymbol extends Symbol {
 
     @Override
     public String getQualifiedName() {
-        // TODO: getQualifiedName
-        throw new RuntimeException("TODO");
+        return getSimpleName() + " as " + getType().toString();
     }
 
 }

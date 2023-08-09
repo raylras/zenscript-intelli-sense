@@ -40,8 +40,7 @@ public class ImportSymbol extends Symbol {
 
     @Override
     public String getQualifiedName() {
-        // TODO: getQualifiedName
-        throw new RuntimeException("TODO");
+        return getTarget().getQualifiedName();
     }
 
     @Override
