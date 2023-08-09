@@ -78,6 +78,14 @@ public class CSTNodes {
         return null;
     }
 
+    public static String getText(ParseTree cst) {
+        if (cst != null) {
+            return cst.getText();
+        } else {
+            return "";
+        }
+    }
+
     private static int getStartTokenIndex(ParseTree node) {
         if (node instanceof TerminalNode) {
             return ((TerminalNode) node).getSymbol().getTokenIndex();

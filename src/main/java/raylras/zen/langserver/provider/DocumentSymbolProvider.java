@@ -1,14 +1,16 @@
 package raylras.zen.langserver.provider;
 
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.RuleNode;
 import org.eclipse.lsp4j.DocumentSymbol;
 import org.eclipse.lsp4j.DocumentSymbolParams;
 import org.eclipse.lsp4j.Range;
 import org.eclipse.lsp4j.SymbolKind;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.Listener;
-import raylras.zen.code.parser.ZenScriptParser;
+import raylras.zen.code.Visitor;
+import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.util.ArrayStack;
+import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Ranges;
 import raylras.zen.util.Stack;
 
@@ -20,95 +22,75 @@ public final class DocumentSymbolProvider {
     private DocumentSymbolProvider() {}
 
     public static List<DocumentSymbol> documentSymbol(CompilationUnit unit, DocumentSymbolParams params) {
-        DocumentSymbolListener listener = new DocumentSymbolListener();
-        unit.accept(listener);
-        return listener.getTopLevelSymbolList();
+        DocumentSymbolVisitor visitor = new DocumentSymbolVisitor();
+        unit.accept(visitor);
+        return visitor.getTopLevelSymbolList();
     }
 
-    private static final class DocumentSymbolListener extends Listener {
+    private static final class DocumentSymbolVisitor extends Visitor<DocumentSymbol> {
         private final List<DocumentSymbol> topLevelSymbolList = new ArrayList<>();
         private final Stack<DocumentSymbol> stack = new ArrayStack<>();
 
         @Override
-        public void enterFunctionDeclaration(ZenScriptParser.FunctionDeclarationContext ctx) {
-            push(ctx, ctx.simpleName(), SymbolKind.Function);
+        public DocumentSymbol visitFunctionDeclaration(FunctionDeclarationContext ctx) {
+            return enter(ctx, ctx.simpleName(), SymbolKind.Function);
         }
 
         @Override
-        public void exitFunctionDeclaration(ZenScriptParser.FunctionDeclarationContext ctx) {
-            pop();
+        public DocumentSymbol visitClassDeclaration(ClassDeclarationContext ctx) {
+            return enter(ctx, ctx.simpleNameOrPrimitiveType(), SymbolKind.Class);
         }
 
         @Override
-        public void enterExpandFunctionDeclaration(ZenScriptParser.ExpandFunctionDeclarationContext ctx) {
-            push(ctx, ctx.DOLLAR(), SymbolKind.Function);
+        public DocumentSymbol visitExpandFunctionDeclaration(ExpandFunctionDeclarationContext ctx) {
+            return enter(ctx, ctx.simpleName(), SymbolKind.Function);
         }
 
         @Override
-        public void exitExpandFunctionDeclaration(ZenScriptParser.ExpandFunctionDeclarationContext ctx) {
-            pop();
+        public DocumentSymbol visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
+            return enter(ctx, ctx.ZEN_CONSTRUCTOR(), SymbolKind.Constructor);
         }
 
         @Override
-        public void enterClassDeclaration(ZenScriptParser.ClassDeclarationContext ctx) {
-            push(ctx, ctx.simpleNameOrPrimitiveType(), SymbolKind.Class);
+        public DocumentSymbol visitVariableDeclaration(VariableDeclarationContext ctx) {
+            return enter(ctx, ctx.simpleName(), SymbolKind.Variable);
         }
 
         @Override
-        public void exitClassDeclaration(ZenScriptParser.ClassDeclarationContext ctx) {
-            pop();
+        public DocumentSymbol visitFunctionExpr(FunctionExprContext ctx) {
+            return enter(ctx, ctx.FUNCTION(), SymbolKind.Function);
         }
 
-        @Override
-        public void enterConstructorDeclaration(ZenScriptParser.ConstructorDeclarationContext ctx) {
-            push(ctx, ctx.ZEN_CONSTRUCTOR(), SymbolKind.Constructor);
+        private DocumentSymbol enter(RuleNode enclose, ParseTree selection, SymbolKind kind) {
+            DocumentSymbol symbol = toDocumentSymbol(enclose, selection, kind);
+            if (push(symbol)) {
+                visitChildren(enclose);
+                pop();
+            }
+            return symbol;
         }
 
-        @Override
-        public void exitConstructorDeclaration(ZenScriptParser.ConstructorDeclarationContext ctx) {
-            pop();
+        private DocumentSymbol toDocumentSymbol(ParseTree enclose, ParseTree selection, SymbolKind kind) {
+            return toDocumentSymbol(enclose, selection, CSTNodes.getText(selection), kind);
         }
 
-        @Override
-        public void enterVariableDeclaration(ZenScriptParser.VariableDeclarationContext ctx) {
-            push(ctx, ctx.simpleName(), SymbolKind.Variable);
-        }
-
-        @Override
-        public void exitVariableDeclaration(ZenScriptParser.VariableDeclarationContext ctx) {
-            pop();
-        }
-
-        @Override
-        public void enterFunctionExpr(ZenScriptParser.FunctionExprContext ctx) {
-            push(ctx, ctx.FUNCTION(), SymbolKind.Function);
-        }
-
-        @Override
-        public void exitFunctionExpr(ZenScriptParser.FunctionExprContext ctx) {
-            pop();
-        }
-
-        private void push(ParseTree enclose, ParseTree selection, SymbolKind kind) {
+        private DocumentSymbol toDocumentSymbol(ParseTree enclose, ParseTree selection, String name, SymbolKind kind) {
             Range encloseRange = Ranges.toLSPRange(enclose);
             Range selectionRange = Ranges.toLSPRange(selection);
-            String name = selection.getText();
-            push(new DocumentSymbol(name, kind, encloseRange, selectionRange));
+            return new DocumentSymbol(name, kind, encloseRange, selectionRange);
         }
 
-        private void push(ParseTree enclose, ParseTree selection, String name, SymbolKind kind) {
-            Range encloseRange = Ranges.toLSPRange(enclose);
-            Range selectionRange = Ranges.toLSPRange(selection);
-            push(new DocumentSymbol(name, kind, encloseRange, selectionRange));
-        }
-
-        private void push(DocumentSymbol symbol) {
+        private boolean push(DocumentSymbol symbol) {
+            if (symbol.getName().isEmpty()) {
+                return false;
+            }
             if (isTopLevel()) {
                 addToTopLevelSymbolList(symbol);
             } else {
                 addToCurrentSymbolChildren(symbol);
             }
             stack.push(symbol);
+            return true;
         }
 
         private void pop() {
