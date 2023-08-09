@@ -18,7 +18,9 @@ public class ClassSymbol extends Symbol {
     public ClassSymbol(ClassDeclarationContext cst, CompilationUnit unit) {
         super(cst, unit);
         this.type = new ClassType(this);
-        this.qualifiedName = unit.getPackage() + '.' + cst.simpleNameOrPrimitiveType().getText();
+        String decalredName = cst.simpleNameOrPrimitiveType().getText();
+        String packageName = unit.getPackage();
+        this.qualifiedName = packageName.isEmpty() ? decalredName : packageName + "." + decalredName;
     }
 
     public List<Symbol> getMembers() {
