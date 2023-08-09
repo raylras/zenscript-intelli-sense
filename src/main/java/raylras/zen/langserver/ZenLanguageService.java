@@ -2,6 +2,7 @@ package raylras.zen.langserver;
 
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
 import raylras.zen.code.CompilationEnvironment;
@@ -23,6 +24,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     private static final Logger logger = Logger.getLogger("service");
 
+    private static LanguageClient client;
     private final WorkspaceManager manager;
 
     public ZenLanguageService() {
@@ -171,6 +173,14 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     }
 
     /* End Workspace Service */
+
+    public static LanguageClient getClient() {
+        return client;
+    }
+
+    public static void setClient(LanguageClient client) {
+        ZenLanguageService.client = client;
+    }
 
     public void initializeWorkspaces(List<WorkspaceFolder> workspaces) {
         for (WorkspaceFolder folder : workspaces) {

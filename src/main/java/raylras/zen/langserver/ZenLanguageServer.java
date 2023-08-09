@@ -15,7 +15,6 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
     private static final Logger logger = Logger.getLogger("server");
 
     private final ZenLanguageService service;
-    private LanguageClient client;
 
     public ZenLanguageServer() {
         this.service = new ZenLanguageService();
@@ -78,7 +77,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 
     @Override
     public void connect(LanguageClient client) {
-        this.client = client;
+        ZenLanguageService.setClient(client);
         Logger.connect(client);
     }
 
@@ -87,7 +86,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
         watchers.add(new FileSystemWatcher(Either.forLeft("**/*" + CompilationUnit.ZS_FILE_EXTENSION), WatchKind.Create + WatchKind.Change + WatchKind.Delete));
         Object options = new DidChangeWatchedFilesRegistrationOptions(watchers);
         Registration registration = new Registration(UUID.randomUUID().toString(), "workspace/didChangeWatchedFiles", options);
-        client.registerCapability(new RegistrationParams(Collections.singletonList(registration)));
+        ZenLanguageService.getClient().registerCapability(new RegistrationParams(Collections.singletonList(registration)));
     }
 
 }
