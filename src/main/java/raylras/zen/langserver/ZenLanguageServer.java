@@ -8,7 +8,10 @@ import org.slf4j.LoggerFactory;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.util.l10n.L10N;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
@@ -27,26 +30,29 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 
     @Override
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
+        List<WorkspaceFolder> workspaceFolders = params.getWorkspaceFolders();
         ServerCapabilities capabilities = new ServerCapabilities();
         capabilities.setTextDocumentSync(TextDocumentSyncKind.Full);
-        CompletionOptions completionOptions = new CompletionOptions();
-        completionOptions.setTriggerCharacters(Collections.singletonList("."));
-        capabilities.setCompletionProvider(completionOptions);
-        capabilities.setDocumentSymbolProvider(true);
-//        capabilities.setWorkspaceSymbolProvider(true);
-//        capabilities.setDocumentHighlightProvider(true);
-//        SignatureHelpOptions signatureHelpOptions = new SignatureHelpOptions();
-//        signatureHelpOptions.setTriggerCharacters(Arrays.asList("(", ","));
-//        capabilities.setSignatureHelpProvider(signatureHelpOptions);
-//        capabilities.setSemanticTokensProvider(new SemanticTokensWithRegistrationOptions(Semantics.SEMANTIC_TOKENS_LEGEND, true));
-//        capabilities.setReferencesProvider(true);
-//        capabilities.setDeclarationProvider(true);
-//        capabilities.setDefinitionProvider(true);
-//        capabilities.setTypeDefinitionProvider(true);
-        capabilities.setHoverProvider(true);
-//        capabilities.setRenameProvider(true);
         L10N.setLocale(params.getLocale());
-        service.initializeWorkspaces(params.getWorkspaceFolders());
+        if (workspaceFolders != null) {
+            service.initializeWorkspaces(workspaceFolders);
+            CompletionOptions completionOptions = new CompletionOptions();
+            completionOptions.setTriggerCharacters(Collections.singletonList("."));
+            capabilities.setCompletionProvider(completionOptions);
+            capabilities.setDocumentSymbolProvider(true);
+//          capabilities.setWorkspaceSymbolProvider(true);
+//          capabilities.setDocumentHighlightProvider(true);
+//          SignatureHelpOptions signatureHelpOptions = new SignatureHelpOptions();
+//          signatureHelpOptions.setTriggerCharacters(Arrays.asList("(", ","));
+//          capabilities.setSignatureHelpProvider(signatureHelpOptions);
+//          capabilities.setSemanticTokensProvider(new SemanticTokensWithRegistrationOptions(Semantics.SEMANTIC_TOKENS_LEGEND, true));
+//          capabilities.setReferencesProvider(true);
+//          capabilities.setDeclarationProvider(true);
+//          capabilities.setDefinitionProvider(true);
+//          capabilities.setTypeDefinitionProvider(true);
+            capabilities.setHoverProvider(true);
+//          capabilities.setRenameProvider(true);
+        }
         return CompletableFuture.completedFuture(new InitializeResult(capabilities));
     }
 
