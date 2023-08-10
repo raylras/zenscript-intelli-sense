@@ -20,11 +20,13 @@ import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.Type;
 import raylras.zen.langserver.provider.data.Keywords;
 import raylras.zen.util.CSTNodes;
+import raylras.zen.util.PackageTree;
 import raylras.zen.util.Range;
 import raylras.zen.util.Ranges;
 import raylras.zen.util.l10n.L10N;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public final class CompletionProvider {
@@ -433,7 +435,30 @@ public final class CompletionProvider {
         }
 
         private void completeImports(String text) {
-            // TODO: complete imports
+            PackageTree<ClassType> tree = PackageTree.of(unit.getEnv().getClassTypeMap());
+            Collection<String> names;
+            String toComplete;
+            String completed;
+            int lastDotPosition = text.lastIndexOf('.');
+            if (lastDotPosition != -1) {
+                completed = text.substring(0, lastDotPosition);
+                names = tree.get(completed).getSubTrees();
+                if (lastDotPosition == text.length() - 1) {
+                    toComplete = "";
+                } else {
+                    toComplete = text.substring(lastDotPosition + 1);
+                }
+            } else {
+                names = tree.getSubTrees();
+                toComplete = text;
+            }
+            for (String name : names) {
+                if (name.startsWith(toComplete)) {
+                    CompletionItem completionItem = new CompletionItem(name);
+                    completionItem.setKind(CompletionItemKind.Class);
+                    completionList.add(completionItem);
+                }
+            }
         }
 
         private void completeLocalSymbols(String text) {
