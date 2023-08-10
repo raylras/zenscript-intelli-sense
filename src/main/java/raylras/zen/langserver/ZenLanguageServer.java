@@ -3,16 +3,17 @@ package raylras.zen.langserver;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.util.l10n.L10N;
-import raylras.zen.util.Logger;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 
-    private static final Logger logger = Logger.getLogger("server");
+    private static final Logger logger = LoggerFactory.getLogger(ZenLanguageServer.class);
 
     private final ZenLanguageService service;
 
@@ -52,7 +53,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
     @Override
     public void initialized(InitializedParams params) {
         startListeningFileChanges();
-        logger.logInfo("ZenScript Language Server initialized");
+        logger.info("Language server initialized");
     }
 
     @Override
@@ -78,7 +79,6 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
     @Override
     public void connect(LanguageClient client) {
         ZenLanguageService.setClient(client);
-        Logger.connect(client);
     }
 
     private void startListeningFileChanges() {

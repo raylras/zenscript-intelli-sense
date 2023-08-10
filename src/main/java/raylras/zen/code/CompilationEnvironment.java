@@ -3,7 +3,6 @@ package raylras.zen.code;
 import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.ClassType;
-import raylras.zen.util.Logger;
 
 import java.nio.file.Path;
 import java.util.Collection;
@@ -15,8 +14,6 @@ import java.util.stream.Collectors;
 public class CompilationEnvironment {
 
     public static final String DEFAULT_ROOT_DIRECTORY = "scripts";
-
-    private static final Logger logger = Logger.getLogger("env");
 
     private final Path root;
     private final Map<Path, CompilationUnit> unitMap = new HashMap<>();

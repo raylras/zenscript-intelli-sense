@@ -5,6 +5,8 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.langserver.provider.CompletionProvider;
@@ -12,7 +14,6 @@ import raylras.zen.langserver.provider.DocumentSymbolProvider;
 import raylras.zen.langserver.provider.HoverProvider;
 import raylras.zen.langserver.provider.SemanticTokensProvider;
 import raylras.zen.util.Compilations;
-import raylras.zen.util.Logger;
 import raylras.zen.util.PathUtils;
 
 import java.nio.file.Path;
@@ -22,7 +23,7 @@ import java.util.stream.Collectors;
 
 public class ZenLanguageService implements TextDocumentService, WorkspaceService {
 
-    private static final Logger logger = Logger.getLogger("service");
+    private static final Logger logger = LoggerFactory.getLogger(ZenLanguageService.class);
 
     private static LanguageClient client;
     private final WorkspaceManager manager;
@@ -36,20 +37,22 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public void didOpen(DidOpenTextDocumentParams params) {
         try {
-            manager.checkEnv(PathUtils.toPath(params.getTextDocument().getUri()));
+            Path path = PathUtils.toPath(params.getTextDocument().getUri());
+            manager.checkEnv(path);
         } catch (Exception e) {
-            logger.logError(e, "Failed to open file: {0}", params.getTextDocument().getUri());
+            logger.error("Failed to process 'didOpen' event: {}", params, e);
         }
     }
 
     @Override
     public void didChange(DidChangeTextDocumentParams params) {
         try {
-            CompilationUnit unit = manager.getUnit(PathUtils.toPath(params.getTextDocument().getUri()));
+            Path path = PathUtils.toPath(params.getTextDocument().getUri());
+            CompilationUnit unit = manager.getUnit(path);
             String source = params.getContentChanges().get(0).getText();
             Compilations.loadUnit(unit, source);
         } catch (Exception e) {
-            logger.logError(e, "Failed to change file: {0}", params.getTextDocument().getUri());
+            logger.error("Failed to process 'didChange' event: {}", params, e);
         }
     }
 
@@ -64,11 +67,12 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
         try {
-            CompilationUnit unit = manager.getUnit(PathUtils.toPath(params.getTextDocument().getUri()));
+            Path path = PathUtils.toPath(params.getTextDocument().getUri());
+            CompilationUnit unit = manager.getUnit(path);
             SemanticTokens data = SemanticTokensProvider.semanticTokensFull(unit, params);
             return CompletableFuture.completedFuture(data);
         } catch (Exception e) {
-            logger.logError(e, "Failed to load semantic tokens: {0}", params.getTextDocument().getUri());
+            logger.error("Failed to process 'semanticTokensFull' request: {}", params, e);
             return CompletableFuture.completedFuture(null);
         }
     }
@@ -76,11 +80,12 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public CompletableFuture<Hover> hover(HoverParams params) {
         try {
-            CompilationUnit unit = manager.getUnit(PathUtils.toPath(params.getTextDocument().getUri()));
+            Path path = PathUtils.toPath(params.getTextDocument().getUri());
+            CompilationUnit unit = manager.getUnit(path);
             Hover hover = HoverProvider.hover(unit, params);
             return CompletableFuture.completedFuture(hover);
         } catch (Exception e) {
-            logger.logError(e, "Failed to load hover: ", params.getTextDocument().getUri());
+            logger.error("Failed to process 'hover' request: {}", params, e);
             return CompletableFuture.completedFuture(null);
         }
     }
@@ -94,14 +99,15 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(DocumentSymbolParams params) {
         try {
-            CompilationUnit unit = manager.getUnit(PathUtils.toPath(params.getTextDocument().getUri()));
+            Path path = PathUtils.toPath(params.getTextDocument().getUri());
+            CompilationUnit unit = manager.getUnit(path);
             List<DocumentSymbol> documentSymbols = DocumentSymbolProvider.documentSymbol(unit, params);
             List<Either<SymbolInformation, DocumentSymbol>> data = documentSymbols.stream()
                     .map(Either::<SymbolInformation, DocumentSymbol>forRight)
                     .collect(Collectors.toList());
             return CompletableFuture.completedFuture(data);
         } catch (Exception e) {
-            logger.logError(e, "Failed to load document symbol: ", params.getTextDocument().getUri());
+            logger.error("Failed to process 'documentSymbol' request: {}", params, e);
             return CompletableFuture.completedFuture(null);
         }
     }
@@ -109,11 +115,12 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
         try {
-            CompilationUnit unit = manager.getUnit(PathUtils.toPath(params.getTextDocument().getUri()));
+            Path path = PathUtils.toPath(params.getTextDocument().getUri());
+            CompilationUnit unit = manager.getUnit(path);
             List<CompletionItem> data = CompletionProvider.completion(unit, params);
             return CompletableFuture.completedFuture(Either.forLeft(data));
         } catch (Exception e) {
-            logger.logError(e, "Failed to load completion: ", params.getTextDocument().getUri());
+            logger.error("Failed to process 'completion' request: {}", params, e);
             return CompletableFuture.completedFuture(null);
         }
     }
@@ -155,7 +162,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
                     }
                 }
             } catch (Exception e) {
-                logger.logError(e, "Failed to change watched file: {0}", event);
+                logger.error("Failed to process 'didChangeWatchedFiles' event: {}", event, e);
             }
         });
     }
@@ -164,11 +171,11 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     public void didChangeWorkspaceFolders(DidChangeWorkspaceFoldersParams params) {
         params.getEvent().getRemoved().forEach(workspace -> {
             manager.removeWorkspace(PathUtils.toPath(workspace.getUri()));
-            logger.logInfo("Removed workspace: {0}", workspace);
+            logger.error("Workspace folder removed: {}", workspace);
         });
         params.getEvent().getAdded().forEach(workspace -> {
             manager.addWorkspace(PathUtils.toPath(workspace.getUri()));
-            logger.logInfo("Added workspace: {0}", workspace);
+            logger.error("Workspace folder added: {}", workspace);
         });
     }
 
@@ -180,6 +187,12 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     public static void setClient(LanguageClient client) {
         ZenLanguageService.client = client;
+    }
+
+    public static void showMessage(MessageParams messageParams) {
+        if (client != null) {
+            client.showMessage(messageParams);
+        }
     }
 
     public void initializeWorkspaces(List<WorkspaceFolder> workspaces) {

@@ -3,8 +3,12 @@ package raylras.zen.langserver;
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.launch.LSPLauncher;
 import org.eclipse.lsp4j.services.LanguageClient;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class StandardIOLauncher {
+
+    private static final Logger logger = LoggerFactory.getLogger(StandardIOLauncher.class);
 
     public static void main(String[] args) {
         start();
@@ -18,7 +22,7 @@ public class StandardIOLauncher {
             server.connect(client);
             launcher.startListening().get();
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to start the language server", e);
         }
     }
 

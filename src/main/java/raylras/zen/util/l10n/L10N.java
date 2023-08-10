@@ -1,13 +1,14 @@
 package raylras.zen.util.l10n;
 
-import raylras.zen.util.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Locale;
 import java.util.ResourceBundle;
 
 public class L10N {
 
-    private static final Logger logger = Logger.getLogger("l10n");
+    private static final Logger logger = LoggerFactory.getLogger(L10N.class);
 
     private static ResourceBundle bundle = getDefaultResourceBundle();
 
@@ -15,7 +16,7 @@ public class L10N {
         try {
             return bundle.getString(key);
         } catch (Exception e) {
-            logger.logError(e, "Failed to get string for key: {0} ", key);
+            logger.error("Failed to retrieve localized string for key: {}", key, e);
             return "";
         }
     }
@@ -24,7 +25,7 @@ public class L10N {
         try {
             bundle = ResourceBundle.getBundle("l10n", new Locale(locale), new UTF8Control());
         } catch (Exception e) {
-            logger.logError(e, "Failed to set locale: {0}", locale);
+            logger.error("Failed to set locale: {}", locale, e);
         }
     }
 

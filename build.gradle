@@ -24,9 +24,8 @@ dependencies {
     implementation('com.fasterxml.jackson.core:jackson-databind:2.12.7.1')
     implementation('com.fasterxml.jackson.core:jackson-core:2.10.2')
     implementation('com.fasterxml.jackson.core:jackson-annotations:2.10.2')
-    implementation('org.slf4j:slf4j-api:1.7.30')
-    implementation('ch.qos.logback:logback-core:1.4.8')
-    implementation('ch.qos.logback:logback-classic:1.4.8')
+    implementation('org.slf4j:slf4j-api:2.0.7')
+    implementation 'org.slf4j:slf4j-simple:2.0.7'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
     testImplementation 'org.junit.jupiter:junit-jupiter-params:5.9.3'
     testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
@@ -64,15 +63,16 @@ task copyDependencies(type: Copy) {
     include "antlr4-runtime-*.jar"
     include "org.eclipse.lsp4j-*.jar"
     include "org.eclipse.lsp4j.jsonrpc-*.jar"
+    include 'org.eclipse.xtext.xbase.lib-*.jar'
     include "org.eclipse.lsp4j.generator-*.jar"
     include "gson-*.jar"
+    include 'guava-*.jar'
     include 'jsonrpc4j-*.jar'
     include 'jackson-databind-*.jar'
     include 'jackson-core-*.jar'
     include 'jackson-annotations-*.jar'
     include 'slf4j-api-*.jar'
-//    include 'logback-core-*.jar'
-//    include 'logback-classic-*.jar'
+    include 'slf4j-simple-*.jar'
 }
 
 build.finalizedBy(deleteOldLibs, copyArtifact, copyDependencies)

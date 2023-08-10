@@ -1,9 +1,12 @@
 package raylras.zen.langserver;
 
+import org.eclipse.lsp4j.MessageParams;
+import org.eclipse.lsp4j.MessageType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.util.Compilations;
-import raylras.zen.util.Logger;
 import raylras.zen.util.PathUtils;
 import raylras.zen.util.l10n.L10N;
 
@@ -14,7 +17,7 @@ import java.util.List;
 
 public class WorkspaceManager {
 
-    private static final Logger logger = Logger.getLogger("workspace");
+    private static final Logger logger = LoggerFactory.getLogger(WorkspaceManager.class);
 
     private final List<Path> workspaceList = new ArrayList<>();
     private final List<CompilationEnvironment> compilationList = new ArrayList<>();
@@ -62,8 +65,8 @@ public class WorkspaceManager {
         CompilationEnvironment env = new CompilationEnvironment(compilationRoot);
         Compilations.loadEnv(env);
         if (!Compilations.hasDzsUnit(env)) {
-            logger.logInfo("Could not find *.d.zs files in project environment: {0}", env);
-            logger.showInfo(L10N.getString("environment.dzs_not_found"));
+            logger.info("Could not find *.dzs files in project environment: {}", env);
+            ZenLanguageService.showMessage(new MessageParams(MessageType.Info, L10N.getString("environment.dzs_not_found")));
         }
         compilationList.add(env);
     }
