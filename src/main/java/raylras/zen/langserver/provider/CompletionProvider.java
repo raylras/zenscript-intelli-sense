@@ -79,11 +79,11 @@ public final class CompletionProvider {
                 return null;
             }
 
-            // import foo.|bar
+            // import foo.|
             //        ^^^_
-            if (containsTailing(ctx.qualifiedName().DOT())) {
+            if (containsLeading(ctx.qualifiedName()) && text.equals(".")) {
                 String text = getTextUntilCursor(ctx.qualifiedName());
-                completeImports(text);
+                completeImports(text + ".");
                 return null;
             }
 
@@ -93,6 +93,7 @@ public final class CompletionProvider {
                 completeKeywords(text, Keywords.AS);
                 return null;
             }
+
 
             return null;
         }
@@ -337,6 +338,7 @@ public final class CompletionProvider {
             }
 
             // expr.|
+            // ^^^^_
             if (containsLeading(ctx.expression())) {
                 Type type = TypeResolver.getType(ctx.expression(), unit);
                 completeMemberSymbols("", type);
@@ -444,6 +446,9 @@ public final class CompletionProvider {
             }
             int length = cursor.startColumn - range.startColumn;
             String text = cst.getText();
+            if (length > text.length()) {
+                return text;
+            }
             if (length > 0) {
                 return text.substring(0, length);
             }
