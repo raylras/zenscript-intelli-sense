@@ -26,8 +26,8 @@ import raylras.zen.util.Ranges;
 import raylras.zen.util.l10n.L10N;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 public final class CompletionProvider {
 
@@ -436,29 +436,29 @@ public final class CompletionProvider {
 
         private void completeImports(String text) {
             PackageTree<ClassType> tree = PackageTree.of(unit.getEnv().getClassTypeMap());
-            Collection<String> names;
+            Map<String, PackageTree<ClassType>> members;
             String toComplete;
             String completed;
             int lastDotPosition = text.lastIndexOf('.');
             if (lastDotPosition != -1) {
                 completed = text.substring(0, lastDotPosition);
-                names = tree.get(completed).getSubTrees();
+                members = tree.get(completed).getSubTrees();
                 if (lastDotPosition == text.length() - 1) {
                     toComplete = "";
                 } else {
                     toComplete = text.substring(lastDotPosition + 1);
                 }
             } else {
-                names = tree.getSubTrees();
+                members = tree.getSubTrees();
                 toComplete = text;
             }
-            for (String name : names) {
-                if (name.startsWith(toComplete)) {
-                    CompletionItem completionItem = new CompletionItem(name);
-                    completionItem.setKind(CompletionItemKind.Class);
+            members.forEach((key, subTree) -> {
+                if (key.startsWith(toComplete)) {
+                    CompletionItem completionItem = new CompletionItem(key);
+                    completionItem.setKind(subTree.hasElement() ? CompletionItemKind.Class : CompletionItemKind.Module);
                     completionList.add(completionItem);
                 }
-            }
+            });
         }
 
         private void completeLocalSymbols(String text) {
