@@ -242,14 +242,7 @@ public final class CompletionProvider {
         public Void visitExpressionStatement(ExpressionStatementContext ctx) {
             // text|
             // ____
-            ExpressionContext expression = ctx.expression();
-            boolean isNameExpr = expression instanceof SimpleNameExprContext;
-            if (expression instanceof ParensExprContext) {
-                if (((ParensExprContext) expression).expression() instanceof SimpleNameExprContext) {
-                    isNameExpr = true;
-                }
-            }
-            if (isNameExpr && containsTailing(expression)) {
+            if (ctx.expression() instanceof SimpleNameExprContext && containsTailing(ctx.expression())) {
                 completeLocalSymbols(text);
                 completeGlobalSymbols(text);
                 completeKeywords(text, Keywords.STATEMENT);
