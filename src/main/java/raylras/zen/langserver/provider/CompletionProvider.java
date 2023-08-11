@@ -432,7 +432,7 @@ public final class CompletionProvider {
 
         private String getTextUntilCursor(ParseTree cst) {
             Range range = Ranges.of(cst);
-            if (range.startLine != cursor.startLine || range.startLine != range.endLine) {
+            if (range.startLine != cursor.startLine) {
                 return "";
             }
             int length = cursor.startColumn - range.startColumn;
