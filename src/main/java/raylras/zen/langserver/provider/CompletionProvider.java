@@ -270,7 +270,7 @@ public final class CompletionProvider {
 
             // expr =|
             // ^^^^ _
-            if (containsLeading(ctx.left)) {
+            if (!(ctx.left instanceof MemberAccessExprContext) && containsLeading(ctx.left)) {
                 completeLocalSymbols("");
                 completeGlobalSymbols("");
             }
@@ -324,6 +324,13 @@ public final class CompletionProvider {
             if (containsLeading(ctx.DOT())) {
                 Type type = TypeResolver.getType(ctx.expression(), unit);
                 completeMemberSymbols(text, type);
+                return null;
+            }
+
+            // expr.|
+            if (containsLeading(ctx.expression())) {
+                Type type = TypeResolver.getType(ctx.expression(), unit);
+                completeMemberSymbols("", type);
                 return null;
             }
 
