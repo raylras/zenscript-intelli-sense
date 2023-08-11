@@ -1,6 +1,5 @@
 package raylras.zen.util;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
@@ -29,8 +28,12 @@ public class PackageTree<V> {
         return element;
     }
 
-    public Collection<String> getSubTrees() {
-        return subTrees.keySet();
+    public boolean hasElement() {
+        return getElement() != null;
+    }
+
+    public Map<String, PackageTree<V>> getSubTrees() {
+        return subTrees;
     }
 
     public PackageTree<V> get(String path) {
