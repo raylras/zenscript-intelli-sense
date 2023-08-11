@@ -20,10 +20,6 @@ dependencies {
     antlr 'org.antlr:antlr4:4.13.0'
     implementation 'org.antlr:antlr4-runtime:4.13.0'
     implementation 'org.eclipse.lsp4j:org.eclipse.lsp4j:0.20.1'
-    implementation('com.github.briandilley.jsonrpc4j:jsonrpc4j:1.6')
-    implementation('com.fasterxml.jackson.core:jackson-databind:2.12.7.1')
-    implementation('com.fasterxml.jackson.core:jackson-core:2.10.2')
-    implementation('com.fasterxml.jackson.core:jackson-annotations:2.10.2')
     implementation('org.slf4j:slf4j-api:2.0.7')
     implementation 'org.slf4j:slf4j-simple:2.0.7'
     testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
@@ -67,10 +63,6 @@ task copyDependencies(type: Copy) {
     include "org.eclipse.lsp4j.generator-*.jar"
     include "gson-*.jar"
     include 'guava-*.jar'
-    include 'jsonrpc4j-*.jar'
-    include 'jackson-databind-*.jar'
-    include 'jackson-core-*.jar'
-    include 'jackson-annotations-*.jar'
     include 'slf4j-api-*.jar'
     include 'slf4j-simple-*.jar'
 }
