@@ -14,6 +14,7 @@ import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.resolve.TypeResolver;
 import raylras.zen.code.scope.Scope;
+import raylras.zen.code.symbol.ImportSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.FunctionType;
@@ -108,7 +109,8 @@ public final class CompletionProvider {
             // name as text|
             //      ^^ ____
             if (containsLeading(ctx.AS())) {
-                // TODO: complete type names
+                completeTypeSymbols(text);
+                return null;
             }
 
             return null;
@@ -239,7 +241,14 @@ public final class CompletionProvider {
         public Void visitExpressionStatement(ExpressionStatementContext ctx) {
             // text|
             // ____
-            if (ctx.expression() instanceof SimpleNameExprContext && containsTailing(ctx.expression())) {
+            ExpressionContext expression = ctx.expression();
+            boolean isNameExpr = expression instanceof SimpleNameExprContext;
+            if (expression instanceof ParensExprContext) {
+                if (((ParensExprContext) expression).expression() instanceof SimpleNameExprContext) {
+                    isNameExpr = true;
+                }
+            }
+            if (isNameExpr && containsTailing(expression)) {
                 completeLocalSymbols(text);
                 completeGlobalSymbols(text);
                 completeKeywords(text, Keywords.STATEMENT);
@@ -496,12 +505,26 @@ public final class CompletionProvider {
             }
         }
 
+        private void completeTypeSymbols(String text) {
+            for (Symbol topLevelSymbol : unit.getTopLevelSymbols()) {
+                if (topLevelSymbol instanceof ImportSymbol && topLevelSymbol.getSimpleName().startsWith(text)) {
+                    addToCompletionList(topLevelSymbol);
+                }
+            }
+        }
+
         private void completeKeywords(String text, String... keywords) {
             for (String keyword : keywords) {
                 if (keyword.startsWith(text)) {
                     addToCompletionList(keyword);
                 }
             }
+        }
+
+        private void addToCompletionList(Symbol symbol) {
+            CompletionItem item = new CompletionItem(symbol.getSimpleName());
+            item.setKind(toCompletionKind(symbol));
+            completionList.add(item);
         }
 
         private void addToCompletionList(Symbol symbol, String detail) {
