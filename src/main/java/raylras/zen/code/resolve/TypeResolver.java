@@ -1,5 +1,6 @@
 package raylras.zen.code.resolve;
 
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import raylras.zen.code.CompilationUnit;
@@ -14,6 +15,7 @@ import raylras.zen.code.type.*;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.CastFunction;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -98,9 +100,24 @@ public final class TypeResolver {
         public Type visitFormalParameter(FormalParameterContext ctx) {
             if (ctx.typeLiteral() != null) {
                 return visit(ctx.typeLiteral());
-            } else {
+            }
+            if (ctx.defaultValue() != null) {
                 return visit(ctx.defaultValue());
             }
+            FormalParameterListContext parameterList = (FormalParameterListContext) ctx.getParent();
+            FunctionExprContext functionExpr = ((FunctionExprContext) parameterList.getParent());
+            Type functionType = visit(functionExpr);
+            int argumentIndex = parameterList.formalParameter().indexOf(ctx);
+            if (functionType instanceof FunctionType) {
+                return ((FunctionType) functionType).getParameterTypes().get(argumentIndex);
+            } else if (functionType instanceof ClassType) {
+                return ((ClassType) functionType).findAnnotatedMember("#lambda")
+                        .map(Symbol::getType)
+                        .map(CastFunction.of(FunctionType.class))
+                        .map(it -> it.getParameterTypes().get(argumentIndex))
+                        .orElse(AnyType.INSTANCE);
+            }
+            return AnyType.INSTANCE;
         }
 
         @Override
@@ -147,6 +164,7 @@ public final class TypeResolver {
 
         @Override
         public Type visitForeachVariable(ForeachVariableContext ctx) {
+            // variable -> variableList -> forEach
             ForeachStatementContext forEachStatement = (ForeachStatementContext) ctx.getParent().getParent();
             Type iterableType = visit(forEachStatement.expression());
             if (iterableType == IntRangeType.INSTANCE) {
@@ -261,9 +279,21 @@ public final class TypeResolver {
             if (ctx.typeLiteral() != null) {
                 return visit(ctx.typeLiteral());
             } else {
-                List<Type> paramTypes = toTypeList(ctx.formalParameterList());
-                return new FunctionType(AnyType.INSTANCE, paramTypes);
+                ParserRuleContext caller = ctx.getParent().getParent();
+                if (caller instanceof VariableDeclarationContext) {
+                    VariableDeclarationContext variableDeclare = (VariableDeclarationContext) caller;
+                    if (variableDeclare.typeLiteral() != null) {
+                        return visit(variableDeclare.typeLiteral());
+                    }
+                } else {
+                    // TODO callExpr
+                }
             }
+            List<Type> paramTypes = new ArrayList<>();
+            for (int i = 0; i < ctx.formalParameterList().formalParameter().size(); i++) {
+                paramTypes.add(AnyType.INSTANCE);
+            }
+            return new FunctionType(AnyType.INSTANCE, paramTypes);
         }
 
         @Override
