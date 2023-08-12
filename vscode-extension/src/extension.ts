@@ -1,12 +1,16 @@
 import { join } from 'node:path';
 import { execSync } from 'node:child_process';
-import { ExtensionContext, window, workspace } from 'vscode';
+import { ExtensionContext, LogOutputChannel, OutputChannel, window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, ServerOptions } from 'vscode-languageclient/node';
+import dayjs = require('dayjs');
+
+let logger: SimpleLogger;
 
 export function activate(context: ExtensionContext) {
 	const logChannel = window.createOutputChannel('ZenScript Language Server', "log");
+	logger = new SimpleLogger(logChannel);
 
-	logChannel.appendLine('[info] [Extension] Starting ZenScript Language Server');
+	logger.info('Starting the language Server');
 	getJavaHome().then(javahome => {
 		const config = workspace.getConfiguration();
 		const javabin: string = join(javahome, 'bin', 'java');
@@ -14,21 +18,21 @@ export function activate(context: ExtensionContext) {
 		const args: string[] = ['-cp', classpath];
 		const main = 'raylras.zen.langserver.StandardIOLauncher';
 		let debug = '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005,quiet=y';
-		logChannel.appendLine(`[info] [Extension] Java home: ${javahome}`);
-		logChannel.appendLine(`[info] [Extension] Class path: ${classpath}`)
-		logChannel.appendLine(`[info] [Extension] Main class: ${main}`)
+		logger.info(`Java home: ${javahome}`)
+		logger.info(`Class path: ${classpath}`)
+		logger.info(`Main class: ${main}`)
 
 		if (config.get('zenscript.languageServer.debug')) {
-			logChannel.appendLine('[info] [Extension] Debug mode is enabled for the language server');
+			logger.info(`Language server is running in debug mode.`);
 			if (config.get('zenscript.languageServer.suspend')) {
 				debug = debug.replace(/suspend=n/, "suspend=y");
 			}
-			logChannel.appendLine(`[info] [Extension] Debug arguments: ${debug}`);
+			logger.info(`Debug arguments: ${debug}`);
 			args.push(debug);
 		}
 
 		if (debug.indexOf("suspend=y") > -1) {
-			logChannel.appendLine('[info] [Extension] Waiting for the debugger to attach...');
+			logger.info('Waiting for debugger attachment...');
 		}
 
 		args.push('-Dfile.encoding=UTF-8');
@@ -51,8 +55,7 @@ export function activate(context: ExtensionContext) {
 		// const disposable = client.start();
 		// context.subscriptions.push(disposable);
 	}).catch(error => {
-		logChannel.appendLine('[info] [Extension] Failed to start ZenScript Language Server');
-		logChannel.appendLine(error?.message || error);
+		logger.error(`Failed to start the Language Server: ${error?.message || error}`);
 	})
 
 }
@@ -78,4 +81,25 @@ function getJavaHome() {
 			reject(error)
 		}
 	});
+}
+
+class SimpleLogger {
+	logChannel: OutputChannel
+
+	constructor(logChannel: OutputChannel) {
+		this.logChannel = logChannel;
+	}
+
+	info(message: string): void {
+		this.appendLine('INFO', message)
+	}
+
+	error(message: string): void {
+		this.appendLine("ERROR", message)
+	}
+
+	appendLine(level: string, message: string): void {
+		const currentTime =  dayjs().format('YYYY-MM-DD HH:mm:ss.SSS')
+		this.logChannel.appendLine(`${currentTime} [${level}] extension - ${message}`)
+	}
 }

@@ -75,6 +75,7 @@
 		"package": "vsce package"
 	},
 	"dependencies": {
+		"dayjs": "^1.11.9",
 		"vscode-languageclient": "^8.1.0"
 	},
 	"devDependencies": {
