@@ -49,11 +49,18 @@ public final class TypeResolver {
 
         private Symbol lookupSymbol(ParseTree cst, String simpleName) {
             Scope scope = unit.lookupScope(cst);
+            Symbol symbol = null;
             if (scope != null) {
-                return scope.lookupSymbol(simpleName);
-            } else {
-                return null;
+                symbol = scope.lookupSymbol(simpleName);
             }
+            if (symbol == null) {
+                for (Symbol globalSymbol : unit.getEnv().getGlobalSymbols()) {
+                    if (simpleName.equals(globalSymbol.getSimpleName())) {
+                        symbol = globalSymbol;
+                    }
+                }
+            }
+            return symbol;
         }
 
         @Override
