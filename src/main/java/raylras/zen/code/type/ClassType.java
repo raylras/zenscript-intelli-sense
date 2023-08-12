@@ -4,6 +4,7 @@ import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
 
 import java.util.List;
+import java.util.Optional;
 
 public class ClassType extends Type {
 
@@ -20,6 +21,15 @@ public class ClassType extends Type {
     @Override
     public List<Symbol> getMembers() {
         return symbol.getMembers();
+    }
+
+    public Optional<Symbol> findAnnotatedMember(String header) {
+        for (Symbol member : getMembers()) {
+            if (member.getDeclaredAnnotation(header).isPresent()) {
+                return Optional.of(member);
+            }
+        }
+        return Optional.empty();
     }
 
     @Override

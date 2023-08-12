@@ -139,7 +139,58 @@ public final class TypeResolver {
 
         @Override
         public Type visitForeachVariable(ForeachVariableContext ctx) {
-            // FIXME: inferring the type of foreach variable
+            ForeachStatementContext forEachStatement = (ForeachStatementContext) ctx.getParent().getParent();
+            Type iterableType = visit(forEachStatement.expression());
+            if (iterableType == IntRangeType.INSTANCE) {
+                return IntType.INSTANCE;
+            }
+            if (iterableType instanceof ListType) {
+                return ((ListType) iterableType).getElementType();
+            }
+            if (iterableType instanceof ArrayType) {
+                return ((ArrayType) iterableType).getElementType();
+            }
+            if (iterableType instanceof MapType) {
+                MapType mapType = (MapType) iterableType;
+                List<ForeachVariableContext> variables = forEachStatement.foreachVariableList().foreachVariable();
+                if (variables.size() == 1) {
+                    return mapType.getKeyType();
+                } else if (variables.size() == 2) {
+                    if (variables.get(0) == ctx) {
+                        return mapType.getKeyType();
+                    }
+                    if (variables.get(1) == ctx) {
+                        return mapType.getValueType();
+                    }
+                }
+            }
+            if (iterableType instanceof ClassType) {
+                ClassType classType = (ClassType) iterableType;
+                List<ForeachVariableContext> variables = forEachStatement.foreachVariableList().foreachVariable();
+                if (variables.size() == 1) {
+                    return classType.findAnnotatedMember("foreach")
+                            .map(Symbol::getType)
+                            .filter(ListType.class::isInstance)
+                            .map(ListType.class::cast)
+                            .map(ListType::getElementType)
+                            .orElse(AnyType.INSTANCE);
+                } else if (variables.size() == 2) {
+                    return classType.findAnnotatedMember("foreachMap")
+                            .map(Symbol::getType)
+                            .filter(MapType.class::isInstance)
+                            .map(MapType.class::cast)
+                            .map(it -> {
+                                if (variables.get(0) == ctx) {
+                                    return it.getKeyType();
+                                }
+                                if (variables.get(1) == ctx) {
+                                    return it.getValueType();
+                                }
+                                return null;
+                            })
+                            .orElse(AnyType.INSTANCE);
+                }
+            }
             return AnyType.INSTANCE;
         }
 
