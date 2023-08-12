@@ -12,6 +12,7 @@ import raylras.zen.code.symbol.ImportSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.*;
 import raylras.zen.util.CSTNodes;
+import raylras.zen.util.CastFunction;
 
 import java.util.List;
 import java.util.Objects;
@@ -175,17 +176,19 @@ public final class TypeResolver {
                 ClassType classType = (ClassType) iterableType;
                 List<ForeachVariableContext> variables = forEachStatement.foreachVariableList().foreachVariable();
                 if (variables.size() == 1) {
-                    return classType.findAnnotatedMember("foreach")
+                    return classType.findAnnotatedMember("#foreach")
                             .map(Symbol::getType)
-                            .filter(ListType.class::isInstance)
-                            .map(ListType.class::cast)
+                            .map(CastFunction.of(FunctionType.class))
+                            .map(FunctionType::getReturnType)
+                            .map(CastFunction.of(ListType.class))
                             .map(ListType::getElementType)
                             .orElse(AnyType.INSTANCE);
                 } else if (variables.size() == 2) {
-                    return classType.findAnnotatedMember("foreachMap")
+                    return classType.findAnnotatedMember("#foreachMap")
                             .map(Symbol::getType)
-                            .filter(MapType.class::isInstance)
-                            .map(MapType.class::cast)
+                            .map(CastFunction.of(FunctionType.class))
+                            .map(FunctionType::getReturnType)
+                            .map(CastFunction.of(MapType.class))
                             .map(it -> {
                                 if (variables.get(0) == ctx) {
                                     return it.getKeyType();
