@@ -6,7 +6,7 @@ public class IntRangeType extends Type {
 
     @Override
     public String toString() {
-        return "INT_RANGE";
+        return "stanhebben.zenscript.value.IntRange";
     }
 
 }
