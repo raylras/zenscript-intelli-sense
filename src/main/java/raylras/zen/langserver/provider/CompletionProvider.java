@@ -330,6 +330,7 @@ public final class CompletionProvider {
             }
 
             // expr.|
+            // ^^^^_
             if (containsLeading(ctx.expression())) {
                 Type type = TypeResolver.getType(ctx.expression(), unit);
                 completeMemberSymbols("", type);

@@ -154,7 +154,7 @@ public class CompilationUnit {
                 }
             }
             // remove .zs suffix
-            return sb.substring(0, sb.capacity() - 4);
+            return sb.substring(0, sb.length() - 3);
         } else if (PathUtils.isDzsFile(path)) {
             Path current = path.getParent();
             List<String> strings = new ArrayList<>();
