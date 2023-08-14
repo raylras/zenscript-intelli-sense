@@ -1,5 +1,6 @@
 package raylras.zen.code.resolve;
 
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import raylras.zen.code.CompilationUnit;
@@ -8,11 +9,13 @@ import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.ClassSymbol;
+import raylras.zen.code.symbol.FunctionSymbol;
 import raylras.zen.code.symbol.ImportSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.*;
 import raylras.zen.util.CSTNodes;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -49,11 +52,18 @@ public final class TypeResolver {
 
         private Symbol lookupSymbol(ParseTree cst, String simpleName) {
             Scope scope = unit.lookupScope(cst);
+            Symbol symbol = null;
             if (scope != null) {
-                return scope.lookupSymbol(simpleName);
-            } else {
-                return null;
+                symbol = scope.lookupSymbol(simpleName);
             }
+            if (symbol == null) {
+                for (Symbol globalSymbol : unit.getEnv().getGlobalSymbols()) {
+                    if (simpleName.equals(globalSymbol.getSimpleName())) {
+                        symbol = globalSymbol;
+                    }
+                }
+            }
+            return symbol;
         }
 
         @Override
@@ -90,9 +100,25 @@ public final class TypeResolver {
         public Type visitFormalParameter(FormalParameterContext ctx) {
             if (ctx.typeLiteral() != null) {
                 return visit(ctx.typeLiteral());
-            } else {
+            }
+            if (ctx.defaultValue() != null) {
                 return visit(ctx.defaultValue());
             }
+            FormalParameterListContext parameterList = (FormalParameterListContext) ctx.getParent();
+            FunctionExprContext functionExpr = ((FunctionExprContext) parameterList.getParent());
+            Type functionType = visit(functionExpr);
+            int argumentIndex = parameterList.formalParameter().indexOf(ctx);
+            if (functionType instanceof FunctionType) {
+                return ((FunctionType) functionType).getParameterTypes().get(argumentIndex);
+            } else if (functionType instanceof ClassType) {
+                return ((ClassType) functionType).findAnnotatedMember("#lambda")
+                        .map(Symbol::getType)
+                        .filter(FunctionType.class::isInstance)
+                        .map(FunctionType.class::cast)
+                        .map(it -> it.getParameterTypes().get(argumentIndex))
+                        .orElse(AnyType.INSTANCE);
+            }
+            return AnyType.INSTANCE;
         }
 
         @Override
@@ -139,7 +165,65 @@ public final class TypeResolver {
 
         @Override
         public Type visitForeachVariable(ForeachVariableContext ctx) {
-            // FIXME: inferring the type of foreach variable
+            // variable -> variableList -> forEach
+            ForeachStatementContext forEachStatement = (ForeachStatementContext) ctx.getParent().getParent();
+            Type iterableType = visit(forEachStatement.expression());
+            if (iterableType == IntRangeType.INSTANCE) {
+                return IntType.INSTANCE;
+            }
+            if (iterableType instanceof ListType) {
+                return ((ListType) iterableType).getElementType();
+            }
+            if (iterableType instanceof ArrayType) {
+                return ((ArrayType) iterableType).getElementType();
+            }
+            if (iterableType instanceof MapType) {
+                MapType mapType = (MapType) iterableType;
+                List<ForeachVariableContext> variables = forEachStatement.foreachVariableList().foreachVariable();
+                if (variables.size() == 1) {
+                    return mapType.getKeyType();
+                } else if (variables.size() == 2) {
+                    if (variables.get(0) == ctx) {
+                        return mapType.getKeyType();
+                    }
+                    if (variables.get(1) == ctx) {
+                        return mapType.getValueType();
+                    }
+                }
+            }
+            if (iterableType instanceof ClassType) {
+                ClassType classType = (ClassType) iterableType;
+                List<ForeachVariableContext> variables = forEachStatement.foreachVariableList().foreachVariable();
+                if (variables.size() == 1) {
+                    return classType.findAnnotatedMember("#foreach")
+                            .map(Symbol::getType)
+                            .filter(FunctionType.class::isInstance)
+                            .map(FunctionType.class::cast)
+                            .map(FunctionType::getReturnType)
+                            .filter(ListType.class::isInstance)
+                            .map(ListType.class::cast)
+                            .map(ListType::getElementType)
+                            .orElse(AnyType.INSTANCE);
+                } else if (variables.size() == 2) {
+                    return classType.findAnnotatedMember("#foreachMap")
+                            .map(Symbol::getType)
+                            .map(FunctionType.class::isInstance)
+                            .map(FunctionType.class::cast)
+                            .map(FunctionType::getReturnType)
+                            .map(MapType.class::isInstance)
+                            .map(MapType.class::cast)
+                            .map(it -> {
+                                if (variables.get(0) == ctx) {
+                                    return it.getKeyType();
+                                }
+                                if (variables.get(1) == ctx) {
+                                    return it.getValueType();
+                                }
+                                return null;
+                            })
+                            .orElse(AnyType.INSTANCE);
+                }
+            }
             return AnyType.INSTANCE;
         }
 
@@ -200,9 +284,40 @@ public final class TypeResolver {
             if (ctx.typeLiteral() != null) {
                 return visit(ctx.typeLiteral());
             } else {
-                List<Type> paramTypes = toTypeList(ctx.formalParameterList());
-                return new FunctionType(AnyType.INSTANCE, paramTypes);
+                // functionExpr -> assignExpr|callExpr
+                ParserRuleContext caller = ctx.getParent();
+                if (caller instanceof AssignmentExprContext) {
+                    Type leftType = visit(caller);
+                    if (leftType != null) {
+                        return leftType;
+                    }
+                } else if (caller.getParent() instanceof CallExprContext) {
+                    CallExprContext callExpr = (CallExprContext) caller.getParent();
+                    ExpressionContext expression = callExpr.expression();
+                    if (expression instanceof MemberAccessExprContext) {
+                        MemberAccessExprContext memberAccessExpr = (MemberAccessExprContext) expression;
+                        List<Type> argumentTypes = new ArrayList<>();
+                        List<ExpressionContext> callExpressions = callExpr.expressionList().expression();
+                        int functionExprPosition = callExpressions.indexOf(ctx);
+                        for (int i = 0; i < functionExprPosition; i++) {
+                            Type argumentType = visit(callExpressions.get(i));
+                            if (argumentType == null) {
+                                argumentType = AnyType.INSTANCE;
+                            }
+                            argumentTypes.add(argumentType);
+                        }
+                        return FunctionSymbol.predictNextArgumentType(
+                                FunctionSymbol.find(visit(memberAccessExpr.expression()), memberAccessExpr.simpleName().getText()),
+                                argumentTypes
+                        );
+                    }
+                }
             }
+            List<Type> paramTypes = new ArrayList<>();
+            for (int i = 0; i < ctx.formalParameterList().formalParameter().size(); i++) {
+                paramTypes.add(AnyType.INSTANCE);
+            }
+            return new FunctionType(AnyType.INSTANCE, paramTypes);
         }
 
         @Override
@@ -278,12 +393,29 @@ public final class TypeResolver {
 
         @Override
         public Type visitCallExpr(CallExprContext ctx) {
-            // FIXME: overloaded functions
-            Type leftType = visit(ctx.expression());
-            if (leftType instanceof FunctionType) {
-                return ((FunctionType) leftType).getReturnType();
+            if (ctx.expression() instanceof MemberAccessExprContext) {
+                MemberAccessExprContext memberAccessExpr = (MemberAccessExprContext) ctx.expression();
+                Type owner = visit(memberAccessExpr.expression());
+                if (owner == null) {
+                    return null;
+                }
+                List<Type> argumentTypes = new ArrayList<>();
+                for (ExpressionContext expressionContext : ctx.expressionList().expression()) {
+                    Type argumentType = visit(expressionContext);
+                    if (argumentType == null) {
+                        argumentType = AnyType.INSTANCE;
+                    }
+                    argumentTypes.add(argumentType);
+                }
+                FunctionSymbol matchedFunction = FunctionSymbol.match(FunctionSymbol.find(owner, memberAccessExpr.getText()), argumentTypes);
+                return matchedFunction == null ? null : matchedFunction.getReturnType();
             } else {
-                return null;
+                Type leftType = visit(ctx.expression());
+                if (leftType instanceof FunctionType) {
+                    return ((FunctionType) leftType).getReturnType();
+                } else {
+                    return null;
+                }
             }
         }
 

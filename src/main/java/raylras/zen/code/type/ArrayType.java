@@ -2,10 +2,12 @@ package raylras.zen.code.type;
 
 import raylras.zen.code.symbol.BuiltinSymbol;
 import raylras.zen.code.symbol.Symbol;
+import raylras.zen.code.TypeMatchingResult;
 
 import java.util.List;
+import java.util.Objects;
 
-public class ArrayType extends Type {
+public class ArrayType extends Type implements IDataCastable {
 
     private final Type elementType;
 
@@ -23,6 +25,30 @@ public class ArrayType extends Type {
         return BuiltinSymbol.List.builder()
                 .add("length", IntType.INSTANCE)
                 .build();
+    }
+
+    @Override
+    protected TypeMatchingResult applyCastRules(Type to) {
+        if (to instanceof ArrayType) {
+            return getElementType().applyCastRules(((ArrayType) to).getElementType());
+        }
+        if (to instanceof ListType) {
+            return getElementType().applyCastRules(((ListType) to).getElementType()).min(TypeMatchingResult.CASTER);
+        }
+        return TypeMatchingResult.INVALID;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ArrayType arrayType = (ArrayType) o;
+        return Objects.equals(elementType, arrayType.elementType);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(elementType);
     }
 
     @Override

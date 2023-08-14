@@ -43,7 +43,7 @@ public final class AnnotationResolver {
 
         @Override
         public List<Annotation> visitFunctionDeclaration(FunctionDeclarationContext ctx) {
-            return getLeft(ctx.prefix);
+            return ctx.prefix == null ? getLeft(ctx.FUNCTION()) : getLeft(ctx.prefix);
         }
 
         @Override

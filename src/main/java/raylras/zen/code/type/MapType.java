@@ -2,10 +2,11 @@ package raylras.zen.code.type;
 
 import raylras.zen.code.symbol.BuiltinSymbol;
 import raylras.zen.code.symbol.Symbol;
+import raylras.zen.code.TypeMatchingResult;
 
 import java.util.List;
 
-public class MapType extends Type {
+public class MapType extends Type implements IDataCastable {
 
     private final Type keyType;
     private final Type valueType;
@@ -34,6 +35,14 @@ public class MapType extends Type {
                 .add("valueSet", new ArrayType(valueType))
                 .add("entrySet", new ArrayType(new MapEntryType(keyType, valueType)))
                 .build();
+    }
+
+    @Override
+    protected TypeMatchingResult applyCastRules(Type to) {
+        if (to instanceof MapType && this.getKeyType().equals(((MapType) to).getKeyType())) {
+            return this.getValueType().canCastTo(((MapType) to).getValueType());
+        }
+        return TypeMatchingResult.INVALID;
     }
 
     @Override
