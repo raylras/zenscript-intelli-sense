@@ -14,7 +14,6 @@ import raylras.zen.code.symbol.ImportSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.*;
 import raylras.zen.util.CSTNodes;
-import raylras.zen.util.CastFunction;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -114,7 +113,8 @@ public final class TypeResolver {
             } else if (functionType instanceof ClassType) {
                 return ((ClassType) functionType).findAnnotatedMember("#lambda")
                         .map(Symbol::getType)
-                        .map(CastFunction.of(FunctionType.class))
+                        .filter(FunctionType.class::isInstance)
+                        .map(FunctionType.class::cast)
                         .map(it -> it.getParameterTypes().get(argumentIndex))
                         .orElse(AnyType.INSTANCE);
             }
@@ -197,17 +197,21 @@ public final class TypeResolver {
                 if (variables.size() == 1) {
                     return classType.findAnnotatedMember("#foreach")
                             .map(Symbol::getType)
-                            .map(CastFunction.of(FunctionType.class))
+                            .filter(FunctionType.class::isInstance)
+                            .map(FunctionType.class::cast)
                             .map(FunctionType::getReturnType)
-                            .map(CastFunction.of(ListType.class))
+                            .filter(ListType.class::isInstance)
+                            .map(ListType.class::cast)
                             .map(ListType::getElementType)
                             .orElse(AnyType.INSTANCE);
                 } else if (variables.size() == 2) {
                     return classType.findAnnotatedMember("#foreachMap")
                             .map(Symbol::getType)
-                            .map(CastFunction.of(FunctionType.class))
+                            .map(FunctionType.class::isInstance)
+                            .map(FunctionType.class::cast)
                             .map(FunctionType::getReturnType)
-                            .map(CastFunction.of(MapType.class))
+                            .map(MapType.class::isInstance)
+                            .map(MapType.class::cast)
                             .map(it -> {
                                 if (variables.get(0) == ctx) {
                                     return it.getKeyType();

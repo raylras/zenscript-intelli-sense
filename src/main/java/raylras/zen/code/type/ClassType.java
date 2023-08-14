@@ -3,7 +3,6 @@ package raylras.zen.code.type;
 import raylras.zen.code.TypeMatchingResult;
 import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
-import raylras.zen.util.CastFunction;
 
 import java.util.*;
 import java.util.stream.Stream;
@@ -51,7 +50,9 @@ public class ClassType extends Type {
             }
         }
         boolean hasCaster = findAnnotatedMembers("#caster")
-                .map(CastFunction.of(FunctionType.class))
+                .map(Symbol::getType)
+                .filter(FunctionType.class::isInstance)
+                .map(FunctionType.class::cast)
                 .map(FunctionType::getReturnType)
                 .anyMatch(to::equals);
         if (hasCaster) {
