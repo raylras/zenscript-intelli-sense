@@ -4,6 +4,7 @@ import raylras.zen.code.symbol.BuiltinSymbol;
 import raylras.zen.code.symbol.Symbol;
 
 import java.util.List;
+import java.util.Objects;
 
 public class MapEntryType extends Type {
 
@@ -37,4 +38,16 @@ public class MapEntryType extends Type {
         return "Map.Entry<" + keyType + "," + valueType + ">";
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MapEntryType that = (MapEntryType) o;
+        return Objects.equals(keyType, that.keyType) && Objects.equals(valueType, that.valueType);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(keyType, valueType);
+    }
 }

@@ -9,6 +9,7 @@ import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.ClassSymbol;
+import raylras.zen.code.symbol.FunctionSymbol;
 import raylras.zen.code.symbol.ImportSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.*;
@@ -279,14 +280,33 @@ public final class TypeResolver {
             if (ctx.typeLiteral() != null) {
                 return visit(ctx.typeLiteral());
             } else {
-                ParserRuleContext caller = ctx.getParent().getParent();
-                if (caller instanceof VariableDeclarationContext) {
-                    VariableDeclarationContext variableDeclare = (VariableDeclarationContext) caller;
-                    if (variableDeclare.typeLiteral() != null) {
-                        return visit(variableDeclare.typeLiteral());
+                // functionExpr -> assignExpr|callExpr
+                ParserRuleContext caller = ctx.getParent();
+                if (caller instanceof AssignmentExprContext) {
+                    Type leftType = visit(caller);
+                    if (leftType != null) {
+                        return leftType;
                     }
-                } else {
-                    // TODO callExpr
+                } else if (caller.getParent() instanceof CallExprContext) {
+                    CallExprContext callExpr = (CallExprContext) caller.getParent();
+                    ExpressionContext expression = callExpr.expression();
+                    if (expression instanceof MemberAccessExprContext) {
+                        MemberAccessExprContext memberAccessExpr = (MemberAccessExprContext) expression;
+                        List<Type> argumentTypes = new ArrayList<>();
+                        List<ExpressionContext> callExpressions = callExpr.expressionList().expression();
+                        int functionExprPosition = callExpressions.indexOf(ctx);
+                        for (int i = 0; i < functionExprPosition; i++) {
+                            Type argumentType = visit(callExpressions.get(i));
+                            if (argumentType == null) {
+                                argumentType = AnyType.INSTANCE;
+                            }
+                            argumentTypes.add(argumentType);
+                        }
+                        return FunctionSymbol.predictNextArgumentType(
+                                FunctionSymbol.find(visit(memberAccessExpr.expression()), memberAccessExpr.simpleName().getText()),
+                                argumentTypes
+                        );
+                    }
                 }
             }
             List<Type> paramTypes = new ArrayList<>();
@@ -369,12 +389,28 @@ public final class TypeResolver {
 
         @Override
         public Type visitCallExpr(CallExprContext ctx) {
-            // FIXME: overloaded functions
-            Type leftType = visit(ctx.expression());
-            if (leftType instanceof FunctionType) {
-                return ((FunctionType) leftType).getReturnType();
+            if (ctx.expression() instanceof MemberAccessExprContext) {
+                MemberAccessExprContext memberAccessExpr = (MemberAccessExprContext) ctx.expression();
+                Type owner = visit(memberAccessExpr.expression());
+                if (owner == null) {
+                    return null;
+                }
+                List<Type> argumentTypes = new ArrayList<>();
+                for (ExpressionContext expressionContext : ctx.expressionList().expression()) {
+                    Type argumentType = visit(expressionContext);
+                    if (argumentType == null) {
+                        argumentType = AnyType.INSTANCE;
+                    }
+                    argumentTypes.add(argumentType);
+                }
+                return FunctionSymbol.match(FunctionSymbol.find(owner, memberAccessExpr.getText()), argumentTypes).getReturnType();
             } else {
-                return null;
+                Type leftType = visit(ctx.expression());
+                if (leftType instanceof FunctionType) {
+                    return ((FunctionType) leftType).getReturnType();
+                } else {
+                    return null;
+                }
             }
         }
 

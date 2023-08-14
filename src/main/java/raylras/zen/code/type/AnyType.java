@@ -1,6 +1,8 @@
 package raylras.zen.code.type;
 
-public class AnyType extends Type {
+import raylras.zen.code.TypeMatchingResult;
+
+public class AnyType extends Type implements IDataCastable {
 
     public static final AnyType INSTANCE = new AnyType();
 
@@ -9,4 +11,8 @@ public class AnyType extends Type {
         return "any";
     }
 
+    @Override
+    protected TypeMatchingResult applyCastRules(Type to) {
+        return TypeMatchingResult.CASTER;
+    }
 }

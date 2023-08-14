@@ -166,7 +166,7 @@ whileStatement
     ;
 
 expressionStatement
-    : expression ';'
+    : expression ';'?
     ;
 
 // Paraphrased from https://github.com/CraftTweaker/ZenScript/blob/master/src/main/java/stanhebben/zenscript/parser/expression/ParsedExpression.java
