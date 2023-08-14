@@ -403,7 +403,8 @@ public final class TypeResolver {
                     }
                     argumentTypes.add(argumentType);
                 }
-                return FunctionSymbol.match(FunctionSymbol.find(owner, memberAccessExpr.getText()), argumentTypes).getReturnType();
+                FunctionSymbol matchedFunction = FunctionSymbol.match(FunctionSymbol.find(owner, memberAccessExpr.getText()), argumentTypes);
+                return matchedFunction == null ? null : matchedFunction.getReturnType();
             } else {
                 Type leftType = visit(ctx.expression());
                 if (leftType instanceof FunctionType) {
