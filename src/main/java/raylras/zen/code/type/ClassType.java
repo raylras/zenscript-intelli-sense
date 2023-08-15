@@ -1,6 +1,5 @@
 package raylras.zen.code.type;
 
-import raylras.zen.code.TypeMatchingResult;
 import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
 
@@ -27,29 +26,6 @@ public class ClassType extends Type {
 
     public Stream<Symbol> findMemberWithAnnotation(String header) {
         return getMembers().stream().filter(it -> it.isAnnotatedBy(header));
-    }
-
-    @Override
-    protected TypeMatchingResult applyCastRules(Type to) {
-        if (to instanceof ClassType) {
-            Set<ClassType> subclasses = new HashSet<>();
-            for (ClassType anInterface : getSymbol().getInterfaces()) {
-                subclasses.addAll(anInterface.getSymbol().getInterfaces());
-            }
-            if (subclasses.contains(to)) {
-                return TypeMatchingResult.INHERIT;
-            }
-        }
-        boolean hasCaster = findMemberWithAnnotation("#caster")
-                .map(Symbol::getType)
-                .filter(FunctionType.class::isInstance)
-                .map(FunctionType.class::cast)
-                .map(FunctionType::getReturnType)
-                .anyMatch(to::equals);
-        if (hasCaster) {
-            return TypeMatchingResult.CASTER;
-        }
-        return TypeMatchingResult.INVALID;
     }
 
     @Override
