@@ -45,19 +45,21 @@ public class ClassType extends Type {
     }
 
     @Override
-    public String toString() {
-        return symbol.getSimpleName();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj.getClass() == this.getClass() &&
-                ((ClassType) obj).getSymbol().getQualifiedName().equals(this.getSymbol().getQualifiedName());
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (object == null || getClass() != object.getClass()) return false;
+        ClassType classType = (ClassType) object;
+        return Objects.equals(symbol, classType.symbol);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.getSymbol().getQualifiedName());
+        return Objects.hashCode(symbol.getQualifiedName());
+    }
+
+    @Override
+    public String toString() {
+        return symbol.getSimpleName();
     }
 
     private List<Type> getCasterTypeList() {

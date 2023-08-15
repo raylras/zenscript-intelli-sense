@@ -52,7 +52,7 @@ public class ArrayType extends Type {
 
     @Override
     public int hashCode() {
-        return Objects.hash(elementType);
+        return Objects.hashCode(toString());
     }
 
     @Override

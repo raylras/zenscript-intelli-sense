@@ -4,6 +4,7 @@ import raylras.zen.code.symbol.BuiltinSymbol;
 import raylras.zen.code.symbol.Symbol;
 
 import java.util.List;
+import java.util.Objects;
 
 public class MapType extends Type {
 
@@ -45,6 +46,19 @@ public class MapType extends Type {
             return SubtypeResult.higher(key, value);
         }
         return super.isSubtypeOf(type);
+    }
+
+    @Override
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (object == null || getClass() != object.getClass()) return false;
+        MapType mapType = (MapType) object;
+        return Objects.equals(keyType, mapType.keyType) && Objects.equals(valueType, mapType.valueType);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(toString());
     }
 
     @Override
