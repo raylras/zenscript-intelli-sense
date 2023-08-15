@@ -313,7 +313,7 @@ public final class TypeResolver {
                         Type type = visit(memberAccessExpr.expression());
                         String name = memberAccessExpr.simpleName().getText();
                         List<FunctionSymbol> functions = Symbols.getMembersByName(type, name, FunctionSymbol.class);
-                        return FunctionSymbol.predictNextArgumentType(functions, argumentTypes);
+                        return Symbols.predictNextArgumentType(functions, argumentTypes);
                     }
                 }
             }

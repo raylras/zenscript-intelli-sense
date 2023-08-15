@@ -59,4 +59,25 @@ public class Symbols {
         return found;
     }
 
+    public static Type predictNextArgumentType(List<FunctionSymbol> functions, List<Type> argumentTypes) {
+        Type found = null;
+        SubtypeResult foundMatchingResult = SubtypeResult.MISMATCH;
+        for (FunctionSymbol function : functions) {
+            List<ParameterSymbol> parameterList = function.getParameterList();
+            SubtypeResult functionMatchingResult = SubtypeResult.SELF;
+            if (argumentTypes.size() >= parameterList.size()) {
+                continue;
+            }
+            for (int i = 0; i < argumentTypes.size(); i++) {
+                Type argType = argumentTypes.get(i);
+                Type paramType = parameterList.get(i).getType();
+                functionMatchingResult = functionMatchingResult.and(argType.isSubtypeOf(paramType));
+            }
+            if (functionMatchingResult.priority < foundMatchingResult.priority) {
+                found = parameterList.get(argumentTypes.size()).getType();
+                foundMatchingResult = functionMatchingResult;
+            }
+        }
+        return found;
+    }
 }
