@@ -54,7 +54,7 @@ public class FunctionSymbol extends Symbol {
     public String getNameWithType() {
         // add(a as int, b as int) as int
         return getParameterList().stream()
-                .map(VariableSymbol::getNameWithType)
+                .map(ParameterSymbol::getNameWithType)
                 .collect(Collectors.joining(", ", getSimpleName() + "(", ") as " + getReturnType()));
     }
 

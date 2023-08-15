@@ -74,7 +74,7 @@ public abstract class Symbol {
     }
 
     public enum Kind {
-        IMPORT, CLASS, VARIABLE, FUNCTION, BUILT_IN, NONE
+        IMPORT, CLASS, VARIABLE, PARAMETER, FUNCTION, BUILT_IN, NONE
     }
 
     public enum Modifier {
