@@ -3,6 +3,7 @@ package raylras.zen.util;
 import raylras.zen.code.symbol.FunctionSymbol;
 import raylras.zen.code.symbol.ParameterSymbol;
 import raylras.zen.code.symbol.Symbol;
+import raylras.zen.code.type.SubtypeResult;
 import raylras.zen.code.type.Type;
 
 import java.util.List;
@@ -18,7 +19,7 @@ public class Symbols {
                 .collect(Collectors.toList());
     }
 
-    public static boolean match(FunctionSymbol function, List<Type> argumentTypeList) {
+    public static boolean areArgumentsMatch(FunctionSymbol function, List<Type> argumentTypeList) {
         List<ParameterSymbol> parameterList = function.getParameterList();
         for (int i = 0; i < parameterList.size(); i++) {
             ParameterSymbol parameter = parameterList.get(i);
@@ -32,6 +33,30 @@ public class Symbols {
             }
         }
         return true;
+    }
+
+    public static FunctionSymbol findBestMatch(List<FunctionSymbol> functions, List<Type> argumentTypeList) {
+        FunctionSymbol found = null;
+        SubtypeResult foundMatchingResult = SubtypeResult.MISMATCH;
+        for (FunctionSymbol function : functions) {
+            List<ParameterSymbol> parameterList = function.getParameterList();
+            SubtypeResult functionMatchingResult = SubtypeResult.SELF;
+            if (argumentTypeList.size() > parameterList.size()) {
+                continue;
+            }
+            for (int i = 0; i < parameterList.size(); i++) {
+                if (i < argumentTypeList.size()) {
+                    functionMatchingResult = functionMatchingResult.and(argumentTypeList.get(i).isSubtypeOf(parameterList.get(i).getType()));
+                } else {
+                    functionMatchingResult = functionMatchingResult.and(parameterList.get(i).isOptional() ? SubtypeResult.SELF : SubtypeResult.MISMATCH);
+                }
+            }
+            if (functionMatchingResult.priority < foundMatchingResult.priority) {
+                found = function;
+                foundMatchingResult = functionMatchingResult;
+            }
+        }
+        return found;
     }
 
 }

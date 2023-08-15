@@ -20,6 +20,10 @@ public class FunctionSymbol extends Symbol {
         super(cst, unit);
     }
 
+    /**
+     * @deprecated Use {@link Symbols#findBestMatch(List, List)} instead.
+     */
+    @Deprecated
     public static FunctionSymbol match(List<FunctionSymbol> functions, List<Type> argumentTypes) {
         FunctionSymbol found = null;
         TypeMatchingResult foundMatchingResult = TypeMatchingResult.INVALID;
