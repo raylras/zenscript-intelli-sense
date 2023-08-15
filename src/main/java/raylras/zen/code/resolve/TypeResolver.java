@@ -14,6 +14,7 @@ import raylras.zen.code.symbol.ImportSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.*;
 import raylras.zen.util.CSTNodes;
+import raylras.zen.util.Symbols;
 
 import java.util.ArrayList;
 import java.util.List;

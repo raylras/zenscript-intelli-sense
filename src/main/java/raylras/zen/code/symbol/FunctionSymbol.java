@@ -24,7 +24,7 @@ public class FunctionSymbol extends Symbol {
         FunctionSymbol found = null;
         TypeMatchingResult foundMatchingResult = TypeMatchingResult.INVALID;
         for (FunctionSymbol function : functions) {
-            List<VariableSymbol> parameterList = function.getFormalParameterList();
+            List<ParameterSymbol> parameterList = function.getParameterList();
             TypeMatchingResult functionMatchingResult = TypeMatchingResult.EQUALS;
             if (argumentTypes.size() > parameterList.size()) {
                 continue;
@@ -48,7 +48,7 @@ public class FunctionSymbol extends Symbol {
         Type found = null;
         TypeMatchingResult foundMatchingResult = TypeMatchingResult.INVALID;
         for (FunctionSymbol function : functions) {
-            List<VariableSymbol> parameterList = function.getFormalParameterList();
+            List<ParameterSymbol> parameterList = function.getParameterList();
             TypeMatchingResult functionMatchingResult = TypeMatchingResult.EQUALS;
             if (argumentTypes.size() >= parameterList.size()) {
                 continue;
@@ -78,8 +78,14 @@ public class FunctionSymbol extends Symbol {
         return functions;
     }
 
-    public List<VariableSymbol> getFormalParameterList() {
+    public List<ParameterSymbol> getParameterList() {
         return FormalParameterResolver.getFormalParameterList(cst, unit);
+    }
+
+    public List<Type> getParameterTypeList() {
+        return getParameterList().stream()
+                .map(ParameterSymbol::getType)
+                .collect(Collectors.toList());
     }
 
     public Type getReturnType() {
@@ -109,7 +115,7 @@ public class FunctionSymbol extends Symbol {
     @Override
     public String getNameWithType() {
         // add(a as int, b as int) as int
-        return getFormalParameterList().stream()
+        return getParameterList().stream()
                 .map(VariableSymbol::getNameWithType)
                 .collect(Collectors.joining(", ", getSimpleName() + "(", ") as " + getReturnType()));
     }
