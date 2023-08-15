@@ -46,9 +46,11 @@ public class Symbols {
             }
             for (int i = 0; i < parameterList.size(); i++) {
                 if (i < argumentTypeList.size()) {
-                    functionMatchingResult = functionMatchingResult.and(argumentTypeList.get(i).isSubtypeOf(parameterList.get(i).getType()));
+                    Type argType = argumentTypeList.get(i);
+                    Type paramType = parameterList.get(i).getType();
+                    functionMatchingResult = SubtypeResult.higher(functionMatchingResult, argType.isSubtypeOf(paramType));
                 } else {
-                    functionMatchingResult = functionMatchingResult.and(parameterList.get(i).isOptional() ? SubtypeResult.SELF : SubtypeResult.MISMATCH);
+                    functionMatchingResult = SubtypeResult.higher(functionMatchingResult, parameterList.get(i).isOptional() ? SubtypeResult.SELF : SubtypeResult.MISMATCH);
                 }
             }
             if (functionMatchingResult.priority < foundMatchingResult.priority) {
@@ -71,7 +73,7 @@ public class Symbols {
             for (int i = 0; i < argumentTypes.size(); i++) {
                 Type argType = argumentTypes.get(i);
                 Type paramType = parameterList.get(i).getType();
-                functionMatchingResult = functionMatchingResult.and(argType.isSubtypeOf(paramType));
+                functionMatchingResult = SubtypeResult.higher(functionMatchingResult, argType.isSubtypeOf(paramType));
             }
             if (functionMatchingResult.priority < foundMatchingResult.priority) {
                 found = parameterList.get(argumentTypes.size()).getType();

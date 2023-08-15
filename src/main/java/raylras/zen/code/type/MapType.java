@@ -42,7 +42,7 @@ public class MapType extends Type {
             MapType that = ((MapType) type);
             SubtypeResult key = this.keyType.isSubtypeOf(that.keyType);
             SubtypeResult value = this.valueType.isSubtypeOf(that.valueType);
-            return key.and(value);
+            return SubtypeResult.higher(key, value);
         }
         return super.isSubtypeOf(type);
     }
