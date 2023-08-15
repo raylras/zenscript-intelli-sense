@@ -7,6 +7,7 @@ import raylras.zen.code.resolve.FormalParameterResolver;
 import raylras.zen.code.resolve.TypeResolver;
 import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.Type;
+import raylras.zen.util.Symbols;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -63,6 +64,10 @@ public class FunctionSymbol extends Symbol {
         return found;
     }
 
+    /**
+     * @deprecated Use {@link Symbols#getMembersByName(Type, String, Class)} instead.
+     */
+    @Deprecated
     public static List<FunctionSymbol> find(Type owner, String name) {
         List<FunctionSymbol> functions = new ArrayList<>();
         for (Symbol member : owner.getMembers()) {

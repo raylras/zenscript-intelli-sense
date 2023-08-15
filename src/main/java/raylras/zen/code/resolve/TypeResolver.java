@@ -309,10 +309,10 @@ public final class TypeResolver {
                             }
                             argumentTypes.add(argumentType);
                         }
-                        return FunctionSymbol.predictNextArgumentType(
-                                FunctionSymbol.find(visit(memberAccessExpr.expression()), memberAccessExpr.simpleName().getText()),
-                                argumentTypes
-                        );
+                        Type type = visit(memberAccessExpr.expression());
+                        String name = memberAccessExpr.simpleName().getText();
+                        List<FunctionSymbol> functions = Symbols.getMembersByName(type, name, FunctionSymbol.class);
+                        return FunctionSymbol.predictNextArgumentType(functions, argumentTypes);
                     }
                 }
             }
@@ -410,7 +410,8 @@ public final class TypeResolver {
                     }
                     argumentTypes.add(argumentType);
                 }
-                FunctionSymbol matchedFunction = FunctionSymbol.match(FunctionSymbol.find(owner, memberAccessExpr.getText()), argumentTypes);
+                List<FunctionSymbol> functions = Symbols.getMembersByName(owner, memberAccessExpr.getText(), FunctionSymbol.class);
+                FunctionSymbol matchedFunction = FunctionSymbol.match(functions, argumentTypes);
                 return matchedFunction == null ? null : matchedFunction.getReturnType();
             } else {
                 Type leftType = visit(ctx.expression());
