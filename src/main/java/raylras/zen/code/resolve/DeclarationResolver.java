@@ -84,7 +84,7 @@ public final class DeclarationResolver {
 
         @Override
         public void enterFormalParameter(FormalParameterContext ctx) {
-            enterSymbol(new VariableSymbol(ctx, unit));
+            enterSymbol(new ParameterSymbol(ctx, unit));
         }
 
         @Override
