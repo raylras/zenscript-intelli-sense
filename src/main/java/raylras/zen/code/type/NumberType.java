@@ -1,6 +1,6 @@
 package raylras.zen.code.type;
 
-public abstract class NumberType extends Type implements IDataCastable {
+public abstract class NumberType extends Type {
 
     @Override
     public SubtypeResult isSubtypeOf(Type type) {

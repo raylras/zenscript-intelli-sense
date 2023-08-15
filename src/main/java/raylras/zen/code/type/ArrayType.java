@@ -6,7 +6,7 @@ import raylras.zen.code.symbol.Symbol;
 import java.util.List;
 import java.util.Objects;
 
-public class ArrayType extends Type implements IDataCastable {
+public class ArrayType extends Type {
 
     private final Type elementType;
 

@@ -1,6 +1,6 @@
 package raylras.zen.code.type;
 
-public class AnyType extends Type implements IDataCastable {
+public class AnyType extends Type {
 
     public static final AnyType INSTANCE = new AnyType();
 

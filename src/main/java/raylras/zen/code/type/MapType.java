@@ -5,7 +5,7 @@ import raylras.zen.code.symbol.Symbol;
 
 import java.util.List;
 
-public class MapType extends Type implements IDataCastable {
+public class MapType extends Type {
 
     private final Type keyType;
     private final Type valueType;

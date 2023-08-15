@@ -1,6 +1,6 @@
 package raylras.zen.code.type;
 
-public class BoolType extends Type implements IDataCastable {
+public class BoolType extends Type {
 
     public static final BoolType INSTANCE = new BoolType();
 
