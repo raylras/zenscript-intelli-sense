@@ -39,6 +39,22 @@ public class ArrayType extends Type implements IDataCastable {
     }
 
     @Override
+    public SubtypeResult isSubtypeOf(Type type) {
+        if (type == AnyType.INSTANCE) {
+            return SubtypeResult.INHERIT;
+        }
+        if (type instanceof ArrayType) {
+            ArrayType that = (ArrayType) type;
+            return this.elementType.isSubtypeOf(that.getElementType());
+        }
+        if (type instanceof ListType) {
+            ListType that = (ListType) type;
+            return this.elementType.isSubtypeOf(that.getElementType());
+        }
+        return super.isSubtypeOf(type);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;

@@ -15,4 +15,10 @@ public class AnyType extends Type implements IDataCastable {
     protected TypeMatchingResult applyCastRules(Type to) {
         return TypeMatchingResult.CASTER;
     }
+
+    @Override
+    public SubtypeResult isSubtypeOf(Type type) {
+        return SubtypeResult.INHERIT;
+    }
+
 }

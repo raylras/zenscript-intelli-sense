@@ -5,6 +5,7 @@ import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ClassType extends Type {
@@ -62,6 +63,22 @@ public class ClassType extends Type {
     }
 
     @Override
+    public SubtypeResult isSubtypeOf(Type type) {
+        if (type instanceof ClassType) {
+            boolean matchedInterface = symbol.getInterfaces().stream()
+                    .flatMap(classType -> classType.getSymbol().getInterfaces().stream())
+                    .anyMatch(classType -> classType.isSubtypeOf(type).matched());
+            if (matchedInterface) {
+                return SubtypeResult.INHERIT;
+            }
+        }
+        if (getCasterTypeList().contains(type)) {
+            return SubtypeResult.CASTER;
+        }
+        return super.isSubtypeOf(type);
+    }
+
+    @Override
     public String toString() {
         return symbol.getSimpleName();
     }
@@ -76,4 +93,14 @@ public class ClassType extends Type {
     public int hashCode() {
         return Objects.hash(this.getSymbol().getQualifiedName());
     }
+
+    private List<Type> getCasterTypeList() {
+        return findAnnotatedMembers("#caster")
+                .map(Symbol::getType)
+                .filter(FunctionType.class::isInstance)
+                .map(FunctionType.class::cast)
+                .map(FunctionType::getReturnType)
+                .collect(Collectors.toList());
+    }
+
 }

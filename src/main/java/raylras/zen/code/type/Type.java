@@ -12,6 +12,10 @@ public abstract class Type {
         return Collections.emptyList();
     }
 
+    /**
+     * @deprecated Use {@link #isSubtypeOf(Type)} and {@link #isAssignableTo(Type)} instead.
+     */
+    @Deprecated
     public TypeMatchingResult canCastTo(Type to) {
         if (this.equals(to)) {
             return TypeMatchingResult.EQUALS;
@@ -25,9 +29,26 @@ public abstract class Type {
         return applyCastRules(to);
     }
 
+    /**
+     * @deprecated Use {@link #isSubtypeOf(Type)} and {@link #isAssignableTo(Type)} instead.
+     */
+    @Deprecated
     protected TypeMatchingResult applyCastRules(Type to) {
         return TypeMatchingResult.INVALID;
     }
 
-    public abstract String toString();
+    public boolean isAssignableTo(Type type) {
+        return isSubtypeOf(type).matched();
+    }
+
+    public SubtypeResult isSubtypeOf(Type type) {
+        if (this == type) {
+            return SubtypeResult.SELF;
+        }
+        if (type == AnyType.INSTANCE) {
+            return SubtypeResult.INHERIT;
+        }
+        return SubtypeResult.MISMATCH;
+    }
+
 }

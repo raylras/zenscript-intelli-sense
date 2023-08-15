@@ -46,6 +46,17 @@ public class MapType extends Type implements IDataCastable {
     }
 
     @Override
+    public SubtypeResult isSubtypeOf(Type type) {
+        if (type instanceof MapType) {
+            MapType that = ((MapType) type);
+            SubtypeResult key = this.keyType.isSubtypeOf(that.keyType);
+            SubtypeResult value = this.valueType.isSubtypeOf(that.valueType);
+            return key.and(value);
+        }
+        return super.isSubtypeOf(type);
+    }
+
+    @Override
     public String toString() {
         return valueType + "[" + keyType + "]";
     }
