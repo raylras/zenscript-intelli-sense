@@ -111,7 +111,8 @@ public final class TypeResolver {
             if (functionType instanceof FunctionType) {
                 return ((FunctionType) functionType).getParameterTypes().get(argumentIndex);
             } else if (functionType instanceof ClassType) {
-                return ((ClassType) functionType).findAnnotatedMember("#lambda")
+                return ((ClassType) functionType).findMemberWithAnnotation("#lambda")
+                        .findFirst()
                         .map(Symbol::getType)
                         .filter(FunctionType.class::isInstance)
                         .map(FunctionType.class::cast)
@@ -195,7 +196,8 @@ public final class TypeResolver {
                 ClassType classType = (ClassType) iterableType;
                 List<ForeachVariableContext> variables = forEachStatement.foreachVariableList().foreachVariable();
                 if (variables.size() == 1) {
-                    return classType.findAnnotatedMember("#foreach")
+                    return classType.findMemberWithAnnotation("#foreach")
+                            .findFirst()
                             .map(Symbol::getType)
                             .filter(FunctionType.class::isInstance)
                             .map(FunctionType.class::cast)
@@ -205,7 +207,8 @@ public final class TypeResolver {
                             .map(ListType::getElementType)
                             .orElse(AnyType.INSTANCE);
                 } else if (variables.size() == 2) {
-                    return classType.findAnnotatedMember("#foreachMap")
+                    return classType.findMemberWithAnnotation("#foreachMap")
+                            .findFirst()
                             .map(Symbol::getType)
                             .map(FunctionType.class::isInstance)
                             .map(FunctionType.class::cast)

@@ -25,18 +25,8 @@ public class ClassType extends Type {
         return symbol.getMembers();
     }
 
-    public Optional<Symbol> findAnnotatedMember(String header) {
-        for (Symbol member : getMembers()) {
-            if (member.getDeclaredAnnotation(header).isPresent()) {
-                return Optional.of(member);
-            }
-        }
-        return Optional.empty();
-    }
-
-    public Stream<Symbol> findAnnotatedMembers(String header) {
-        return getMembers().stream()
-                .filter(it -> it.getDeclaredAnnotation(header).isPresent());
+    public Stream<Symbol> findMemberWithAnnotation(String header) {
+        return getMembers().stream().filter(it -> it.isAnnotatedBy(header));
     }
 
     @Override
@@ -50,7 +40,7 @@ public class ClassType extends Type {
                 return TypeMatchingResult.INHERIT;
             }
         }
-        boolean hasCaster = findAnnotatedMembers("#caster")
+        boolean hasCaster = findMemberWithAnnotation("#caster")
                 .map(Symbol::getType)
                 .filter(FunctionType.class::isInstance)
                 .map(FunctionType.class::cast)
@@ -95,7 +85,7 @@ public class ClassType extends Type {
     }
 
     private List<Type> getCasterTypeList() {
-        return findAnnotatedMembers("#caster")
+        return findMemberWithAnnotation("#caster")
                 .map(Symbol::getType)
                 .filter(FunctionType.class::isInstance)
                 .map(FunctionType.class::cast)

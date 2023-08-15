@@ -51,6 +51,15 @@ public abstract class Symbol {
         return AnnotationResolver.getAnnotations(cst, unit.getTokenStream());
     }
 
+    public boolean isAnnotatedBy(String header) {
+        for (Annotation anno : getDeclaredAnnotations()) {
+            if (anno.getHeader().equals(header)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public ParseTree getCst() {
         return cst;
     }
