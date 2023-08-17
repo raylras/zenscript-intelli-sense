@@ -5,7 +5,6 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.annotation.Annotation;
 import raylras.zen.code.resolve.AnnotationResolver;
 import raylras.zen.code.resolve.ModifierResolver;
-import raylras.zen.code.resolve.DeclaredNameResolver;
 import raylras.zen.code.type.Type;
 
 import java.util.List;
@@ -13,12 +12,14 @@ import java.util.Optional;
 
 public abstract class Symbol {
 
+    protected final String name;
     protected final ParseTree cst;
     protected final CompilationUnit unit;
 
-    public Symbol(ParseTree cst, CompilationUnit unit) {
-        this.unit = unit;
+    public Symbol(String name, ParseTree cst, CompilationUnit unit) {
+        this.name = name;
         this.cst = cst;
+        this.unit = unit;
     }
 
     public abstract Type getType();
@@ -26,7 +27,7 @@ public abstract class Symbol {
     public abstract Kind getKind();
 
     public String getSimpleName() {
-        return DeclaredNameResolver.getDeclaredName(cst);
+        return name;
     }
 
     public String getNameWithType() {

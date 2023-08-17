@@ -9,12 +9,10 @@ import java.util.Optional;
 
 public class BuiltinSymbol extends Symbol {
 
-    private final String name;
     private final Type type;
 
     public BuiltinSymbol(String name, Type type) {
-        super(null, null);
-        this.name = name;
+        super(name, null, null);
         this.type = type;
     }
 
@@ -26,11 +24,6 @@ public class BuiltinSymbol extends Symbol {
     @Override
     public Kind getKind() {
         return Kind.BUILT_IN;
-    }
-
-    @Override
-    public String getSimpleName() {
-        return name;
     }
 
     @Override

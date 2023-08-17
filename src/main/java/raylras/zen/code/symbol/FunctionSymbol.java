@@ -12,8 +12,8 @@ import java.util.stream.Collectors;
 
 public class FunctionSymbol extends Symbol {
 
-    public FunctionSymbol(ParseTree cst, CompilationUnit unit) {
-        super(cst, unit);
+    public FunctionSymbol(String name, ParseTree cst, CompilationUnit unit) {
+        super(name, cst, unit);
     }
 
     public List<ParameterSymbol> getParameterList() {

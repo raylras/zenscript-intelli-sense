@@ -7,8 +7,8 @@ import raylras.zen.code.type.Type;
 
 public class VariableSymbol extends Symbol {
 
-    public VariableSymbol(ParseTree cst, CompilationUnit unit) {
-        super(cst, unit);
+    public VariableSymbol(String name, ParseTree cst, CompilationUnit unit) {
+        super(name, cst, unit);
     }
 
     @Override

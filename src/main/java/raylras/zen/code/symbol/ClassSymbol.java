@@ -5,7 +5,6 @@ import raylras.zen.code.annotation.Annotation;
 import raylras.zen.code.parser.ZenScriptParser.ClassDeclarationContext;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.type.ClassType;
-import raylras.zen.util.CSTNodes;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,8 +14,8 @@ public class ClassSymbol extends Symbol {
 
     private final ClassType type;
 
-    public ClassSymbol(ClassDeclarationContext cst, CompilationUnit unit) {
-        super(cst, unit);
+    public ClassSymbol(String name, ClassDeclarationContext cst, CompilationUnit unit) {
+        super(name, cst, unit);
         this.type = new ClassType(this);
     }
 
@@ -60,11 +59,6 @@ public class ClassSymbol extends Symbol {
     @Override
     public Kind getKind() {
         return Kind.CLASS;
-    }
-
-    @Override
-    public String getSimpleName() {
-        return CSTNodes.getText(getCst().simpleNameOrPrimitiveType());
     }
 
     @Override
