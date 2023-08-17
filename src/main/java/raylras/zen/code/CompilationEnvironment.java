@@ -20,6 +20,10 @@ import java.util.stream.Collectors;
 public class CompilationEnvironment {
 
     private static final Logger logger = LoggerFactory.getLogger(CompilationEnvironment.class);
+    private static final Gson GSON =  new GsonBuilder()
+            .registerTypeAdapter(BracketHandler.class, new BracketHandler.Deserializer())
+            .registerTypeAdapter(BracketHandlerManager.class, new BracketHandlerManager.Deserializer())
+            .create();
 
     public static final String DEFAULT_ROOT_DIRECTORY = "scripts";
 
@@ -85,13 +89,9 @@ public class CompilationEnvironment {
     }
 
     private BracketHandlerManager loadBracketHandlerManager() {
-        Gson gson = new GsonBuilder()
-                .registerTypeAdapter(BracketHandler.class, new BracketHandler.Deserializer(this))
-                .registerTypeAdapter(BracketHandlerManager.class, new BracketHandlerManager.Deserializer())
-                .create();
         if (root != null) {
             try {
-                return gson.fromJson(Files.newBufferedReader(root.resolve("generated/brackets.json")), BracketHandlerManager.class);
+                return GSON.fromJson(Files.newBufferedReader(root.resolve("generated/brackets.json")), BracketHandlerManager.class);
             } catch (IOException e) {
                 logger.error("Could not open brackets json in project environment: {}", this, e);
             } catch (JsonSyntaxException e) {

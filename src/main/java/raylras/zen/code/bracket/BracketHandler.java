@@ -16,11 +16,9 @@ import java.util.Map;
  */
 public class BracketHandler {
     private final PackageTree<JsonElement> members = new PackageTree<>(":");
-    private final CompilationEnvironment environment;
     private final String typeName;
 
-    public BracketHandler(CompilationEnvironment environment, String typeName) {
-        this.environment = environment;
+    public BracketHandler(String typeName) {
         this.typeName = typeName;
     }
 
@@ -69,22 +67,16 @@ public class BracketHandler {
         return null;
     }
 
-    public ClassType getType() {
+    public ClassType getType(CompilationEnvironment environment) {
         return environment.getClassTypeMap().get(typeName);
     }
 
     public static final class Deserializer implements JsonDeserializer<BracketHandler> {
 
-        private final CompilationEnvironment environment;
-
-        public Deserializer(CompilationEnvironment environment) {
-            this.environment = environment;
-        }
-
         @Override
         public BracketHandler deserialize(JsonElement json, Type typeOfT, JsonDeserializationContext context) throws JsonParseException {
             JsonObject jsonObject = json.getAsJsonObject();
-            BracketHandler bracketHandler = new BracketHandler(environment, jsonObject.get("type").getAsString());
+            BracketHandler bracketHandler = new BracketHandler(jsonObject.get("type").getAsString());
             for (JsonElement content : jsonObject.get("contents").getAsJsonArray()) {
                 if (content.isJsonPrimitive()) {
                     bracketHandler.members.put(content.getAsString(), JsonNull.INSTANCE);

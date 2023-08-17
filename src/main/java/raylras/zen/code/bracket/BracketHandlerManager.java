@@ -43,7 +43,7 @@ public class BracketHandlerManager {
         }
         for (BracketHandler bracketHandler : bracketHandlers) {
             if (bracketHandler.has(text)) {
-                return bracketHandler.getType();
+                return bracketHandler.getType(env);
             }
         }
         String typeName = RpcClient.queryBracketHandler(text).getOrDefault("type", "null");
