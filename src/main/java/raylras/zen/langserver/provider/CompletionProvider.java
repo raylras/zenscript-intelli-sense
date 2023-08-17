@@ -32,7 +32,8 @@ import java.util.Map;
 
 public final class CompletionProvider {
 
-    private CompletionProvider() {}
+    private CompletionProvider() {
+    }
 
     public static List<CompletionItem> completion(CompilationUnit unit, CompletionParams params) {
         CompletionVisitor visitor = new CompletionVisitor(unit, params);
@@ -382,6 +383,12 @@ public final class CompletionProvider {
             }
 
             visitChildren(ctx);
+            return null;
+        }
+
+        @Override
+        public Void visitBracketHandlerExpr(BracketHandlerExprContext ctx) {
+            unit.getEnv().getBracketHandlerManager().complete(ctx.raw().getText(), completionList);
             return null;
         }
 
