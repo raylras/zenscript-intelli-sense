@@ -452,7 +452,7 @@ public final class CompletionProvider {
         }
 
         private void completeImports(String text) {
-            PackageTree<ClassType> tree = PackageTree.of(unit.getEnv().getClassTypeMap());
+            PackageTree<ClassType> tree = PackageTree.of("\\.", unit.getEnv().getClassTypeMap());
             Map<String, PackageTree<ClassType>> members;
             String toComplete;
             String completed;
