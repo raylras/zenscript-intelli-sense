@@ -50,6 +50,7 @@ repository:
       - name: support.class.zs
         match: '[[:alpha:]_$][[:alnum:]_$]*'
       - include: '#punctuation-semicolon'
+      - include: '#comments'
 
   class-declaration:
     name: meta.class.zs
