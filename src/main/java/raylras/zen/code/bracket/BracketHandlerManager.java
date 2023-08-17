@@ -12,6 +12,7 @@ import raylras.zen.rpc.RpcClient;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author youyihj
@@ -46,7 +47,7 @@ public class BracketHandlerManager {
             }
         }
         String typeName = RpcClient.queryBracketHandler(text).get("type");
-        if ("null".equals(typeName)) {
+        if (Objects.equals(typeName, "null")) {
             return AnyType.INSTANCE;
         } else {
             return env.getClassTypeMap().get(typeName);

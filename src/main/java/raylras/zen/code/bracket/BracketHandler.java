@@ -15,7 +15,7 @@ import java.util.Map;
  * @author youyihj
  */
 public class BracketHandler {
-    private PackageTree<JsonElement> members = new PackageTree<JsonElement>().setDelimiter(":");
+    private final PackageTree<JsonElement> members = new PackageTree<JsonElement>().setDelimiter(":");
     private final CompilationEnvironment environment;
     private final String typeName;
 
