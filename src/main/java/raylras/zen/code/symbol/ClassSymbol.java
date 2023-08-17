@@ -46,7 +46,7 @@ public class ClassSymbol extends Symbol {
     }
 
     public String getQualifiedName() {
-        String declaredName = getSimpleName();
+        String declaredName = getName();
         String packageName = unit.getPackage();
         return packageName.isEmpty() ? declaredName : packageName + "." + declaredName;
     }

@@ -59,7 +59,7 @@ public final class TypeResolver {
             }
             if (symbol == null) {
                 for (Symbol globalSymbol : unit.getEnv().getGlobalSymbols()) {
-                    if (simpleName.equals(globalSymbol.getSimpleName())) {
+                    if (simpleName.equals(globalSymbol.getName())) {
                         symbol = globalSymbol;
                     }
                 }
@@ -378,7 +378,7 @@ public final class TypeResolver {
             }
             String simpleName = ctx.simpleName().getText();
             for (Symbol member : leftType.getMembers()) {
-                if (Objects.equals(member.getSimpleName(), simpleName)) {
+                if (Objects.equals(member.getName(), simpleName)) {
                     return member.getType();
                 }
             }

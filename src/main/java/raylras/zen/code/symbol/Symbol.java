@@ -26,12 +26,12 @@ public abstract class Symbol {
 
     public abstract Kind getKind();
 
-    public String getSimpleName() {
+    public String getName() {
         return name;
     }
 
     public String getNameWithType() {
-        return getSimpleName() + " as " + getType();
+        return getName() + " as " + getType();
     }
 
     public Modifier getModifier() {

@@ -55,7 +55,7 @@ public class FunctionSymbol extends Symbol {
         // add(a as int, b as int) as int
         return getParameterList().stream()
                 .map(ParameterSymbol::getNameWithType)
-                .collect(Collectors.joining(", ", getSimpleName() + "(", ") as " + getReturnType()));
+                .collect(Collectors.joining(", ", getName() + "(", ") as " + getReturnType()));
     }
 
 }

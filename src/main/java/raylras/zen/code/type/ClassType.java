@@ -59,7 +59,7 @@ public class ClassType extends Type {
 
     @Override
     public String toString() {
-        return symbol.getSimpleName();
+        return symbol.getName();
     }
 
     private List<Type> getCasterTypeList() {

@@ -475,7 +475,7 @@ public final class CompletionProvider {
             Scope scope = unit.lookupScope(tailing);
             while (scope != null) {
                 for (Symbol symbol : scope.getSymbols()) {
-                    if (symbol.getSimpleName().startsWith(text)) {
+                    if (symbol.getName().startsWith(text)) {
                         addToCompletionList(symbol, symbol.getNameWithType());
                     }
                 }
@@ -485,7 +485,7 @@ public final class CompletionProvider {
 
         private void completeGlobalSymbols(String text) {
             for (Symbol symbol : unit.getEnv().getGlobalSymbols()) {
-                if (symbol.getSimpleName().startsWith(text)) {
+                if (symbol.getName().startsWith(text)) {
                     addToCompletionList(symbol, "global " + symbol.getNameWithType());
                 }
             }
@@ -493,7 +493,7 @@ public final class CompletionProvider {
 
         private void completeMemberSymbols(String text, Type type) {
             for (Symbol member : type.getMembers()) {
-                if (member.getSimpleName().startsWith(text)) {
+                if (member.getName().startsWith(text)) {
                     addToCompletionList(member, member.getNameWithType());
                 }
             }
@@ -501,7 +501,7 @@ public final class CompletionProvider {
 
         private void completeTypeSymbols(String text) {
             for (Symbol topLevelSymbol : unit.getTopLevelSymbols()) {
-                if (topLevelSymbol instanceof ImportSymbol && topLevelSymbol.getSimpleName().startsWith(text)) {
+                if (topLevelSymbol instanceof ImportSymbol && topLevelSymbol.getName().startsWith(text)) {
                     addToCompletionList(topLevelSymbol);
                 }
             }
@@ -516,13 +516,13 @@ public final class CompletionProvider {
         }
 
         private void addToCompletionList(Symbol symbol) {
-            CompletionItem item = new CompletionItem(symbol.getSimpleName());
+            CompletionItem item = new CompletionItem(symbol.getName());
             item.setKind(toCompletionKind(symbol));
             completionList.add(item);
         }
 
         private void addToCompletionList(Symbol symbol, String detail) {
-            CompletionItem item = new CompletionItem(symbol.getSimpleName());
+            CompletionItem item = new CompletionItem(symbol.getName());
             item.setKind(toCompletionKind(symbol));
             item.setDetail(detail);
             completionList.add(item);

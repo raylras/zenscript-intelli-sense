@@ -13,7 +13,7 @@ public class Symbols {
 
     public static <T extends Symbol> List<T> getMembersByName(Type type, String simpleName, Class<T> clazz) {
         return type.getMembers().stream()
-                .filter(symbol -> symbol.getSimpleName().equals(simpleName))
+                .filter(symbol -> symbol.getName().equals(simpleName))
                 .filter(clazz::isInstance)
                 .map(clazz::cast)
                 .collect(Collectors.toList());
