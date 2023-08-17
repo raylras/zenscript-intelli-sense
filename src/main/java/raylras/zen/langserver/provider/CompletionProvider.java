@@ -543,6 +543,7 @@ public final class CompletionProvider {
                 case FUNCTION:
                     return CompletionItemKind.Function;
                 case VARIABLE:
+                case PARAMETER:
                     return CompletionItemKind.Variable;
                 case BUILT_IN:
                     return toCompletionKind(symbol.getType());
