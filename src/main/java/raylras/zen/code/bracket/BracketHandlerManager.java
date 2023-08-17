@@ -46,7 +46,7 @@ public class BracketHandlerManager {
                 return bracketHandler.getType();
             }
         }
-        String typeName = RpcClient.queryBracketHandler(text).get("type");
+        String typeName = RpcClient.queryBracketHandler(text).getOrDefault("type", "null");
         if (Objects.equals(typeName, "null")) {
             return AnyType.INSTANCE;
         } else {
