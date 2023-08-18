@@ -6,7 +6,7 @@ import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.parser.ZenScriptParser.ConstructorDeclarationContext;
 import raylras.zen.code.parser.ZenScriptParser.FunctionDeclarationContext;
-import raylras.zen.code.symbol.VariableSymbol;
+import raylras.zen.code.symbol.ParameterSymbol;
 
 import java.util.List;
 import java.util.Objects;
@@ -16,13 +16,13 @@ public final class FormalParameterResolver {
 
     private FormalParameterResolver() {}
 
-    public static List<VariableSymbol> getFormalParameterList(ParseTree cst, CompilationUnit unit) {
+    public static List<ParameterSymbol> getFormalParameterList(ParseTree cst, CompilationUnit unit) {
         Objects.requireNonNull(cst);
         Objects.requireNonNull(unit);
         return cst.accept(new FormalParameterVisitor(unit));
     }
 
-    private static final class FormalParameterVisitor extends Visitor<List<VariableSymbol>> {
+    private static final class FormalParameterVisitor extends Visitor<List<ParameterSymbol>> {
         private final CompilationUnit unit;
 
         public FormalParameterVisitor(CompilationUnit unit) {
@@ -30,25 +30,25 @@ public final class FormalParameterResolver {
         }
 
         @Override
-        public List<VariableSymbol> visitFunctionDeclaration(FunctionDeclarationContext ctx) {
+        public List<ParameterSymbol> visitFunctionDeclaration(FunctionDeclarationContext ctx) {
             return visitFormalParameterList(ctx.formalParameterList());
         }
 
         @Override
-        public List<VariableSymbol> visitExpandFunctionDeclaration(ZenScriptParser.ExpandFunctionDeclarationContext ctx) {
+        public List<ParameterSymbol> visitExpandFunctionDeclaration(ZenScriptParser.ExpandFunctionDeclarationContext ctx) {
             return visitFormalParameterList(ctx.formalParameterList());
         }
 
         @Override
-        public List<VariableSymbol> visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
+        public List<ParameterSymbol> visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
             return visitFormalParameterList(ctx.formalParameterList());
         }
 
         @Override
-        public List<VariableSymbol> visitFormalParameterList(ZenScriptParser.FormalParameterListContext ctx) {
+        public List<ParameterSymbol> visitFormalParameterList(ZenScriptParser.FormalParameterListContext ctx) {
             return ctx.formalParameter().stream()
                     .map(unit::getSymbol)
-                    .map(VariableSymbol.class::cast)
+                    .map(ParameterSymbol.class::cast)
                     .collect(Collectors.toList());
         }
     }

@@ -34,11 +34,6 @@ public class MapEntryType extends Type {
     }
 
     @Override
-    public String toString() {
-        return "Map.Entry<" + keyType + "," + valueType + ">";
-    }
-
-    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
@@ -48,6 +43,12 @@ public class MapEntryType extends Type {
 
     @Override
     public int hashCode() {
-        return Objects.hash(keyType, valueType);
+        return Objects.hashCode(toString());
     }
+
+    @Override
+    public String toString() {
+        return "Map.Entry<" + keyType + "," + valueType + ">";
+    }
+
 }

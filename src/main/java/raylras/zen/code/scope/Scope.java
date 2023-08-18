@@ -35,7 +35,7 @@ public class Scope {
         while (scope != null) {
             for (Symbol symbol : scope.getSymbols()) {
                 if (clazz.isInstance(symbol)
-                        && Objects.equals(symbol.getSimpleName(), simpleName)) {
+                        && Objects.equals(symbol.getName(), simpleName)) {
                     return clazz.cast(symbol);
                 }
             }

@@ -13,14 +13,10 @@ import java.util.Map;
 public class ClassSymbol extends Symbol {
 
     private final ClassType type;
-    private final String qualifiedName;
 
-    public ClassSymbol(ClassDeclarationContext cst, CompilationUnit unit) {
-        super(cst, unit);
+    public ClassSymbol(String name, ClassDeclarationContext cst, CompilationUnit unit) {
+        super(name, cst, unit);
         this.type = new ClassType(this);
-        String decalredName = cst.simpleNameOrPrimitiveType().getText();
-        String packageName = unit.getPackage();
-        this.qualifiedName = packageName.isEmpty() ? decalredName : packageName + "." + decalredName;
     }
 
     public List<Symbol> getMembers() {
@@ -50,7 +46,9 @@ public class ClassSymbol extends Symbol {
     }
 
     public String getQualifiedName() {
-        return qualifiedName;
+        String declaredName = getName();
+        String packageName = unit.getPackage();
+        return packageName.isEmpty() ? declaredName : packageName + "." + declaredName;
     }
 
     @Override

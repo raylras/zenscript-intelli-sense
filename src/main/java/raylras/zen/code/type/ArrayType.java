@@ -2,12 +2,11 @@ package raylras.zen.code.type;
 
 import raylras.zen.code.symbol.BuiltinSymbol;
 import raylras.zen.code.symbol.Symbol;
-import raylras.zen.code.TypeMatchingResult;
 
 import java.util.List;
 import java.util.Objects;
 
-public class ArrayType extends Type implements IDataCastable {
+public class ArrayType extends Type {
 
     private final Type elementType;
 
@@ -28,14 +27,19 @@ public class ArrayType extends Type implements IDataCastable {
     }
 
     @Override
-    protected TypeMatchingResult applyCastRules(Type to) {
-        if (to instanceof ArrayType) {
-            return getElementType().applyCastRules(((ArrayType) to).getElementType());
+    public SubtypeResult isSubtypeOf(Type type) {
+        if (type == AnyType.INSTANCE) {
+            return SubtypeResult.INHERIT;
         }
-        if (to instanceof ListType) {
-            return getElementType().applyCastRules(((ListType) to).getElementType()).min(TypeMatchingResult.CASTER);
+        if (type instanceof ArrayType) {
+            ArrayType that = (ArrayType) type;
+            return this.elementType.isSubtypeOf(that.getElementType());
         }
-        return TypeMatchingResult.INVALID;
+        if (type instanceof ListType) {
+            ListType that = (ListType) type;
+            return this.elementType.isSubtypeOf(that.getElementType());
+        }
+        return super.isSubtypeOf(type);
     }
 
     @Override
@@ -48,7 +52,7 @@ public class ArrayType extends Type implements IDataCastable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(elementType);
+        return Objects.hashCode(toString());
     }
 
     @Override

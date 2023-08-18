@@ -1,10 +1,10 @@
 package raylras.zen.code.type;
 
-import raylras.zen.code.TypeMatchingResult;
 import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
 
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ClassType extends Type {
@@ -24,56 +24,51 @@ public class ClassType extends Type {
         return symbol.getMembers();
     }
 
-    public Optional<Symbol> findAnnotatedMember(String header) {
-        for (Symbol member : getMembers()) {
-            if (member.getDeclaredAnnotation(header).isPresent()) {
-                return Optional.of(member);
-            }
-        }
-        return Optional.empty();
-    }
-
-    public Stream<Symbol> findAnnotatedMembers(String header) {
-        return getMembers().stream()
-                .filter(it -> it.getDeclaredAnnotation(header).isPresent());
+    public Stream<Symbol> findMemberWithAnnotation(String header) {
+        return getMembers().stream().filter(it -> it.isAnnotatedBy(header));
     }
 
     @Override
-    protected TypeMatchingResult applyCastRules(Type to) {
-        if (to instanceof ClassType) {
-            Set<ClassType> subclasses = new HashSet<>();
-            for (ClassType anInterface : getSymbol().getInterfaces()) {
-                subclasses.addAll(anInterface.getSymbol().getInterfaces());
-            }
-            if (subclasses.contains(to)) {
-                return TypeMatchingResult.INHERIT;
+    public SubtypeResult isSubtypeOf(Type type) {
+        if (type instanceof ClassType) {
+            boolean matchedInterface = symbol.getInterfaces().stream()
+                    .flatMap(classType -> classType.getSymbol().getInterfaces().stream())
+                    .anyMatch(classType -> classType.isSubtypeOf(type).matched());
+            if (matchedInterface) {
+                return SubtypeResult.INHERIT;
             }
         }
-        boolean hasCaster = findAnnotatedMembers("#caster")
-                .map(Symbol::getType)
-                .filter(FunctionType.class::isInstance)
-                .map(FunctionType.class::cast)
-                .map(FunctionType::getReturnType)
-                .anyMatch(to::equals);
-        if (hasCaster) {
-            return TypeMatchingResult.CASTER;
+        if (getCasterTypeList().contains(type)) {
+            return SubtypeResult.CASTER;
         }
-        return TypeMatchingResult.INVALID;
+        return super.isSubtypeOf(type);
     }
 
     @Override
-    public String toString() {
-        return symbol.getSimpleName();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        return obj.getClass() == this.getClass() &&
-                ((ClassType) obj).getSymbol().getQualifiedName().equals(this.getSymbol().getQualifiedName());
+    public boolean equals(Object object) {
+        if (this == object) return true;
+        if (object == null || getClass() != object.getClass()) return false;
+        ClassType classType = (ClassType) object;
+        return Objects.equals(symbol, classType.symbol);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(this.getSymbol().getQualifiedName());
+        return Objects.hashCode(symbol.getQualifiedName());
     }
+
+    @Override
+    public String toString() {
+        return symbol.getName();
+    }
+
+    private List<Type> getCasterTypeList() {
+        return findMemberWithAnnotation("#caster")
+                .map(Symbol::getType)
+                .filter(FunctionType.class::isInstance)
+                .map(FunctionType.class::cast)
+                .map(FunctionType::getReturnType)
+                .collect(Collectors.toList());
+    }
+
 }

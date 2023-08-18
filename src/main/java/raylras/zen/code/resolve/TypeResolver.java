@@ -14,6 +14,7 @@ import raylras.zen.code.symbol.ImportSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.*;
 import raylras.zen.util.CSTNodes;
+import raylras.zen.util.Symbols;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -58,7 +59,7 @@ public final class TypeResolver {
             }
             if (symbol == null) {
                 for (Symbol globalSymbol : unit.getEnv().getGlobalSymbols()) {
-                    if (simpleName.equals(globalSymbol.getSimpleName())) {
+                    if (simpleName.equals(globalSymbol.getName())) {
                         symbol = globalSymbol;
                     }
                 }
@@ -111,7 +112,8 @@ public final class TypeResolver {
             if (functionType instanceof FunctionType) {
                 return ((FunctionType) functionType).getParameterTypes().get(argumentIndex);
             } else if (functionType instanceof ClassType) {
-                return ((ClassType) functionType).findAnnotatedMember("#lambda")
+                return ((ClassType) functionType).findMemberWithAnnotation("#lambda")
+                        .findFirst()
                         .map(Symbol::getType)
                         .filter(FunctionType.class::isInstance)
                         .map(FunctionType.class::cast)
@@ -195,7 +197,8 @@ public final class TypeResolver {
                 ClassType classType = (ClassType) iterableType;
                 List<ForeachVariableContext> variables = forEachStatement.foreachVariableList().foreachVariable();
                 if (variables.size() == 1) {
-                    return classType.findAnnotatedMember("#foreach")
+                    return classType.findMemberWithAnnotation("#foreach")
+                            .findFirst()
                             .map(Symbol::getType)
                             .filter(FunctionType.class::isInstance)
                             .map(FunctionType.class::cast)
@@ -205,7 +208,8 @@ public final class TypeResolver {
                             .map(ListType::getElementType)
                             .orElse(AnyType.INSTANCE);
                 } else if (variables.size() == 2) {
-                    return classType.findAnnotatedMember("#foreachMap")
+                    return classType.findMemberWithAnnotation("#foreachMap")
+                            .findFirst()
                             .map(Symbol::getType)
                             .map(FunctionType.class::isInstance)
                             .map(FunctionType.class::cast)
@@ -306,10 +310,10 @@ public final class TypeResolver {
                             }
                             argumentTypes.add(argumentType);
                         }
-                        return FunctionSymbol.predictNextArgumentType(
-                                FunctionSymbol.find(visit(memberAccessExpr.expression()), memberAccessExpr.simpleName().getText()),
-                                argumentTypes
-                        );
+                        Type type = visit(memberAccessExpr.expression());
+                        String name = memberAccessExpr.simpleName().getText();
+                        List<FunctionSymbol> functions = Symbols.getMembersByName(type, name, FunctionSymbol.class);
+                        return Symbols.predictNextArgumentType(functions, argumentTypes);
                     }
                 }
             }
@@ -373,7 +377,7 @@ public final class TypeResolver {
             }
             String simpleName = ctx.simpleName().getText();
             for (Symbol member : leftType.getMembers()) {
-                if (Objects.equals(member.getSimpleName(), simpleName)) {
+                if (Objects.equals(member.getName(), simpleName)) {
                     return member.getType();
                 }
             }
@@ -406,7 +410,8 @@ public final class TypeResolver {
                     }
                     argumentTypes.add(argumentType);
                 }
-                FunctionSymbol matchedFunction = FunctionSymbol.match(FunctionSymbol.find(owner, memberAccessExpr.getText()), argumentTypes);
+                List<FunctionSymbol> functions = Symbols.getMembersByName(owner, memberAccessExpr.getText(), FunctionSymbol.class);
+                FunctionSymbol matchedFunction = Symbols.findBestMatch(functions, argumentTypes);
                 return matchedFunction == null ? null : matchedFunction.getReturnType();
             } else {
                 Type leftType = visit(ctx.expression());

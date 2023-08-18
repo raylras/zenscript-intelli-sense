@@ -5,7 +5,6 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.annotation.Annotation;
 import raylras.zen.code.resolve.AnnotationResolver;
 import raylras.zen.code.resolve.ModifierResolver;
-import raylras.zen.code.resolve.DeclaredNameResolver;
 import raylras.zen.code.type.Type;
 
 import java.util.List;
@@ -13,24 +12,26 @@ import java.util.Optional;
 
 public abstract class Symbol {
 
+    protected final String name;
     protected final ParseTree cst;
     protected final CompilationUnit unit;
 
-    public Symbol(ParseTree cst, CompilationUnit unit) {
-        this.unit = unit;
+    public Symbol(String name, ParseTree cst, CompilationUnit unit) {
+        this.name = name;
         this.cst = cst;
+        this.unit = unit;
     }
 
     public abstract Type getType();
 
     public abstract Kind getKind();
 
-    public String getSimpleName() {
-        return DeclaredNameResolver.getDeclaredName(cst);
+    public String getName() {
+        return name;
     }
 
     public String getNameWithType() {
-        return getSimpleName() + " as " + getType();
+        return getName() + " as " + getType();
     }
 
     public Modifier getModifier() {
@@ -51,6 +52,15 @@ public abstract class Symbol {
         return AnnotationResolver.getAnnotations(cst, unit.getTokenStream());
     }
 
+    public boolean isAnnotatedBy(String header) {
+        for (Annotation anno : getDeclaredAnnotations()) {
+            if (anno.getHeader().equals(header)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public ParseTree getCst() {
         return cst;
     }
@@ -65,7 +75,7 @@ public abstract class Symbol {
     }
 
     public enum Kind {
-        IMPORT, CLASS, VARIABLE, FUNCTION, BUILT_IN, NONE
+        IMPORT, CLASS, VARIABLE, PARAMETER, FUNCTION, BUILT_IN, NONE
     }
 
     public enum Modifier {

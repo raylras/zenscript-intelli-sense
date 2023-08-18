@@ -9,8 +9,8 @@ import java.util.Map;
 
 public class ImportSymbol extends Symbol {
 
-    public ImportSymbol(ImportDeclarationContext cst, CompilationUnit unit) {
-        super(cst, unit);
+    public ImportSymbol(String name, ImportDeclarationContext cst, CompilationUnit unit) {
+        super(name, cst, unit);
     }
 
     public Symbol getTarget() {

@@ -1,10 +1,10 @@
 package raylras.zen.code.type;
 
 import raylras.zen.code.symbol.Symbol;
-import raylras.zen.code.TypeMatchingResult;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 public abstract class Type {
 
@@ -12,22 +12,23 @@ public abstract class Type {
         return Collections.emptyList();
     }
 
-    public TypeMatchingResult canCastTo(Type to) {
-        if (this.equals(to)) {
-            return TypeMatchingResult.EQUALS;
-        }
-        if (to == AnyType.INSTANCE) {
-            return TypeMatchingResult.CASTER;
-        }
-        if (this instanceof IDataCastable && to.toString().equals("crafttweaker.data.IData")) {
-            return TypeMatchingResult.CASTER;
-        }
-        return applyCastRules(to);
+    public boolean isAssignableTo(Type type) {
+        return isSubtypeOf(type).matched();
     }
 
-    protected TypeMatchingResult applyCastRules(Type to) {
-        return TypeMatchingResult.INVALID;
+    public SubtypeResult isSubtypeOf(Type type) {
+        if (this == type) {
+            return SubtypeResult.SELF;
+        }
+        if (type == AnyType.INSTANCE) {
+            return SubtypeResult.INHERIT;
+        }
+        return SubtypeResult.MISMATCH;
     }
 
-    public abstract String toString();
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(toString());
+    }
+
 }
