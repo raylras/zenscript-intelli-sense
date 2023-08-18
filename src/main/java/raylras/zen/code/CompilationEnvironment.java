@@ -1,5 +1,8 @@
 package raylras.zen.code;
 
+import com.google.common.collect.HashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.Multimaps;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
@@ -7,9 +10,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import raylras.zen.code.bracket.BracketHandler;
 import raylras.zen.code.bracket.BracketHandlerManager;
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
 import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.ClassType;
@@ -18,12 +18,8 @@ import raylras.zen.util.Symbols;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.Function;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class CompilationEnvironment {
