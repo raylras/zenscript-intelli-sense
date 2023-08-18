@@ -1,15 +1,36 @@
 package raylras.zen.util;
 
-import raylras.zen.code.symbol.FunctionSymbol;
-import raylras.zen.code.symbol.ParameterSymbol;
-import raylras.zen.code.symbol.Symbol;
+import raylras.zen.code.CompilationUnit;
+import raylras.zen.code.symbol.*;
 import raylras.zen.code.type.SubtypeResult;
 import raylras.zen.code.type.Type;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Symbols {
+
+    public static String getQualifierName(Symbol symbol) {
+        String declaredName = symbol.getName();
+        String packageName = symbol.getUnit().getPackage();
+        return packageName.isEmpty()
+                ? declaredName
+                : packageName + "." + PathUtils.getFileNameWithoutSuffix(symbol.getUnit().getPath()) + "." + declaredName;
+    }
+
+    public static Stream<Symbol> getToplevelSymbolsSpecial(CompilationUnit unit) {
+        return unit.getTopLevelSymbols().stream()
+                .filter(symbol -> !(symbol instanceof ImportSymbol))
+                .flatMap(symbol -> {
+                    if (PathUtils.isDzsFile(symbol.getUnit().getPath()) && symbol instanceof ClassSymbol) {
+                        return ((ClassSymbol) symbol).getMembers().stream();
+                    } else {
+                        return Stream.of(symbol);
+                    }
+                })
+                .filter(symbol -> symbol.isModifiedBy(Symbol.Modifier.STATIC) || symbol.isModifiedBy(Symbol.Modifier.GLOBAL));
+    }
 
     public static <T extends Symbol> List<T> getMembersByName(Type type, String simpleName, Class<T> clazz) {
         return type.getMembers().stream()

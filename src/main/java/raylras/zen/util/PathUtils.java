@@ -31,6 +31,11 @@ public final class PathUtils {
         return path.toFile().getName();
     }
 
+    public static String getFileNameWithoutSuffix(Path path) {
+        String fileName = getFileName(path);
+        return fileName.substring(0, fileName.lastIndexOf('.'));
+    }
+
     public static Path findUpwards(Path start, String targetName) {
         Path current = start;
         while (current != null) {
