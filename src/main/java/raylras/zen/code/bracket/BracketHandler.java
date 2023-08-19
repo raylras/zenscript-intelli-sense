@@ -9,7 +9,6 @@ import raylras.zen.util.PackageTree;
 
 import java.lang.reflect.Type;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author youyihj
@@ -23,33 +22,15 @@ public class BracketHandler {
     }
 
     public void complete(String text, List<CompletionItem> completionItems) {
-        String toComplete;
-        String completed;
-        int lastDotPosition = text.lastIndexOf(':');
-        Map<String, PackageTree<JsonElement>> bracketMembers;
-        if (lastDotPosition != -1) {
-            completed = text.substring(0, lastDotPosition);
-            bracketMembers = members.get(completed).getSubTrees();
-            if (lastDotPosition == text.length() - 1) {
-                toComplete = "";
+        members.complete(text).forEach((key, subTree) -> {
+            CompletionItem completionItem = new CompletionItem(key);
+            if (subTree.hasElement()) {
+                completionItem.setKind(CompletionItemKind.Value);
+                completionItem.setDetail(getCompletionItemDetails(subTree.getElement()));
             } else {
-                toComplete = text.substring(lastDotPosition + 1);
+                completionItem.setKind(CompletionItemKind.Module);
             }
-        } else {
-            bracketMembers = members.getSubTrees();
-            toComplete = text;
-        }
-        bracketMembers.forEach((key, subTree) -> {
-            if (key.startsWith(toComplete)) {
-                CompletionItem completionItem = new CompletionItem(key);
-                if (subTree.hasElement()) {
-                    completionItem.setKind(CompletionItemKind.Value);
-                    completionItem.setDetail(getCompletionItemDetails(subTree.getElement()));
-                } else {
-                    completionItem.setKind(CompletionItemKind.Module);
-                }
-                completionItems.add(completionItem);
-            }
+            completionItems.add(completionItem);
         });
     }
 

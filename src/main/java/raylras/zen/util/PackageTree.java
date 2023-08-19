@@ -1,17 +1,22 @@
 package raylras.zen.util;
 
+import com.google.common.collect.Maps;
+
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.regex.Pattern;
 
 public class PackageTree<V> {
     private final Map<String, PackageTree<V>> subTrees = new HashMap<>();
     private V element;
     private final String delimiter;
+    private final Pattern delimiterRegex;
 
     public PackageTree(String delimiter) {
         this.delimiter = delimiter;
+        this.delimiterRegex = Pattern.compile(delimiter, Pattern.LITERAL);
     }
 
     public static <V> PackageTree<V> of(String delimiter, Map<String, V> map) {
@@ -47,12 +52,31 @@ public class PackageTree<V> {
 
     public PackageTree<V> get(String path) {
         PackageTree<V> node = this;
-        for (String s : path.split(delimiter)) {
+        for (String s : delimiterRegex.split(path)) {
             node = node.subTrees.get(s);
             if (node == null) {
                 return PackageTree.of(delimiter, Collections.emptyMap());
             }
         }
         return node;
+    }
+
+    public Map<String, PackageTree<V>> complete(String text) {
+        String toComplete;
+        int lastDelimiterPos = text.lastIndexOf(delimiter);
+        Map<String, PackageTree<V>> members;
+        if (lastDelimiterPos != -1) {
+            String completed = text.substring(0, lastDelimiterPos);
+            members = this.get(completed).getSubTrees();
+            if (lastDelimiterPos == text.length() - 1) {
+                toComplete = "";
+            } else {
+                toComplete = text.substring(lastDelimiterPos + 1);
+            }
+        } else {
+            members = this.getSubTrees();
+            toComplete = text;
+        }
+        return Maps.filterKeys(members, it -> it.startsWith(toComplete));
     }
 }
