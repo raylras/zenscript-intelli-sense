@@ -28,7 +28,7 @@ public class PackageTree<V> {
     public void put(String path, V value) {
         PackageTree<V> leaf = this;
         Function<String, PackageTree<V>> treeCreator = it -> new PackageTree<>(delimiter);
-        for (String s : path.split(delimiter)) {
+        for (String s : delimiterRegex.split(path)) {
             leaf = leaf.subTrees.computeIfAbsent(s, treeCreator);
         }
         leaf.element = value;
