@@ -130,14 +130,14 @@ repository:
       - include: '#expressions'
 
   function-declaration:
-    name: meta.function.decl.zs
-    begin: '(?=((static)\s+)?(function))'
+    name: meta.function.zs
+    begin: '(?=((static|global)\s+)?(function))'
     beginCaptures:
       '2':
         name: keyword.other.static.zs
       '3':
         name: keyword.function.zs
-    end: '(?<=\})'
+    end: '(?<=\}|;)'
     patterns:
       - match: '(function)\s+([[:alpha:]_$][[:alnum:]_$]*)'
         captures:
@@ -148,6 +148,7 @@ repository:
       - include: '#parameter-list'
       - include: '#type-annotation'
       - include: '#block'
+      - include: '#preprocessor'
       - include: '#comments'
 
   parameter-list:
