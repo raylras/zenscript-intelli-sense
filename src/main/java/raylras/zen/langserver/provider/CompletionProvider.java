@@ -32,7 +32,8 @@ import java.util.Map;
 
 public final class CompletionProvider {
 
-    private CompletionProvider() {}
+    private CompletionProvider() {
+    }
 
     public static List<CompletionItem> completion(CompilationUnit unit, CompletionParams params) {
         CompletionVisitor visitor = new CompletionVisitor(unit, params);
@@ -386,6 +387,12 @@ public final class CompletionProvider {
         }
 
         @Override
+        public Void visitBracketHandlerExpr(BracketHandlerExprContext ctx) {
+            unit.getEnv().getBracketHandlerManager().complete(ctx.raw().getText(), completionList);
+            return null;
+        }
+
+        @Override
         public Void visitChildren(RuleNode node) {
             for (int i = 0; i < node.getChildCount(); i++) {
                 ParseTree child = node.getChild(i);
@@ -445,7 +452,7 @@ public final class CompletionProvider {
         }
 
         private void completeImports(String text) {
-            PackageTree<ClassType> tree = PackageTree.of(unit.getEnv().getClassTypeMap());
+            PackageTree<ClassType> tree = PackageTree.of("\\.", unit.getEnv().getClassTypeMap());
             Map<String, PackageTree<ClassType>> members;
             String toComplete;
             String completed;
