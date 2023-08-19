@@ -410,7 +410,7 @@ public final class TypeResolver {
                     }
                     argumentTypes.add(argumentType);
                 }
-                List<FunctionSymbol> functions = Symbols.getMembersByName(owner, memberAccessExpr.getText(), FunctionSymbol.class);
+                List<FunctionSymbol> functions = Symbols.getMembersByName(owner, memberAccessExpr.simpleName().getText(), FunctionSymbol.class);
                 FunctionSymbol matchedFunction = Symbols.findBestMatch(functions, argumentTypes);
                 return matchedFunction == null ? null : matchedFunction.getReturnType();
             } else {
