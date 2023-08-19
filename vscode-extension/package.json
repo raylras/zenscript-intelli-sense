@@ -71,7 +71,7 @@
 		"vscode:prepublish": "npm run compile",
 		"compile": "tsc -p ./ && npm run yaml2json",
 		"watch": "tsc -w -p ./",
-		"yaml2json": "cd ./src && yamljson ZenScript.tmLanguage.yaml > ../language/ZenScript.tmLanguage.json",
+		"yaml2json": "yaml2json ./src/ZenScript.tmLanguage.yaml > ./language/ZenScript.tmLanguage.json",
 		"package": "vsce package"
 	},
 	"dependencies": {
@@ -79,10 +79,10 @@
 		"vscode-languageclient": "^8.1.0"
 	},
 	"devDependencies": {
+		"@odiak/yaml-to-json": "^0.0.1",
 		"@types/node": "^18.17.1",
 		"@types/vscode": "^1.78.0",
 		"@vscode/vsce": "^2.19.0",
-		"typescript": "^5.1.6",
-		"yamljson": "^1.0.70"
+		"typescript": "^5.1.6"
 	}
 }
