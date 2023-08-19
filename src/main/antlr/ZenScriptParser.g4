@@ -29,11 +29,15 @@ alias
 simpleName
     : IDENTIFIER
     | 'to'
+    | 'extends'  // dzs
+    | 'operator' // dzs
+    | 'compare'  // dzs
+    | 'iterator' // dzs
     ;
 
 functionDeclaration
     : prefix='static'? 'function' simpleName '(' formalParameterList ')' ('as' returnType)? functionBody
-    | prefix=('static' | 'global')? 'function' simpleName '(' formalParameterList ')' 'as' returnType ';'
+    | prefix=('static' | 'global')? 'function' simpleName? '(' formalParameterList ')' 'as' returnType ';' // dzs
     ;
 
 expandFunctionDeclaration
@@ -47,6 +51,11 @@ formalParameterList
 
 formalParameter
     : simpleName ('as' typeLiteral)? ('=' defaultValue)?
+    | varargsPrefix simpleName ('as' typeLiteral)? ('=' defaultValue)? //dzs
+    ;
+
+varargsPrefix // dzs
+    : '...'
     ;
 
 defaultValue
@@ -62,7 +71,8 @@ functionBody
     ;
 
 classDeclaration
-    : 'zenClass' simpleNameOrPrimitiveType classBody
+    : 'zenClass' simpleName classBody
+    | 'zenClass' simpleNameOrPrimitiveType ('extends' typeLiteralList)? classBody // dzs
     ;
 
 simpleNameOrPrimitiveType
@@ -87,6 +97,7 @@ classMemberDeclaration
     : variableDeclaration
     | constructorDeclaration
     | functionDeclaration
+    | operatorOverloadingDeclaration // dzs
     ;
 
 constructorDeclaration
@@ -103,6 +114,37 @@ variableDeclaration
 
 initializer
     : expression
+    ;
+
+operatorOverloadingDeclaration // dzs
+    : 'operator' operator '(' formalParameterList ')' 'as' unionTypeLiteral ';'
+    ;
+
+operator // dzs
+    : '+'
+    | '-'
+    | '*'
+    | '/'
+    | '%'
+    | '~'
+    | '|'
+    | '&'
+    | '^'
+    | '!'
+    | '['']'
+    | '['']''='
+    | '..'
+    | 'has'
+    | 'compare'
+    | '.'
+    | '.''='
+    | 'iterator'
+    | '=='
+    | 'as'
+    ;
+
+unionTypeLiteral // dzs
+    : typeLiteral ('|' typeLiteral)*
     ;
 
 statement

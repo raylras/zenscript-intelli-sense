@@ -48,6 +48,11 @@ ZEN_CLASS:              'zenClass';
 ZEN_CONSTRUCTOR:        'zenConstructor';
 EXPAND:                 '$expand';
 
+EXTENDS:                'extends';  // dzs
+OPERATOR:               'operator'; // dzs
+COMPARE:                'compare';  // dzs
+ITERATOR:               'iterator'; // dzs
+
 // Separators
 
 PAREN_OPEN:             '(';
@@ -96,6 +101,7 @@ AND_ASSIGN:             '&=';
 OR_ASSIGN:              '|=';
 CAT_ASSIGN:             '~=';
 DOT_DOT:                '..';
+DOT_DOT_DOT:            '...'; // dzs
 
 // Literal
 
