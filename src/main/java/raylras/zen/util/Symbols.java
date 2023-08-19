@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 
 public class Symbols {
 
-    public static String getQualifierName(Symbol symbol) {
+    public static String getQualifiedName(Symbol symbol) {
         String declaredName = symbol.getName();
         String packageName = symbol.getUnit().getPackage();
         return packageName.isEmpty()

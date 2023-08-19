@@ -76,7 +76,7 @@ public class CompilationEnvironment {
     public Multimap<String, Symbol> getGlobalSymbolMap() {
         return getUnits().stream()
                 .flatMap(Symbols::getToplevelSymbolsSpecial)
-                .collect(Multimaps.toMultimap(Symbols::getQualifierName, Function.identity(), HashMultimap::create));
+                .collect(Multimaps.toMultimap(Symbols::getQualifiedName, Function.identity(), HashMultimap::create));
     }
 
     public Map<String, ClassType> getClassTypeMap() {
