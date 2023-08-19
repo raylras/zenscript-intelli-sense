@@ -8,10 +8,7 @@ import org.slf4j.LoggerFactory;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.util.l10n.L10N;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
@@ -37,7 +34,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
         if (workspaceFolders != null) {
             service.initializeWorkspaces(workspaceFolders);
             CompletionOptions completionOptions = new CompletionOptions();
-            completionOptions.setTriggerCharacters(Collections.singletonList("."));
+            completionOptions.setTriggerCharacters(Arrays.asList(".", ":"));
             capabilities.setCompletionProvider(completionOptions);
             capabilities.setDocumentSymbolProvider(true);
 //          capabilities.setWorkspaceSymbolProvider(true);
