@@ -7,6 +7,7 @@ import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.eclipse.lsp4j.CompletionItem;
 import org.eclipse.lsp4j.CompletionItemKind;
+import org.eclipse.lsp4j.CompletionItemLabelDetails;
 import org.eclipse.lsp4j.CompletionParams;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Visitor;
@@ -14,6 +15,7 @@ import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.resolve.TypeResolver;
 import raylras.zen.code.scope.Scope;
+import raylras.zen.code.symbol.FunctionSymbol;
 import raylras.zen.code.symbol.ImportSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.ClassType;
@@ -29,6 +31,7 @@ import raylras.zen.util.l10n.L10N;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public final class CompletionProvider {
 
@@ -483,7 +486,7 @@ public final class CompletionProvider {
             while (scope != null) {
                 for (Symbol symbol : scope.getSymbols()) {
                     if (symbol.getName().startsWith(text)) {
-                        addToCompletionList(symbol, symbol.getNameWithType());
+                        addToCompletionList(symbol);
                     }
                 }
                 scope = scope.getParent();
@@ -493,7 +496,7 @@ public final class CompletionProvider {
         private void completeGlobalSymbols(String text) {
             for (Symbol symbol : unit.getEnv().getGlobalSymbols()) {
                 if (symbol.getName().startsWith(text)) {
-                    addToCompletionList(symbol, "global " + symbol.getNameWithType());
+                    addToCompletionList(symbol);
                 }
             }
         }
@@ -501,7 +504,7 @@ public final class CompletionProvider {
         private void completeMemberSymbols(String text, Type type) {
             for (Symbol member : type.getMembers()) {
                 if (member.getName().startsWith(text)) {
-                    addToCompletionList(member, member.getNameWithType());
+                    addToCompletionList(member);
                 }
             }
         }
@@ -525,9 +528,14 @@ public final class CompletionProvider {
         private void addToCompletionList(Symbol symbol) {
             CompletionItem item = new CompletionItem(symbol.getName());
             item.setKind(toCompletionKind(symbol));
+            item.setLabelDetails(getLabelDetails(symbol));
             completionList.add(item);
         }
 
+        /**
+         * @deprecated Use {@link #addToCompletionList(Symbol)} instead.
+         */
+        @Deprecated
         private void addToCompletionList(Symbol symbol, String detail) {
             CompletionItem item = new CompletionItem(symbol.getName());
             item.setKind(toCompletionKind(symbol));
@@ -568,6 +576,24 @@ public final class CompletionProvider {
                 return CompletionItemKind.Function;
             }
             return CompletionItemKind.Variable;
+        }
+
+        private CompletionItemLabelDetails getLabelDetails(Symbol symbol) {
+            if (symbol.getType() instanceof FunctionType) {
+                CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
+                String parameterList = ((FunctionSymbol) symbol).getParameterList().stream()
+                        .map(Symbol::toString)
+                        .collect(Collectors.joining(", ", "(", ")"));
+                String returnType = ((FunctionType) symbol.getType()).getReturnType().toString();
+                labelDetails.setDetail(parameterList);
+                labelDetails.setDescription(returnType);
+                return labelDetails;
+            } else {
+                CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
+                String type = symbol.getType().toString();
+                labelDetails.setDescription(type);
+                return labelDetails;
+            }
         }
 
         private List<CompletionItem> getCompletionList() {
