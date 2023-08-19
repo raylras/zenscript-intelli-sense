@@ -30,7 +30,6 @@ import raylras.zen.util.l10n.L10N;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 public final class CompletionProvider {
@@ -455,29 +454,11 @@ public final class CompletionProvider {
         }
 
         private void completeImports(String text) {
-            PackageTree<ClassType> tree = PackageTree.of("\\.", unit.getEnv().getClassTypeMap());
-            Map<String, PackageTree<ClassType>> members;
-            String toComplete;
-            String completed;
-            int lastDotPosition = text.lastIndexOf('.');
-            if (lastDotPosition != -1) {
-                completed = text.substring(0, lastDotPosition);
-                members = tree.get(completed).getSubTrees();
-                if (lastDotPosition == text.length() - 1) {
-                    toComplete = "";
-                } else {
-                    toComplete = text.substring(lastDotPosition + 1);
-                }
-            } else {
-                members = tree.getSubTrees();
-                toComplete = text;
-            }
-            members.forEach((key, subTree) -> {
-                if (key.startsWith(toComplete)) {
-                    CompletionItem completionItem = new CompletionItem(key);
-                    completionItem.setKind(subTree.hasElement() ? CompletionItemKind.Class : CompletionItemKind.Module);
-                    completionList.add(completionItem);
-                }
+            PackageTree<ClassType> tree = PackageTree.of(".", unit.getEnv().getClassTypeMap());
+            tree.complete(text).forEach((key, subTree) -> {
+                CompletionItem completionItem = new CompletionItem(key);
+                completionItem.setKind(subTree.hasElement() ? CompletionItemKind.Class : CompletionItemKind.Module);
+                completionList.add(completionItem);
             });
         }
 
