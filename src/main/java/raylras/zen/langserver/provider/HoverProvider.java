@@ -48,7 +48,9 @@ public class HoverProvider {
                 builder.append(img);
                 builder.append("\n\n");
             });
-            return toHover(builder.toString());
+            Hover hover = toHover(builder.toString());
+            hover.setRange(Ranges.toLSPRange(ctx));
+            return hover;
         }
 
         private static Hover toHover(String text) {
