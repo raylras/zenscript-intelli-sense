@@ -1,4 +1,3 @@
 # Ignore
 .vscode/**
-src/**
-tsconfig.json
+language/ZenScript.tmLanguage.yaml

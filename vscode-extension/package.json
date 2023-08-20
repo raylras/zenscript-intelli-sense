@@ -22,7 +22,7 @@
 	"activationEvents": [
 		"onLanguage:zenscript"
 	],
-	"main": "./out/extension",
+	"main": "./client/extension",
 	"contributes": {
 		"languages": [
 			{
@@ -68,10 +68,8 @@
 		}
 	},
 	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./ && npm run yaml2json",
-		"watch": "tsc -w -p ./",
-		"yaml2json": "yaml2json ./src/ZenScript.tmLanguage.yaml > ./language/ZenScript.tmLanguage.json",
+		"yaml2json": "yaml2json ./language/ZenScript.tmLanguage.yaml | json-minify > ./language/ZenScript.tmLanguage.json",
+		"vscode:prepublish": "npm run yaml2json",
 		"package": "vsce package"
 	},
 	"dependencies": {
@@ -83,6 +81,6 @@
 		"@types/node": "^18.17.1",
 		"@types/vscode": "^1.78.0",
 		"@vscode/vsce": "^2.19.0",
-		"typescript": "^5.1.6"
+		"json-minify": "^1.0.0"
 	}
 }

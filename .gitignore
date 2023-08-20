@@ -23,9 +23,7 @@ run
 src/main/gen
 
 # vscode-extension
-/vscode-extension/libs
-/vscode-extension/out
+/vscode-extension/server
 /vscode-extension/node_modules
-/vscode-extension/.vscode-test
 /vscode-extension/*.vsix
-/vscode-extension/language/*.tmLanguage.json
+/vscode-extension/language/ZenScript.tmLanguage.json

@@ -44,19 +44,20 @@ generateGrammarSource {
     outputDirectory = new File(buildDir.toString() + '/generated-src/antlr/main/raylras/zen/code/parser')
 }
 
-task deleteOldLibs(type: Delete) {
-    delete './vscode-extension/libs'
+task cleanServer(type: Delete) {
+    delete './vscode-extension/server'
 }
 
-task copyArtifact(type: Copy) {
+task copyServerJar(type: Copy) {
+    dependsOn jar
     from "${buildDir}/libs/"
-    into './vscode-extension/libs'
+    into './vscode-extension/server'
     include "${project.name}-${project.version}.jar"
 }
 
-task copyDependencies(type: Copy) {
+task copyServerDependencies(type: Copy) {
     from project.configurations.runtimeClasspath
-    into './vscode-extension/libs'
+    into './vscode-extension/server'
     include "antlr4-runtime-*.jar"
     include "org.eclipse.lsp4j-*.jar"
     include "org.eclipse.lsp4j.jsonrpc-*.jar"
@@ -68,4 +69,7 @@ task copyDependencies(type: Copy) {
     include 'slf4j-simple-*.jar'
 }
 
-build.finalizedBy(deleteOldLibs, copyArtifact, copyDependencies)
+task dist() {
+    dependsOn build, cleanServer, copyServerJar, copyServerDependencies
+}
+
