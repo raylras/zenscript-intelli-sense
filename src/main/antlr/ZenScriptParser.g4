@@ -72,7 +72,7 @@ functionBody
 
 classDeclaration
     : 'zenClass' simpleName classBody
-    | 'zenClass' simpleNameOrPrimitiveType ('extends' typeLiteralList)? classBody // dzs
+    | 'zenClass' simpleNameOrPrimitiveType ('extends' qualifiedNameList)? classBody // dzs
     ;
 
 simpleNameOrPrimitiveType
@@ -87,6 +87,10 @@ simpleNameOrPrimitiveType
     | 'bool'
     | 'void'
     | 'string'
+    ;
+
+qualifiedNameList
+    : qualifiedName (',' qualifiedName)*
     ;
 
 classBody
