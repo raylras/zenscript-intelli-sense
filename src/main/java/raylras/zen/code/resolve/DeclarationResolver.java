@@ -146,6 +146,18 @@ public final class DeclarationResolver {
         }
 
         @Override
+        public void enterOperatorFunctionDeclaration(OperatorFunctionDeclarationContext ctx) {
+            String name = CSTNodes.getText(ctx.operator());
+            enterSymbol(new OperatorFunctionSymbol(name, ctx, unit));
+            enterScope(new Scope(currentScope(), ctx));
+        }
+
+        @Override
+        public void exitOperatorFunctionDeclaration(OperatorFunctionDeclarationContext ctx) {
+            exitScope();
+        }
+
+        @Override
         public void enterThenPart(ThenPartContext ctx) {
             enterScope(new Scope(currentScope(), ctx));
         }

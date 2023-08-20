@@ -101,7 +101,7 @@ classMemberDeclaration
     : variableDeclaration
     | constructorDeclaration
     | functionDeclaration
-    | operatorOverloadingDeclaration // dzs
+    | operatorFunctionDeclaration // dzs
     ;
 
 constructorDeclaration
@@ -120,8 +120,8 @@ initializer
     : expression
     ;
 
-operatorOverloadingDeclaration // dzs
-    : 'operator' operator '(' formalParameterList ')' 'as' unionTypeLiteral ';'
+operatorFunctionDeclaration // dzs
+    : 'operator' operator '(' formalParameterList ')' 'as' typeLiteral ('|' typeLiteral)* ';'
     ;
 
 operator // dzs
@@ -145,10 +145,6 @@ operator // dzs
     | 'iterator'
     | '=='
     | 'as'
-    ;
-
-unionTypeLiteral // dzs
-    : typeLiteral ('|' typeLiteral)*
     ;
 
 statement

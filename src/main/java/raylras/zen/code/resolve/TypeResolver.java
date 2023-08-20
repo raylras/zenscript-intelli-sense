@@ -166,6 +166,21 @@ public final class TypeResolver {
         }
 
         @Override
+        public Type visitOperatorFunctionDeclaration(OperatorFunctionDeclarationContext ctx) {
+            List<Type> paramTypes = toTypeList(ctx.formalParameterList());
+            Type returnType;
+            if (ctx.typeLiteral().size() == 1) {
+                returnType = visit(ctx.typeLiteral(0));
+            } else {
+                List<Type> typeList = ctx.typeLiteral().stream()
+                        .map(this::visit)
+                        .collect(Collectors.toList());
+                returnType = new UnionType(typeList);
+            }
+            return new FunctionType(returnType, paramTypes);
+        }
+
+        @Override
         public Type visitForeachVariable(ForeachVariableContext ctx) {
             // variable -> variableList -> forEach
             ForeachStatementContext forEachStatement = (ForeachStatementContext) ctx.getParent().getParent();

@@ -45,6 +45,11 @@ public final class FormalParameterResolver {
         }
 
         @Override
+        public List<ParameterSymbol> visitOperatorFunctionDeclaration(ZenScriptParser.OperatorFunctionDeclarationContext ctx) {
+            return visitFormalParameterList(ctx.formalParameterList());
+        }
+
+        @Override
         public List<ParameterSymbol> visitFormalParameterList(ZenScriptParser.FormalParameterListContext ctx) {
             return ctx.formalParameter().stream()
                     .map(unit::getSymbol)
