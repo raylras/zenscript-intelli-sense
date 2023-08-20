@@ -4,7 +4,6 @@ import raylras.zen.code.symbol.Symbol;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
 
 public abstract class Type {
 
@@ -24,11 +23,6 @@ public abstract class Type {
             return SubtypeResult.INHERIT;
         }
         return SubtypeResult.MISMATCH;
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(toString());
     }
 
 }
