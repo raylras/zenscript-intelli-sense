@@ -78,7 +78,7 @@
 	},
 	"devDependencies": {
 		"@odiak/yaml-to-json": "^0.0.1",
-		"@types/node": "^18.17.1",
+		"@types/node": "^20.2.0",
 		"@types/vscode": "^1.78.0",
 		"@vscode/vsce": "^2.19.0",
 		"json-minify": "^1.0.0"
