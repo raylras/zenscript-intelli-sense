@@ -112,7 +112,12 @@ public final class DeclarationResolver {
 
         @Override
         public void enterClassDeclaration(ClassDeclarationContext ctx) {
-            String name = CSTNodes.getText(ctx.simpleNameOrPrimitiveType());
+            String name;
+            if (ctx.simpleName() != null) {
+                name = ctx.simpleName().getText();
+            } else {
+                name = ctx.simpleNameOrPrimitiveType().getText();
+            }
             enterSymbol(new ClassSymbol(name, ctx, unit));
             enterScope(new Scope(currentScope(), ctx));
         }
