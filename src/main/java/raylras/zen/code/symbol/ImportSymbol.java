@@ -23,6 +23,10 @@ public class ImportSymbol extends Symbol {
         }
     }
 
+    public String getQualifiedName() {
+        return getCst().qualifiedName().getText();
+    }
+
     @Override
     public Type getType() {
         Symbol target = getTarget();
@@ -41,6 +45,11 @@ public class ImportSymbol extends Symbol {
     @Override
     public ImportDeclarationContext getCst() {
         return (ImportDeclarationContext) cst;
+    }
+
+    @Override
+    public String toString() {
+        return getQualifiedName() + " as " + name;
     }
 
 }

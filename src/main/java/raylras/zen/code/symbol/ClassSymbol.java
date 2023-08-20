@@ -1,14 +1,13 @@
 package raylras.zen.code.symbol;
 
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.annotation.Annotation;
 import raylras.zen.code.parser.ZenScriptParser.ClassDeclarationContext;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.type.ClassType;
+import raylras.zen.util.CSTNodes;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ClassSymbol extends Symbol {
 
@@ -19,30 +18,37 @@ public class ClassSymbol extends Symbol {
         this.type = new ClassType(this);
     }
 
-    public List<Symbol> getMembers() {
-        List<Symbol> symbols = new ArrayList<>();
+    public List<Symbol> getDeclaredMembers() {
         Scope scope = unit.getScope(cst);
         if (scope != null) {
-            symbols.addAll(scope.getSymbols());
+            return scope.getSymbols();
+        } else {
+            return Collections.emptyList();
         }
-        for (ClassType anInterface : getInterfaces()) {
-            symbols.addAll(anInterface.getMembers());
+    }
+
+    public List<Symbol> getMembers() {
+        List<Symbol> symbols = new ArrayList<>(getDeclaredMembers());
+        for (ClassType superClass : getInterfaces()) {
+            symbols.addAll(superClass.getMembers());
         }
         return symbols;
     }
 
     public List<ClassType> getInterfaces() {
-        Map<String, ClassType> classTypeMap = unit.getEnv().getClassTypeMap();
-        String[] interfaceNames = getDeclaredAnnotation("#extends").map(Annotation::getData).orElseGet(() -> new String[0]);
-
-        List<ClassType> interfaces = new ArrayList<>();
-        for (String name : interfaceNames) {
-            ClassType type = classTypeMap.get(name);
-            if (type != null) {
-                interfaces.add(type);
-            }
+        if (getCst().qualifiedNameList() == null) {
+            return Collections.emptyList();
         }
-        return interfaces;
+        Map<String, ClassType> classTypeMap = unit.getEnv().getClassTypeMap();
+        Scope scope = unit.lookupScope(cst);
+        return getCst().qualifiedNameList().qualifiedName().stream()
+                .map(CSTNodes::getText)
+                .map(name -> scope.lookupSymbol(ImportSymbol.class, name))
+                .filter(Objects::nonNull)
+                .map(ImportSymbol::getQualifiedName)
+                .map(classTypeMap::get)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
     public String getQualifiedName() {
