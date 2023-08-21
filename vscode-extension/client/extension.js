@@ -1,12 +1,12 @@
 const { join } = require("node:path");
 const { ExtensionContext, window, workspace } = require("vscode");
-const { LanguageClient } = require("vscode-languageclient/node");
+const { LanguageClient, LanguageClientOptions, ServerOptions } = require("vscode-languageclient/node");
 const { SimpleLogger } = require("./simple-logger");
 const { getJavaHome } = require("./get-java-home");
 
 /**
  * @param {ExtensionContext} context
-*/
+ */
 function activate(context) {
     const logChannel = window.createOutputChannel('ZenScript Language Server', "log");
     const logger = new SimpleLogger(logChannel);
@@ -34,11 +34,13 @@ function activate(context) {
         }
         args.push('-Dfile.encoding=UTF-8');
         args.push(main);
+        /** @type {ServerOptions} */
         const serverOptions = {
             command: javabin,
             args: [...args],
             options: {}
         };
+        /** @type {LanguageClientOptions} */
         const clientOptions = {
             documentSelector: [{ scheme: 'file', language: 'zenscript' }],
             synchronize: { configurationSection: ['zenscript'] },

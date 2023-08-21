@@ -4,14 +4,12 @@ const dayjs = require("dayjs");
 class SimpleLogger {
 	#logChannel;
 	/**
-	 * 
 	 * @param {OutputChannel} logChannel 
 	 */
 	constructor(logChannel) {
 		this.#logChannel = logChannel;
 	}
 	/**
-	 * 
 	 * @param {string} message
 	 * @return {void}
 	 */
@@ -19,7 +17,6 @@ class SimpleLogger {
 		this.#appendLine('INFO', message);
 	}
 	/**
-	 * 
 	 * @param {string} message
 	 * @return {void}
 	 */
@@ -27,7 +24,6 @@ class SimpleLogger {
 		this.#appendLine("ERROR", message);
 	}
 	/**
-	 * 
 	 * @param {string} level
 	 * @param {string} message
 	 * @return {void}
