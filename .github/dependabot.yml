@@ -9,7 +9,7 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 3
+    open-pull-requests-limit: 5
 
   # - package-ecosystem: "npm"
   #   directory: "/vscode-extension"
