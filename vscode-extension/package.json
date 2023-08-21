@@ -31,7 +31,9 @@
 					"ZenScript"
 				],
 				"extensions": [
-					".zs"
+					".zs",
+					".d.zs",
+					".dzs"
 				],
 				"configuration": "./language/language-configuration.json"
 			}

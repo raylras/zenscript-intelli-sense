@@ -1,6 +1,8 @@
 package raylras.zen.code;
 
-import org.antlr.v4.runtime.*;
+import com.google.common.collect.ImmutableSet;
+import org.antlr.v4.runtime.CommonTokenStream;
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import raylras.zen.code.annotation.Annotation;
@@ -11,16 +13,13 @@ import raylras.zen.util.ParseTreeProperty;
 import raylras.zen.util.PathUtils;
 
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class CompilationUnit {
 
     public static final String ZS_FILE_EXTENSION = ".zs";
-    public static final String DZS_FILE_EXTENSION = ".dzs";
+    public static final Set<String> DZS_FILE_EXTENSIONS = ImmutableSet.of(".d.zs", ".dzs");
 
     private final Path path;
     private final CompilationEnvironment env;
@@ -147,7 +146,7 @@ public class CompilationUnit {
                 current = current.getParent();
             } while (!"scripts".equals(current.getFileName().toString()));
             sb.append("scripts.");
-            for (int i = strings.size() - 1; i >= 0 ; i--) {
+            for (int i = strings.size() - 1; i >= 0; i--) {
                 sb.append(strings.get(i));
                 if (i != 0) {
                     sb.append('.');
@@ -162,14 +161,14 @@ public class CompilationUnit {
                 strings.add(current.getFileName().toString());
                 current = current.getParent();
             }
-            for (int i = strings.size() - 1; i >= 0 ; i--) {
+            for (int i = strings.size() - 1; i >= 0; i--) {
                 sb.append(strings.get(i));
                 if (i != 0) {
                     sb.append('.');
                 }
             }
             return sb.toString();
-        } else  {
+        } else {
             return sb.toString();
         }
     }
