@@ -4,12 +4,12 @@ import com.google.gson.*;
 import org.eclipse.lsp4j.CompletionItem;
 import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.type.AnyType;
+import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.Type;
 import raylras.zen.rpc.RpcClient;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author youyihj
@@ -49,12 +49,9 @@ public class BracketHandlerManager {
                 return bracketHandler.getType(env);
             }
         }
-        String typeName = RpcClient.queryBracketHandler(text).getOrDefault("type", "null");
-        if (Objects.equals(typeName, "null")) {
-            return AnyType.INSTANCE;
-        } else {
-            return env.getClassTypeMap().get(typeName);
-        }
+        String bracketTypeName = RpcClient.queryBracketHandler(text).get("type");
+        ClassType classType = env.getClassTypeMap().get(bracketTypeName);
+        return (classType != null) ? classType : AnyType.INSTANCE;
     }
 
     public static class Deserializer implements JsonDeserializer<BracketHandlerManager> {
