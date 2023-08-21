@@ -3,18 +3,16 @@ package raylras.zen.code;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Multimaps;
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import raylras.zen.code.bracket.BracketHandler;
 import raylras.zen.code.bracket.BracketHandlerManager;
 import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.ClassType;
 import raylras.zen.util.Symbols;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,18 +23,16 @@ import java.util.stream.Collectors;
 public class CompilationEnvironment {
 
     private static final Logger logger = LoggerFactory.getLogger(CompilationEnvironment.class);
-    private static final Gson GSON = new GsonBuilder()
-            .registerTypeAdapter(BracketHandler.class, new BracketHandler.Deserializer())
-            .registerTypeAdapter(BracketHandlerManager.class, new BracketHandlerManager.Deserializer())
-            .create();
 
     public static final String DEFAULT_ROOT_DIRECTORY = "scripts";
+    public static final String DEFAULT_GENERATED_DIRECTORY = "generated";
 
     private final Path root;
     private final Map<Path, CompilationUnit> unitMap = new HashMap<>();
     private BracketHandlerManager bracketHandlerManager;
 
     public CompilationEnvironment(Path root) {
+        Objects.requireNonNull(root);
         this.root = root;
     }
 
@@ -91,6 +87,10 @@ public class CompilationEnvironment {
         return root;
     }
 
+    public Path getGeneratedRoot() {
+        return root.resolve(DEFAULT_GENERATED_DIRECTORY);
+    }
+
     public BracketHandlerManager getBracketHandlerManager() {
         if (bracketHandlerManager == null) {
             bracketHandlerManager = loadBracketHandlerManager();
@@ -104,14 +104,11 @@ public class CompilationEnvironment {
     }
 
     private BracketHandlerManager loadBracketHandlerManager() {
-        if (root != null) {
-            try {
-                return GSON.fromJson(Files.newBufferedReader(root.resolve("generated/brackets.json")), BracketHandlerManager.class);
-            } catch (IOException e) {
-                logger.error("Could not open brackets json in project environment: {}", this, e);
-            } catch (JsonSyntaxException e) {
-                logger.error("Brackets json format is invalid in project environment: {}", this, e);
-            }
+        try {
+            BufferedReader jsonReader = Files.newBufferedReader(getGeneratedRoot().resolve("brackets.json"));
+            return BracketHandlerManager.GSON.fromJson(jsonReader, BracketHandlerManager.class);
+        } catch (IOException | JsonSyntaxException e) {
+            logger.error("Failed to open brackets.json: {}", this, e);
         }
         return new BracketHandlerManager(Collections.emptyList());
     }

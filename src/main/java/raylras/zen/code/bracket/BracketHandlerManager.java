@@ -1,9 +1,6 @@
 package raylras.zen.code.bracket;
 
-import com.google.gson.JsonDeserializationContext;
-import com.google.gson.JsonDeserializer;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonParseException;
+import com.google.gson.*;
 import org.eclipse.lsp4j.CompletionItem;
 import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.type.AnyType;
@@ -18,6 +15,12 @@ import java.util.Objects;
  * @author youyihj
  */
 public class BracketHandlerManager {
+
+    public static final Gson GSON = new GsonBuilder()
+            .registerTypeAdapter(BracketHandler.class, new BracketHandler.Deserializer())
+            .registerTypeAdapter(BracketHandlerManager.class, new Deserializer())
+            .create();
+
     private final List<BracketHandler> bracketHandlers;
 
     public BracketHandlerManager(List<BracketHandler> bracketHandlers) {
