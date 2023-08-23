@@ -3,9 +3,7 @@ package raylras.zen.code.type;
 import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.List;
 
 public class ClassType extends Type {
 
@@ -24,10 +22,6 @@ public class ClassType extends Type {
         return symbol.getMembers();
     }
 
-    public Stream<Symbol> findMemberWithAnnotation(String header) {
-        return getMembers().stream().filter(it -> it.isAnnotatedBy(header));
-    }
-
     @Override
     public SubtypeResult isSubtypeOf(Type type) {
         if (type instanceof ClassType) {
@@ -38,37 +32,12 @@ public class ClassType extends Type {
                 return SubtypeResult.INHERIT;
             }
         }
-        if (getCasterTypeList().contains(type)) {
-            return SubtypeResult.CASTER;
-        }
         return super.isSubtypeOf(type);
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        if (this == object) return true;
-        if (object == null || getClass() != object.getClass()) return false;
-        ClassType classType = (ClassType) object;
-        return Objects.equals(symbol, classType.symbol);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(symbol.getQualifiedName());
     }
 
     @Override
     public String toString() {
         return symbol.getName();
-    }
-
-    private List<Type> getCasterTypeList() {
-        return findMemberWithAnnotation("#caster")
-                .map(Symbol::getType)
-                .filter(FunctionType.class::isInstance)
-                .map(FunctionType.class::cast)
-                .map(FunctionType::getReturnType)
-                .collect(Collectors.toList());
     }
 
 }

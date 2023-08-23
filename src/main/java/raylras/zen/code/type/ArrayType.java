@@ -1,7 +1,7 @@
 package raylras.zen.code.type;
 
-import raylras.zen.code.symbol.BuiltinSymbol;
 import raylras.zen.code.symbol.Symbol;
+import raylras.zen.code.symbol.SymbolFactory;
 
 import java.util.List;
 import java.util.Objects;
@@ -20,9 +20,8 @@ public class ArrayType extends Type {
 
     @Override
     public List<Symbol> getMembers() {
-        // Members that cannot be represented by zenscript are represented as built-in symbols
-        return BuiltinSymbol.List.builder()
-                .add("length", IntType.INSTANCE)
+        return SymbolFactory.members()
+                .variable("length", IntType.INSTANCE, Symbol.Modifier.VAL)
                 .build();
     }
 
@@ -43,16 +42,16 @@ public class ArrayType extends Type {
     }
 
     @Override
+    public int hashCode() {
+        return Objects.hashCode(toString());
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ArrayType arrayType = (ArrayType) o;
         return Objects.equals(elementType, arrayType.elementType);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(toString());
     }
 
     @Override

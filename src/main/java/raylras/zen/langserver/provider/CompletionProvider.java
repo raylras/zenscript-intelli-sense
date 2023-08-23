@@ -541,8 +541,6 @@ public final class CompletionProvider {
                 case VARIABLE:
                 case PARAMETER:
                     return CompletionItemKind.Variable;
-                case BUILT_IN:
-                    return toCompletionKind(symbol.getType());
                 case NONE:
                 default:
                     return null;
@@ -563,7 +561,7 @@ public final class CompletionProvider {
             if (symbol.getType() instanceof FunctionType) {
                 CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
                 String parameterList = ((FunctionSymbol) symbol).getParameterList().stream()
-                        .map(Symbol::toString)
+                        .map(param -> param.getName() + " as " + param.getType())
                         .collect(Collectors.joining(", ", "(", ")"));
                 String returnType = ((FunctionType) symbol.getType()).getReturnType().toString();
                 labelDetails.setDetail(parameterList);

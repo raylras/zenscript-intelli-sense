@@ -69,8 +69,8 @@ public class CompilationUnit {
         }
     }
 
-    public void addSymbol(Symbol symbol) {
-        symbolProp.put(symbol.getCst(), symbol);
+    public void putSymbol(ParseTree cst, Symbol symbol) {
+        symbolProp.put(cst, symbol);
     }
 
     public Collection<Scope> getScopes() {

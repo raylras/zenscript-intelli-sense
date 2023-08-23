@@ -8,12 +8,10 @@ import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.scope.Scope;
-import raylras.zen.code.symbol.ClassSymbol;
-import raylras.zen.code.symbol.FunctionSymbol;
-import raylras.zen.code.symbol.ImportSymbol;
-import raylras.zen.code.symbol.Symbol;
+import raylras.zen.code.symbol.*;
 import raylras.zen.code.type.*;
 import raylras.zen.util.CSTNodes;
+import raylras.zen.util.Functions;
 import raylras.zen.util.Symbols;
 
 import java.util.ArrayList;
@@ -111,14 +109,6 @@ public final class TypeResolver {
             int argumentIndex = parameterList.formalParameter().indexOf(ctx);
             if (functionType instanceof FunctionType) {
                 return ((FunctionType) functionType).getParameterTypes().get(argumentIndex);
-            } else if (functionType instanceof ClassType) {
-                return ((ClassType) functionType).findMemberWithAnnotation("#lambda")
-                        .findFirst()
-                        .map(Symbol::getType)
-                        .filter(FunctionType.class::isInstance)
-                        .map(FunctionType.class::cast)
-                        .map(it -> it.getParameterTypes().get(argumentIndex))
-                        .orElse(AnyType.INSTANCE);
             }
             return AnyType.INSTANCE;
         }
@@ -208,41 +198,6 @@ public final class TypeResolver {
                     }
                 }
             }
-            if (iterableType instanceof ClassType) {
-                ClassType classType = (ClassType) iterableType;
-                List<ForeachVariableContext> variables = forEachStatement.foreachVariableList().foreachVariable();
-                if (variables.size() == 1) {
-                    return classType.findMemberWithAnnotation("#foreach")
-                            .findFirst()
-                            .map(Symbol::getType)
-                            .filter(FunctionType.class::isInstance)
-                            .map(FunctionType.class::cast)
-                            .map(FunctionType::getReturnType)
-                            .filter(ListType.class::isInstance)
-                            .map(ListType.class::cast)
-                            .map(ListType::getElementType)
-                            .orElse(AnyType.INSTANCE);
-                } else if (variables.size() == 2) {
-                    return classType.findMemberWithAnnotation("#foreachMap")
-                            .findFirst()
-                            .map(Symbol::getType)
-                            .map(FunctionType.class::isInstance)
-                            .map(FunctionType.class::cast)
-                            .map(FunctionType::getReturnType)
-                            .map(MapType.class::isInstance)
-                            .map(MapType.class::cast)
-                            .map(it -> {
-                                if (variables.get(0) == ctx) {
-                                    return it.getKeyType();
-                                }
-                                if (variables.get(1) == ctx) {
-                                    return it.getValueType();
-                                }
-                                return null;
-                            })
-                            .orElse(AnyType.INSTANCE);
-                }
-            }
             return AnyType.INSTANCE;
         }
 
@@ -328,7 +283,7 @@ public final class TypeResolver {
                         Type type = visit(memberAccessExpr.expression());
                         String name = memberAccessExpr.simpleName().getText();
                         List<FunctionSymbol> functions = Symbols.getMembersByName(type, name, FunctionSymbol.class);
-                        return Symbols.predictNextArgumentType(functions, argumentTypes);
+                        return Functions.predictNextArgumentType(functions, argumentTypes);
                     }
                 }
             }
@@ -426,7 +381,7 @@ public final class TypeResolver {
                     argumentTypes.add(argumentType);
                 }
                 List<FunctionSymbol> functions = Symbols.getMembersByName(owner, memberAccessExpr.simpleName().getText(), FunctionSymbol.class);
-                FunctionSymbol matchedFunction = Symbols.findBestMatch(functions, argumentTypes);
+                FunctionSymbol matchedFunction = Functions.findBestMatch(functions, argumentTypes);
                 return matchedFunction == null ? null : matchedFunction.getReturnType();
             } else {
                 Type leftType = visit(ctx.expression());

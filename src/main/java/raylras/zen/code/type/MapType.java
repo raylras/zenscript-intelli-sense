@@ -1,10 +1,9 @@
 package raylras.zen.code.type;
 
-import raylras.zen.code.symbol.BuiltinSymbol;
 import raylras.zen.code.symbol.Symbol;
+import raylras.zen.code.symbol.SymbolFactory;
 
 import java.util.List;
-import java.util.Objects;
 
 public class MapType extends Type {
 
@@ -26,14 +25,13 @@ public class MapType extends Type {
 
     @Override
     public List<Symbol> getMembers() {
-        // Members that cannot be represented by zenscript are represented as built-in symbols
-        return BuiltinSymbol.List.builder()
-                .add("length", IntType.INSTANCE)
-                .add("keys", new ArrayType(keyType))
-                .add("keySet", new ArrayType(keyType))
-                .add("values", new ArrayType(valueType))
-                .add("valueSet", new ArrayType(valueType))
-                .add("entrySet", new ArrayType(new MapEntryType(keyType, valueType)))
+        return SymbolFactory.members()
+                .variable("length", IntType.INSTANCE, Symbol.Modifier.VAL)
+                .variable("keys", new ArrayType(keyType), Symbol.Modifier.VAL)
+                .variable("keySet", new ArrayType(keyType), Symbol.Modifier.VAL)
+                .variable("values", new ArrayType(valueType), Symbol.Modifier.VAL)
+                .variable("valueSet", new ArrayType(valueType), Symbol.Modifier.VAL)
+                .variable("entrySet", new ArrayType(new MapEntryType(keyType, valueType)), Symbol.Modifier.VAL)
                 .build();
     }
 
@@ -46,19 +44,6 @@ public class MapType extends Type {
             return SubtypeResult.higher(key, value);
         }
         return super.isSubtypeOf(type);
-    }
-
-    @Override
-    public boolean equals(Object object) {
-        if (this == object) return true;
-        if (object == null || getClass() != object.getClass()) return false;
-        MapType mapType = (MapType) object;
-        return Objects.equals(keyType, mapType.keyType) && Objects.equals(valueType, mapType.valueType);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(toString());
     }
 
     @Override

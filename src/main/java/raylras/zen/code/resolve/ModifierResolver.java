@@ -5,6 +5,7 @@ import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.symbol.Symbol.Modifier;
+import raylras.zen.code.symbol.Symbol;
 import raylras.zen.util.CSTNodes;
 
 import java.util.Objects;
@@ -23,51 +24,51 @@ public final class ModifierResolver {
 
         @Override
         public Modifier visitFormalParameter(FormalParameterContext ctx) {
-            return Modifier.NONE;
+            return Symbol.Modifier.NONE;
         }
 
         @Override
         public Modifier visitVariableDeclaration(VariableDeclarationContext ctx) {
             switch (CSTNodes.getTokenType(ctx.prefix)) {
                 case ZenScriptLexer.VAR:
-                    return Modifier.VAR;
+                    return Symbol.Modifier.VAR;
 
                 case ZenScriptLexer.VAL:
-                    return Modifier.VAL;
+                    return Symbol.Modifier.VAL;
 
                 case ZenScriptLexer.STATIC:
-                    return Modifier.STATIC;
+                    return Symbol.Modifier.STATIC;
 
                 case ZenScriptLexer.GLOBAL:
-                    return Modifier.GLOBAL;
+                    return Symbol.Modifier.GLOBAL;
 
                 default:
-                    return Modifier.NONE;
+                    return Symbol.Modifier.NONE;
             }
         }
 
         @Override
         public Modifier visitForeachVariable(ForeachVariableContext ctx) {
-            return Modifier.NONE;
+            return Symbol.Modifier.NONE;
         }
 
         @Override
         public Modifier visitFunctionDeclaration(FunctionDeclarationContext ctx) {
             switch (CSTNodes.getTokenType(ctx.prefix)) {
                 case ZenScriptLexer.STATIC:
-                    return Modifier.STATIC;
+                    return Symbol.Modifier.STATIC;
 
                 case ZenScriptLexer.GLOBAL:
-                    return Modifier.GLOBAL;
+                    return Symbol.Modifier.GLOBAL;
 
                 default:
-                    return Modifier.NONE;
+                    return Symbol.Modifier.NONE;
             }
         }
 
         @Override
         public Modifier visitExpandFunctionDeclaration(ExpandFunctionDeclarationContext ctx) {
-            return Modifier.EXPAND;
+            return Symbol.Modifier.EXPAND;
         }
     }
 

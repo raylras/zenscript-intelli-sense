@@ -1,51 +1,61 @@
 package raylras.zen.code.symbol;
 
-import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.parser.ZenScriptParser.OperatorFunctionDeclarationContext;
-import raylras.zen.code.resolve.FormalParameterResolver;
-import raylras.zen.code.resolve.TypeResolver;
-import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.Type;
 
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class OperatorFunctionSymbol extends Symbol {
+public interface OperatorFunctionSymbol extends Symbol {
 
-    public OperatorFunctionSymbol(String name, OperatorFunctionDeclarationContext cst, CompilationUnit unit) {
-        super(name, cst, unit);
-    }
+    Operator getOperator();
 
-    public List<ParameterSymbol> getParameterList() {
-        return FormalParameterResolver.getFormalParameterList(cst, unit);
-    }
+    List<ParameterSymbol> getParameterList();
 
-    @Override
-    public FunctionType getType() {
-        Type type = TypeResolver.getType(cst, unit);
-        if (type instanceof FunctionType) {
-            return (FunctionType) type;
-        } else {
-            return null;
+    Type getReturnType();
+
+    enum Operator {
+        ADD("+"),
+        SUB("-"),
+        MUL("*"),
+        DIV("/"),
+        MOD("%"),
+        CAT("~"),
+        OR("|"),
+        AND("&"),
+        XOR("^"),
+        NEG("-"),
+        NOT("!"),
+        INDEX_GET("[]"),
+        INDEX_SET("[]="),
+        INT_RANGE(".."),
+        HAS("has"),
+        COMPARE("compare"),
+        MEMBER_GET("."),
+        MEMBER_SET(".="),
+        EQUALS("=="),
+        AS("as"),
+        ITERATOR("iterator"),
+        ERROR("");
+
+        private final String literal;
+        private static final Map<String, Operator> OPERATOR_MAP = Arrays.stream(Operator.values())
+                .collect(Collectors.toMap(Operator::getLiteral, Function.identity()));
+
+        Operator(String literal) {
+            this.literal = literal;
         }
-    }
 
-    @Override
-    public Kind getKind() {
-        return Kind.FUNCTION;
-    }
+        public String getLiteral() {
+            return literal;
+        }
 
-    @Override
-    public OperatorFunctionDeclarationContext getCst() {
-        return (OperatorFunctionDeclarationContext) cst;
-    }
-
-    @Override
-    public String getNameWithType() {
-        FunctionType type = getType();
-        return getParameterList().stream()
-                .map(ParameterSymbol::getNameWithType)
-                .collect(Collectors.joining(", ", name + "(", ") as " + type.getReturnType()));
+        public static Operator ofLiteral(String literal) {
+            Operator operator = OPERATOR_MAP.get(literal);
+            return (operator != null) ? operator : Operator.ERROR;
+        }
     }
 
 }

@@ -1,8 +1,5 @@
 package raylras.zen.code;
 
-import com.google.common.collect.HashMultimap;
-import com.google.common.collect.Multimap;
-import com.google.common.collect.Multimaps;
 import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,14 +7,12 @@ import raylras.zen.code.bracket.BracketHandlerManager;
 import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.ClassType;
-import raylras.zen.util.Symbols;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class CompilationEnvironment {
@@ -58,21 +53,11 @@ public class CompilationEnvironment {
         return unitMap;
     }
 
-    /**
-     * @deprecated Use {@link #getGlobalSymbolMap()} instead.
-     */
-    @Deprecated
     public List<Symbol> getGlobalSymbols() {
         return getUnits().stream()
                 .flatMap(unit -> unit.getTopLevelSymbols().stream())
                 .filter(symbol -> symbol.isModifiedBy(Symbol.Modifier.GLOBAL))
                 .collect(Collectors.toList());
-    }
-
-    public Multimap<String, Symbol> getGlobalSymbolMap() {
-        return getUnits().stream()
-                .flatMap(Symbols::getToplevelSymbolsSpecial)
-                .collect(Multimaps.toMultimap(Symbols::getQualifiedName, Function.identity(), HashMultimap::create));
     }
 
     public Map<String, ClassType> getClassTypeMap() {
