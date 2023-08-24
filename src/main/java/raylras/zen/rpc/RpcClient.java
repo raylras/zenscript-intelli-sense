@@ -19,6 +19,11 @@ public class RpcClient {
             CompletableFuture<Map<String, String>> future = service.query(raw, true);
             future.exceptionally(e -> {
                 logger.error("Failed to query bracket handler: {}", raw, e);
+                try {
+                    RpcClient.socket.close();
+                } catch (IOException ex) {
+                    logger.error("Failed to close socket: {}", socket, e);
+                }
                 RpcClient.bracketHandlerService = null;
                 return Collections.emptyMap();
             });
@@ -31,8 +36,7 @@ public class RpcClient {
 
     public static BracketHandlerService getBracketHandlerService() throws IOException {
         if (bracketHandlerService == null) {
-            //noinspection resource
-            Socket socket = new Socket("127.0.0.1", 6489);
+            socket = new Socket("127.0.0.1", 6489);
             Launcher<BracketHandlerService> launcher = Launcher.createLauncher(new Object(), BracketHandlerService.class, socket.getInputStream(), socket.getOutputStream(), executorService, Function.identity());
             launcher.startListening();
             bracketHandlerService = launcher.getRemoteProxy();
@@ -46,6 +50,7 @@ public class RpcClient {
 
     private static final Logger logger = LoggerFactory.getLogger(RpcClient.class);
     private static final ExecutorService executorService = Executors.newSingleThreadExecutor();
+    private static Socket socket;
     private static BracketHandlerService bracketHandlerService;
 
 }
