@@ -4,6 +4,8 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.atn.PredictionMode;
 import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.parser.ZenScriptLexer;
@@ -16,6 +18,8 @@ import java.nio.file.Files;
 import java.util.stream.Stream;
 
 public class Compilations {
+
+    private static final Logger logger = LoggerFactory.getLogger(Compilations.class);
 
     public static boolean hasDzsUnit(CompilationEnvironment env) {
         for (CompilationUnit unit : env.getUnits()) {
@@ -41,7 +45,8 @@ public class Compilations {
                     .filter(PathUtils::isSourceFile)
                     .map(env::createUnit);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            logger.error("Failed to collect compilation units of env: {}", env, e);
+            return Stream.empty();
         }
     }
 
@@ -55,7 +60,7 @@ public class Compilations {
             unit.setParseTree(parseTree);
             DeclarationResolver.resolveDeclarations(unit);
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            logger.error("Failed to load unit: {}", unit, e);
         }
     }
 
