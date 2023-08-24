@@ -1,5 +1,5 @@
-const { OutputChannel } = require("vscode")
-const dayjs = require("dayjs")
+const { OutputChannel } = require("vscode");
+const dayjs = require("dayjs");
 
 class SimpleLogger {
 	#logChannel;
@@ -36,4 +36,4 @@ class SimpleLogger {
 
 module.exports = {
 	SimpleLogger
-}
+};

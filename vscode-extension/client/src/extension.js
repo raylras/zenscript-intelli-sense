@@ -1,8 +1,8 @@
-const { join } = require("node:path")
-const { ExtensionContext, window, workspace } = require("vscode")
-const { LanguageClient, LanguageClientOptions, ServerOptions } = require("vscode-languageclient/node")
-const { SimpleLogger } = require("./simple-logger")
-const { getJavaHome } = require("./get-java-home")
+const { join } = require("node:path");
+const { ExtensionContext, window, workspace } = require("vscode");
+const { LanguageClient, LanguageClientOptions, ServerOptions } = require("vscode-languageclient/node");
+const { SimpleLogger } = require("./simple-logger");
+const { getJavaHome } = require("./get-java-home");
 
 /**
  * @param {ExtensionContext} context
@@ -53,9 +53,9 @@ function activate(context) {
     });
 }
 
-function deactivate() { }
+function deactivate() {}
 
 module.exports = {
     activate,
     deactivate
-}
+};
