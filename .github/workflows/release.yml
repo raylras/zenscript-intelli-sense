@@ -35,7 +35,7 @@ jobs:
         working-directory: ./vscode-extension
 
       - name: Build VSCode extension
-        run: npm run package
+        run: npm run release
         working-directory: ./vscode-extension
 
       - name: Release
