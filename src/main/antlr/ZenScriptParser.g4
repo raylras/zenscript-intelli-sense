@@ -106,6 +106,7 @@ classMemberDeclaration
 
 constructorDeclaration
     : 'zenConstructor' '(' formalParameterList ')' constructorBody
+    | 'zenConstructor' '(' formalParameterList ')' ';' // dzs
     ;
 
 constructorBody
