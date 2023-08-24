@@ -1,4 +1,4 @@
-const { execSync } = require("node:child_process");
+const { execSync } = require("node:child_process")
 
 /**
  * @return {Promise<string>}
@@ -26,6 +26,6 @@ function getJavaHome() {
 	});
 }
 
-module.exports = { 
+module.exports = {
 	getJavaHome
-};
+}

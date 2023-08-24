@@ -1,3 +1,6 @@
 # Ignore
 .vscode/**
 language/ZenScript.tmLanguage.yaml
+node_modules
+client/src
+build.js
