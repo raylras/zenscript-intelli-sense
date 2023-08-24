@@ -44,7 +44,7 @@ public class Compilations {
                     .filter(Files::isRegularFile)
                     .filter(PathUtils::isSourceFile)
                     .map(env::createUnit);
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.error("Failed to collect compilation units of env: {}", env, e);
             return Stream.empty();
         }
@@ -59,7 +59,7 @@ public class Compilations {
             unit.setTokenStream(tokenStream);
             unit.setParseTree(parseTree);
             DeclarationResolver.resolveDeclarations(unit);
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.error("Failed to load unit: {}", unit, e);
         }
     }
