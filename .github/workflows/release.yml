@@ -23,7 +23,7 @@ jobs:
         uses: gradle/gradle-build-action@v2
 
       - name: Build server
-        run: ./gradlew build
+        run: ./gradlew dist
 
       - name: Setup Node.js
         uses: actions/setup-node@v3
