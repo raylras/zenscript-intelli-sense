@@ -60,8 +60,6 @@ task copyServerDependencies(type: Copy) {
     include "antlr4-runtime-*.jar"
     include "org.eclipse.lsp4j-*.jar"
     include "org.eclipse.lsp4j.jsonrpc-*.jar"
-    include 'org.eclipse.xtext.xbase.lib-*.jar'
-    include "org.eclipse.lsp4j.generator-*.jar"
     include "gson-*.jar"
     include 'slf4j-api-*.jar'
     include 'slf4j-simple-*.jar'
