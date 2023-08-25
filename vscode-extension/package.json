@@ -73,8 +73,8 @@
 		"package": "vsce package",
 		"yaml2json": "yaml2json ./language/ZenScript.tmLanguage.yaml | json-minify > ./language/ZenScript.tmLanguage.json",
 		"vscode:prepublish": "npm run yaml2json",
-		"dev": "cross-env NODE_ENV=development node build.js",
-		"release": "cross-env NODE_ENV=production node build.js && npm run package"
+		"dev": "node ./build/dev.js",
+		"release": "node ./build/rollup.js && npm run package"
 	},
 	"dependencies": {
 		"dayjs": "^1.11.9",
@@ -88,7 +88,6 @@
 		"@types/node": "^20.5.1",
 		"@types/vscode": "^1.81.0",
 		"@vscode/vsce": "^2.20.1",
-		"cross-env": "^7.0.3",
 		"json-minify": "^1.0.0",
 		"rollup": "^3.28.1"
 	}
