@@ -2,7 +2,7 @@ const env = process.env.NODE_ENV
 
 if (env === 'development') {
   require('fs').writeFileSync(
-    './client/out/main.js',
+    require('path').resolve(__dirname, './client/out/main.js'),
     `const { activate, deactivate } = require('../src/extension.js'); module.exports = { activate, deactivate }`
   )
 } else {
