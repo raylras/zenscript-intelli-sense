@@ -5,27 +5,27 @@
 ## 目录
 
 - [插件运行要求](#插件运行要求)
-- [开发](#开发)
+- [开发](#构建)
 - [调试](#调试)
 - [额外部分](#额外部分)
 - [使用许可](#使用许可)
 
 ## 插件运行要求
 
-系统需要有 Java 8+ 环境。
+系统需要有 Java 17+ 环境。
 
-## 开发
+## 构建
 
 1. 安装 JDK 17 (LTS) 和 Node.js 18 (LTS)
 2. 克隆本项目
    - `git clone https://github.com/raylras/zenscript-language-server.git`
-3. 在 `zenscript-language-server` 内构建语言服务器
+3. 构建 language server
    - `cd zenscript-language-server`
-   - `./gradlew build`
-4. 在 `zenscript-language-server/vscode-extension` 内构建 VS Code 插件
+   - `./gradlew dist`
+4. 构建 vscode extension
    - `cd vscode-extension`
    - `npm install`
-   - `npm run package`
+   - `npm run release`
 
 ## 调试
    - 调试 VS Code 插件
