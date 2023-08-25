@@ -14,7 +14,7 @@ function activate(context) {
     getJavaHome().then(javahome => {
         const config = workspace.getConfiguration();
         const javabin = join(javahome, 'bin', 'java');
-        const classpath = join(__dirname, '..', 'server', '*');
+        const classpath = join(__dirname, '..', '..', 'server', '*');
         const args = ['-cp', classpath];
         const main = 'raylras.zen.langserver.StandardIOLauncher';
         let debug = '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005,quiet=y';
@@ -58,4 +58,4 @@ function deactivate() {}
 module.exports = {
     activate,
     deactivate
-}
+};

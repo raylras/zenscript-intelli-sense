@@ -27,3 +27,6 @@ src/main/gen
 /vscode-extension/node_modules
 /vscode-extension/*.vsix
 /vscode-extension/language/ZenScript.tmLanguage.json
+
+# mac
+.DS_Store

@@ -26,6 +26,6 @@ function getJavaHome() {
 	});
 }
 
-module.exports = { 
+module.exports = {
 	getJavaHome
 };

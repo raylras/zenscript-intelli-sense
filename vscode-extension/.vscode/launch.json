@@ -6,7 +6,11 @@
 			"request": "launch",
 			"name": "Launch Client",
 			"runtimeExecutable": "${execPath}",
-			"args": ["--extensionDevelopmentPath=${workspaceRoot}"]
+			"args": ["--extensionDevelopmentPath=${workspaceRoot}"],
+			"preLaunchTask": {
+				"type": "npm",
+				"script": "dev"
+			}
 		}
 	]
 }

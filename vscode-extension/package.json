@@ -22,7 +22,7 @@
 	"activationEvents": [
 		"onLanguage:zenscript"
 	],
-	"main": "./client/extension",
+	"main": "./client/out/main.js",
 	"contributes": {
 		"languages": [
 			{
@@ -70,9 +70,11 @@
 		}
 	},
 	"scripts": {
+		"package": "vsce package",
 		"yaml2json": "yaml2json ./language/ZenScript.tmLanguage.yaml | json-minify > ./language/ZenScript.tmLanguage.json",
 		"vscode:prepublish": "npm run yaml2json",
-		"package": "vsce package"
+		"dev": "cross-env NODE_ENV=development node build.js",
+		"release": "cross-env NODE_ENV=production node build.js && npm run package"
 	},
 	"dependencies": {
 		"dayjs": "^1.11.9",
@@ -80,9 +82,14 @@
 	},
 	"devDependencies": {
 		"@odiak/yaml-to-json": "^0.0.1",
+		"@rollup/plugin-commonjs": "^25.0.4",
+		"@rollup/plugin-node-resolve": "^15.2.1",
+		"@rollup/plugin-terser": "^0.4.3",
 		"@types/node": "^20.5.1",
 		"@types/vscode": "^1.81.0",
 		"@vscode/vsce": "^2.20.1",
-		"json-minify": "^1.0.0"
+		"cross-env": "^7.0.3",
+		"json-minify": "^1.0.0",
+		"rollup": "^3.28.1"
 	}
 }
