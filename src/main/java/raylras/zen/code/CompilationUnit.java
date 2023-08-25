@@ -1,6 +1,5 @@
 package raylras.zen.code;
 
-import com.google.common.collect.ImmutableSet;
 import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -19,7 +18,7 @@ import java.util.stream.Collectors;
 public class CompilationUnit {
 
     public static final String ZS_FILE_EXTENSION = ".zs";
-    public static final Set<String> DZS_FILE_EXTENSIONS = ImmutableSet.of(".d.zs", ".dzs");
+    public static final Set<String> DZS_FILE_EXTENSIONS = Set.of(".d.zs", ".dzs");
 
     private final Path path;
     private final CompilationEnvironment env;

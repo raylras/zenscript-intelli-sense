@@ -1,12 +1,11 @@
 package raylras.zen.util;
 
-import com.google.common.collect.Maps;
-
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 public class PackageTree<V> {
     private final Map<String, PackageTree<V>> subTrees = new HashMap<>();
@@ -77,6 +76,8 @@ public class PackageTree<V> {
             members = this.getSubTrees();
             toComplete = text;
         }
-        return Maps.filterKeys(members, it -> it.startsWith(toComplete));
+        return members.entrySet().stream()
+                .filter(it -> it.getKey().startsWith(toComplete))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 }
