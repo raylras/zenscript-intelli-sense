@@ -2,7 +2,7 @@ const { join } = require("node:path");
 const { ExtensionContext, window, workspace } = require("vscode");
 const { LanguageClient, LanguageClientOptions, ServerOptions } = require("vscode-languageclient/node");
 const { SimpleLogger } = require("./simple-logger");
-const { getJavaHome } = require("./get-java-home");
+const locateJavaHome = require("@viperproject/locate-java-home").default
 
 /**
  * @param {ExtensionContext} context
@@ -11,14 +11,17 @@ function activate(context) {
     const logChannel = window.createOutputChannel('ZenScript Language Server', "log");
     const logger = new SimpleLogger(logChannel);
     logger.info('Starting the language Server');
-    getJavaHome().then(javahome => {
+    locateJavaHome({ version: ">=17" }, (error, javaHomes) => {
+        if (javaHomes.length === 0) {
+            logger.error('Unable to locate Java installation path. Make sure Java 17 or later is installed and added to the PATH environment variable');
+        }
         const config = workspace.getConfiguration();
-        const javabin = join(javahome, 'bin', 'java');
+        const java = javaHomes[0].executables.java;
         const classpath = join(__dirname, '..', '..', 'server', '*');
         const args = ['-cp', classpath];
         const main = 'raylras.zen.langserver.StandardIOLauncher';
         let debug = '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005,quiet=y';
-        logger.info(`Java home: ${javahome}`);
+        logger.info(`Java: ${java}`);
         logger.info(`Class path: ${classpath}`);
         logger.info(`Main class: ${main}`);
         if (config.get('zenscript.languageServer.debug')) {
@@ -36,7 +39,7 @@ function activate(context) {
         args.push(main);
         /** @type {ServerOptions} */
         const serverOptions = {
-            command: javabin,
+            command: java,
             args: [...args],
             options: {}
         };
@@ -48,9 +51,7 @@ function activate(context) {
         };
         const client = new LanguageClient('ZenScript Language Client', serverOptions, clientOptions);
         client.start();
-    }).catch(error => {
-        logger.error(`Failed to start the language server: ${error}`);
-    });
+    })
 }
 
 function deactivate() {}
