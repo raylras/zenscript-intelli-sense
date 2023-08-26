@@ -9,7 +9,7 @@ import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.*;
-import raylras.zen.code.symbol.OperatorFunctionSymbol.Operator;
+import raylras.zen.code.symbol.Operator;
 import raylras.zen.code.type.*;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Functions;
@@ -243,7 +243,7 @@ public final class TypeResolver {
         @Override
         public Type visitBinaryExpr(BinaryExprContext ctx) {
             Type leftType = visit(ctx.left);
-            Operator operator = Operator.ofLiteral(ctx.op.getText());
+            Operator operator = Operators.literal(ctx.op.getText(), 2);
             if (operator != Operator.ERROR) {
                 return Operators.getBinaryOperatorResult(leftType, operator, visit(ctx.right));
             } else {

@@ -8,6 +8,7 @@ import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.*;
 import raylras.zen.util.ArrayStack;
 import raylras.zen.util.CSTNodes;
+import raylras.zen.util.Operators;
 import raylras.zen.util.Stack;
 
 import java.util.List;
@@ -156,7 +157,8 @@ public final class DeclarationResolver {
         @Override
         public void enterOperatorFunctionDeclaration(OperatorFunctionDeclarationContext ctx) {
             String name = CSTNodes.getText(ctx.operator());
-            OperatorFunctionSymbol symbol = SymbolFactory.createOperatorFunctionSymbol(name, ctx, unit);
+            Operator operator = Operators.literal(name, ctx.formalParameterList().formalParameter().size() + 1);
+            OperatorFunctionSymbol symbol = SymbolFactory.createOperatorFunctionSymbol(operator, ctx, unit);
             enterSymbol(ctx, symbol);
             enterScope(new Scope(currentScope(), ctx));
         }

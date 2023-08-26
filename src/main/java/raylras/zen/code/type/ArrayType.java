@@ -1,6 +1,6 @@
 package raylras.zen.code.type;
 
-import raylras.zen.code.symbol.OperatorFunctionSymbol;
+import raylras.zen.code.symbol.Operator;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
 
@@ -23,11 +23,11 @@ public class ArrayType extends Type {
     public List<Symbol> getMembers() {
         return SymbolFactory.members()
                 .variable("length", IntType.INSTANCE, Symbol.Modifier.VAL)
-                .operator(OperatorFunctionSymbol.Operator.INDEX_GET, elementType, params -> params.parameter("index", IntType.INSTANCE))
-                .operator(OperatorFunctionSymbol.Operator.INDEX_SET, elementType, params ->
+                .operator(Operator.INDEX_GET, elementType, params -> params.parameter("index", IntType.INSTANCE))
+                .operator(Operator.INDEX_SET, elementType, params ->
                         params.parameter("index", IntType.INSTANCE).parameter("element", elementType)
                 )
-                .operator(OperatorFunctionSymbol.Operator.ADD, this, params -> params.parameter("element", elementType))
+                .operator(Operator.ADD, this, params -> params.parameter("element", elementType))
                 .build();
     }
 

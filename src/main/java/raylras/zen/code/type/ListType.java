@@ -1,6 +1,6 @@
 package raylras.zen.code.type;
 
-import raylras.zen.code.symbol.OperatorFunctionSymbol.Operator;
+import raylras.zen.code.symbol.Operator;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
 

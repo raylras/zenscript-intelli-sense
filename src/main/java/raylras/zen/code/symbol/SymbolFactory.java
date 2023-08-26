@@ -299,14 +299,14 @@ public class SymbolFactory {
         });
     }
 
-    public static OperatorFunctionSymbol createOperatorFunctionSymbol(String name, OperatorFunctionDeclarationContext cst, CompilationUnit unit) {
+    public static OperatorFunctionSymbol createOperatorFunctionSymbol(Operator operator, OperatorFunctionDeclarationContext cst, CompilationUnit unit) {
         Class<?>[] interfaces = {Locatable.class};
         return createInstance(OperatorFunctionSymbol.class, interfaces, (proxy, method, args) -> {
             OperatorFunctionSymbol symbol = (OperatorFunctionSymbol) proxy;
             switch (method.getName()) {
                 // OperatorFunctionSymbol methods
                 case "getOperator": {
-                    return OperatorFunctionSymbol.Operator.ofLiteral(name);
+                    return operator;
                 }
                 case "getParameterList": {
                     return FormalParameterResolver.getFormalParameterList(cst, unit);
@@ -322,7 +322,7 @@ public class SymbolFactory {
 
                 // Symbol methods
                 case "getName": {
-                    return name;
+                    return operator.getLiteral();
                 }
                 case "getKind": {
                     return Symbol.Kind.VARIABLE;
@@ -355,14 +355,14 @@ public class SymbolFactory {
         });
     }
 
-    public static OperatorFunctionSymbol createOperatorFunctionSymbol(String name, Type returnType, List<Symbol> params) {
+    public static OperatorFunctionSymbol createOperatorFunctionSymbol(Operator operator, Type returnType, List<Symbol> params) {
         Class<?>[] interfaces = {};
         return createInstance(OperatorFunctionSymbol.class, interfaces, (proxy, method, args) -> {
             OperatorFunctionSymbol symbol = (OperatorFunctionSymbol) proxy;
             switch (method.getName()) {
                 // OperatorFunctionSymbol methods
                 case "getOperator": {
-                    return OperatorFunctionSymbol.Operator.ofLiteral(name);
+                    return operator;
                 }
                 case "getParameterList": {
                     return params;
@@ -373,7 +373,7 @@ public class SymbolFactory {
 
                 // Symbol methods
                 case "getName": {
-                    return name;
+                    return operator.getLiteral();
                 }
                 case "getKind": {
                     return Symbol.Kind.VARIABLE;
@@ -495,8 +495,8 @@ public class SymbolFactory {
             return this;
         }
 
-        public MemberBuilder operator(OperatorFunctionSymbol.Operator operator, Type returnType, UnaryOperator<MemberBuilder> paramsSupplier) {
-            members.add(createOperatorFunctionSymbol(operator.getLiteral(), returnType, paramsSupplier.apply(new MemberBuilder()).build()));
+        public MemberBuilder operator(Operator operator, Type returnType, UnaryOperator<MemberBuilder> paramsSupplier) {
+            members.add(createOperatorFunctionSymbol(operator, returnType, paramsSupplier.apply(new MemberBuilder()).build()));
             return this;
         }
 
