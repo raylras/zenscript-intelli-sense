@@ -277,7 +277,13 @@ public final class TypeResolver {
         public Type visitCompareExpr(CompareExprContext ctx) {
             Type leftType = visit(ctx.left);
             Type result = Operators.getBinaryOperatorResult(leftType, Operator.COMPARE, visit(ctx.right));
-            return IntType.INSTANCE.equals(result) ? BoolType.INSTANCE : AnyType.INSTANCE;
+            if (IntType.INSTANCE.equals(result)) {
+                return BoolType.INSTANCE;
+            }
+            if (ctx.EQUAL() != null || ctx.NOT_EQUAL() != null) {
+                return Operators.getBinaryOperatorResult(leftType, Operator.EQUALS, visit(ctx.right));
+            }
+            return AnyType.INSTANCE;
         }
 
         @Override

@@ -24,6 +24,7 @@ public class BoolType extends Type {
                 .operator(Operator.XOR, this, params -> params.parameter("val", this))
                 .operator(Operator.NOT, this, UnaryOperator.identity())
                 .operator(Operator.CAT, StringType.INSTANCE, params -> params.parameter("str", StringType.INSTANCE))
+                .operator(Operator.COMPARE, IntType.INSTANCE, params -> params.parameter("val", this))
                 .build();
     }
 }

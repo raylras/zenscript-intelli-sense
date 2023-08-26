@@ -26,6 +26,7 @@ public abstract class NumberType extends Type {
                 .operator(Operator.DIV, this, params -> params.parameter("val", this))
                 .operator(Operator.MOD, this, params -> params.parameter("val", this))
                 .operator(Operator.CAT, StringType.INSTANCE, params -> params.parameter("str", StringType.INSTANCE))
+                .operator(Operator.COMPARE, IntType.INSTANCE, params -> params.parameter("val", this))
                 .operator(Operator.NEG, this, UnaryOperator.identity())
                 .build();
     }
