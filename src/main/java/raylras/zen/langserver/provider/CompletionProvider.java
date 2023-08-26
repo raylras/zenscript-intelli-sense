@@ -15,8 +15,9 @@ import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.resolve.TypeResolver;
 import raylras.zen.code.scope.Scope;
-import raylras.zen.code.symbol.FunctionSymbol;
+import raylras.zen.code.symbol.Executable;
 import raylras.zen.code.symbol.ImportSymbol;
+import raylras.zen.code.symbol.OperatorFunctionSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.FunctionType;
@@ -484,7 +485,7 @@ public final class CompletionProvider {
 
         private void completeMemberSymbols(String text, Type type) {
             for (Symbol member : type.getMembers()) {
-                if (member.getName().startsWith(text)) {
+                if (member.getName().startsWith(text) && !(member instanceof OperatorFunctionSymbol)) {
                     addToCompletionList(member);
                 }
             }
@@ -558,12 +559,12 @@ public final class CompletionProvider {
         }
 
         private CompletionItemLabelDetails getLabelDetails(Symbol symbol) {
-            if (symbol.getType() instanceof FunctionType) {
+            if (symbol instanceof Executable executable) {
                 CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
-                String parameterList = ((FunctionSymbol) symbol).getParameterList().stream()
+                String parameterList = executable.getParameterList().stream()
                         .map(param -> param.getName() + " as " + param.getType())
                         .collect(Collectors.joining(", ", "(", ")"));
-                String returnType = ((FunctionType) symbol.getType()).getReturnType().toString();
+                String returnType = executable.getReturnType().toString();
                 labelDetails.setDetail(parameterList);
                 labelDetails.setDescription(returnType);
                 return labelDetails;

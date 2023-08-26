@@ -214,7 +214,7 @@ public class SymbolFactory {
         return createInstance(FunctionSymbol.class, interfaces, (proxy, method, args) -> {
             FunctionSymbol symbol = (FunctionSymbol) proxy;
             switch (method.getName()) {
-                // FunctionSymbol methods
+                // Executable methods
                 case "getParameterList": {
                     return FormalParameterResolver.getFormalParameterList(cst, unit);
                 }
@@ -267,7 +267,7 @@ public class SymbolFactory {
         return createInstance(FunctionSymbol.class, interfaces, (proxy, method, args) -> {
             FunctionSymbol symbol = (FunctionSymbol) proxy;
             switch (method.getName()) {
-                // FunctionSymbol methods
+                // Executable methods
                 case "getParameterList": {
                     return params;
                 }
@@ -308,6 +308,8 @@ public class SymbolFactory {
                 case "getOperator": {
                     return operator;
                 }
+
+                // Executable methods
                 case "getParameterList": {
                     return FormalParameterResolver.getFormalParameterList(cst, unit);
                 }
@@ -364,6 +366,8 @@ public class SymbolFactory {
                 case "getOperator": {
                     return operator;
                 }
+
+                // Executable methods
                 case "getParameterList": {
                     return params;
                 }

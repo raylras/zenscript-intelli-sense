@@ -1,15 +1,7 @@
 package raylras.zen.code.symbol;
 
-import raylras.zen.code.type.Type;
-
-import java.util.List;
-
-public interface OperatorFunctionSymbol extends Symbol {
+public interface OperatorFunctionSymbol extends Symbol, Executable {
 
     Operator getOperator();
-
-    List<ParameterSymbol> getParameterList();
-
-    Type getReturnType();
 
 }
