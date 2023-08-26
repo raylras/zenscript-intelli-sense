@@ -12,6 +12,14 @@ public class BoolType extends Type {
     public static final BoolType INSTANCE = new BoolType();
 
     @Override
+    public SubtypeResult isSubtypeOf(Type type) {
+        if (type == StringType.INSTANCE) {
+            return SubtypeResult.CASTER;
+        }
+        return super.isSubtypeOf(type);
+    }
+
+    @Override
     public String toString() {
         return "bool";
     }

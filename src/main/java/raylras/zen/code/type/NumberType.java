@@ -11,8 +11,14 @@ public abstract class NumberType extends Type {
 
     @Override
     public SubtypeResult isSubtypeOf(Type type) {
+        if (this == type) {
+            return SubtypeResult.SELF;
+        }
         if (type instanceof NumberType) {
             return SubtypeResult.INHERIT;
+        }
+        if (type == StringType.INSTANCE) {
+            return SubtypeResult.CASTER;
         }
         return super.isSubtypeOf(type);
     }
