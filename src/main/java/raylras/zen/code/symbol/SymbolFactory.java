@@ -42,7 +42,8 @@ public class SymbolFactory {
                     return Symbol.Kind.IMPORT;
                 }
                 case "getType": {
-                    return VoidType.INSTANCE;
+                    // TODO: import static members
+                    return unit.getEnv().getClassTypeMap().get(symbol.getQualifiedName());
                 }
                 case "getModifier": {
                     return Symbol.Modifier.NONE;
