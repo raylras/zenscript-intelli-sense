@@ -17,7 +17,7 @@ import raylras.zen.util.Ranges;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Proxy;
 import java.util.*;
-import java.util.function.Function;
+import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 public class SymbolFactory {
@@ -283,10 +283,7 @@ public class SymbolFactory {
                     return Symbol.Kind.VARIABLE;
                 }
                 case "getType": {
-                    return params.stream()
-                            .map(Symbol::getType)
-                            .map(Type::toString)
-                            .collect(Collectors.joining(",", "function(", ")" + returnType));
+                    return new FunctionType(returnType, params.stream().map(Symbol::getType).collect(Collectors.toList()));
                 }
                 case "getModifier": {
                     return Symbol.Modifier.NONE;
@@ -349,6 +346,46 @@ public class SymbolFactory {
                 }
                 case "getRange": {
                     return Ranges.of(cst);
+                }
+
+                default: {
+                    return method.invoke(new Object(), args);
+                }
+            }
+        });
+    }
+
+    public static OperatorFunctionSymbol createOperatorFunctionSymbol(String name, Type returnType, List<Symbol> params) {
+        Class<?>[] interfaces = {};
+        return createInstance(OperatorFunctionSymbol.class, interfaces, (proxy, method, args) -> {
+            OperatorFunctionSymbol symbol = (OperatorFunctionSymbol) proxy;
+            switch (method.getName()) {
+                // OperatorFunctionSymbol methods
+                case "getOperator": {
+                    return OperatorFunctionSymbol.Operator.ofLiteral(name);
+                }
+                case "getParameterList": {
+                    return params;
+                }
+                case "getReturnType": {
+                    return returnType;
+                }
+
+                // Symbol methods
+                case "getName": {
+                    return name;
+                }
+                case "getKind": {
+                    return Symbol.Kind.VARIABLE;
+                }
+                case "getType": {
+                    return new FunctionType(returnType, params.stream().map(Symbol::getType).collect(Collectors.toList()));
+                }
+                case "getModifier": {
+                    return Symbol.Modifier.NONE;
+                }
+                case "isModifiedBy": {
+                    return symbol.getModifier() == args[0];
                 }
 
                 default: {
@@ -453,14 +490,23 @@ public class SymbolFactory {
             return this;
         }
 
-        public MemberBuilder function(String name, Type returnType, Function<MemberBuilder, MemberBuilder> paramsSupplier) {
+        public MemberBuilder function(String name, Type returnType, UnaryOperator<MemberBuilder> paramsSupplier) {
             members.add(createFunctionSymbol(name, returnType, paramsSupplier.apply(new MemberBuilder()).build()));
+            return this;
+        }
+
+        public MemberBuilder operator(OperatorFunctionSymbol.Operator operator, Type returnType, UnaryOperator<MemberBuilder> paramsSupplier) {
+            members.add(createOperatorFunctionSymbol(operator.getLiteral(), returnType, paramsSupplier.apply(new MemberBuilder()).build()));
             return this;
         }
 
         public MemberBuilder parameter(String name, Type type, boolean optional, boolean vararg) {
             members.add(createParameterSymbol(name, type, optional, vararg));
             return this;
+        }
+
+        public MemberBuilder parameter(String name, Type type) {
+            return parameter(name, type, false, false);
         }
 
         public List<Symbol> build() {

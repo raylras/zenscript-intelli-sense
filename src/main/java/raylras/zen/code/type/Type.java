@@ -16,10 +16,10 @@ public abstract class Type {
     }
 
     public SubtypeResult isSubtypeOf(Type type) {
-        if (this == type) {
+        if (this.equals(type)) {
             return SubtypeResult.SELF;
         }
-        if (type == AnyType.INSTANCE) {
+        if (type.equals(AnyType.INSTANCE)) {
             return SubtypeResult.INHERIT;
         }
         return SubtypeResult.MISMATCH;

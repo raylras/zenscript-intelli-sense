@@ -9,9 +9,11 @@ import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.*;
+import raylras.zen.code.symbol.OperatorFunctionSymbol.Operator;
 import raylras.zen.code.type.*;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Functions;
+import raylras.zen.util.Operators;
 import raylras.zen.util.Symbols;
 
 import java.util.ArrayList;
@@ -240,6 +242,24 @@ public final class TypeResolver {
 
         @Override
         public Type visitBinaryExpr(BinaryExprContext ctx) {
+            Type leftType = visit(ctx.left);
+            Operator operator = Operator.ofLiteral(ctx.op.getText());
+            if (operator != Operator.ERROR) {
+                return Operators.getBinaryOperatorResult(leftType, operator, visit(ctx.right));
+            } else {
+                return leftType;
+            }
+        }
+
+        @Override
+        public Type visitCompareExpr(CompareExprContext ctx) {
+            Type leftType = visit(ctx.left);
+            Type result = Operators.getBinaryOperatorResult(leftType, Operator.COMPARE, visit(ctx.right));
+            return IntType.INSTANCE.equals(result) ? BoolType.INSTANCE : AnyType.INSTANCE;
+        }
+
+        @Override
+        public Type visitLogicExpr(LogicExprContext ctx) {
             return visit(ctx.left);
         }
 
@@ -301,7 +321,14 @@ public final class TypeResolver {
 
         @Override
         public Type visitUnaryExpr(UnaryExprContext ctx) {
-            return visit(ctx.expression());
+            Type type = visit(ctx.expression());
+            if (ctx.NOT() != null) {
+                return Operators.getUnaryOperatorResult(type, Operator.NOT);
+            }
+            if (ctx.SUB() != null) {
+                return Operators.getUnaryOperatorResult(type, Operator.NEG);
+            }
+            return type;
         }
 
         @Override
@@ -396,16 +423,7 @@ public final class TypeResolver {
         @Override
         public Type visitMemberIndexExpr(MemberIndexExprContext ctx) {
             Type leftType = visit(ctx.left);
-            if (leftType instanceof ArrayType) {
-                return ((ArrayType) leftType).getElementType();
-            }
-            if (leftType instanceof ListType) {
-                return ((ListType) leftType).getElementType();
-            }
-            if (leftType instanceof MapType) {
-                return ((MapType) leftType).getValueType();
-            }
-            return null;
+            return Operators.getBinaryOperatorResult(leftType, Operator.INDEX_GET, visit(ctx.index));
         }
 
         @Override

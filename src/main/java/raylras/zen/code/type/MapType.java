@@ -1,5 +1,6 @@
 package raylras.zen.code.type;
 
+import raylras.zen.code.symbol.OperatorFunctionSymbol.Operator;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
 
@@ -32,6 +33,16 @@ public class MapType extends Type {
                 .variable("values", new ArrayType(valueType), Symbol.Modifier.VAL)
                 .variable("valueSet", new ArrayType(valueType), Symbol.Modifier.VAL)
                 .variable("entrySet", new ArrayType(new MapEntryType(keyType, valueType)), Symbol.Modifier.VAL)
+                .operator(Operator.INDEX_GET, valueType, params -> params.parameter("key", keyType))
+                .operator(Operator.INDEX_SET, VoidType.INSTANCE, params ->
+                        params.parameter("key", keyType)
+                                .parameter("value", valueType)
+                )
+                .operator(Operator.MEMBER_GET, valueType, params -> params.parameter("key", keyType))
+                .operator(Operator.MEMBER_SET, VoidType.INSTANCE, params ->
+                        params.parameter("key", keyType)
+                                .parameter("value", valueType)
+                )
                 .build();
     }
 
