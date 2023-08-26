@@ -22,7 +22,7 @@
 	"activationEvents": [
 		"onLanguage:zenscript"
 	],
-	"main": "./client/out/main.js",
+	"main": "./client/out/extension.js",
 	"contributes": {
 		"languages": [
 			{
@@ -71,10 +71,10 @@
 	},
 	"scripts": {
 		"package": "vsce package",
+		"vscode:prepublish": "npm run yaml2json && npm run prod",
 		"yaml2json": "yaml2json ./language/ZenScript.tmLanguage.yaml | json-minify > ./language/ZenScript.tmLanguage.json",
-		"vscode:prepublish": "npm run yaml2json",
-		"dev": "node ./build/dev.js",
-		"release": "node ./build/rollup.js && npm run package"
+		"prod": "rollup --config ./build/rollup.config.prod.mjs --environment BUILD:production",
+		"dev": "node ./build/dev.mjs"
 	},
 	"dependencies": {
 		"@viperproject/locate-java-home": "^1.1.13",

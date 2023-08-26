@@ -25,7 +25,7 @@
 4. 构建 vscode extension
    - `cd vscode-extension`
    - `npm install`
-   - `npm run release`
+   - `npm run package`
 
 ## 调试
    - 调试 VS Code 插件
