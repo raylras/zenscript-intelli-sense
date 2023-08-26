@@ -1,9 +1,11 @@
 package raylras.zen.code.type;
 
+import raylras.zen.code.symbol.Operator;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
 
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 public class IntRangeType extends Type {
 
@@ -19,6 +21,7 @@ public class IntRangeType extends Type {
         return SymbolFactory.members()
                 .variable("from", IntType.INSTANCE, Symbol.Modifier.VAL)
                 .variable("to", IntType.INSTANCE, Symbol.Modifier.VAL)
+                .operator(Operator.ITERATOR, new ListType(IntType.INSTANCE), UnaryOperator.identity())
                 .build();
     }
 }

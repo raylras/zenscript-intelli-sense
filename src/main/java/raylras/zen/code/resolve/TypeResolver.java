@@ -23,7 +23,8 @@ import java.util.stream.Collectors;
 
 public final class TypeResolver {
 
-    private TypeResolver() {}
+    private TypeResolver() {
+    }
 
     public static Type getType(ParseTree cst, CompilationUnit unit) {
         Objects.requireNonNull(cst);
@@ -180,47 +181,14 @@ public final class TypeResolver {
         public Type visitForeachVariable(ForeachVariableContext ctx) {
             // variable -> variableList -> forEach
             ForeachStatementContext forEachStatement = (ForeachStatementContext) ctx.getParent().getParent();
+            List<ForeachVariableContext> variables = forEachStatement.foreachVariableList().foreachVariable();
             Type iterableType = visit(forEachStatement.expression());
-            if (iterableType == IntRangeType.INSTANCE) {
-                return IntType.INSTANCE;
+            Type result = Operators.getUnaryOperatorResult(iterableType, Operator.ITERATOR);
+            if (result instanceof ListType listType) {
+                return getListForeachVariableType(listType.getElementType(), ctx, variables);
             }
-            if (iterableType instanceof ListType) {
-                return ((ListType) iterableType).getElementType();
-            }
-            if (iterableType instanceof ArrayType) {
-                return ((ArrayType) iterableType).getElementType();
-            }
-            if (iterableType instanceof MapType mapType) {
-                List<ForeachVariableContext> variables = forEachStatement.foreachVariableList().foreachVariable();
-                if (variables.size() == 1) {
-                    return mapType.getKeyType();
-                } else if (variables.size() == 2) {
-                    if (variables.get(0) == ctx) {
-                        return mapType.getKeyType();
-                    }
-                    if (variables.get(1) == ctx) {
-                        return mapType.getValueType();
-                    }
-                }
-            }
-            if (iterableType instanceof ClassType) {
-                Type result = Operators.getUnaryOperatorResult(iterableType, Operator.ITERATOR);
-                if (result instanceof ListType listType) {
-                    return listType.getElementType();
-                }
-                if (result instanceof MapType mapType) {
-                    List<ForeachVariableContext> variables = forEachStatement.foreachVariableList().foreachVariable();
-                    if (variables.size() == 1) {
-                        return mapType.getKeyType();
-                    } else if (variables.size() == 2) {
-                        if (variables.get(0) == ctx) {
-                            return mapType.getKeyType();
-                        }
-                        if (variables.get(1) == ctx) {
-                            return mapType.getValueType();
-                        }
-                    }
-                }
+            if (result instanceof MapType mapType) {
+                return getMapForeachVariableType(mapType, ctx, variables);
             }
             return AnyType.INSTANCE;
         }
@@ -541,6 +509,30 @@ public final class TypeResolver {
 
         @Override
         public Type visitChildren(RuleNode node) {
+            return null;
+        }
+
+        private Type getListForeachVariableType(Type elementType, ForeachVariableContext variable, List<ForeachVariableContext> variables) {
+            int total = variables.size();
+            int index = variables.indexOf(variable);
+            if (total == 1) {
+                return elementType;
+            }
+            if (total == 2) {
+                return index == 0 ? IntType.INSTANCE : elementType;
+            }
+            return null;
+        }
+
+        private Type getMapForeachVariableType(MapType mapType, ForeachVariableContext variable, List<ForeachVariableContext> variables) {
+            int total = variables.size();
+            int index = variables.indexOf(variable);
+            if (total == 1) {
+                return mapType.getKeyType();
+            }
+            if (total == 2) {
+                return index == 0 ? mapType.getKeyType() : mapType.getValueType();
+            }
             return null;
         }
     }

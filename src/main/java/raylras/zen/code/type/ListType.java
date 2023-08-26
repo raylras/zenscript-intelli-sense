@@ -5,6 +5,7 @@ import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
 
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 public class ListType extends Type {
 
@@ -28,6 +29,7 @@ public class ListType extends Type {
                         params.parameter("index", IntType.INSTANCE).parameter("element", elementType)
                 )
                 .operator(Operator.ADD, this, params -> params.parameter("element", elementType))
+                .operator(Operator.ITERATOR, this, UnaryOperator.identity())
                 .build();
     }
 

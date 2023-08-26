@@ -5,6 +5,7 @@ import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
 
 import java.util.List;
+import java.util.function.UnaryOperator;
 
 public class MapType extends Type {
 
@@ -43,6 +44,7 @@ public class MapType extends Type {
                         params.parameter("key", keyType)
                                 .parameter("value", valueType)
                 )
+                .operator(Operator.ITERATOR, this, UnaryOperator.identity())
                 .build();
     }
 
