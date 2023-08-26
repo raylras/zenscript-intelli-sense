@@ -2,10 +2,13 @@ package raylras.zen.util;
 
 import raylras.zen.code.symbol.FunctionSymbol;
 import raylras.zen.code.symbol.ParameterSymbol;
+import raylras.zen.code.type.ClassType;
+import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.SubtypeResult;
 import raylras.zen.code.type.Type;
 
 import java.util.List;
+import java.util.Optional;
 
 public class Functions {
 
@@ -71,6 +74,13 @@ public class Functions {
             }
         }
         return found;
+    }
+
+    public static Optional<FunctionType> findLambdaForm(ClassType type) {
+        return Symbols.getMembersByName(type, "", FunctionSymbol.class)
+                .stream()
+                .map(FunctionSymbol::getType)
+                .findFirst();
     }
 
 }

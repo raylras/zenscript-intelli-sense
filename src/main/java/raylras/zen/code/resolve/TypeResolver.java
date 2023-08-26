@@ -111,6 +111,10 @@ public final class TypeResolver {
             int argumentIndex = parameterList.formalParameter().indexOf(ctx);
             if (functionType instanceof FunctionType) {
                 return ((FunctionType) functionType).getParameterTypes().get(argumentIndex);
+            } else if (functionType instanceof ClassType classType) {
+                return Functions.findLambdaForm(classType)
+                        .map(it -> it.getParameterTypes().get(argumentIndex))
+                        .orElse(AnyType.INSTANCE);
             }
             return AnyType.INSTANCE;
         }
