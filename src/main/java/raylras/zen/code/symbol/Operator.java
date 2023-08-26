@@ -3,9 +3,6 @@ package raylras.zen.code.symbol;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * @author youyihj
- */
 public enum Operator {
     ADD("+", OperatorType.BINARY),
     SUB("-", OperatorType.BINARY),
