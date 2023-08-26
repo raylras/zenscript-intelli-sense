@@ -11,9 +11,6 @@ import raylras.zen.code.type.UnionType;
 import java.util.Comparator;
 import java.util.List;
 
-/**
- * @author youyihj
- */
 public class Operators {
     public static List<OperatorFunctionSymbol> find(Type type, Operator operator) {
         return Symbols.getMember(type, OperatorFunctionSymbol.class, it -> it.getOperator() == operator);
