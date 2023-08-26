@@ -18,7 +18,7 @@ public class IntRangeType extends Type {
     public List<Symbol> getMembers() {
         return SymbolFactory.members()
                 .variable("from", IntType.INSTANCE, Symbol.Modifier.VAL)
-                .variable("to", INSTANCE, Symbol.Modifier.VAL)
+                .variable("to", IntType.INSTANCE, Symbol.Modifier.VAL)
                 .build();
     }
 }
