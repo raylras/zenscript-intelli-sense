@@ -218,7 +218,6 @@ public final class CompletionProvider {
             return null;
         }
 
-
         @Override
         public Void visitWhileStatement(WhileStatementContext ctx) {
             // while (|)
@@ -392,6 +391,30 @@ public final class CompletionProvider {
         @Override
         public Void visitBracketHandlerExpr(BracketHandlerExprContext ctx) {
             unit.getEnv().getBracketHandlerManager().complete(ctx.raw().getText(), completionList);
+            return null;
+        }
+
+        @Override
+        public Void visitForeachBody(ForeachBodyContext ctx) {
+            // { text| }
+            // ^ ____
+            if (containsLeading(ctx.BRACE_OPEN())) {
+                completeLocalSymbols(text);
+                completeGlobalSymbols(text);
+                completeKeywords(text, Keywords.STATEMENT);
+                return null;
+            }
+
+            // { } text|
+            //   ^ ____
+            if (containsLeading(ctx.BRACE_CLOSE())) {
+                completeLocalSymbols(text);
+                completeGlobalSymbols(text);
+                completeKeywords(text, Keywords.STATEMENT);
+                return null;
+            }
+
+            visitChildren(ctx);
             return null;
         }
 

@@ -186,8 +186,7 @@ public final class TypeResolver {
             if (iterableType instanceof ArrayType) {
                 return ((ArrayType) iterableType).getElementType();
             }
-            if (iterableType instanceof MapType) {
-                MapType mapType = (MapType) iterableType;
+            if (iterableType instanceof MapType mapType) {
                 List<ForeachVariableContext> variables = forEachStatement.foreachVariableList().foreachVariable();
                 if (variables.size() == 1) {
                     return mapType.getKeyType();
@@ -197,6 +196,25 @@ public final class TypeResolver {
                     }
                     if (variables.get(1) == ctx) {
                         return mapType.getValueType();
+                    }
+                }
+            }
+            if (iterableType instanceof ClassType) {
+                Type result = Operators.getUnaryOperatorResult(iterableType, Operator.ITERATOR);
+                if (result instanceof ListType listType) {
+                    return listType.getElementType();
+                }
+                if (result instanceof MapType mapType) {
+                    List<ForeachVariableContext> variables = forEachStatement.foreachVariableList().foreachVariable();
+                    if (variables.size() == 1) {
+                        return mapType.getKeyType();
+                    } else if (variables.size() == 2) {
+                        if (variables.get(0) == ctx) {
+                            return mapType.getKeyType();
+                        }
+                        if (variables.get(1) == ctx) {
+                            return mapType.getValueType();
+                        }
                     }
                 }
             }
