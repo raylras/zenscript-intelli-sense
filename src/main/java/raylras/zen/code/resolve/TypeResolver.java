@@ -227,7 +227,7 @@ public final class TypeResolver {
 
         @Override
         public Type visitIntRangeExpr(IntRangeExprContext ctx) {
-            return IntRangeType.INSTANCE;
+            return Operators.getBinaryOperatorResult(visit(ctx.from), Operator.RANGE, visit(ctx.to));
         }
 
         @Override

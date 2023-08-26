@@ -30,7 +30,7 @@ public interface OperatorFunctionSymbol extends Symbol {
         NOT("!"),
         INDEX_GET("[]"),
         INDEX_SET("[]="),
-        INT_RANGE(".."),
+        RANGE(".."),
         HAS("has"),
         COMPARE("compare"),
         MEMBER_GET("."),

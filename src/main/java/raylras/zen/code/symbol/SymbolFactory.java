@@ -509,6 +509,11 @@ public class SymbolFactory {
             return parameter(name, type, false, false);
         }
 
+        public MemberBuilder add(List<Symbol> members) {
+            this.members.addAll(members);
+            return this;
+        }
+
         public List<Symbol> build() {
             return members;
         }
