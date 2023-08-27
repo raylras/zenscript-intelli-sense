@@ -593,6 +593,12 @@ repository:
           '0':
             name: punctuation.definition.comment.zs
         end: '\n'
+      - name: comment.line.pound.zs
+        begin: '#\s'
+        beginCaptures:
+          '0':
+            name: punctuation.definition.comment.zs
+        end: '\n'
       - name: comment.block.zs
         begin: '\/\*'
         beginCaptures:
