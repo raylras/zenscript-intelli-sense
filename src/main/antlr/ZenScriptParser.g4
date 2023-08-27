@@ -236,9 +236,9 @@ expression
     | <assoc=right> op=('!' | '-') expression                #unaryExpr
     | left=expression op=('*' | '/' | '%') right=expression  #binaryExpr
     | left=expression op=('+' | '-' | '~') right=expression  #binaryExpr
-    | left=expression op=('==' | '!=' | '<' | '<=' | '>' | '>=' | 'in' | 'has') right=expression  #compareExpr
-    | left=expression op=('|' | '^' | '&') right=expression                  #binaryExpr
-    | left=expression op=('||' | '&&') right=expression                      #binaryExpr
+    | left=expression op=('==' | '!=' | '<' | '<=' | '>' | '>=') right=expression  #compareExpr
+    | left=expression op=('|' | '^' | '&' | 'in' | 'has') right=expression   #binaryExpr
+    | left=expression op=('||' | '&&') right=expression                      #logicExpr
     | condition=expression '?' truePart=expression ':' falsePart=expression  #ternaryExpr
     | <assoc=right> left=expression op=('=' | '+=' | '-=' | '~=' | '*=' | '/=' | '%=' | '|=' | '&=' | '^=') right=expression  #assignmentExpr
     ;

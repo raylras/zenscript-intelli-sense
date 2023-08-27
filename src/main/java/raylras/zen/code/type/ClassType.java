@@ -2,6 +2,7 @@ package raylras.zen.code.type;
 
 import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
+import raylras.zen.util.Operators;
 
 import java.util.List;
 
@@ -24,6 +25,9 @@ public class ClassType extends Type {
 
     @Override
     public SubtypeResult isSubtypeOf(Type type) {
+        if (this.equals(type)) {
+            return SubtypeResult.SELF;
+        }
         if (type instanceof ClassType) {
             boolean matchedInterface = symbol.getInterfaces().stream()
                     .flatMap(classType -> classType.getSymbol().getInterfaces().stream())
@@ -31,6 +35,9 @@ public class ClassType extends Type {
             if (matchedInterface) {
                 return SubtypeResult.INHERIT;
             }
+        }
+        if (Operators.hasCaster(this, type)) {
+            return SubtypeResult.CASTER;
         }
         return super.isSubtypeOf(type);
     }

@@ -1,10 +1,12 @@
 package raylras.zen.code.type;
 
+import raylras.zen.code.symbol.Operator;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.function.UnaryOperator;
 
 public class ArrayType extends Type {
 
@@ -22,11 +24,20 @@ public class ArrayType extends Type {
     public List<Symbol> getMembers() {
         return SymbolFactory.members()
                 .variable("length", IntType.INSTANCE, Symbol.Modifier.VAL)
+                .operator(Operator.INDEX_GET, elementType, params -> params.parameter("index", IntType.INSTANCE))
+                .operator(Operator.INDEX_SET, elementType, params ->
+                        params.parameter("index", IntType.INSTANCE).parameter("element", elementType)
+                )
+                .operator(Operator.ADD, this, params -> params.parameter("element", elementType))
+                .operator(Operator.ITERATOR, new ListType(elementType), UnaryOperator.identity())
                 .build();
     }
 
     @Override
     public SubtypeResult isSubtypeOf(Type type) {
+        if (this.equals(type)) {
+            return SubtypeResult.SELF;
+        }
         if (type == AnyType.INSTANCE) {
             return SubtypeResult.INHERIT;
         }
@@ -36,7 +47,7 @@ public class ArrayType extends Type {
         }
         if (type instanceof ListType) {
             ListType that = (ListType) type;
-            return this.elementType.isSubtypeOf(that.getElementType());
+            return SubtypeResult.higher(this.elementType.isSubtypeOf(that.getElementType()), SubtypeResult.CASTER);
         }
         return super.isSubtypeOf(type);
     }

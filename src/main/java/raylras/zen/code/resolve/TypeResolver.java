@@ -9,9 +9,11 @@ import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.*;
+import raylras.zen.code.symbol.Operator;
 import raylras.zen.code.type.*;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Functions;
+import raylras.zen.util.Operators;
 import raylras.zen.util.Symbols;
 
 import java.util.ArrayList;
@@ -21,7 +23,8 @@ import java.util.stream.Collectors;
 
 public final class TypeResolver {
 
-    private TypeResolver() {}
+    private TypeResolver() {
+    }
 
     public static Type getType(ParseTree cst, CompilationUnit unit) {
         Objects.requireNonNull(cst);
@@ -109,6 +112,10 @@ public final class TypeResolver {
             int argumentIndex = parameterList.formalParameter().indexOf(ctx);
             if (functionType instanceof FunctionType) {
                 return ((FunctionType) functionType).getParameterTypes().get(argumentIndex);
+            } else if (functionType instanceof ClassType classType) {
+                return Functions.findLambdaForm(classType)
+                        .map(it -> it.getParameterTypes().get(argumentIndex))
+                        .orElse(AnyType.INSTANCE);
             }
             return AnyType.INSTANCE;
         }
@@ -174,29 +181,14 @@ public final class TypeResolver {
         public Type visitForeachVariable(ForeachVariableContext ctx) {
             // variable -> variableList -> forEach
             ForeachStatementContext forEachStatement = (ForeachStatementContext) ctx.getParent().getParent();
+            List<ForeachVariableContext> variables = forEachStatement.foreachVariableList().foreachVariable();
             Type iterableType = visit(forEachStatement.expression());
-            if (iterableType == IntRangeType.INSTANCE) {
-                return IntType.INSTANCE;
+            Type result = Operators.getUnaryOperatorResult(iterableType, Operator.ITERATOR);
+            if (result instanceof ListType listType) {
+                return getListForeachVariableType(listType.getElementType(), ctx, variables);
             }
-            if (iterableType instanceof ListType) {
-                return ((ListType) iterableType).getElementType();
-            }
-            if (iterableType instanceof ArrayType) {
-                return ((ArrayType) iterableType).getElementType();
-            }
-            if (iterableType instanceof MapType) {
-                MapType mapType = (MapType) iterableType;
-                List<ForeachVariableContext> variables = forEachStatement.foreachVariableList().foreachVariable();
-                if (variables.size() == 1) {
-                    return mapType.getKeyType();
-                } else if (variables.size() == 2) {
-                    if (variables.get(0) == ctx) {
-                        return mapType.getKeyType();
-                    }
-                    if (variables.get(1) == ctx) {
-                        return mapType.getValueType();
-                    }
-                }
+            if (result instanceof MapType mapType) {
+                return getMapForeachVariableType(mapType, ctx, variables);
             }
             return AnyType.INSTANCE;
         }
@@ -225,7 +217,7 @@ public final class TypeResolver {
 
         @Override
         public Type visitIntRangeExpr(IntRangeExprContext ctx) {
-            return IntRangeType.INSTANCE;
+            return Operators.getBinaryOperatorResult(visit(ctx.from), Operator.RANGE, visit(ctx.to));
         }
 
         @Override
@@ -240,6 +232,30 @@ public final class TypeResolver {
 
         @Override
         public Type visitBinaryExpr(BinaryExprContext ctx) {
+            Type leftType = visit(ctx.left);
+            Operator operator = Operators.literal(ctx.op.getText(), 2);
+            if (operator != Operator.ERROR) {
+                return Operators.getBinaryOperatorResult(leftType, operator, visit(ctx.right));
+            } else {
+                return leftType;
+            }
+        }
+
+        @Override
+        public Type visitCompareExpr(CompareExprContext ctx) {
+            Type leftType = visit(ctx.left);
+            Type result = Operators.getBinaryOperatorResult(leftType, Operator.COMPARE, visit(ctx.right));
+            if (IntType.INSTANCE.equals(result)) {
+                return BoolType.INSTANCE;
+            }
+            if (ctx.EQUAL() != null || ctx.NOT_EQUAL() != null) {
+                return Operators.getBinaryOperatorResult(leftType, Operator.EQUALS, visit(ctx.right));
+            }
+            return AnyType.INSTANCE;
+        }
+
+        @Override
+        public Type visitLogicExpr(LogicExprContext ctx) {
             return visit(ctx.left);
         }
 
@@ -301,7 +317,14 @@ public final class TypeResolver {
 
         @Override
         public Type visitUnaryExpr(UnaryExprContext ctx) {
-            return visit(ctx.expression());
+            Type type = visit(ctx.expression());
+            if (ctx.NOT() != null) {
+                return Operators.getUnaryOperatorResult(type, Operator.NOT);
+            }
+            if (ctx.SUB() != null) {
+                return Operators.getUnaryOperatorResult(type, Operator.NEG);
+            }
+            return type;
         }
 
         @Override
@@ -396,16 +419,7 @@ public final class TypeResolver {
         @Override
         public Type visitMemberIndexExpr(MemberIndexExprContext ctx) {
             Type leftType = visit(ctx.left);
-            if (leftType instanceof ArrayType) {
-                return ((ArrayType) leftType).getElementType();
-            }
-            if (leftType instanceof ListType) {
-                return ((ListType) leftType).getElementType();
-            }
-            if (leftType instanceof MapType) {
-                return ((MapType) leftType).getValueType();
-            }
-            return null;
+            return Operators.getBinaryOperatorResult(leftType, Operator.INDEX_GET, visit(ctx.index));
         }
 
         @Override
@@ -495,6 +509,30 @@ public final class TypeResolver {
 
         @Override
         public Type visitChildren(RuleNode node) {
+            return null;
+        }
+
+        private Type getListForeachVariableType(Type elementType, ForeachVariableContext variable, List<ForeachVariableContext> variables) {
+            int total = variables.size();
+            int index = variables.indexOf(variable);
+            if (total == 1) {
+                return elementType;
+            }
+            if (total == 2) {
+                return index == 0 ? IntType.INSTANCE : elementType;
+            }
+            return null;
+        }
+
+        private Type getMapForeachVariableType(MapType mapType, ForeachVariableContext variable, List<ForeachVariableContext> variables) {
+            int total = variables.size();
+            int index = variables.indexOf(variable);
+            if (total == 1) {
+                return mapType.getKeyType();
+            }
+            if (total == 2) {
+                return index == 0 ? mapType.getKeyType() : mapType.getValueType();
+            }
             return null;
         }
     }
