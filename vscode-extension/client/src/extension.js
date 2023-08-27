@@ -1,17 +1,17 @@
-const { join } = require("node:path");
-const { ExtensionContext, window, workspace } = require("vscode");
-const { LanguageClient, LanguageClientOptions, ServerOptions } = require("vscode-languageclient/node");
-const { SimpleLogger } = require("./simple-logger");
-const locateJavaHome = require("@viperproject/locate-java-home").default
+import { join } from "node:path";
+import { ExtensionContext, window, workspace } from "vscode";
+import { LanguageClient, LanguageClientOptions, ServerOptions } from "vscode-languageclient/node";
+import { SimpleLogger } from "./simple-logger";
+import LocateJavaHome  from "@viperproject/locate-java-home";
 
 /**
  * @param {ExtensionContext} context
  */
-function activate(context) {
+export function activate(context) {
     const logChannel = window.createOutputChannel('ZenScript Language Server', "log");
     const logger = new SimpleLogger(logChannel);
     logger.info('Starting the language Server');
-    locateJavaHome({ version: ">=17" }, (error, javaHomes) => {
+    LocateJavaHome({ version: ">=17" }, (error, javaHomes) => {
         if (javaHomes.length === 0) {
             logger.error('Unable to locate Java installation path. Make sure Java 17 or later is installed and added to the PATH environment variable');
         }
@@ -54,9 +54,4 @@ function activate(context) {
     })
 }
 
-function deactivate() {}
-
-module.exports = {
-    activate,
-    deactivate
-};
+export function deactivate() {}

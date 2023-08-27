@@ -3,6 +3,7 @@ export default {
     output: {
         file: 'client/out/extension.js',
         format: 'cjs',
-        sourcemap: 'inline'
+        interop: 'compat',
+        sourcemap: 'inline',
     }
 };

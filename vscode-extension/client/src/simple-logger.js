@@ -1,7 +1,7 @@
-const { OutputChannel } = require("vscode");
-const dayjs = require("dayjs");
+import { OutputChannel } from "vscode";
+import dayjs from "dayjs";
 
-class SimpleLogger {
+export class SimpleLogger {
 	#logChannel;
 	/**
 	 * @param {OutputChannel} logChannel 
@@ -33,7 +33,3 @@ class SimpleLogger {
 		this.#logChannel.appendLine(`${currentTime} [${level}] extension - ${message}`);
 	}
 }
-
-module.exports = {
-	SimpleLogger
-};
