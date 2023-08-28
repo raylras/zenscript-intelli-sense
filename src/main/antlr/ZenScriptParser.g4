@@ -122,7 +122,7 @@ initializer
     ;
 
 operatorFunctionDeclaration // dzs
-    : 'operator' operator '(' formalParameterList ')' 'as' typeLiteral ('|' typeLiteral)* ';'
+    : 'operator' operator '(' formalParameterList ')' 'as' typeLiteral ('&' typeLiteral)* ';'
     ;
 
 operator // dzs
