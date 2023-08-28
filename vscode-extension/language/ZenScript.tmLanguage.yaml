@@ -77,6 +77,7 @@ repository:
           - include: '#preprocessor'
           - include: '#constructor-declaration'
           - include: '#function-declaration'
+          - include: '#operator-function-declaration'
           - include: '#variable-declaration'
 
   constructor-declaration:
@@ -148,6 +149,23 @@ repository:
       - include: '#parameter-list'
       - include: '#type-annotation'
       - include: '#block'
+      - include: '#preprocessor'
+      - include: '#comments'
+
+  operator-function-declaration:
+    name: meta.function.zs
+    begin: 'operator'
+    beginCaptures:
+      '0':
+        name: storage.type.operator.zs
+    end: '(?<=;)'
+    patterns:
+      - match: '([+\-*\/%~|&^!.]|\[\]|\[\]=|\.\.|\.=|==|as|has|compare|iterator)(?=\()'
+        captures:
+          '1':
+            name: meta.definition.function.zs keyword.operator.zs
+      - include: '#parameter-list'
+      - include: '#type-annotation'
       - include: '#preprocessor'
       - include: '#comments'
 
