@@ -57,7 +57,7 @@ repository:
     begin: '(?=(zenClass))'
     beginCaptures:
       '1':
-        name: keyword.other.zenClass.zs
+        name: storage.type.class.zs
     end: '(?<=\})'
     patterns:
       - match: '(?:zenClass)\s+([[:alpha:]_$][[:alnum:]_$\.]*)'
@@ -85,7 +85,7 @@ repository:
     begin: '\b(zenConstructor)\b'
     beginCaptures:
       '1':
-        name: keyword.other.zenConstructor.zs
+        name: storage.type.constructor.zs
     end: '(?<=\})'
     patterns:
       - include: '#parameter-list'
@@ -135,9 +135,9 @@ repository:
     begin: '(?=((static|global)\s+)?(function))'
     beginCaptures:
       '2':
-        name: keyword.other.static.zs
+        name: storage.modifier.zs
       '3':
-        name: keyword.function.zs
+        name: storage.type.function.zs
     end: '(?<=\}|;)'
     patterns:
       - match: '(function)\s+([[:alpha:]_$][[:alnum:]_$]*)'
