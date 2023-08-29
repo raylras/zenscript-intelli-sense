@@ -49,11 +49,6 @@ public class SymbolFactory {
             }
 
             @Override
-            public boolean isModifiedBy(Modifier modifier) {
-                return getModifier() == modifier;
-            }
-
-            @Override
             public ParseTree getCst() {
                 return cst;
             }
@@ -133,11 +128,6 @@ public class SymbolFactory {
             }
 
             @Override
-            public boolean isModifiedBy(Modifier modifier) {
-                return getModifier() == modifier;
-            }
-
-            @Override
             public ParseTree getCst() {
                 return cst;
             }
@@ -175,11 +165,6 @@ public class SymbolFactory {
             @Override
             public Modifier getModifier() {
                 return ModifierResolver.getModifier(cst);
-            }
-
-            @Override
-            public boolean isModifiedBy(Modifier modifier) {
-                return getModifier() == modifier;
             }
 
             @Override
@@ -221,11 +206,6 @@ public class SymbolFactory {
             public Modifier getModifier() {
                 return modifier;
             }
-
-            @Override
-            public boolean isModifiedBy(Modifier modifier) {
-                return getModifier() == modifier;
-            }
         }
         return new VariableSymbolImpl();
     }
@@ -261,11 +241,6 @@ public class SymbolFactory {
             @Override
             public Symbol.Modifier getModifier() {
                 return ModifierResolver.getModifier(cst);
-            }
-
-            @Override
-            public boolean isModifiedBy(Symbol.Modifier modifier) {
-                return getModifier() == modifier;
             }
 
             @Override
@@ -320,11 +295,6 @@ public class SymbolFactory {
             public Modifier getModifier() {
                 return Symbol.Modifier.NONE;
             }
-
-            @Override
-            public boolean isModifiedBy(Modifier modifier) {
-                return getModifier() == modifier;
-            }
         }
         return new FunctionSymbolImpl();
     }
@@ -365,11 +335,6 @@ public class SymbolFactory {
             @Override
             public Modifier getModifier() {
                 return Modifier.NONE;
-            }
-
-            @Override
-            public boolean isModifiedBy(Modifier modifier) {
-                return getModifier() == modifier;
             }
 
             @Override
@@ -428,11 +393,6 @@ public class SymbolFactory {
             public Modifier getModifier() {
                 return Modifier.NONE;
             }
-
-            @Override
-            public boolean isModifiedBy(Modifier modifier) {
-                return getModifier() == modifier;
-            }
         }
         return new OperatorFunctionSymbolImpl();
     }
@@ -467,11 +427,6 @@ public class SymbolFactory {
             @Override
             public Modifier getModifier() {
                 return Symbol.Modifier.NONE;
-            }
-
-            @Override
-            public boolean isModifiedBy(Modifier modifier) {
-                return getModifier() == modifier;
             }
 
             @Override
@@ -522,11 +477,6 @@ public class SymbolFactory {
             @Override
             public Modifier getModifier() {
                 return Modifier.NONE;
-            }
-
-            @Override
-            public boolean isModifiedBy(Modifier modifier) {
-                return getModifier() == modifier;
             }
         }
         return new ParameterSymbolImpl();

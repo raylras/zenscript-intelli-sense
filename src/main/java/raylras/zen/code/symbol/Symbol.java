@@ -12,7 +12,9 @@ public interface Symbol {
 
     Modifier getModifier();
 
-    boolean isModifiedBy(Modifier modifier);
+    default boolean isModifiedBy(Modifier modifier) {
+        return getModifier() == modifier;
+    }
 
     enum Kind {
         IMPORT, PACKAGE, CLASS, VARIABLE, PARAMETER, FUNCTION, NONE
