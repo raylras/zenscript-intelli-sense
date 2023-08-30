@@ -6,7 +6,7 @@ import raylras.zen.code.symbol.ParameterSymbol;
 import raylras.zen.code.type.AnyType;
 import raylras.zen.code.type.SubtypeResult;
 import raylras.zen.code.type.Type;
-import raylras.zen.code.type.UnionType;
+import raylras.zen.code.type.IntersectionType;
 
 import java.util.Comparator;
 import java.util.List;
@@ -42,8 +42,8 @@ public class Operators {
 
     public static boolean hasCaster(Type type, Type target) {
         Type result = getUnaryOperatorResult(type, Operator.AS);
-        if (result instanceof UnionType unionType) {
-            return unionType.getTypeList().contains(target);
+        if (result instanceof IntersectionType intersectionType) {
+            return intersectionType.getTypeList().contains(target);
         } else {
             return target.equals(type);
         }

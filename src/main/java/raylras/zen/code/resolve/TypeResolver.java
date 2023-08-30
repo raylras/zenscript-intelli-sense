@@ -127,7 +127,7 @@ public final class TypeResolver {
 
         @Override
         public Type visitReturnType(ReturnTypeContext ctx) {
-            return visit(ctx.typeLiteral());
+            return visit(ctx.intersectionType() != null ? ctx.intersectionType() : ctx.typeLiteral());
         }
 
         @Override
@@ -150,6 +150,9 @@ public final class TypeResolver {
 
         @Override
         public Type visitVariableDeclaration(VariableDeclarationContext ctx) {
+            if (ctx.intersectionType() != null) {
+                return visit(ctx.intersectionType());
+            }
             if (ctx.typeLiteral() != null) {
                 return visit(ctx.typeLiteral());
             } else {
@@ -165,16 +168,18 @@ public final class TypeResolver {
         @Override
         public Type visitOperatorFunctionDeclaration(OperatorFunctionDeclarationContext ctx) {
             List<Type> paramTypes = toTypeList(ctx.formalParameterList());
-            Type returnType;
-            if (ctx.typeLiteral().size() == 1) {
-                returnType = visit(ctx.typeLiteral(0));
-            } else {
-                List<Type> typeList = ctx.typeLiteral().stream()
-                        .map(this::visit)
-                        .collect(Collectors.toList());
-                returnType = new UnionType(typeList);
-            }
+            Type returnType = visit(ctx.intersectionType());
             return new FunctionType(returnType, paramTypes);
+        }
+
+        @Override
+        public Type visitIntersectionType(IntersectionTypeContext ctx) {
+            List<TypeLiteralContext> types = ctx.typeLiteral();
+            if (types.size() == 1) {
+                return visit(types.get(0));
+            } else {
+                return new IntersectionType(types.stream().map(this::visit).collect(Collectors.toList()));
+            }
         }
 
         @Override
