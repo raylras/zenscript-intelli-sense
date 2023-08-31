@@ -10,6 +10,7 @@ import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.CompletionItemLabelDetails;
 import org.eclipse.lsp4j.CompletionParams;
 import raylras.zen.code.CompilationUnit;
+import raylras.zen.code.MemberProvider;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.parser.ZenScriptParser.*;
@@ -507,7 +508,10 @@ public final class CompletionProvider {
         }
 
         private void completeMemberSymbols(String text, Type type) {
-            for (Symbol member : type.getMembers()) {
+            if(!(type instanceof MemberProvider memberProvider)) {
+                return;
+            }
+            for (Symbol member : memberProvider.getMembers()) {
                 if (member.getName().startsWith(text) && !(member instanceof OperatorFunctionSymbol)) {
                     addToCompletionList(member);
                 }

@@ -1,12 +1,13 @@
 package raylras.zen.code.type;
 
+import raylras.zen.code.MemberProvider;
 import raylras.zen.code.symbol.Operator;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
 
 import java.util.List;
 
-public class StringType extends Type {
+public class StringType extends Type implements MemberProvider {
 
     public static final StringType INSTANCE = new StringType();
 

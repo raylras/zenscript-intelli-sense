@@ -29,6 +29,24 @@ public class Scope {
     public Symbol lookupSymbol(String simpleName) {
         return lookupSymbol(Symbol.class, simpleName);
     }
+    public List<Symbol> lookupSymbols(String simpleName) {
+        Scope scope = this;
+        List<Symbol> result = new ArrayList<>();
+        while (scope != null) {
+
+            for (Symbol symbol : scope.getSymbols()) {
+                if (Objects.equals(symbol.getName(), simpleName)) {
+                    result.add(symbol);
+                }
+            }
+            // assume overload only happen on same scope
+            if(!result.isEmpty()) {
+                return result;
+            }
+            scope = scope.parent;
+        }
+        return result;
+    }
 
     public <T extends Symbol> T lookupSymbol(Class<T> clazz, String simpleName) {
         Scope scope = this;

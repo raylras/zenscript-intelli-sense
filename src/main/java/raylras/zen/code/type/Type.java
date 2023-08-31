@@ -7,10 +7,6 @@ import java.util.List;
 
 public abstract class Type {
 
-    public List<Symbol> getMembers() {
-        return Collections.emptyList();
-    }
-
     public boolean isAssignableTo(Type type) {
         return isSubtypeOf(type).matched();
     }
