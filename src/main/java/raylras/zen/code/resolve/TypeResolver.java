@@ -5,6 +5,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Visitor;
+import raylras.zen.code.common.MemberProvider;
+import raylras.zen.util.ResolveUtils;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.scope.Scope;
@@ -16,9 +18,7 @@ import raylras.zen.util.Functions;
 import raylras.zen.util.Operators;
 import raylras.zen.util.Symbols;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public final class TypeResolver {
@@ -50,22 +50,6 @@ public final class TypeResolver {
             return ctx.typeLiteral().stream()
                     .map(this::visit)
                     .collect(Collectors.toList());
-        }
-
-        private Symbol lookupSymbol(ParseTree cst, String simpleName) {
-            Scope scope = unit.lookupScope(cst);
-            Symbol symbol = null;
-            if (scope != null) {
-                symbol = scope.lookupSymbol(simpleName);
-            }
-            if (symbol == null) {
-                for (Symbol globalSymbol : unit.getEnv().getGlobalSymbols()) {
-                    if (simpleName.equals(globalSymbol.getName())) {
-                        symbol = globalSymbol;
-                    }
-                }
-            }
-            return symbol;
         }
 
         @Override
@@ -222,7 +206,7 @@ public final class TypeResolver {
 
         @Override
         public Type visitSimpleNameExpr(SimpleNameExprContext ctx) {
-            Symbol symbol = lookupSymbol(ctx, ctx.simpleName().getText());
+            Symbol symbol = ResolveUtils.lookupSymbol(unit, ctx, ctx.simpleName().getText());
             if (symbol != null) {
                 return symbol.getType();
             } else {
@@ -362,19 +346,28 @@ public final class TypeResolver {
             }
         }
 
+
         @Override
         public Type visitMemberAccessExpr(MemberAccessExprContext ctx) {
-            Type leftType = visit(ctx.expression());
-            if (leftType == null) {
-                return null;
+            List<Symbol> symbols = SymbolResolver.lookupSymbols(ctx.simpleName(), unit);
+            if (symbols.isEmpty()) {
+                Type leftType = visit(ctx.expression());
+                symbols.addAll(Operators.find(leftType, Operator.MEMBER_GET, Operator.MEMBER_SET));
             }
-            String simpleName = ctx.simpleName().getText();
-            for (Symbol member : leftType.getMembers()) {
-                if (Objects.equals(member.getName(), simpleName)) {
-                    return member.getType();
+
+            Type fallbackType = AnyType.INSTANCE;
+            for (Symbol member : symbols) {
+                if (member instanceof OperatorFunctionSymbol op) {
+                    if (op.getOperator() == Operator.MEMBER_GET) {
+                        fallbackType = op.getReturnType();
+                    } else if (op.getOperator() == Operator.MEMBER_SET) {
+                        fallbackType = op.getType().getParameterTypes().get(2);
+                    }
+                    continue;
                 }
+                return member.getType();
             }
-            return leftType;
+            return fallbackType;
         }
 
         @Override
@@ -389,31 +382,34 @@ public final class TypeResolver {
 
         @Override
         public Type visitCallExpr(CallExprContext ctx) {
-            if (ctx.expression() instanceof MemberAccessExprContext) {
-                MemberAccessExprContext memberAccessExpr = (MemberAccessExprContext) ctx.expression();
+            List<Symbol> symbols = SymbolResolver.lookupSymbols(ctx.expression(), unit, true);
+            List<FunctionSymbol> functions = Collections.emptyList();
+            if (!symbols.isEmpty()) {
+                functions = symbols.stream().filter(it -> it instanceof FunctionSymbol)
+                        .map(it -> (FunctionSymbol) it)
+                        .toList();
+            } else if (ctx.expression() instanceof MemberAccessExprContext memberAccessExpr) {
                 Type owner = visit(memberAccessExpr.expression());
-                if (owner == null) {
-                    return null;
-                }
-                List<Type> argumentTypes = new ArrayList<>();
-                for (ExpressionContext expressionContext : ctx.expressionList().expression()) {
-                    Type argumentType = visit(expressionContext);
-                    if (argumentType == null) {
-                        argumentType = AnyType.INSTANCE;
-                    }
-                    argumentTypes.add(argumentType);
-                }
-                List<FunctionSymbol> functions = Symbols.getMembersByName(owner, memberAccessExpr.simpleName().getText(), FunctionSymbol.class);
-                FunctionSymbol matchedFunction = Functions.findBestMatch(functions, argumentTypes);
-                return matchedFunction == null ? null : matchedFunction.getReturnType();
-            } else {
-                Type leftType = visit(ctx.expression());
-                if (leftType instanceof FunctionType) {
-                    return ((FunctionType) leftType).getReturnType();
-                } else {
-                    return null;
+                if (owner != null) {
+                    functions = Symbols.getMembersByName(owner, memberAccessExpr.simpleName().getText(), FunctionSymbol.class);
                 }
             }
+
+            if (functions.isEmpty()) {
+                return null;
+            }
+
+            List<Type> argumentTypes = new ArrayList<>();
+            for (ExpressionContext expressionContext : ctx.expressionList().expression()) {
+                Type argumentType = visit(expressionContext);
+                if (argumentType == null) {
+                    argumentType = AnyType.INSTANCE;
+                }
+                argumentTypes.add(argumentType);
+            }
+
+            FunctionSymbol matchedFunction = Functions.findBestMatch(functions, argumentTypes);
+            return matchedFunction == null ? null : matchedFunction.getReturnType();
         }
 
         @Override
@@ -450,40 +446,19 @@ public final class TypeResolver {
 
         @Override
         public Type visitPrimitiveType(PrimitiveTypeContext ctx) {
-            switch (CSTNodes.getTokenType(ctx.start)) {
-                case ZenScriptLexer.ANY:
-                    return AnyType.INSTANCE;
-
-                case ZenScriptLexer.BYTE:
-                    return ByteType.INSTANCE;
-
-                case ZenScriptLexer.SHORT:
-                    return ShortType.INSTANCE;
-
-                case ZenScriptLexer.INT:
-                    return IntType.INSTANCE;
-
-                case ZenScriptLexer.LONG:
-                    return LongType.INSTANCE;
-
-                case ZenScriptLexer.FLOAT:
-                    return FloatType.INSTANCE;
-
-                case ZenScriptLexer.DOUBLE:
-                    return DoubleType.INSTANCE;
-
-                case ZenScriptLexer.BOOL:
-                    return BoolType.INSTANCE;
-
-                case ZenScriptLexer.VOID:
-                    return VoidType.INSTANCE;
-
-                case ZenScriptLexer.STRING:
-                    return StringType.INSTANCE;
-
-                default:
-                    return null;
-            }
+            return switch (CSTNodes.getTokenType(ctx.start)) {
+                case ZenScriptLexer.ANY -> AnyType.INSTANCE;
+                case ZenScriptLexer.BYTE -> ByteType.INSTANCE;
+                case ZenScriptLexer.SHORT -> ShortType.INSTANCE;
+                case ZenScriptLexer.INT -> IntType.INSTANCE;
+                case ZenScriptLexer.LONG -> LongType.INSTANCE;
+                case ZenScriptLexer.FLOAT -> FloatType.INSTANCE;
+                case ZenScriptLexer.DOUBLE -> DoubleType.INSTANCE;
+                case ZenScriptLexer.BOOL -> BoolType.INSTANCE;
+                case ZenScriptLexer.VOID -> VoidType.INSTANCE;
+                case ZenScriptLexer.STRING -> StringType.INSTANCE;
+                default -> null;
+            };
         }
 
         @Override
