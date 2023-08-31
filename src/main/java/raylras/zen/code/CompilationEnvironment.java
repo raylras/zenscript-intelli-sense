@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class CompilationEnvironment {
@@ -66,6 +67,13 @@ public class CompilationEnvironment {
                 .filter(symbol -> symbol instanceof ClassSymbol)
                 .map(symbol -> (ClassSymbol) symbol)
                 .collect(Collectors.toMap(ClassSymbol::getQualifiedName, ClassSymbol::getType));
+    }
+    public Map<String, ClassSymbol> getClassSymbolMap() {
+        return getUnits().stream()
+                .flatMap(unit -> unit.getTopLevelSymbols().stream())
+                .filter(symbol -> symbol instanceof ClassSymbol)
+                .map(symbol -> (ClassSymbol) symbol)
+                .collect(Collectors.toMap(ClassSymbol::getQualifiedName, Function.identity()));
     }
 
     public Path getRoot() {

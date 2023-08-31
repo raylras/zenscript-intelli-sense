@@ -5,6 +5,7 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.resolve.FormalParameterResolver;
 import raylras.zen.code.resolve.ModifierResolver;
+import raylras.zen.code.resolve.SymbolResolver;
 import raylras.zen.code.resolve.TypeResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.type.*;
@@ -18,13 +19,19 @@ import java.util.stream.Collectors;
 
 public class SymbolFactory {
 
-    private SymbolFactory() {}
+    private SymbolFactory() {
+    }
 
     public static ImportSymbol createImportSymbol(String name, ImportDeclarationContext cst, CompilationUnit unit) {
         class ImportSymbolImpl implements ImportSymbol, Locatable {
             @Override
             public String getQualifiedName() {
                 return cst.qualifiedName().getText();
+            }
+
+            @Override
+            public List<Symbol> getTargets() {
+                return SymbolResolver.lookupSymbols(cst.qualifiedName(), unit);
             }
 
             @Override
@@ -39,8 +46,11 @@ public class SymbolFactory {
 
             @Override
             public Type getType() {
-                // TODO: import static members
-                return unit.getEnv().getClassTypeMap().get(getQualifiedName());
+                List<Symbol> targets = getTargets();
+                if(targets.size() > 1) {
+                    return AnyType.INSTANCE;
+                }
+                return targets.get(0).getType();
             }
 
             @Override
@@ -80,7 +90,6 @@ public class SymbolFactory {
             public List<Symbol> getDeclaredMembers() {
                 return unit.getScope(cst).getSymbols();
             }
-
             @Override
             public List<Symbol> getMembers() {
                 List<Symbol> symbols = new ArrayList<>(getDeclaredMembers());

@@ -11,8 +11,10 @@ import org.eclipse.lsp4j.CompletionItemLabelDetails;
 import org.eclipse.lsp4j.CompletionParams;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Visitor;
+import raylras.zen.code.common.MemberProvider;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.parser.ZenScriptParser.*;
+import raylras.zen.code.resolve.SymbolResolver;
 import raylras.zen.code.resolve.TypeResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.Executable;
@@ -23,14 +25,12 @@ import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.Type;
 import raylras.zen.langserver.provider.data.Keywords;
-import raylras.zen.util.CSTNodes;
-import raylras.zen.util.PackageTree;
-import raylras.zen.util.Range;
-import raylras.zen.util.Ranges;
+import raylras.zen.util.*;
 import raylras.zen.util.l10n.L10N;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class CompletionProvider {
@@ -327,21 +327,29 @@ public final class CompletionProvider {
             // expr.text|
             //     ^____
             if (containsLeading(ctx.DOT())) {
-                Type type = TypeResolver.getType(ctx.expression(), unit);
-                completeMemberSymbols(text, type);
+                doCompleteMemberAccessExpr(text, ctx.expression());
                 return null;
             }
 
             // expr.|
             // ^^^^_
             if (containsLeading(ctx.expression())) {
-                Type type = TypeResolver.getType(ctx.expression(), unit);
-                completeMemberSymbols("", type);
+                doCompleteMemberAccessExpr("", ctx.expression());
                 return null;
             }
 
             visitChildren(ctx);
             return null;
+        }
+
+        private void doCompleteMemberAccessExpr(String text, ExpressionContext expression) {
+            Optional<Symbol> symbol = SymbolResolver.lookupSimpleExpression(expression, unit, true);
+            if(symbol.isPresent() && symbol.get() instanceof MemberProvider memberProvider) {
+                completeMemberSymbols(text, memberProvider.getMembers());
+            } else {
+                Type type = TypeResolver.getType(expression, unit);
+                completeMemberSymbols(text, Symbols.getMember(type, Symbol.class, it -> it.getKind() != Symbol.Kind.FUNCTION));
+            }
         }
 
         @Override
@@ -506,8 +514,8 @@ public final class CompletionProvider {
             }
         }
 
-        private void completeMemberSymbols(String text, Type type) {
-            for (Symbol member : type.getMembers()) {
+        private void completeMemberSymbols(String text, List<Symbol> members) {
+            for (Symbol member : members) {
                 if (member.getName().startsWith(text) && !(member instanceof OperatorFunctionSymbol)) {
                     addToCompletionList(member);
                 }
