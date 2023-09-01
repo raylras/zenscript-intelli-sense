@@ -6,7 +6,6 @@ import org.antlr.v4.runtime.tree.RuleNode;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.MemberProvider;
 import raylras.zen.code.Visitor;
-import raylras.zen.util.ResolveUtils;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.scope.Scope;
