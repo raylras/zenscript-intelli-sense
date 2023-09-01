@@ -44,7 +44,7 @@ generateGrammarSource {
 }
 
 task cleanServer(type: Delete) {
-    delete './vscode-extension/server'
+    delete './vscode-extension/server/*'
 }
 
 task copyServerJar(type: Copy) {
