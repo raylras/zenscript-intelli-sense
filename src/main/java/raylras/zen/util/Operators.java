@@ -73,4 +73,9 @@ public class Operators {
         };
         return operatorType.getOperators().getOrDefault(literal, Operator.ERROR);
     }
+
+    public static Operator of(String literal, Operator.OperatorType type) {
+        return type.getOperators().getOrDefault(literal, Operator.ERROR);
+    }
+
 }
