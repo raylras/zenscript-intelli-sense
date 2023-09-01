@@ -239,7 +239,7 @@ public final class TypeResolver {
         @Override
         public Type visitBinaryExpr(BinaryExprContext ctx) {
             Type leftType = visit(ctx.left);
-            Operator operator = Operators.literal(ctx.op.getText(), 2);
+            Operator operator = Operators.of(ctx.op.getText(), 2);
             if (operator != Operator.ERROR) {
                 return Operators.getBinaryOperatorResult(leftType, operator, visit(ctx.right));
             } else {

@@ -45,7 +45,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 //          capabilities.setSemanticTokensProvider(new SemanticTokensWithRegistrationOptions(Semantics.SEMANTIC_TOKENS_LEGEND, true));
 //          capabilities.setReferencesProvider(true);
 //          capabilities.setDeclarationProvider(true);
-//          capabilities.setDefinitionProvider(true);
+          capabilities.setDefinitionProvider(true);
 //          capabilities.setTypeDefinitionProvider(true);
             capabilities.setHoverProvider(true);
 //          capabilities.setRenameProvider(true);

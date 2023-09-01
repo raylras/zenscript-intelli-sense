@@ -64,11 +64,11 @@ public class Operators {
         }
     }
 
-    public static Operator literal(String literal, int params) {
+    public static Operator of(String literal, int params) {
         Operator.OperatorType operatorType = switch (params) {
-            case 1 -> Operator.OperatorType.UNARY;
-            case 2 -> Operator.OperatorType.BINARY;
-            case 3 -> Operator.OperatorType.TRINARY;
+            case 0 -> Operator.OperatorType.UNARY;
+            case 1 -> Operator.OperatorType.BINARY;
+            case 2 -> Operator.OperatorType.TRINARY;
             default -> throw new IllegalArgumentException("No such operator for " + params + " parameters");
         };
         return operatorType.getOperators().getOrDefault(literal, Operator.ERROR);

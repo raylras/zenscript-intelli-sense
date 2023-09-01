@@ -1,13 +1,14 @@
 package raylras.zen.code.scope;
 
 import org.antlr.v4.runtime.tree.ParseTree;
+import raylras.zen.code.MemberProvider;
 import raylras.zen.code.symbol.Symbol;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class Scope {
+public class Scope implements MemberProvider {
 
     private final Scope parent;
     private final List<Symbol> symbols = new ArrayList<>();
@@ -72,6 +73,11 @@ public class Scope {
 
     public ParseTree getCst() {
         return cst;
+    }
+
+    @Override
+    public List<Symbol> getMembers() {
+        return symbols;
     }
 
 }

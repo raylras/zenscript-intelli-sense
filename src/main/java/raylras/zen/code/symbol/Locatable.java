@@ -12,4 +12,10 @@ public interface Locatable {
 
     Range getRange();
 
+    Range getSelectionRange();
+
+    default String getUri() {
+        return getUnit().getPath().toUri().toString();
+    }
+
 }
