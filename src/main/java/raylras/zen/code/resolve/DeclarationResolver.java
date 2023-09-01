@@ -89,7 +89,7 @@ public final class DeclarationResolver {
         @Override
         public void enterExpandFunctionDeclaration(ExpandFunctionDeclarationContext ctx) {
             String name = CSTNodes.getText(ctx.simpleName());
-            FunctionSymbol symbol = SymbolFactory.createFunctionSymbol(name, ctx, unit);
+            ExpandFunctionSymbol symbol = SymbolFactory.createExpandFunctionSymbol(name, ctx, unit);
             enterSymbol(ctx, symbol);
             enterScope(new Scope(currentScope(), ctx));
         }

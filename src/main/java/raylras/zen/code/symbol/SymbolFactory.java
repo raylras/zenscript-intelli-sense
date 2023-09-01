@@ -403,6 +403,63 @@ public class SymbolFactory {
         return new OperatorFunctionSymbolImpl();
     }
 
+    public static ExpandFunctionSymbol createExpandFunctionSymbol(String name, ExpandFunctionDeclarationContext cst, CompilationUnit unit) {
+        class ExpandFunctionSymbolImpl implements ExpandFunctionSymbol, Locatable {
+
+            @Override
+            public List<ParameterSymbol> getParameterList() {
+                return FormalParameterResolver.getFormalParameterList(cst, unit);
+            }
+
+            @Override
+            public Type getReturnType() {
+                return getType().getReturnType();
+            }
+
+            @Override
+            public Type getOwner() {
+                return TypeResolver.getType(cst.typeLiteral(), unit);
+            }
+
+            @Override
+            public String getName() {
+                return name;
+            }
+
+            @Override
+            public Kind getKind() {
+                return Kind.FUNCTION;
+            }
+
+            @Override
+            public FunctionType getType() {
+                Type type = TypeResolver.getType(cst, unit);
+                return (type instanceof FunctionType) ? (FunctionType) type : new FunctionType(AnyType.INSTANCE);
+            }
+
+            @Override
+            public Modifier getModifier() {
+                return Modifier.EXPAND;
+            }
+
+            @Override
+            public ParseTree getCst() {
+                return cst;
+            }
+
+            @Override
+            public CompilationUnit getUnit() {
+                return unit;
+            }
+
+            @Override
+            public Range getRange() {
+                return Ranges.of(cst);
+            }
+        }
+        return new ExpandFunctionSymbolImpl();
+    }
+
     public static ParameterSymbol createParameterSymbol(String name, FormalParameterContext cst, CompilationUnit unit) {
         class ParameterSymbolImpl implements ParameterSymbol, Locatable {
             @Override
