@@ -1,11 +1,12 @@
 package raylras.zen.code.type;
 
+import raylras.zen.code.MemberProvider;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
 
 import java.util.List;
 
-public class MapEntryType extends Type {
+public class MapEntryType extends Type implements MemberProvider {
 
     private final Type keyType;
     private final Type valueType;

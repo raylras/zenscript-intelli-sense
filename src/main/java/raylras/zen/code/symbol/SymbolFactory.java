@@ -18,13 +18,20 @@ import java.util.stream.Collectors;
 
 public class SymbolFactory {
 
-    private SymbolFactory() {}
+    private SymbolFactory() {
+    }
 
     public static ImportSymbol createImportSymbol(String name, ImportDeclarationContext cst, CompilationUnit unit) {
         class ImportSymbolImpl implements ImportSymbol, Locatable {
             @Override
             public String getQualifiedName() {
                 return cst.qualifiedName().getText();
+            }
+
+            @Override
+            public List<Symbol> getTargets() {
+                // TODO: import static members and implement this
+                return Collections.emptyList();
             }
 
             @Override
@@ -80,7 +87,6 @@ public class SymbolFactory {
             public List<Symbol> getDeclaredMembers() {
                 return unit.getScope(cst).getSymbols();
             }
-
             @Override
             public List<Symbol> getMembers() {
                 List<Symbol> symbols = new ArrayList<>(getDeclaredMembers());

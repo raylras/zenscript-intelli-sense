@@ -3,17 +3,23 @@ package raylras.zen.util;
 import raylras.zen.code.symbol.Operator;
 import raylras.zen.code.symbol.OperatorFunctionSymbol;
 import raylras.zen.code.symbol.ParameterSymbol;
+import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.AnyType;
 import raylras.zen.code.type.SubtypeResult;
 import raylras.zen.code.type.Type;
 import raylras.zen.code.type.IntersectionType;
 
-import java.util.Comparator;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class Operators {
     public static List<OperatorFunctionSymbol> find(Type type, Operator operator) {
         return Symbols.getMember(type, OperatorFunctionSymbol.class, it -> it.getOperator() == operator);
+    }
+
+    public static List<OperatorFunctionSymbol> find(Type type, Operator... operators) {
+        Set<Operator> candidates = Arrays.stream(operators).collect(Collectors.toSet());
+        return Symbols.getMember(type, OperatorFunctionSymbol.class, it -> candidates.contains(it.getOperator()));
     }
 
     public static Type getBinaryOperatorResult(Type type, Operator operator, Type rightType) {
@@ -28,6 +34,13 @@ public class Operators {
                 .findFirst()
                 .map(OperatorFunctionSymbol::getReturnType)
                 .orElse(AnyType.INSTANCE);
+    }
+
+    public static Optional<OperatorFunctionSymbol> findBestBinaryOperator(List<Symbol> symbols, Type rightType) {
+        return symbols.stream()
+                .filter(it -> it instanceof OperatorFunctionSymbol)
+                .map(it -> (OperatorFunctionSymbol) it)
+                .min(Comparator.comparing(it -> rightType.isSubtypeOf(it.getParameterList().get(0).getType()), SubtypeResult.PRIORITY_COMPARATOR));
     }
 
     public static Type getTrinaryOperatorResult(Type type, Operator operator, Type rightType1, Type rightType2) {

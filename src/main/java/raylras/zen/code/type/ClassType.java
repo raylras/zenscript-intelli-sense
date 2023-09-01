@@ -1,12 +1,13 @@
 package raylras.zen.code.type;
 
+import raylras.zen.code.MemberProvider;
 import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.util.Operators;
 
 import java.util.List;
 
-public class ClassType extends Type {
+public class ClassType extends Type implements MemberProvider {
 
     private final ClassSymbol symbol;
 

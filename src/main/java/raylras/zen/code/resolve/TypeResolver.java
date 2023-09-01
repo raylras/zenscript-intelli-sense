@@ -4,7 +4,9 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import raylras.zen.code.CompilationUnit;
+import raylras.zen.code.MemberProvider;
 import raylras.zen.code.Visitor;
+import raylras.zen.util.ResolveUtils;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.scope.Scope;
@@ -370,11 +372,11 @@ public final class TypeResolver {
         @Override
         public Type visitMemberAccessExpr(MemberAccessExprContext ctx) {
             Type leftType = visit(ctx.expression());
-            if (leftType == null) {
+            if (!(leftType instanceof MemberProvider memberProvider)) {
                 return null;
             }
             String simpleName = ctx.simpleName().getText();
-            for (Symbol member : leftType.getMembers()) {
+            for (Symbol member : memberProvider.getMembers()) {
                 if (Objects.equals(member.getName(), simpleName)) {
                     return member.getType();
                 }
@@ -455,40 +457,19 @@ public final class TypeResolver {
 
         @Override
         public Type visitPrimitiveType(PrimitiveTypeContext ctx) {
-            switch (CSTNodes.getTokenType(ctx.start)) {
-                case ZenScriptLexer.ANY:
-                    return AnyType.INSTANCE;
-
-                case ZenScriptLexer.BYTE:
-                    return ByteType.INSTANCE;
-
-                case ZenScriptLexer.SHORT:
-                    return ShortType.INSTANCE;
-
-                case ZenScriptLexer.INT:
-                    return IntType.INSTANCE;
-
-                case ZenScriptLexer.LONG:
-                    return LongType.INSTANCE;
-
-                case ZenScriptLexer.FLOAT:
-                    return FloatType.INSTANCE;
-
-                case ZenScriptLexer.DOUBLE:
-                    return DoubleType.INSTANCE;
-
-                case ZenScriptLexer.BOOL:
-                    return BoolType.INSTANCE;
-
-                case ZenScriptLexer.VOID:
-                    return VoidType.INSTANCE;
-
-                case ZenScriptLexer.STRING:
-                    return StringType.INSTANCE;
-
-                default:
-                    return null;
-            }
+            return switch (CSTNodes.getTokenType(ctx.start)) {
+                case ZenScriptLexer.ANY -> AnyType.INSTANCE;
+                case ZenScriptLexer.BYTE -> ByteType.INSTANCE;
+                case ZenScriptLexer.SHORT -> ShortType.INSTANCE;
+                case ZenScriptLexer.INT -> IntType.INSTANCE;
+                case ZenScriptLexer.LONG -> LongType.INSTANCE;
+                case ZenScriptLexer.FLOAT -> FloatType.INSTANCE;
+                case ZenScriptLexer.DOUBLE -> DoubleType.INSTANCE;
+                case ZenScriptLexer.BOOL -> BoolType.INSTANCE;
+                case ZenScriptLexer.VOID -> VoidType.INSTANCE;
+                case ZenScriptLexer.STRING -> StringType.INSTANCE;
+                default -> null;
+            };
         }
 
         @Override
