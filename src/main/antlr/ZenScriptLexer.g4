@@ -20,7 +20,7 @@ IN:                     'in';
 HAS:                    'has';
 INSTANCEOF:             'instanceof';
 THIS:                   'this';
-SUPER:                  'super';
+VERSION:                'version';
 
 ANY:                    'any';
 BYTE:                   'byte';
@@ -52,6 +52,8 @@ EXTENDS:                'extends';  // dzs
 OPERATOR:               'operator'; // dzs
 COMPARE:                'compare';  // dzs
 ITERATOR:               'iterator'; // dzs
+
+ORDERLY:                'orderly';  // zenutils
 
 // Separators
 

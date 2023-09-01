@@ -5,12 +5,14 @@ import raylras.zen.code.symbol.OperatorFunctionSymbol;
 import raylras.zen.code.symbol.ParameterSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.AnyType;
+import raylras.zen.code.type.IntersectionType;
 import raylras.zen.code.type.SubtypeResult;
 import raylras.zen.code.type.Type;
-import raylras.zen.code.type.UnionType;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 public class Operators {
     public static List<OperatorFunctionSymbol> find(Type type, Operator operator) {
@@ -18,7 +20,7 @@ public class Operators {
     }
 
     public static List<OperatorFunctionSymbol> find(Type type, Operator... operators) {
-        Set<Operator> candidates = Arrays.stream(operators).collect(Collectors.toSet());
+        Set<Operator> candidates = Set.of(operators);
         return Symbols.getMember(type, OperatorFunctionSymbol.class, it -> candidates.contains(it.getOperator()));
     }
 
@@ -55,8 +57,8 @@ public class Operators {
 
     public static boolean hasCaster(Type type, Type target) {
         Type result = getUnaryOperatorResult(type, Operator.AS);
-        if (result instanceof UnionType unionType) {
-            return unionType.getTypeList().contains(target);
+        if (result instanceof IntersectionType intersectionType) {
+            return intersectionType.getTypeList().contains(target);
         } else {
             return target.equals(type);
         }

@@ -29,10 +29,12 @@ alias
 simpleName
     : IDENTIFIER
     | 'to'
+    | 'version'
     | 'extends'  // dzs
     | 'operator' // dzs
     | 'compare'  // dzs
     | 'iterator' // dzs
+    | 'orderly'  // zenutils
     ;
 
 functionDeclaration
@@ -64,6 +66,7 @@ defaultValue
 
 returnType
     : typeLiteral
+    | intersectionType //dzs
     ;
 
 functionBody
@@ -115,6 +118,7 @@ constructorBody
 
 variableDeclaration
     : prefix=('var' | 'val' | 'static' | 'global') simpleName ('as' typeLiteral)? ('=' initializer)? ';'
+    | prefix=('var' | 'val' | 'static' | 'global') simpleName 'as' intersectionType ';' //dzs
     ;
 
 initializer
@@ -122,7 +126,7 @@ initializer
     ;
 
 operatorFunctionDeclaration // dzs
-    : 'operator' operator '(' formalParameterList ')' 'as' typeLiteral ('&' typeLiteral)* ';'
+    : 'operator' operator '(' formalParameterList ')' 'as' intersectionType ';'
     ;
 
 operator // dzs
@@ -148,6 +152,10 @@ operator // dzs
     | 'as'
     ;
 
+intersectionType //dzs
+    : typeLiteral ('&' typeLiteral)*
+    ;
+
 statement
     : blockStatement
     | returnStatement
@@ -158,6 +166,7 @@ statement
     | whileStatement
     | variableDeclaration
     | expressionStatement
+    | versionStatement
     ;
 
 blockStatement
@@ -190,6 +199,10 @@ elsePart
 
 foreachStatement
     : 'for' foreachVariableList 'in' expression foreachBody
+    ;
+
+versionStatement
+    : 'version' INT_LITERAL ';'
     ;
 
 foreachVariableList
@@ -273,11 +286,11 @@ mapEntry
     ;
 
 typeLiteral
-    : qualifiedName                                  #classType
-    | 'function' '(' typeLiteralList ')' returnType  #functionType
-    | '[' typeLiteral ']'                            #listType
-    | typeLiteral '['']'                             #arrayType
-    | value=typeLiteral '[' key=typeLiteral ']'      #mapType
+    : qualifiedName                                                   #classType
+    | 'function' '(' typeLiteralList ')' returnType                   #functionType
+    | '[' typeLiteral ']'                                             #listType
+    | typeLiteral '['']'                                              #arrayType
+    | value=typeLiteral '[' key=typeLiteral ']' ('$' 'orderly')?      #mapType
     | ANY     #primitiveType
     | BYTE    #primitiveType
     | SHORT   #primitiveType
