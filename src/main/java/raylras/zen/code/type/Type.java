@@ -22,6 +22,7 @@ public abstract class Type {
         return SubtypeResult.MISMATCH;
     }
 
+    @Override
     public abstract String toString();
 
 }
