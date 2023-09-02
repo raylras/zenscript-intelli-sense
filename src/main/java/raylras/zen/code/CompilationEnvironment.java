@@ -92,18 +92,19 @@ public class CompilationEnvironment {
         return root.toString();
     }
 
-    public MemberProvider getExpandMembers(Type type) {
+    public List<Symbol> getExpandMembers(Type type) {
         List<ExpandFunctionSymbol> expandFunctions = getUnits().stream()
                 .flatMap(unit -> unit.getTopLevelSymbols().stream())
                 .filter(ExpandFunctionSymbol.class::isInstance)
                 .map(ExpandFunctionSymbol.class::cast)
                 .filter(symbol -> type.isSubtypeOf(symbol.getOwner()).priority <= SubtypeResult.INHERIT.priority)
                 .toList();
-        MemberProvider memberProvider = MemberProvider.of(GenericUtils.castToSuperExplicitly(expandFunctions));
-        if (!(type instanceof ClassType)) {
-            return memberProvider.merge(getPrimitiveTypeExpandMembers(type));
+        if (type instanceof ClassType) {
+            return GenericUtils.castToSuperExplicitly(expandFunctions);
         } else {
-            return memberProvider;
+            List<Symbol> symbols = new ArrayList<>(expandFunctions);
+            symbols.addAll(getPrimitiveTypeExpandMembers(type));
+            return symbols;
         }
     }
 
@@ -117,11 +118,11 @@ public class CompilationEnvironment {
         return new BracketHandlerManager(Collections.emptyList());
     }
 
-    private MemberProvider getPrimitiveTypeExpandMembers(Type type) {
+    private List<Symbol> getPrimitiveTypeExpandMembers(Type type) {
         String typeName = type.toString();
         Map<String, ClassType> classTypeMap = getClassTypeMap();
         ClassType dumpClassType = classTypeMap.get(typeName);
-        return dumpClassType != null ? dumpClassType : MemberProvider.EMPTY;
+        return dumpClassType != null ? dumpClassType.getMembers() : Collections.emptyList();
     }
 
 }

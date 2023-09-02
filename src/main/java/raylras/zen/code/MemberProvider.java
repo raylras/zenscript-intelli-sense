@@ -43,7 +43,7 @@ public interface MemberProvider {
 
     default MemberProvider withExpandMembers(CompilationEnvironment env) {
         if (this instanceof Type type) {
-            return merge(env.getExpandMembers(type));
+            return merge(() -> env.getExpandMembers(type));
         } else {
             return this;
         }
