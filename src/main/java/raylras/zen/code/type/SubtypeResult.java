@@ -16,7 +16,7 @@ public enum SubtypeResult {
     }
 
     public boolean matched() {
-        return this.priority > MISMATCH.priority;
+        return this.priority < MISMATCH.priority;
     }
 
     public static SubtypeResult higher(SubtypeResult a, SubtypeResult b) {
