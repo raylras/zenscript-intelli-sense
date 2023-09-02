@@ -19,17 +19,17 @@ class RangeTest {
     static Stream<Arguments> contains() {
         return Stream.of(
                 // single line
-                Arguments.of(new Range(0, 1, 0, 3), new Range(0, 0, 0, 1), false),
-                Arguments.of(new Range(0, 1, 0, 3), new Range(0, 1, 0, 2), true),
-                Arguments.of(new Range(0, 1, 0, 3), new Range(0, 2, 0, 3), true),
-                Arguments.of(new Range(0, 1, 0, 3), new Range(0, 3, 0, 4), false),
+                Arguments.of(Range.of(0, 1, 0, 3), Range.of(0, 0, 0, 1), false),
+                Arguments.of(Range.of(0, 1, 0, 3), Range.of(0, 1, 0, 2), true),
+                Arguments.of(Range.of(0, 1, 0, 3), Range.of(0, 2, 0, 3), true),
+                Arguments.of(Range.of(0, 1, 0, 3), Range.of(0, 3, 0, 4), false),
                 // multi lines
-                Arguments.of(new Range(0, 2, 2, 0), new Range(0, 0, 2, 0), false),
-                Arguments.of(new Range(0, 2, 2, 0), new Range(0, 2, 0, 3), true),
-                Arguments.of(new Range(0, 2, 2, 0), new Range(0, 2, 1, 3), true),
-                Arguments.of(new Range(0, 2, 2, 0), new Range(0, 2, 2, 0), true),
-                Arguments.of(new Range(0, 2, 2, 0), new Range(0, 2, 2, 3), false),
-                Arguments.of(new Range(0, 2, 2, 0), new Range(2, 0, 2, 3), false)
+                Arguments.of(Range.of(0, 2, 2, 0), Range.of(0, 0, 2, 0), false),
+                Arguments.of(Range.of(0, 2, 2, 0), Range.of(0, 2, 0, 3), true),
+                Arguments.of(Range.of(0, 2, 2, 0), Range.of(0, 2, 1, 3), true),
+                Arguments.of(Range.of(0, 2, 2, 0), Range.of(0, 2, 2, 0), true),
+                Arguments.of(Range.of(0, 2, 2, 0), Range.of(0, 2, 2, 3), false),
+                Arguments.of(Range.of(0, 2, 2, 0), Range.of(2, 0, 2, 3), false)
         );
     }
 
