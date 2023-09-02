@@ -11,6 +11,7 @@ import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Range;
 import raylras.zen.util.Ranges;
 
+import java.util.Collection;
 import java.util.List;
 
 public class DefinitionProvider {
@@ -18,7 +19,7 @@ public class DefinitionProvider {
     public static List<LocationLink> definition(CompilationUnit unit, DefinitionParams params) {
         Range cursor = Ranges.of(params.getPosition());
         ParseTree cst = CSTNodes.getCstAtLineAndColumn(unit.getParseTree(), cursor.startLine, cursor.startColumn);
-        List<Symbol> symbols = SymbolResolver.getSymbol(cst, unit);
+        Collection<Symbol> symbols = SymbolResolver.lookupSymbol(cst, unit);
         return symbols.stream()
                 .filter(symbol -> symbol instanceof Locatable)
                 .map(symbol -> {

@@ -1,7 +1,7 @@
 package raylras.zen.code.type;
 
 import raylras.zen.code.CompilationEnvironment;
-import raylras.zen.code.MemberProvider;
+import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.symbol.Operator;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 
-public class ArrayType extends Type implements MemberProvider {
+public class ArrayType extends Type implements SymbolProvider {
 
     private final Type elementType;
 
@@ -23,8 +23,8 @@ public class ArrayType extends Type implements MemberProvider {
     }
 
     @Override
-    public List<Symbol> getMembers() {
-        return SymbolFactory.members()
+    public List<Symbol> getSymbols() {
+        return SymbolFactory.builtinSymbols()
                 .variable("length", IntType.INSTANCE, Symbol.Modifier.VAL)
                 .operator(Operator.INDEX_GET, elementType, params -> params.parameter("index", IntType.INSTANCE))
                 .operator(Operator.INDEX_SET, elementType, params ->

@@ -1,14 +1,14 @@
 package raylras.zen.code.type;
 
 import raylras.zen.code.CompilationEnvironment;
-import raylras.zen.code.MemberProvider;
+import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.symbol.Operator;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
 
 import java.util.List;
 
-public class StringType extends Type implements MemberProvider {
+public class StringType extends Type implements SymbolProvider {
 
     public static final StringType INSTANCE = new StringType();
 
@@ -29,9 +29,8 @@ public class StringType extends Type implements MemberProvider {
     }
 
     @Override
-    public List<Symbol> getMembers() {
-        //FIXME: read string.dzs
-        return SymbolFactory.members()
+    public List<Symbol> getSymbols() {
+        return SymbolFactory.builtinSymbols()
                 .operator(Operator.ADD, this, params -> params.parameter("str", this))
                 .operator(Operator.CAT, this, params -> params.parameter("str", this))
                 .operator(Operator.INDEX_GET, this, params -> params.parameter("index", IntType.INSTANCE))
@@ -39,4 +38,5 @@ public class StringType extends Type implements MemberProvider {
                 .operator(Operator.HAS, BoolType.INSTANCE, params -> params.parameter("str", this))
                 .build();
     }
+
 }

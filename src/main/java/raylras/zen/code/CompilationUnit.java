@@ -15,7 +15,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class CompilationUnit {
+public class CompilationUnit implements SymbolProvider {
 
     public static final String ZS_FILE_EXTENSION = ".zs";
     public static final Set<String> DZS_FILE_EXTENSIONS = Set.of(".d.zs", ".dzs");
@@ -76,11 +76,12 @@ public class CompilationUnit {
         return scopeProp.values();
     }
 
+    @Override
     public Collection<Symbol> getSymbols() {
         return symbolProp.values();
     }
 
-    public Collection<Symbol> getTopLevelSymbols() {
+    public List<Symbol> getTopLevelSymbols() {
         return getScope(parseTree).getSymbols();
     }
 
@@ -171,5 +172,4 @@ public class CompilationUnit {
             return sb.toString();
         }
     }
-
 }

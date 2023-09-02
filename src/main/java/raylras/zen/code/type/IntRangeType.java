@@ -1,6 +1,6 @@
 package raylras.zen.code.type;
 
-import raylras.zen.code.MemberProvider;
+import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.symbol.Operator;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
@@ -8,7 +8,7 @@ import raylras.zen.code.symbol.SymbolFactory;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
-public class IntRangeType extends Type implements MemberProvider {
+public class IntRangeType extends Type implements SymbolProvider {
 
     public static final IntRangeType INSTANCE = new IntRangeType();
 
@@ -18,8 +18,8 @@ public class IntRangeType extends Type implements MemberProvider {
     }
 
     @Override
-    public List<Symbol> getMembers() {
-        return SymbolFactory.members()
+    public List<Symbol> getSymbols() {
+        return SymbolFactory.builtinSymbols()
                 .variable("from", IntType.INSTANCE, Symbol.Modifier.VAL)
                 .variable("to", IntType.INSTANCE, Symbol.Modifier.VAL)
                 .operator(Operator.ITERATOR, new ListType(IntType.INSTANCE), UnaryOperator.identity())

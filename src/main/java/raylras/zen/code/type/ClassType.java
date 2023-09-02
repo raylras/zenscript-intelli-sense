@@ -1,13 +1,13 @@
 package raylras.zen.code.type;
 
 import raylras.zen.code.CompilationEnvironment;
-import raylras.zen.code.MemberProvider;
+import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
 
 import java.util.List;
 
-public class ClassType extends Type implements MemberProvider {
+public class ClassType extends Type implements SymbolProvider {
 
     private final ClassSymbol symbol;
 
@@ -20,7 +20,7 @@ public class ClassType extends Type implements MemberProvider {
     }
 
     @Override
-    public List<Symbol> getMembers() {
+    public List<Symbol> getSymbols() {
         return symbol.getMembers();
     }
 

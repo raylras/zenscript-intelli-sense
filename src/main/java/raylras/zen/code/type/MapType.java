@@ -1,7 +1,7 @@
 package raylras.zen.code.type;
 
 import raylras.zen.code.CompilationEnvironment;
-import raylras.zen.code.MemberProvider;
+import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.symbol.Operator;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
@@ -9,7 +9,7 @@ import raylras.zen.code.symbol.SymbolFactory;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
-public class MapType extends Type implements MemberProvider {
+public class MapType extends Type implements SymbolProvider {
 
     private final Type keyType;
     private final Type valueType;
@@ -28,8 +28,8 @@ public class MapType extends Type implements MemberProvider {
     }
 
     @Override
-    public List<Symbol> getMembers() {
-        return SymbolFactory.members()
+    public List<Symbol> getSymbols() {
+        return SymbolFactory.builtinSymbols()
                 .variable("length", IntType.INSTANCE, Symbol.Modifier.VAL)
                 .variable("keys", new ArrayType(keyType), Symbol.Modifier.VAL)
                 .variable("keySet", new ArrayType(keyType), Symbol.Modifier.VAL)

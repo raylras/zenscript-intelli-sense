@@ -4,7 +4,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.MemberProvider;
+import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser.*;
@@ -372,11 +372,11 @@ public final class TypeResolver {
         @Override
         public Type visitMemberAccessExpr(MemberAccessExprContext ctx) {
             Type leftType = visit(ctx.expression());
-            if (!(leftType instanceof MemberProvider memberProvider)) {
+            if (!(leftType instanceof SymbolProvider symbolProvider)) {
                 return null;
             }
             String simpleName = ctx.simpleName().getText();
-            for (Symbol member : memberProvider.withExpandMembers(unit.getEnv()).getMembers()) {
+            for (Symbol member : symbolProvider.withExpands(unit.getEnv())) {
                 if (Objects.equals(member.getName(), simpleName)) {
                     return member.getType();
                 }
