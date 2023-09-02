@@ -1,5 +1,6 @@
 package raylras.zen.code.type;
 
+import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.MemberProvider;
 import raylras.zen.code.symbol.Operator;
 import raylras.zen.code.symbol.Symbol;
@@ -11,7 +12,7 @@ import java.util.function.UnaryOperator;
 public abstract class NumberType extends Type implements MemberProvider {
 
     @Override
-    public SubtypeResult isSubtypeOf(Type type) {
+    public SubtypeResult isSubtypeOf(Type type, CompilationEnvironment env) {
         if (this == type) {
             return SubtypeResult.SELF;
         }
@@ -21,7 +22,7 @@ public abstract class NumberType extends Type implements MemberProvider {
         if (type == StringType.INSTANCE) {
             return SubtypeResult.CASTER;
         }
-        return super.isSubtypeOf(type);
+        return super.isSubtypeOf(type, env);
     }
 
     @Override

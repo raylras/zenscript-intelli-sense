@@ -1,5 +1,6 @@
 package raylras.zen.code.type;
 
+import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.MemberProvider;
 import raylras.zen.code.symbol.Operator;
 import raylras.zen.code.symbol.Symbol;
@@ -35,7 +36,7 @@ public class ArrayType extends Type implements MemberProvider {
     }
 
     @Override
-    public SubtypeResult isSubtypeOf(Type type) {
+    public SubtypeResult isSubtypeOf(Type type, CompilationEnvironment env) {
         if (this.equals(type)) {
             return SubtypeResult.SELF;
         }
@@ -44,13 +45,13 @@ public class ArrayType extends Type implements MemberProvider {
         }
         if (type instanceof ArrayType) {
             ArrayType that = (ArrayType) type;
-            return this.elementType.isSubtypeOf(that.getElementType());
+            return this.elementType.isSubtypeOf(that.getElementType(), env);
         }
         if (type instanceof ListType) {
             ListType that = (ListType) type;
-            return SubtypeResult.higher(this.elementType.isSubtypeOf(that.getElementType()), SubtypeResult.CASTER);
+            return SubtypeResult.higher(this.elementType.isSubtypeOf(that.getElementType(), env), SubtypeResult.CASTER);
         }
-        return super.isSubtypeOf(type);
+        return super.isSubtypeOf(type, env);
     }
 
     @Override

@@ -97,7 +97,7 @@ public class CompilationEnvironment {
                 .flatMap(unit -> unit.getTopLevelSymbols().stream())
                 .filter(ExpandFunctionSymbol.class::isInstance)
                 .map(ExpandFunctionSymbol.class::cast)
-                .filter(symbol -> type.isSubtypeOf(symbol.getOwner()).priority <= SubtypeResult.INHERIT.priority)
+                .filter(symbol -> type.isSubtypeOf(symbol.getOwner(), this).priority <= SubtypeResult.INHERIT.priority)
                 .toList();
         if (type instanceof ClassType) {
             return GenericUtils.castToSuperExplicitly(expandFunctions);

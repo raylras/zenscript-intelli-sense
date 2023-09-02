@@ -1,5 +1,6 @@
 package raylras.zen.code.type;
 
+import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.MemberProvider;
 import raylras.zen.code.symbol.Operator;
 import raylras.zen.code.symbol.Symbol;
@@ -13,11 +14,11 @@ public class BoolType extends Type implements MemberProvider {
     public static final BoolType INSTANCE = new BoolType();
 
     @Override
-    public SubtypeResult isSubtypeOf(Type type) {
+    public SubtypeResult isSubtypeOf(Type type, CompilationEnvironment env) {
         if (type == StringType.INSTANCE) {
             return SubtypeResult.CASTER;
         }
-        return super.isSubtypeOf(type);
+        return super.isSubtypeOf(type, env);
     }
 
     @Override

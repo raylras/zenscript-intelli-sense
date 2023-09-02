@@ -1,5 +1,6 @@
 package raylras.zen.code.type;
 
+import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.MemberProvider;
 import raylras.zen.code.symbol.Operator;
 import raylras.zen.code.symbol.Symbol;
@@ -17,14 +18,14 @@ public class StringType extends Type implements MemberProvider {
     }
 
     @Override
-    public SubtypeResult isSubtypeOf(Type type) {
+    public SubtypeResult isSubtypeOf(Type type, CompilationEnvironment env) {
         if (this.equals(type)) {
             return SubtypeResult.SELF;
         }
         if (type instanceof NumberType || BoolType.INSTANCE.equals(type)) {
             return SubtypeResult.CASTER;
         }
-        return super.isSubtypeOf(type);
+        return super.isSubtypeOf(type, env);
     }
 
     @Override

@@ -1,5 +1,6 @@
 package raylras.zen.code.type;
 
+import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.MemberProvider;
 import raylras.zen.code.symbol.Operator;
 import raylras.zen.code.symbol.Symbol;
@@ -50,14 +51,14 @@ public class MapType extends Type implements MemberProvider {
     }
 
     @Override
-    public SubtypeResult isSubtypeOf(Type type) {
+    public SubtypeResult isSubtypeOf(Type type, CompilationEnvironment env) {
         if (type instanceof MapType) {
             MapType that = ((MapType) type);
-            SubtypeResult key = this.keyType.isSubtypeOf(that.keyType);
-            SubtypeResult value = this.valueType.isSubtypeOf(that.valueType);
+            SubtypeResult key = this.keyType.isSubtypeOf(that.keyType, env);
+            SubtypeResult value = this.valueType.isSubtypeOf(that.valueType, env);
             return SubtypeResult.higher(key, value);
         }
-        return super.isSubtypeOf(type);
+        return super.isSubtypeOf(type, env);
     }
 
     @Override

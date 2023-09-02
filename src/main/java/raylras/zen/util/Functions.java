@@ -1,5 +1,6 @@
 package raylras.zen.util;
 
+import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.symbol.FunctionSymbol;
 import raylras.zen.code.symbol.ParameterSymbol;
 import raylras.zen.code.type.ClassType;
@@ -12,13 +13,13 @@ import java.util.Optional;
 
 public class Functions {
 
-    public static boolean areArgumentsMatch(FunctionSymbol function, List<Type> argumentTypeList) {
+    public static boolean areArgumentsMatch(FunctionSymbol function, List<Type> argumentTypeList, CompilationEnvironment env) {
         List<ParameterSymbol> parameterList = function.getParameterList();
         for (int i = 0; i < parameterList.size(); i++) {
             ParameterSymbol parameter = parameterList.get(i);
             if (i < argumentTypeList.size()) {
                 Type argument = argumentTypeList.get(i);
-                if (!argument.isAssignableTo(parameter.getType())) {
+                if (!argument.isAssignableTo(parameter.getType(), env)) {
                     return false;
                 }
             } else if (!parameter.isOptional()) {
@@ -28,7 +29,7 @@ public class Functions {
         return true;
     }
 
-    public static FunctionSymbol findBestMatch(List<FunctionSymbol> functions, List<Type> argumentTypeList) {
+    public static FunctionSymbol findBestMatch(List<FunctionSymbol> functions, List<Type> argumentTypeList, CompilationEnvironment env) {
         FunctionSymbol found = null;
         SubtypeResult foundMatchingResult = SubtypeResult.MISMATCH;
         for (FunctionSymbol function : functions) {
@@ -41,7 +42,7 @@ public class Functions {
                 if (i < argumentTypeList.size()) {
                     Type argType = argumentTypeList.get(i);
                     Type paramType = parameterList.get(i).getType();
-                    functionMatchingResult = SubtypeResult.higher(functionMatchingResult, argType.isSubtypeOf(paramType));
+                    functionMatchingResult = SubtypeResult.higher(functionMatchingResult, argType.isSubtypeOf(paramType, env));
                 } else {
                     functionMatchingResult = SubtypeResult.higher(functionMatchingResult, parameterList.get(i).isOptional() ? SubtypeResult.SELF : SubtypeResult.MISMATCH);
                 }
@@ -54,7 +55,7 @@ public class Functions {
         return found;
     }
 
-    public static Type predictNextArgumentType(List<FunctionSymbol> functions, List<Type> argumentTypes) {
+    public static Type predictNextArgumentType(List<FunctionSymbol> functions, List<Type> argumentTypes, CompilationEnvironment env) {
         Type found = null;
         SubtypeResult foundMatchingResult = SubtypeResult.MISMATCH;
         for (FunctionSymbol function : functions) {
@@ -66,7 +67,7 @@ public class Functions {
             for (int i = 0; i < argumentTypes.size(); i++) {
                 Type argType = argumentTypes.get(i);
                 Type paramType = parameterList.get(i).getType();
-                functionMatchingResult = SubtypeResult.higher(functionMatchingResult, argType.isSubtypeOf(paramType));
+                functionMatchingResult = SubtypeResult.higher(functionMatchingResult, argType.isSubtypeOf(paramType, env));
             }
             if (functionMatchingResult.priority < foundMatchingResult.priority) {
                 found = parameterList.get(argumentTypes.size()).getType();
@@ -76,8 +77,8 @@ public class Functions {
         return found;
     }
 
-    public static Optional<FunctionType> findLambdaForm(ClassType type) {
-        return Symbols.getMembersByName(type, "", FunctionSymbol.class)
+    public static Optional<FunctionType> findLambdaForm(ClassType type, CompilationEnvironment env) {
+        return Symbols.getMembersByName(type, "", FunctionSymbol.class, env)
                 .stream()
                 .map(FunctionSymbol::getType)
                 .findFirst();

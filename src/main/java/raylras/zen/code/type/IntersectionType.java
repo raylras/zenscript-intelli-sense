@@ -1,5 +1,6 @@
 package raylras.zen.code.type;
 
+import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.MemberProvider;
 import raylras.zen.code.symbol.Symbol;
 
@@ -24,9 +25,9 @@ public class IntersectionType extends Type implements MemberProvider {
     }
 
     @Override
-    public SubtypeResult isSubtypeOf(Type type) {
+    public SubtypeResult isSubtypeOf(Type type, CompilationEnvironment env) {
         return typeList.stream()
-                .map(it -> it.isSubtypeOf(type))
+                .map(it -> it.isSubtypeOf(type, env))
                 .min(SubtypeResult.PRIORITY_COMPARATOR)
                 .orElse(SubtypeResult.MISMATCH);
     }
