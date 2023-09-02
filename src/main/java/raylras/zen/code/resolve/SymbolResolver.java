@@ -20,6 +20,9 @@ public class SymbolResolver {
 
     public static Collection<Symbol> lookupSymbol(ParseTree cst, CompilationUnit unit) {
         ParseTree statement = findCurrentStatement(cst);
+        if (statement == null) {
+            return Collections.emptyList();
+        }
         SymbolVisitor visitor = new SymbolVisitor(unit, cst);
         visitor.visit(statement);
         return visitor.result;
