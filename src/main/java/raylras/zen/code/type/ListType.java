@@ -1,6 +1,6 @@
 package raylras.zen.code.type;
 
-import raylras.zen.code.MemberProvider;
+import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.symbol.Operator;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
@@ -8,7 +8,7 @@ import raylras.zen.code.symbol.SymbolFactory;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
-public class ListType extends Type implements MemberProvider {
+public class ListType extends Type implements SymbolProvider {
 
     private final Type elementType;
 
@@ -21,8 +21,8 @@ public class ListType extends Type implements MemberProvider {
     }
 
     @Override
-    public List<Symbol> getMembers() {
-        return SymbolFactory.members()
+    public List<Symbol> getSymbols() {
+        return SymbolFactory.builtinSymbols()
                 .variable("length", IntType.INSTANCE, Symbol.Modifier.VAL)
                 .function("remove", VoidType.INSTANCE, params -> params.parameter("index", IntType.INSTANCE))
                 .operator(Operator.INDEX_GET, elementType, params -> params.parameter("index", IntType.INSTANCE))

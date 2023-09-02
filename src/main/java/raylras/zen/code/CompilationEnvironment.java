@@ -10,7 +10,6 @@ import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.SubtypeResult;
 import raylras.zen.code.type.Type;
-import raylras.zen.util.GenericUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -64,6 +63,14 @@ public class CompilationEnvironment {
                 .collect(Collectors.toList());
     }
 
+    public List<ExpandFunctionSymbol> getExpandFunctions() {
+        return getUnits().stream()
+                .flatMap(unit -> unit.getTopLevelSymbols().stream())
+                .filter(ExpandFunctionSymbol.class::isInstance)
+                .map(ExpandFunctionSymbol.class::cast)
+                .toList();
+    }
+
     public Map<String, ClassType> getClassTypeMap() {
         return getUnits().stream()
                 .flatMap(unit -> unit.getTopLevelSymbols().stream())
@@ -87,25 +94,23 @@ public class CompilationEnvironment {
         return bracketHandlerManager;
     }
 
-    @Override
-    public String toString() {
-        return root.toString();
-    }
-
     public List<Symbol> getExpandMembers(Type type) {
-        List<ExpandFunctionSymbol> expandFunctions = getUnits().stream()
-                .flatMap(unit -> unit.getTopLevelSymbols().stream())
-                .filter(ExpandFunctionSymbol.class::isInstance)
-                .map(ExpandFunctionSymbol.class::cast)
+        List<Symbol> expands = getExpandFunctions().stream()
                 .filter(symbol -> type.isSubtypeOf(symbol.getOwner()).priority <= SubtypeResult.INHERIT.priority)
+                .map(Symbol.class::cast)
                 .toList();
         if (type instanceof ClassType) {
-            return GenericUtils.castToSuperExplicitly(expandFunctions);
+            return expands;
         } else {
-            List<Symbol> symbols = new ArrayList<>(expandFunctions);
+            List<Symbol> symbols = new ArrayList<>(expands);
             symbols.addAll(getPrimitiveTypeExpandMembers(type));
             return symbols;
         }
+    }
+
+    @Override
+    public String toString() {
+        return root.toString();
     }
 
     private BracketHandlerManager loadBracketHandlerManager() {
@@ -122,7 +127,7 @@ public class CompilationEnvironment {
         String typeName = type.toString();
         Map<String, ClassType> classTypeMap = getClassTypeMap();
         ClassType dumpClassType = classTypeMap.get(typeName);
-        return dumpClassType != null ? dumpClassType.getMembers() : Collections.emptyList();
+        return dumpClassType != null ? dumpClassType.getSymbols() : Collections.emptyList();
     }
 
 }

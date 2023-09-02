@@ -1,12 +1,12 @@
 package raylras.zen.code.type;
 
-import raylras.zen.code.MemberProvider;
+import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.symbol.Symbol;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class IntersectionType extends Type implements MemberProvider {
+public class IntersectionType extends Type implements SymbolProvider {
 
     private final List<Type> typeList;
 
@@ -15,11 +15,11 @@ public class IntersectionType extends Type implements MemberProvider {
     }
 
     @Override
-    public List<Symbol> getMembers() {
+    public List<Symbol> getSymbols() {
         return typeList.stream()
-                .filter(MemberProvider.class::isInstance)
-                .map(MemberProvider.class::cast)
-                .flatMap(it -> it.getMembers().stream())
+                .filter(SymbolProvider.class::isInstance)
+                .map(SymbolProvider.class::cast)
+                .flatMap(it -> it.getSymbols().stream())
                 .collect(Collectors.toList());
     }
 

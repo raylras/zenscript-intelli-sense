@@ -1,17 +1,16 @@
 package raylras.zen.code.symbol;
 
-import raylras.zen.code.MemberProvider;
+import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.type.ClassType;
 
 import java.util.List;
 
-public interface ClassSymbol extends Symbol, MemberProvider {
+public interface ClassSymbol extends Symbol, SymbolProvider {
 
     String getQualifiedName();
 
     List<Symbol> getDeclaredMembers();
 
-    @Override
     List<Symbol> getMembers();
 
     List<ClassType> getInterfaces();

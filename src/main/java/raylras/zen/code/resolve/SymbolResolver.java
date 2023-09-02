@@ -2,7 +2,7 @@ package raylras.zen.code.resolve;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.MemberProvider;
+import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptParser.MemberAccessExprContext;
 import raylras.zen.code.parser.ZenScriptParser.SimpleNameExprContext;
@@ -12,12 +12,13 @@ import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.util.Ranges;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.function.Predicate;
 
 public class SymbolResolver {
 
-    public static List<Symbol> getSymbol(ParseTree cst, CompilationUnit unit) {
+    public static Collection<Symbol> lookupSymbol(ParseTree cst, CompilationUnit unit) {
         ParseTree statement = findCurrentStatement(cst);
         SymbolVisitor visitor = new SymbolVisitor(unit, cst);
         visitor.visit(statement);
@@ -36,14 +37,65 @@ public class SymbolResolver {
         return null;
     }
 
-    private static class SymbolVisitor extends Visitor<MemberProvider> {
+    private static class SymbolVisitor extends Visitor<SymbolProvider> {
         private final CompilationUnit unit;
         private final ParseTree cst;
-        List<Symbol> result = List.of();
+        private Collection<Symbol> result = Collections.emptyList();
 
         public SymbolVisitor(CompilationUnit unit, ParseTree cst) {
             this.unit = unit;
             this.cst = cst;
+        }
+
+        @Override
+        public SymbolProvider visitSimpleNameExpr(SimpleNameExprContext ctx) {
+            SymbolProvider possibles = lookupSymbol(ctx, ctx.simpleName());
+            if (Ranges.contains(cst, ctx.simpleName())) {
+                result = possibles.getSymbols();
+            }
+            return possibles;
+        }
+
+        @Override
+        public SymbolProvider visitMemberAccessExpr(MemberAccessExprContext ctx) {
+            SymbolProvider leftPossibles = visit(ctx.expression());
+            if (leftPossibles.size() != 1) {
+                return SymbolProvider.EMPTY;
+            }
+
+            Symbol leftSymbol = leftPossibles.getFirst();
+            SymbolProvider foundResults;
+            if (leftSymbol instanceof ClassSymbol classSymbol) {
+                foundResults = classSymbol
+                        .filter(Symbol::isStatic)
+                        .filter(isSymbolNameEquals(ctx.simpleName()));
+            } else if (leftSymbol.getType() instanceof SymbolProvider type) {
+                foundResults = type.withExpands(unit.getEnv()).filter(isSymbolNameEquals(ctx.simpleName()));
+            } else {
+                foundResults = SymbolProvider.EMPTY;
+            }
+            if (Ranges.contains(cst, ctx.simpleName())) {
+                result = foundResults.getSymbols();
+            }
+            return foundResults;
+        }
+
+        @Override
+        protected SymbolProvider defaultResult() {
+            return SymbolProvider.EMPTY;
+        }
+
+        private SymbolProvider lookupSymbol(ParseTree cst, ParseTree name) {
+            return lookupSymbol(cst, name.getText());
+        }
+
+        private SymbolProvider lookupSymbol(ParseTree cst, String name) {
+            Scope scope = unit.lookupScope(cst);
+            if (scope != null) {
+                return scope.filter(isSymbolNameEquals(name));
+            } else {
+                return SymbolProvider.EMPTY;
+            }
         }
 
         private static Predicate<Symbol> isSymbolNameEquals(ParseTree name) {
@@ -54,52 +106,6 @@ public class SymbolResolver {
             return symbol -> name.equals(symbol.getName());
         }
 
-        @Override
-        public MemberProvider visitSimpleNameExpr(SimpleNameExprContext ctx) {
-            MemberProvider possibles = lookupSymbol(ctx, ctx.simpleName().getText());
-            if (Ranges.contains(cst, ctx.simpleName())) {
-                result = possibles.getMembers();
-            }
-            return possibles;
-        }
-
-        @Override
-        public MemberProvider visitMemberAccessExpr(MemberAccessExprContext ctx) {
-            MemberProvider leftPossibles = visit(ctx.expression());
-            if (leftPossibles.size() != 1) {
-                return MemberProvider.EMPTY;
-            }
-
-            Symbol leftSymbol = leftPossibles.getMember(0);
-            MemberProvider foundResults;
-            if (leftSymbol instanceof ClassSymbol classSymbol) {
-                foundResults = classSymbol
-                        .filter(Symbol::isStatic)
-                        .filter(isSymbolNameEquals(ctx.simpleName()));
-            } else if (leftSymbol.getType() instanceof MemberProvider type) {
-                foundResults = type.withExpandMembers(unit.getEnv()).filter(isSymbolNameEquals(ctx.simpleName()));
-            } else {
-                foundResults = MemberProvider.EMPTY;
-            }
-            if (Ranges.contains(cst, ctx.simpleName())) {
-                result = foundResults.getMembers();
-            }
-            return foundResults;
-        }
-
-        @Override
-        protected MemberProvider defaultResult() {
-            return MemberProvider.EMPTY;
-        }
-
-        private MemberProvider lookupSymbol(ParseTree cst, String name) {
-            Scope scope = unit.lookupScope(cst);
-            if (scope != null) {
-                return scope.filter(isSymbolNameEquals(name));
-            } else {
-                return MemberProvider.EMPTY;
-            }
-        }
     }
 
 }

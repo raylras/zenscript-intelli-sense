@@ -10,7 +10,7 @@ import org.eclipse.lsp4j.CompletionItemKind;
 import org.eclipse.lsp4j.CompletionItemLabelDetails;
 import org.eclipse.lsp4j.CompletionParams;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.MemberProvider;
+import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.parser.ZenScriptParser.*;
@@ -220,6 +220,30 @@ public final class CompletionProvider {
         }
 
         @Override
+        public Void visitForeachBody(ForeachBodyContext ctx) {
+            // { text| }
+            // ^ ____
+            if (containsLeading(ctx.BRACE_OPEN())) {
+                completeLocalSymbols(text);
+                completeGlobalSymbols(text);
+                completeKeywords(text, Keywords.STATEMENT);
+                return null;
+            }
+
+            // { } text|
+            //   ^ ____
+            if (containsLeading(ctx.BRACE_CLOSE())) {
+                completeLocalSymbols(text);
+                completeGlobalSymbols(text);
+                completeKeywords(text, Keywords.STATEMENT);
+                return null;
+            }
+
+            visitChildren(ctx);
+            return null;
+        }
+
+        @Override
         public Void visitWhileStatement(WhileStatementContext ctx) {
             // while (|)
             // ^^^^^ _
@@ -311,6 +335,12 @@ public final class CompletionProvider {
         }
 
         @Override
+        public Void visitBracketHandlerExpr(BracketHandlerExprContext ctx) {
+            unit.getEnv().getBracketHandlerManager().complete(ctx.raw().getText(), completionList);
+            return null;
+        }
+
+        @Override
         public Void visitUnaryExpr(UnaryExprContext ctx) {
             // !text|
             // ^____
@@ -329,7 +359,7 @@ public final class CompletionProvider {
             //     ^____
             if (containsLeading(ctx.DOT())) {
                 Type type = TypeResolver.getType(ctx.expression(), unit);
-                completeMemberSymbols(text, type);
+                completeMembers(text, type);
                 return null;
             }
 
@@ -337,7 +367,7 @@ public final class CompletionProvider {
             // ^^^^_
             if (containsLeading(ctx.expression())) {
                 Type type = TypeResolver.getType(ctx.expression(), unit);
-                completeMemberSymbols("", type);
+                completeMembers("", type);
                 return null;
             }
 
@@ -382,36 +412,6 @@ public final class CompletionProvider {
             if (containsTailing(ctx.COMMA())) {
                 completeLocalSymbols("");
                 completeGlobalSymbols("");
-                return null;
-            }
-
-            visitChildren(ctx);
-            return null;
-        }
-
-        @Override
-        public Void visitBracketHandlerExpr(BracketHandlerExprContext ctx) {
-            unit.getEnv().getBracketHandlerManager().complete(ctx.raw().getText(), completionList);
-            return null;
-        }
-
-        @Override
-        public Void visitForeachBody(ForeachBodyContext ctx) {
-            // { text| }
-            // ^ ____
-            if (containsLeading(ctx.BRACE_OPEN())) {
-                completeLocalSymbols(text);
-                completeGlobalSymbols(text);
-                completeKeywords(text, Keywords.STATEMENT);
-                return null;
-            }
-
-            // { } text|
-            //   ^ ____
-            if (containsLeading(ctx.BRACE_CLOSE())) {
-                completeLocalSymbols(text);
-                completeGlobalSymbols(text);
-                completeKeywords(text, Keywords.STATEMENT);
                 return null;
             }
 
@@ -507,14 +507,12 @@ public final class CompletionProvider {
             }
         }
 
-        private void completeMemberSymbols(String text, Type type) {
-            if(!(type instanceof MemberProvider memberProvider)) {
-                return;
-            }
-            for (Symbol member : memberProvider.withExpandMembers(unit.getEnv()).getMembers()) {
-                if (member.getName().startsWith(text) && !(member instanceof OperatorFunctionSymbol)) {
-                    addToCompletionList(member);
-                }
+        private void completeMembers(String text, Type type) {
+            if (type instanceof SymbolProvider memberProvider) {
+                memberProvider.withExpands(unit.getEnv()).stream()
+                        .filter(symbol -> symbol.getName().startsWith(text))
+                        .filter(symbol -> !(symbol instanceof OperatorFunctionSymbol))
+                        .forEach(this::addToCompletionList);
             }
         }
 

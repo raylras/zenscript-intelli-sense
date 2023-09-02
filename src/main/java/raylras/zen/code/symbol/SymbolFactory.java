@@ -27,6 +27,7 @@ public class SymbolFactory {
             private final String name = CSTNodes.getText(nameCst);
             private final Range range = Ranges.of(cst);
             private final Range selectionRange = Ranges.of(nameCst);
+
             @Override
             public String getQualifiedName() {
                 return cst.qualifiedName().getText();
@@ -99,11 +100,12 @@ public class SymbolFactory {
             public List<Symbol> getDeclaredMembers() {
                 return unit.getScope(cst).getSymbols();
             }
+
             @Override
             public List<Symbol> getMembers() {
                 List<Symbol> symbols = new ArrayList<>(getDeclaredMembers());
                 for (ClassType superClass : getInterfaces()) {
-                    symbols.addAll(superClass.getMembers());
+                    symbols.addAll(superClass.getSymbols());
                 }
                 return symbols;
             }
@@ -128,6 +130,11 @@ public class SymbolFactory {
             @Override
             public ClassType getType() {
                 return classType;
+            }
+
+            @Override
+            public List<Symbol> getSymbols() {
+                return getDeclaredMembers();
             }
 
             @Override
@@ -174,6 +181,7 @@ public class SymbolFactory {
             private final Modifier modifier = ModifierResolver.getModifier(cst);
             private final Range range = Ranges.of(cst);
             private final Range selectionRange = Ranges.of(nameCst);
+
             @Override
             public String getName() {
                 return name;
@@ -453,6 +461,7 @@ public class SymbolFactory {
             private final String name = CSTNodes.getText(nameCst);
             private final Range range = Ranges.of(cst);
             private final Range selectionRange = Ranges.of(nameCst);
+
             @Override
             public boolean isOptional() {
                 return cst.defaultValue() != null;
@@ -538,14 +547,14 @@ public class SymbolFactory {
             }
 
             @Override
-            public FunctionType getType() {
-                Type type = TypeResolver.getType(cst, unit);
-                return (type instanceof FunctionType) ? (FunctionType) type : new FunctionType(AnyType.INSTANCE);
+            public Modifier getModifier() {
+                return Modifier.EXPAND;
             }
 
             @Override
-            public Modifier getModifier() {
-                return Modifier.EXPAND;
+            public FunctionType getType() {
+                Type type = TypeResolver.getType(cst, unit);
+                return (type instanceof FunctionType) ? (FunctionType) type : new FunctionType(AnyType.INSTANCE);
             }
 
             @Override
@@ -606,35 +615,35 @@ public class SymbolFactory {
         return new ParameterSymbolImpl();
     }
 
-    public static MemberBuilder members() {
-        return new MemberBuilder();
+    public static SymbolsBuilder builtinSymbols() {
+        return new SymbolsBuilder();
     }
 
-    public static class MemberBuilder {
-        private final List<Symbol> members = new ArrayList<>();
+    public static class SymbolsBuilder {
+        private final List<Symbol> symbols = new ArrayList<>();
 
-        public MemberBuilder variable(String name, Type type, Symbol.Modifier modifier) {
-            members.add(createVariableSymbol(name, type, modifier));
+        public SymbolsBuilder variable(String name, Type type, Symbol.Modifier modifier) {
+            symbols.add(createVariableSymbol(name, type, modifier));
             return this;
         }
 
-        public MemberBuilder function(String name, Type returnType, UnaryOperator<ParameterBuilder> paramsSupplier) {
-            members.add(createFunctionSymbol(name, returnType, paramsSupplier.apply(new ParameterBuilder()).build()));
+        public SymbolsBuilder function(String name, Type returnType, UnaryOperator<ParameterBuilder> paramsSupplier) {
+            symbols.add(createFunctionSymbol(name, returnType, paramsSupplier.apply(new ParameterBuilder()).build()));
             return this;
         }
 
-        public MemberBuilder operator(Operator operator, Type returnType, UnaryOperator<ParameterBuilder> paramsSupplier) {
-            members.add(createOperatorFunctionSymbol(operator, returnType, paramsSupplier.apply(new ParameterBuilder()).build()));
+        public SymbolsBuilder operator(Operator operator, Type returnType, UnaryOperator<ParameterBuilder> paramsSupplier) {
+            symbols.add(createOperatorFunctionSymbol(operator, returnType, paramsSupplier.apply(new ParameterBuilder()).build()));
             return this;
         }
 
-        public MemberBuilder add(List<Symbol> members) {
-            this.members.addAll(members);
+        public SymbolsBuilder add(List<Symbol> members) {
+            this.symbols.addAll(members);
             return this;
         }
 
         public List<Symbol> build() {
-            return members;
+            return symbols;
         }
     }
 

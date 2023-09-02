@@ -1,6 +1,6 @@
 package raylras.zen.util;
 
-import raylras.zen.code.MemberProvider;
+import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.Type;
 
@@ -17,10 +17,10 @@ public class Symbols {
 
     public static <T extends Symbol> List<T> getMember(Type type, Class<T> clazz, Predicate<T> filter) {
 
-        if (!(type instanceof MemberProvider memberProvider)) {
+        if (!(type instanceof SymbolProvider symbolProvider)) {
             return Collections.emptyList();
         }
-        return memberProvider.getMembers().stream()
+        return symbolProvider.getSymbols().stream()
                 .filter(clazz::isInstance)
                 .map(clazz::cast)
                 .filter(filter)

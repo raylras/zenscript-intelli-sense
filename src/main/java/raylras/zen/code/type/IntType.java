@@ -11,9 +11,9 @@ public class IntType extends NumberType {
     public static final IntType INSTANCE = new IntType();
 
     @Override
-    public List<Symbol> getMembers() {
-        return SymbolFactory.members()
-                .add(super.getMembers())
+    public List<Symbol> getSymbols() {
+        return SymbolFactory.builtinSymbols()
+                .add(super.getSymbols())
                 .operator(Operator.RANGE, IntRangeType.INSTANCE, params -> params.parameter("val", this))
                 .build();
     }

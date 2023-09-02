@@ -1,6 +1,6 @@
 package raylras.zen.code.type;
 
-import raylras.zen.code.MemberProvider;
+import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.symbol.Operator;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
@@ -8,7 +8,7 @@ import raylras.zen.code.symbol.SymbolFactory;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
-public abstract class NumberType extends Type implements MemberProvider {
+public abstract class NumberType extends Type implements SymbolProvider {
 
     @Override
     public SubtypeResult isSubtypeOf(Type type) {
@@ -25,8 +25,8 @@ public abstract class NumberType extends Type implements MemberProvider {
     }
 
     @Override
-    public List<Symbol> getMembers() {
-        return SymbolFactory.members()
+    public List<Symbol> getSymbols() {
+        return SymbolFactory.builtinSymbols()
                 .operator(Operator.ADD, this, params -> params.parameter("val", this))
                 .operator(Operator.SUB, this, params -> params.parameter("val", this))
                 .operator(Operator.MUL, this, params -> params.parameter("val", this))
