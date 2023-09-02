@@ -1,10 +1,5 @@
 package raylras.zen.code.type;
 
-import raylras.zen.code.symbol.Symbol;
-
-import java.util.Collections;
-import java.util.List;
-
 public abstract class Type {
 
     public boolean isAssignableTo(Type type) {
@@ -20,5 +15,7 @@ public abstract class Type {
         }
         return SubtypeResult.MISMATCH;
     }
+
+    public abstract String toString();
 
 }

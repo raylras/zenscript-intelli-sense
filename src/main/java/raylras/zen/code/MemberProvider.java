@@ -1,7 +1,9 @@
 package raylras.zen.code;
 
 import raylras.zen.code.symbol.Symbol;
+import raylras.zen.code.type.Type;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 
@@ -15,7 +17,7 @@ public interface MemberProvider {
         return getMembers().get(index);
     }
 
-    default MemberProvider of(List<Symbol> members) {
+    static MemberProvider of(List<Symbol> members) {
         return () -> members;
     }
 
@@ -27,8 +29,24 @@ public interface MemberProvider {
         return () -> getMembers().stream().limit(maxSize).toList();
     }
 
+    default MemberProvider merge(MemberProvider others) {
+        return () -> {
+            List<Symbol> list = new ArrayList<>(this.getMembers());
+            list.addAll(others.getMembers());
+            return list;
+        };
+    }
+
     default int size() {
         return getMembers().size();
+    }
+
+    default MemberProvider withExpandMembers(CompilationEnvironment env) {
+        if (this instanceof Type type) {
+            return merge(env.getExpandMembers(type));
+        } else {
+            return this;
+        }
     }
 
 }

@@ -376,7 +376,7 @@ public final class TypeResolver {
                 return null;
             }
             String simpleName = ctx.simpleName().getText();
-            for (Symbol member : memberProvider.getMembers()) {
+            for (Symbol member : memberProvider.withExpandMembers(unit.getEnv()).getMembers()) {
                 if (Objects.equals(member.getName(), simpleName)) {
                     return member.getType();
                 }

@@ -5,8 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import raylras.zen.code.bracket.BracketHandlerManager;
 import raylras.zen.code.symbol.ClassSymbol;
+import raylras.zen.code.symbol.ExpandFunctionSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.ClassType;
+import raylras.zen.code.type.SubtypeResult;
+import raylras.zen.code.type.Type;
+import raylras.zen.util.GenericUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -63,8 +67,8 @@ public class CompilationEnvironment {
     public Map<String, ClassType> getClassTypeMap() {
         return getUnits().stream()
                 .flatMap(unit -> unit.getTopLevelSymbols().stream())
-                .filter(symbol -> symbol instanceof ClassSymbol)
-                .map(symbol -> (ClassSymbol) symbol)
+                .filter(ClassSymbol.class::isInstance)
+                .map(ClassSymbol.class::cast)
                 .collect(Collectors.toMap(ClassSymbol::getQualifiedName, ClassSymbol::getType));
     }
 
@@ -88,6 +92,21 @@ public class CompilationEnvironment {
         return root.toString();
     }
 
+    public MemberProvider getExpandMembers(Type type) {
+        List<ExpandFunctionSymbol> expandFunctions = getUnits().stream()
+                .flatMap(unit -> unit.getTopLevelSymbols().stream())
+                .filter(ExpandFunctionSymbol.class::isInstance)
+                .map(ExpandFunctionSymbol.class::cast)
+                .filter(symbol -> type.isSubtypeOf(symbol.getOwner()).priority <= SubtypeResult.INHERIT.priority)
+                .toList();
+        MemberProvider memberProvider = MemberProvider.of(GenericUtils.castToSuperExplicitly(expandFunctions));
+        if (!(type instanceof ClassType)) {
+            return memberProvider.merge(getPrimitiveTypeExpandMembers(type));
+        } else {
+            return memberProvider;
+        }
+    }
+
     private BracketHandlerManager loadBracketHandlerManager() {
         try {
             BufferedReader jsonReader = Files.newBufferedReader(getGeneratedRoot().resolve("brackets.json"));
@@ -96,6 +115,13 @@ public class CompilationEnvironment {
             logger.error("Failed to open brackets.json: {}", this, e);
         }
         return new BracketHandlerManager(Collections.emptyList());
+    }
+
+    private MemberProvider getPrimitiveTypeExpandMembers(Type type) {
+        String typeName = type.toString();
+        Map<String, ClassType> classTypeMap = getClassTypeMap();
+        ClassType dumpClassType = classTypeMap.get(typeName);
+        return dumpClassType != null ? dumpClassType : MemberProvider.EMPTY;
     }
 
 }
