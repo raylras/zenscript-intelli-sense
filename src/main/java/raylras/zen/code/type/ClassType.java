@@ -1,9 +1,9 @@
 package raylras.zen.code.type;
 
+import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
-import raylras.zen.util.Operators;
 
 import java.util.List;
 
@@ -25,22 +25,19 @@ public class ClassType extends Type implements SymbolProvider {
     }
 
     @Override
-    public SubtypeResult isSubtypeOf(Type type) {
+    public SubtypeResult isSubtypeOf(Type type, CompilationEnvironment env) {
         if (this.equals(type)) {
             return SubtypeResult.SELF;
         }
         if (type instanceof ClassType) {
             boolean matchedInterface = symbol.getInterfaces().stream()
                     .flatMap(classType -> classType.getSymbol().getInterfaces().stream())
-                    .anyMatch(classType -> classType.isSubtypeOf(type).matched());
+                    .anyMatch(classType -> classType.isSubtypeOf(type, env).matched());
             if (matchedInterface) {
                 return SubtypeResult.INHERIT;
             }
         }
-        if (Operators.hasCaster(this, type)) {
-            return SubtypeResult.CASTER;
-        }
-        return super.isSubtypeOf(type);
+        return super.isSubtypeOf(type, env);
     }
 
     @Override

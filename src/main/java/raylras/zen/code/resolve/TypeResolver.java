@@ -115,7 +115,7 @@ public final class TypeResolver {
             if (functionType instanceof FunctionType) {
                 return ((FunctionType) functionType).getParameterTypes().get(argumentIndex);
             } else if (functionType instanceof ClassType classType) {
-                return Functions.findLambdaForm(classType)
+                return Functions.findLambdaForm(classType, unit.getEnv())
                         .map(it -> it.getParameterTypes().get(argumentIndex))
                         .orElse(AnyType.INSTANCE);
             }
@@ -190,7 +190,7 @@ public final class TypeResolver {
             ForeachStatementContext forEachStatement = (ForeachStatementContext) ctx.getParent().getParent();
             List<ForeachVariableContext> variables = forEachStatement.foreachVariableList().foreachVariable();
             Type iterableType = visit(forEachStatement.expression());
-            Type result = Operators.getUnaryOperatorResult(iterableType, Operator.ITERATOR);
+            Type result = Operators.getUnaryOperatorResult(iterableType, Operator.ITERATOR, unit.getEnv());
             if (result instanceof ListType listType) {
                 return getListForeachVariableType(listType.getElementType(), ctx, variables);
             }
@@ -224,7 +224,7 @@ public final class TypeResolver {
 
         @Override
         public Type visitIntRangeExpr(IntRangeExprContext ctx) {
-            return Operators.getBinaryOperatorResult(visit(ctx.from), Operator.RANGE, visit(ctx.to));
+            return Operators.getBinaryOperatorResult(visit(ctx.from), Operator.RANGE, unit.getEnv(), visit(ctx.to));
         }
 
         @Override
@@ -242,7 +242,7 @@ public final class TypeResolver {
             Type leftType = visit(ctx.left);
             Operator operator = Operators.of(ctx.op.getText(), OperatorType.BINARY);
             if (operator != Operator.ERROR) {
-                return Operators.getBinaryOperatorResult(leftType, operator, visit(ctx.right));
+                return Operators.getBinaryOperatorResult(leftType, operator, unit.getEnv(), visit(ctx.right));
             } else {
                 return leftType;
             }
@@ -251,12 +251,12 @@ public final class TypeResolver {
         @Override
         public Type visitCompareExpr(CompareExprContext ctx) {
             Type leftType = visit(ctx.left);
-            Type result = Operators.getBinaryOperatorResult(leftType, Operator.COMPARE, visit(ctx.right));
+            Type result = Operators.getBinaryOperatorResult(leftType, Operator.COMPARE, unit.getEnv(), visit(ctx.right));
             if (IntType.INSTANCE.equals(result)) {
                 return BoolType.INSTANCE;
             }
             if (ctx.EQUAL() != null || ctx.NOT_EQUAL() != null) {
-                return Operators.getBinaryOperatorResult(leftType, Operator.EQUALS, visit(ctx.right));
+                return Operators.getBinaryOperatorResult(leftType, Operator.EQUALS, unit.getEnv(), visit(ctx.right));
             }
             return AnyType.INSTANCE;
         }
@@ -305,8 +305,8 @@ public final class TypeResolver {
                         }
                         Type type = visit(memberAccessExpr.expression());
                         String name = memberAccessExpr.simpleName().getText();
-                        List<FunctionSymbol> functions = Symbols.getMembersByName(type, name, FunctionSymbol.class);
-                        return Functions.predictNextArgumentType(functions, argumentTypes);
+                        List<FunctionSymbol> functions = Symbols.getMembersByName(type, name, FunctionSymbol.class, unit.getEnv());
+                        return Functions.predictNextArgumentType(functions, argumentTypes, unit.getEnv());
                     }
                 }
             }
@@ -326,10 +326,10 @@ public final class TypeResolver {
         public Type visitUnaryExpr(UnaryExprContext ctx) {
             Type type = visit(ctx.expression());
             if (ctx.NOT() != null) {
-                return Operators.getUnaryOperatorResult(type, Operator.NOT);
+                return Operators.getUnaryOperatorResult(type, Operator.NOT, unit.getEnv());
             }
             if (ctx.SUB() != null) {
-                return Operators.getUnaryOperatorResult(type, Operator.NEG);
+                return Operators.getUnaryOperatorResult(type, Operator.NEG, unit.getEnv());
             }
             return type;
         }
@@ -410,8 +410,8 @@ public final class TypeResolver {
                     }
                     argumentTypes.add(argumentType);
                 }
-                List<FunctionSymbol> functions = Symbols.getMembersByName(owner, memberAccessExpr.simpleName().getText(), FunctionSymbol.class);
-                FunctionSymbol matchedFunction = Functions.findBestMatch(functions, argumentTypes);
+                List<FunctionSymbol> functions = Symbols.getMembersByName(owner, memberAccessExpr.simpleName().getText(), FunctionSymbol.class, unit.getEnv());
+                FunctionSymbol matchedFunction = Functions.findBestMatch(functions, argumentTypes, unit.getEnv());
                 return matchedFunction == null ? null : matchedFunction.getReturnType();
             } else {
                 Type leftType = visit(ctx.expression());
@@ -426,7 +426,7 @@ public final class TypeResolver {
         @Override
         public Type visitMemberIndexExpr(MemberIndexExprContext ctx) {
             Type leftType = visit(ctx.left);
-            return Operators.getBinaryOperatorResult(leftType, Operator.INDEX_GET, visit(ctx.index));
+            return Operators.getBinaryOperatorResult(leftType, Operator.INDEX_GET, unit.getEnv(), visit(ctx.index));
         }
 
         @Override

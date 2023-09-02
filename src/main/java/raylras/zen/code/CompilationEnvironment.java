@@ -96,7 +96,7 @@ public class CompilationEnvironment {
 
     public List<Symbol> getExpandMembers(Type type) {
         List<Symbol> expands = getExpandFunctions().stream()
-                .filter(symbol -> type.isSubtypeOf(symbol.getOwner()).priority <= SubtypeResult.INHERIT.priority)
+                .filter(symbol -> type.isSubtypeOf(symbol.getOwner(), this).priority <= SubtypeResult.INHERIT.priority)
                 .map(Symbol.class::cast)
                 .toList();
         if (type instanceof ClassType) {
