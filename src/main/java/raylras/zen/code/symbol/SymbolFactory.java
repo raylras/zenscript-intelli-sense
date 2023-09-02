@@ -506,6 +506,71 @@ public class SymbolFactory {
         return new ParameterSymbolImpl();
     }
 
+    public static ExpandFunctionSymbol createExpandFunctionSymbol(ParseTree nameCst, ExpandFunctionDeclarationContext cst, CompilationUnit unit) {
+        class ExpandFunctionSymbolImpl implements ExpandFunctionSymbol, Locatable {
+            private final String name = CSTNodes.getText(nameCst);
+            private final Range range = Ranges.of(cst);
+            private final Range selectionRange = Ranges.of(nameCst);
+
+            @Override
+            public List<ParameterSymbol> getParameterList() {
+                return FormalParameterResolver.getFormalParameterList(cst, unit);
+            }
+
+            @Override
+            public Type getReturnType() {
+                return getType().getReturnType();
+            }
+
+            @Override
+            public Type getOwner() {
+                return TypeResolver.getType(cst.typeLiteral(), unit);
+            }
+
+            @Override
+            public String getName() {
+                return name;
+            }
+
+            @Override
+            public Kind getKind() {
+                return Kind.FUNCTION;
+            }
+
+            @Override
+            public FunctionType getType() {
+                Type type = TypeResolver.getType(cst, unit);
+                return (type instanceof FunctionType) ? (FunctionType) type : new FunctionType(AnyType.INSTANCE);
+            }
+
+            @Override
+            public Modifier getModifier() {
+                return Modifier.EXPAND;
+            }
+
+            @Override
+            public ParseTree getCst() {
+                return cst;
+            }
+
+            @Override
+            public CompilationUnit getUnit() {
+                return unit;
+            }
+
+            @Override
+            public Range getRange() {
+                return range;
+            }
+
+            @Override
+            public Range getSelectionRange() {
+                return selectionRange;
+            }
+        }
+        return new ExpandFunctionSymbolImpl();
+    }
+
     public static ParameterSymbol createParameterSymbol(String name, Type type, boolean optional, boolean vararg) {
         class ParameterSymbolImpl implements ParameterSymbol {
             @Override

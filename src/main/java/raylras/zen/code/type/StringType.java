@@ -18,7 +18,6 @@ public class StringType extends Type implements MemberProvider {
 
     @Override
     public SubtypeResult isSubtypeOf(Type type) {
-        //FIXME: read string.dzs
         if (this.equals(type)) {
             return SubtypeResult.SELF;
         }

@@ -511,7 +511,7 @@ public final class CompletionProvider {
             if(!(type instanceof MemberProvider memberProvider)) {
                 return;
             }
-            for (Symbol member : memberProvider.getMembers()) {
+            for (Symbol member : memberProvider.withExpandMembers(unit.getEnv()).getMembers()) {
                 if (member.getName().startsWith(text) && !(member instanceof OperatorFunctionSymbol)) {
                     addToCompletionList(member);
                 }

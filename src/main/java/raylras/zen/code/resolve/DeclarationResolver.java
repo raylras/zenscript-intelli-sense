@@ -84,7 +84,7 @@ public final class DeclarationResolver {
 
         @Override
         public void enterExpandFunctionDeclaration(ExpandFunctionDeclarationContext ctx) {
-            FunctionSymbol symbol = SymbolFactory.createFunctionSymbol(ctx.simpleName(), ctx, unit);
+            ExpandFunctionSymbol symbol = SymbolFactory.createExpandFunctionSymbol(ctx.simpleName(), ctx, unit);
             enterSymbol(ctx, symbol);
             enterScope(new Scope(currentScope(), ctx));
         }

@@ -77,7 +77,7 @@ public class SymbolResolver {
                         .filter(Symbol::isStatic)
                         .filter(isSymbolNameEquals(ctx.simpleName()));
             } else if (leftSymbol.getType() instanceof MemberProvider type) {
-                foundResults = type.filter(isSymbolNameEquals(ctx.simpleName()));
+                foundResults = type.withExpandMembers(unit.getEnv()).filter(isSymbolNameEquals(ctx.simpleName()));
             } else {
                 foundResults = MemberProvider.EMPTY;
             }
