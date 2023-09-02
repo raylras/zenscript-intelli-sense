@@ -16,6 +16,14 @@ public interface Symbol {
         return getModifier() == modifier;
     }
 
+    default boolean isStatic() {
+        return isModifiedBy(Modifier.STATIC);
+    }
+
+    default boolean isGlobal() {
+        return isModifiedBy(Modifier.GLOBAL);
+    }
+
     enum Kind {
         IMPORT, PACKAGE, CLASS, VARIABLE, PARAMETER, FUNCTION, NONE
     }

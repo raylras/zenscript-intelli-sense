@@ -9,6 +9,7 @@ import raylras.zen.code.resolve.TypeResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.type.*;
 import raylras.zen.util.CSTNodes;
+import raylras.zen.util.Operators;
 import raylras.zen.util.Range;
 import raylras.zen.util.Ranges;
 
@@ -21,8 +22,11 @@ public class SymbolFactory {
     private SymbolFactory() {
     }
 
-    public static ImportSymbol createImportSymbol(String name, ImportDeclarationContext cst, CompilationUnit unit) {
+    public static ImportSymbol createImportSymbol(ParseTree nameCst, ImportDeclarationContext cst, CompilationUnit unit) {
         class ImportSymbolImpl implements ImportSymbol, Locatable {
+            private final String name = CSTNodes.getText(nameCst);
+            private final Range range = Ranges.of(cst);
+            private final Range selectionRange = Ranges.of(nameCst);
             @Override
             public String getQualifiedName() {
                 return cst.qualifiedName().getText();
@@ -67,14 +71,22 @@ public class SymbolFactory {
 
             @Override
             public Range getRange() {
-                return Ranges.of(cst);
+                return range;
+            }
+
+            @Override
+            public Range getSelectionRange() {
+                return selectionRange;
             }
         }
         return new ImportSymbolImpl();
     }
 
-    public static ClassSymbol createClassSymbol(String name, ClassDeclarationContext cst, CompilationUnit unit) {
+    public static ClassSymbol createClassSymbol(ParseTree nameCst, ClassDeclarationContext cst, CompilationUnit unit) {
         class ClassSymbolImpl implements ClassSymbol, Locatable {
+            private final String name = CSTNodes.getText(nameCst);
+            private final Range range = Ranges.of(cst);
+            private final Range selectionRange = Ranges.of(nameCst);
             private final ClassType classType = new ClassType(this);
 
             @Override
@@ -145,14 +157,23 @@ public class SymbolFactory {
 
             @Override
             public Range getRange() {
-                return Ranges.of(cst);
+                return range;
+            }
+
+            @Override
+            public Range getSelectionRange() {
+                return selectionRange;
             }
         }
         return new ClassSymbolImpl();
     }
 
-    public static VariableSymbol createVariableSymbol(String name, ParseTree cst, CompilationUnit unit) {
+    public static VariableSymbol createVariableSymbol(ParseTree nameCst, ParseTree cst, CompilationUnit unit) {
         class VariableSymbolImpl implements VariableSymbol, Locatable {
+            private final String name = CSTNodes.getText(nameCst);
+            private final Modifier modifier = ModifierResolver.getModifier(cst);
+            private final Range range = Ranges.of(cst);
+            private final Range selectionRange = Ranges.of(nameCst);
             @Override
             public String getName() {
                 return name;
@@ -170,7 +191,7 @@ public class SymbolFactory {
 
             @Override
             public Modifier getModifier() {
-                return ModifierResolver.getModifier(cst);
+                return modifier;
             }
 
             @Override
@@ -185,7 +206,12 @@ public class SymbolFactory {
 
             @Override
             public Range getRange() {
-                return Ranges.of(cst);
+                return range;
+            }
+
+            @Override
+            public Range getSelectionRange() {
+                return selectionRange;
             }
         }
         return new VariableSymbolImpl();
@@ -216,8 +242,13 @@ public class SymbolFactory {
         return new VariableSymbolImpl();
     }
 
-    public static FunctionSymbol createFunctionSymbol(String name, ParseTree cst, CompilationUnit unit) {
+    public static FunctionSymbol createFunctionSymbol(ParseTree nameCst, ParseTree cst, CompilationUnit unit) {
         class FunctionSymbolImpl implements FunctionSymbol, Locatable {
+            private final String name = CSTNodes.getText(nameCst);
+            private final Modifier modifier = ModifierResolver.getModifier(cst);
+            private final Range range = Ranges.of(cst);
+            private final Range selectionRange = Ranges.of(nameCst);
+
             @Override
             public FunctionType getType() {
                 Type type = TypeResolver.getType(cst, unit);
@@ -246,7 +277,7 @@ public class SymbolFactory {
 
             @Override
             public Symbol.Modifier getModifier() {
-                return ModifierResolver.getModifier(cst);
+                return modifier;
             }
 
             @Override
@@ -261,7 +292,12 @@ public class SymbolFactory {
 
             @Override
             public Range getRange() {
-                return Ranges.of(cst);
+                return range;
+            }
+
+            @Override
+            public Range getSelectionRange() {
+                return selectionRange;
             }
         }
 
@@ -305,8 +341,12 @@ public class SymbolFactory {
         return new FunctionSymbolImpl();
     }
 
-    public static OperatorFunctionSymbol createOperatorFunctionSymbol(Operator operator, OperatorFunctionDeclarationContext cst, CompilationUnit unit) {
+    public static OperatorFunctionSymbol createOperatorFunctionSymbol(OperatorContext opCst, OperatorFunctionDeclarationContext cst, CompilationUnit unit) {
         class OperatorFunctionSymbolImpl implements OperatorFunctionSymbol, Locatable {
+            private final Operator operator = Operators.of(opCst.getText(), cst.formalParameterList().formalParameter().size());
+            private final Range range = Ranges.of(cst);
+            private final Range selectionRange = Ranges.of(opCst);
+
             @Override
             public Operator getOperator() {
                 return operator;
@@ -355,7 +395,12 @@ public class SymbolFactory {
 
             @Override
             public Range getRange() {
-                return Ranges.of(cst);
+                return range;
+            }
+
+            @Override
+            public Range getSelectionRange() {
+                return selectionRange;
             }
         }
         return new OperatorFunctionSymbolImpl();
@@ -403,8 +448,69 @@ public class SymbolFactory {
         return new OperatorFunctionSymbolImpl();
     }
 
-    public static ExpandFunctionSymbol createExpandFunctionSymbol(String name, ExpandFunctionDeclarationContext cst, CompilationUnit unit) {
+    public static ParameterSymbol createParameterSymbol(ParseTree nameCst, FormalParameterContext cst, CompilationUnit unit) {
+        class ParameterSymbolImpl implements ParameterSymbol, Locatable {
+            private final String name = CSTNodes.getText(nameCst);
+            private final Range range = Ranges.of(cst);
+            private final Range selectionRange = Ranges.of(nameCst);
+            @Override
+            public boolean isOptional() {
+                return cst.defaultValue() != null;
+            }
+
+            @Override
+            public boolean isVararg() {
+                return cst.varargsPrefix() != null;
+            }
+
+            @Override
+            public String getName() {
+                return name;
+            }
+
+            @Override
+            public Kind getKind() {
+                return Kind.PARAMETER;
+            }
+
+            @Override
+            public Type getType() {
+                return TypeResolver.getType(cst, unit);
+            }
+
+            @Override
+            public Modifier getModifier() {
+                return Symbol.Modifier.NONE;
+            }
+
+            @Override
+            public ParseTree getCst() {
+                return cst;
+            }
+
+            @Override
+            public CompilationUnit getUnit() {
+                return unit;
+            }
+
+            @Override
+            public Range getRange() {
+                return range;
+            }
+
+            @Override
+            public Range getSelectionRange() {
+                return selectionRange;
+            }
+        }
+        return new ParameterSymbolImpl();
+    }
+
+    public static ExpandFunctionSymbol createExpandFunctionSymbol(ParseTree nameCst, ExpandFunctionDeclarationContext cst, CompilationUnit unit) {
         class ExpandFunctionSymbolImpl implements ExpandFunctionSymbol, Locatable {
+            private final String name = CSTNodes.getText(nameCst);
+            private final Range range = Ranges.of(cst);
+            private final Range selectionRange = Ranges.of(nameCst);
 
             @Override
             public List<ParameterSymbol> getParameterList() {
@@ -454,60 +560,15 @@ public class SymbolFactory {
 
             @Override
             public Range getRange() {
-                return Ranges.of(cst);
+                return range;
+            }
+
+            @Override
+            public Range getSelectionRange() {
+                return selectionRange;
             }
         }
         return new ExpandFunctionSymbolImpl();
-    }
-
-    public static ParameterSymbol createParameterSymbol(String name, FormalParameterContext cst, CompilationUnit unit) {
-        class ParameterSymbolImpl implements ParameterSymbol, Locatable {
-            @Override
-            public boolean isOptional() {
-                return cst.defaultValue() != null;
-            }
-
-            @Override
-            public boolean isVararg() {
-                return cst.varargsPrefix() != null;
-            }
-
-            @Override
-            public String getName() {
-                return name;
-            }
-
-            @Override
-            public Kind getKind() {
-                return Kind.PARAMETER;
-            }
-
-            @Override
-            public Type getType() {
-                return TypeResolver.getType(cst, unit);
-            }
-
-            @Override
-            public Modifier getModifier() {
-                return Symbol.Modifier.NONE;
-            }
-
-            @Override
-            public ParseTree getCst() {
-                return cst;
-            }
-
-            @Override
-            public CompilationUnit getUnit() {
-                return unit;
-            }
-
-            @Override
-            public Range getRange() {
-                return Ranges.of(cst);
-            }
-        }
-        return new ParameterSymbolImpl();
     }
 
     public static ParameterSymbol createParameterSymbol(String name, Type type, boolean optional, boolean vararg) {

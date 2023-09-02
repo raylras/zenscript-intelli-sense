@@ -40,6 +40,10 @@ public class Range {
         return true;
     }
 
+    public org.eclipse.lsp4j.Range toLspRange() {
+        return Ranges.toLSPRange(this);
+    }
+
     @Override
     public String toString() {
         return "(" + startLine + ":" + startColumn + ")-(" + endLine + ":" + endColumn + ')';

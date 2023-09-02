@@ -7,8 +7,6 @@ import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.*;
 import raylras.zen.util.ArrayStack;
-import raylras.zen.util.CSTNodes;
-import raylras.zen.util.Operators;
 import raylras.zen.util.Stack;
 
 import java.util.List;
@@ -61,13 +59,12 @@ public final class DeclarationResolver {
 
         @Override
         public void enterImportDeclaration(ImportDeclarationContext ctx) {
-            String name;
+            ParseTree name;
             if (ctx.alias() != null) {
-                name = CSTNodes.getText(ctx.alias());
+                name = ctx.alias();
             } else {
                 List<SimpleNameContext> simpleNameList = ctx.qualifiedName().simpleName();
-                SimpleNameContext lastSimpleName = simpleNameList.get(simpleNameList.size() - 1);
-                name = CSTNodes.getText(lastSimpleName);
+                name = simpleNameList.get(simpleNameList.size() - 1);
             }
             ImportSymbol symbol = SymbolFactory.createImportSymbol(name, ctx, unit);
             enterSymbol(ctx, symbol);
@@ -75,8 +72,7 @@ public final class DeclarationResolver {
 
         @Override
         public void enterFunctionDeclaration(FunctionDeclarationContext ctx) {
-            String name = CSTNodes.getText(ctx.simpleName());
-            FunctionSymbol symbol = SymbolFactory.createFunctionSymbol(name, ctx, unit);
+            FunctionSymbol symbol = SymbolFactory.createFunctionSymbol(ctx.simpleName(), ctx, unit);
             enterSymbol(ctx, symbol);
             enterScope(new Scope(currentScope(), ctx));
         }
@@ -88,8 +84,7 @@ public final class DeclarationResolver {
 
         @Override
         public void enterExpandFunctionDeclaration(ExpandFunctionDeclarationContext ctx) {
-            String name = CSTNodes.getText(ctx.simpleName());
-            ExpandFunctionSymbol symbol = SymbolFactory.createExpandFunctionSymbol(name, ctx, unit);
+            ExpandFunctionSymbol symbol = SymbolFactory.createExpandFunctionSymbol(ctx.simpleName(), ctx, unit);
             enterSymbol(ctx, symbol);
             enterScope(new Scope(currentScope(), ctx));
         }
@@ -101,8 +96,7 @@ public final class DeclarationResolver {
 
         @Override
         public void enterFormalParameter(FormalParameterContext ctx) {
-            String name = CSTNodes.getText(ctx.simpleName());
-            ParameterSymbol symbol = SymbolFactory.createParameterSymbol(name, ctx, unit);
+            ParameterSymbol symbol = SymbolFactory.createParameterSymbol(ctx.simpleName(), ctx, unit);
             enterSymbol(ctx, symbol);
         }
 
@@ -118,11 +112,11 @@ public final class DeclarationResolver {
 
         @Override
         public void enterClassDeclaration(ClassDeclarationContext ctx) {
-            String name;
+            ParseTree name;
             if (ctx.simpleName() != null) {
-                name = ctx.simpleName().getText();
+                name = ctx.simpleName();
             } else {
-                name = ctx.simpleNameOrPrimitiveType().getText();
+                name = ctx.simpleNameOrPrimitiveType();
             }
             ClassSymbol symbol = SymbolFactory.createClassSymbol(name, ctx, unit);
             enterSymbol(ctx, symbol);
@@ -136,8 +130,7 @@ public final class DeclarationResolver {
 
         @Override
         public void enterConstructorDeclaration(ConstructorDeclarationContext ctx) {
-            String name = CSTNodes.getText(ctx.ZEN_CONSTRUCTOR());
-            FunctionSymbol symbol = SymbolFactory.createFunctionSymbol(name, ctx, unit);
+            FunctionSymbol symbol = SymbolFactory.createFunctionSymbol(ctx.ZEN_CONSTRUCTOR(), ctx, unit);
             enterSymbol(ctx, symbol);
             enterScope(new Scope(currentScope(), ctx));
         }
@@ -149,16 +142,13 @@ public final class DeclarationResolver {
 
         @Override
         public void enterVariableDeclaration(VariableDeclarationContext ctx) {
-            String name = CSTNodes.getText(ctx.simpleName());
-            VariableSymbol symbol = SymbolFactory.createVariableSymbol(name, ctx, unit);
+            VariableSymbol symbol = SymbolFactory.createVariableSymbol(ctx.simpleName(), ctx, unit);
             enterSymbol(ctx, symbol);
         }
 
         @Override
         public void enterOperatorFunctionDeclaration(OperatorFunctionDeclarationContext ctx) {
-            String name = CSTNodes.getText(ctx.operator());
-            Operator operator = Operators.literal(name, ctx.formalParameterList().formalParameter().size() + 1);
-            OperatorFunctionSymbol symbol = SymbolFactory.createOperatorFunctionSymbol(operator, ctx, unit);
+            OperatorFunctionSymbol symbol = SymbolFactory.createOperatorFunctionSymbol(ctx.operator(), ctx, unit);
             enterSymbol(ctx, symbol);
             enterScope(new Scope(currentScope(), ctx));
         }
@@ -200,8 +190,7 @@ public final class DeclarationResolver {
 
         @Override
         public void enterForeachVariable(ForeachVariableContext ctx) {
-            String name = CSTNodes.getText(ctx.simpleName());
-            VariableSymbol symbol = SymbolFactory.createVariableSymbol(name, ctx, unit);
+            VariableSymbol symbol = SymbolFactory.createVariableSymbol(ctx.simpleName(), ctx, unit);
             enterSymbol(ctx, symbol);
         }
 

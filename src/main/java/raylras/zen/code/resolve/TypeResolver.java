@@ -11,6 +11,7 @@ import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.*;
 import raylras.zen.code.symbol.Operator;
+import raylras.zen.code.symbol.Operator.OperatorType;
 import raylras.zen.code.type.*;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Functions;
@@ -239,7 +240,7 @@ public final class TypeResolver {
         @Override
         public Type visitBinaryExpr(BinaryExprContext ctx) {
             Type leftType = visit(ctx.left);
-            Operator operator = Operators.literal(ctx.op.getText(), 2);
+            Operator operator = Operators.of(ctx.op.getText(), OperatorType.BINARY);
             if (operator != Operator.ERROR) {
                 return Operators.getBinaryOperatorResult(leftType, operator, visit(ctx.right));
             } else {

@@ -9,10 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.langserver.provider.CompletionProvider;
-import raylras.zen.langserver.provider.DocumentSymbolProvider;
-import raylras.zen.langserver.provider.HoverProvider;
-import raylras.zen.langserver.provider.SemanticTokensProvider;
+import raylras.zen.langserver.provider.*;
 import raylras.zen.util.Compilations;
 import raylras.zen.util.PathUtils;
 
@@ -92,10 +89,17 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> definition(DefinitionParams params) {
-        return CompletableFuture.completedFuture(null);
+        try {
+            Path path = PathUtils.toPath(params.getTextDocument().getUri());
+            CompilationUnit unit = manager.getUnit(path);
+            List<LocationLink> definition = DefinitionProvider.definition(unit, params);
+            return CompletableFuture.completedFuture(Either.forRight(definition));
+        } catch (Exception e) {
+            logger.error("Failed to process 'definition' request: {}", params, e);
+            return CompletableFuture.completedFuture(null);
+        }
     }
 
-    @SuppressWarnings("deprecation")
     @Override
     public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(DocumentSymbolParams params) {
         try {
