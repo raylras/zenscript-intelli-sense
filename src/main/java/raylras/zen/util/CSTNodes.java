@@ -12,19 +12,19 @@ import java.util.Queue;
 
 public class CSTNodes {
 
-    public static ParseTree getCstAtLineAndColumn(ParseTree root, int line, int column) {
-        Deque<ParseTree> deque = getCstStackAtLineAndColumn(root, line, column);
+    public static ParseTree getCstAtPosition(ParseTree root, Position pos) {
+        Deque<ParseTree> deque = getCstStackAtPosition(root, pos);
         return deque.peekFirst();
     }
 
-    public static Deque<ParseTree> getCstStackAtLineAndColumn(ParseTree root, int line, int column) {
+    public static Deque<ParseTree> getCstStackAtPosition(ParseTree root, Position pos) {
         Queue<ParseTree> tempQueue = new ArrayDeque<>();
         tempQueue.add(root);
         Deque<ParseTree> result = new ArrayDeque<>();
         while (!tempQueue.isEmpty()) {
             ParseTree cst = tempQueue.poll();
-            Range range = Ranges.of(cst);
-            if (Ranges.isRangeContainsLineAndColumn(range, line, column)) {
+            Range range = Range.of(cst);
+            if (range.contains(pos)) {
                 result.addFirst(cst);
                 tempQueue.clear();
                 for (int i = 0; i < cst.getChildCount(); i++) {
@@ -49,8 +49,8 @@ public class CSTNodes {
             return null;
         }
         ParseTree root = getRoot(node);
-        Range cursor = Ranges.of(prevToken);
-        ParseTree prevNode = getCstAtLineAndColumn(root, cursor.endLine, cursor.endColumn);
+        Range range = Range.of(prevToken);
+        ParseTree prevNode = getCstAtPosition(root, range.end());
         return (prevNode instanceof TerminalNode) ? (TerminalNode) prevNode : null;
     }
 

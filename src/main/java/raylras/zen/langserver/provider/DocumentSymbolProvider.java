@@ -75,8 +75,8 @@ public final class DocumentSymbolProvider {
         }
 
         private DocumentSymbol toDocumentSymbol(ParseTree enclose, ParseTree selection, String name, SymbolKind kind) {
-            Range encloseRange = Ranges.toLSPRange(enclose);
-            Range selectionRange = Ranges.toLSPRange(selection);
+            Range encloseRange = Ranges.toLspRange(enclose);
+            Range selectionRange = Ranges.toLspRange(selection);
             return new DocumentSymbol(name, kind, encloseRange, selectionRange);
         }
 

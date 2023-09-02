@@ -1,6 +1,11 @@
 package raylras.zen.util;
 
-public class Range {
+import org.antlr.v4.runtime.ParserRuleContext;
+import org.antlr.v4.runtime.Token;
+import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.TerminalNode;
+
+public record Range(Position start, Position end) {
 
     public static final int FIRST_LINE = 0;
     public static final int FIRST_COLUMN = 0;
@@ -8,45 +13,93 @@ public class Range {
     public static final int MAX_COLUMN = Integer.MAX_VALUE;
     public static final int NO_LINE = -1;
     public static final int NO_COLUMN = -1;
-    public static final Range NO_RANGE = new Range(NO_LINE, NO_COLUMN, NO_LINE, NO_COLUMN);
+    public static final Range NO_RANGE = new Range(Position.NO_POSITION, Position.NO_POSITION);
 
     public static final int ANTLR_FIRST_LINE = 1; // org.antlr.v4.runtime.Token.getLine()
     public static final int ANTLR_FIRST_COLUMN = 0; // org.antlr.v4.runtime.Token.getCharPositionInLine()
     public static final int LSP4J_FIRST_LINE = 0; // org.eclipse.lsp4j.Position.getLine()
     public static final int LSP4J_FIRST_COLUMN = 0; // org.eclipse.lsp4j.Position.getCharacter()
 
-    public final int startLine;
-    public final int startColumn;
-    public final int endLine;
-    public final int endColumn;
+    public static Range of(int startLine, int startColumn, int endLine, int endColumn) {
+        return new Range(Position.of(startLine, startColumn), Position.of(endLine, endColumn));
+    }
 
-    public Range(int startLine, int startColumn, int endLine, int endColumn) {
-        this.startLine = startLine;
-        this.startColumn = startColumn;
-        this.endLine = endLine;
-        this.endColumn = endColumn;
+    public static Range of(ParseTree cst) {
+        if (cst instanceof ParserRuleContext) {
+            return of((ParserRuleContext) cst);
+        }
+        if (cst instanceof TerminalNode) {
+            return of((TerminalNode) cst);
+        }
+        if (cst instanceof Token) {
+            return of((Token) cst);
+        }
+        return NO_RANGE;
+    }
+
+    public static Range of(ParserRuleContext cst) {
+        if (cst == null) {
+            return NO_RANGE;
+        }
+        int startLine = cst.start.getLine() - ANTLR_FIRST_LINE;
+        int startColumn = cst.start.getCharPositionInLine();
+        int endLine = cst.stop.getLine() - ANTLR_FIRST_LINE;
+        int endColumn = cst.stop.getCharPositionInLine() + cst.stop.getText().length();
+        return Range.of(startLine, startColumn, endLine, endColumn);
+    }
+
+    public static Range of(TerminalNode node) {
+        if (node == null) {
+            return NO_RANGE;
+        }
+        return of(node.getSymbol());
+    }
+
+    public static Range of(Token token) {
+        if (token == null) {
+            return NO_RANGE;
+        }
+        int startLine = token.getLine() - ANTLR_FIRST_LINE;
+        int startColumn = token.getCharPositionInLine();
+        int endColumn = startColumn + token.getText().length();
+        return Range.of(startLine, startColumn, startLine, endColumn);
+    }
+
+    public static Range of(org.eclipse.lsp4j.Range range) {
+        if (range == null) {
+            return NO_RANGE;
+        }
+        int startLine = range.getStart().getLine();
+        int startColumn = range.getStart().getCharacter();
+        int endLine = range.getEnd().getLine();
+        int endColumn = range.getEnd().getCharacter();
+        return Range.of(startLine, startColumn, endLine, endColumn);
     }
 
     public boolean contains(Range that) {
-        if (this.startLine > that.startLine || this.endLine < that.endLine) {
+        if (this.start.line() > that.start.line() || this.end.line() < that.end.line()) {
             return false;
         }
-        if (this.startLine == that.startLine && this.startColumn > that.startColumn) {
+        if (this.start.line() == that.start.line() && this.start.column() > that.start.column()) {
             return false;
         }
-        if (this.endLine == that.endLine && this.endColumn < that.endColumn) {
+        if (this.end.line() == that.end.line() && this.end.column() < that.end.column()) {
             return false;
         }
         return true;
     }
 
+    public boolean contains(Position pos) {
+        return this.contains(new Range(pos, pos));
+    }
+
     public org.eclipse.lsp4j.Range toLspRange() {
-        return Ranges.toLSPRange(this);
+        return new org.eclipse.lsp4j.Range(start.toLspPosition(), end.toLspPosition());
     }
 
     @Override
     public String toString() {
-        return "(" + startLine + ":" + startColumn + ")-(" + endLine + ":" + endColumn + ')';
+        return "(" + start.line() + ":" + start.column() + ")-(" + end.line() + ":" + end.column() + ')';
     }
 
 }

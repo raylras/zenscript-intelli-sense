@@ -27,11 +27,11 @@ public class SemanticTokensProvider extends Listener {
 
     private void push(Range range, int tokenType, int tokenModifiers) {
         if (range == null) return;
-        int line = range.startLine - prevLine;
-        int column = range.startLine == prevLine ? range.startColumn - prevColumn : range.startColumn;
-        int length = range.endColumn - range.startColumn;
-        prevLine = range.startLine;
-        prevColumn = range.startColumn;
+        int line = range.start().line() - prevLine;
+        int column = range.start().line() == prevLine ? range.start().column() - prevColumn : range.start().column();
+        int length = range.end().column() - range.start().column();
+        prevLine = range.start().line();
+        prevColumn = range.start().column();
         data.add(line);
         data.add(column);
         data.add(length);

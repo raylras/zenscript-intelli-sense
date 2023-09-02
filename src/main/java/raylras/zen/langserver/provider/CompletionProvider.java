@@ -24,10 +24,7 @@ import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.Type;
 import raylras.zen.langserver.provider.data.Keywords;
-import raylras.zen.util.CSTNodes;
-import raylras.zen.util.PackageTree;
-import raylras.zen.util.Range;
-import raylras.zen.util.Ranges;
+import raylras.zen.util.*;
 import raylras.zen.util.l10n.L10N;
 
 import java.util.ArrayList;
@@ -46,7 +43,7 @@ public final class CompletionProvider {
     }
 
     private static final class CompletionVisitor extends Visitor<Void> {
-        private final Range cursor;
+        private final Position cursor;
         private final ParseTree tailing;
         private final TerminalNode leading;
         private final String text;
@@ -54,8 +51,8 @@ public final class CompletionProvider {
         private final List<CompletionItem> completionList = new ArrayList<>();
 
         private CompletionVisitor(CompilationUnit unit, CompletionParams params) {
-            this.cursor = Ranges.of(params.getPosition());
-            this.tailing = CSTNodes.getCstAtLineAndColumn(unit.getParseTree(), cursor.startLine, cursor.startColumn);
+            this.cursor = Position.of(params.getPosition());
+            this.tailing = CSTNodes.getCstAtPosition(unit.getParseTree(), cursor);
             this.leading = CSTNodes.getPrevTerminal(unit.getTokenStream(), tailing);
             this.text = tailing.getText();
             this.unit = unit;
@@ -466,11 +463,11 @@ public final class CompletionProvider {
         }
 
         private String getTextUntilCursor(ParseTree cst) {
-            Range range = Ranges.of(cst);
-            if (range.startLine != cursor.startLine) {
+            Range range = Range.of(cst);
+            if (range.start().line() != cursor.line()) {
                 return "";
             }
-            int length = cursor.startColumn - range.startColumn;
+            int length = cursor.column() - range.start().column();
             String text = cst.getText();
             if (length > 0) {
                 return text.substring(0, length);

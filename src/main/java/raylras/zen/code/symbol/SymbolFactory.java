@@ -11,7 +11,6 @@ import raylras.zen.code.type.*;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Operators;
 import raylras.zen.util.Range;
-import raylras.zen.util.Ranges;
 
 import java.util.*;
 import java.util.function.UnaryOperator;
@@ -25,8 +24,8 @@ public class SymbolFactory {
     public static ImportSymbol createImportSymbol(ParseTree nameCst, ImportDeclarationContext cst, CompilationUnit unit) {
         class ImportSymbolImpl implements ImportSymbol, Locatable {
             private final String name = CSTNodes.getText(nameCst);
-            private final Range range = Ranges.of(cst);
-            private final Range selectionRange = Ranges.of(nameCst);
+            private final Range range = Range.of(cst);
+            private final Range selectionRange = Range.of(nameCst);
 
             @Override
             public String getQualifiedName() {
@@ -86,8 +85,8 @@ public class SymbolFactory {
     public static ClassSymbol createClassSymbol(ParseTree nameCst, ClassDeclarationContext cst, CompilationUnit unit) {
         class ClassSymbolImpl implements ClassSymbol, Locatable {
             private final String name = CSTNodes.getText(nameCst);
-            private final Range range = Ranges.of(cst);
-            private final Range selectionRange = Ranges.of(nameCst);
+            private final Range range = Range.of(cst);
+            private final Range selectionRange = Range.of(nameCst);
             private final ClassType classType = new ClassType(this);
 
             @Override
@@ -179,8 +178,8 @@ public class SymbolFactory {
         class VariableSymbolImpl implements VariableSymbol, Locatable {
             private final String name = CSTNodes.getText(nameCst);
             private final Modifier modifier = ModifierResolver.getModifier(cst);
-            private final Range range = Ranges.of(cst);
-            private final Range selectionRange = Ranges.of(nameCst);
+            private final Range range = Range.of(cst);
+            private final Range selectionRange = Range.of(nameCst);
 
             @Override
             public String getName() {
@@ -254,8 +253,8 @@ public class SymbolFactory {
         class FunctionSymbolImpl implements FunctionSymbol, Locatable {
             private final String name = CSTNodes.getText(nameCst);
             private final Modifier modifier = ModifierResolver.getModifier(cst);
-            private final Range range = Ranges.of(cst);
-            private final Range selectionRange = Ranges.of(nameCst);
+            private final Range range = Range.of(cst);
+            private final Range selectionRange = Range.of(nameCst);
 
             @Override
             public FunctionType getType() {
@@ -352,8 +351,8 @@ public class SymbolFactory {
     public static OperatorFunctionSymbol createOperatorFunctionSymbol(OperatorContext opCst, OperatorFunctionDeclarationContext cst, CompilationUnit unit) {
         class OperatorFunctionSymbolImpl implements OperatorFunctionSymbol, Locatable {
             private final Operator operator = Operators.of(opCst.getText(), cst.formalParameterList().formalParameter().size());
-            private final Range range = Ranges.of(cst);
-            private final Range selectionRange = Ranges.of(opCst);
+            private final Range range = Range.of(cst);
+            private final Range selectionRange = Range.of(opCst);
 
             @Override
             public Operator getOperator() {
@@ -459,8 +458,8 @@ public class SymbolFactory {
     public static ParameterSymbol createParameterSymbol(ParseTree nameCst, FormalParameterContext cst, CompilationUnit unit) {
         class ParameterSymbolImpl implements ParameterSymbol, Locatable {
             private final String name = CSTNodes.getText(nameCst);
-            private final Range range = Ranges.of(cst);
-            private final Range selectionRange = Ranges.of(nameCst);
+            private final Range range = Range.of(cst);
+            private final Range selectionRange = Range.of(nameCst);
 
             @Override
             public boolean isOptional() {
@@ -518,8 +517,8 @@ public class SymbolFactory {
     public static ExpandFunctionSymbol createExpandFunctionSymbol(ParseTree nameCst, ExpandFunctionDeclarationContext cst, CompilationUnit unit) {
         class ExpandFunctionSymbolImpl implements ExpandFunctionSymbol, Locatable {
             private final String name = CSTNodes.getText(nameCst);
-            private final Range range = Ranges.of(cst);
-            private final Range selectionRange = Ranges.of(nameCst);
+            private final Range range = Range.of(cst);
+            private final Range selectionRange = Range.of(nameCst);
 
             @Override
             public List<ParameterSymbol> getParameterList() {

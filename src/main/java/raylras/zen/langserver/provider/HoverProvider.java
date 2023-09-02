@@ -9,10 +9,7 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptParser.BracketHandlerExprContext;
 import raylras.zen.rpc.RpcClient;
-import raylras.zen.util.CSTNodes;
-import raylras.zen.util.MapUtils;
-import raylras.zen.util.Range;
-import raylras.zen.util.Ranges;
+import raylras.zen.util.*;
 
 import java.util.Deque;
 import java.util.Map;
@@ -20,8 +17,8 @@ import java.util.Map;
 public class HoverProvider {
 
     public static Hover hover(CompilationUnit unit, HoverParams params) {
-        Range cursor = Ranges.of(params.getPosition());
-        Deque<ParseTree> cstStack = CSTNodes.getCstStackAtLineAndColumn(unit.getParseTree(), cursor.startLine, cursor.startColumn);
+        Position cursor = Position.of(params.getPosition());
+        Deque<ParseTree> cstStack = CSTNodes.getCstStackAtPosition(unit.getParseTree(), cursor);
         HoverVisitor visitor = new HoverVisitor();
         for (ParseTree cst : cstStack) {
             Hover hover = cst.accept(visitor);
@@ -49,7 +46,7 @@ public class HoverProvider {
                 builder.append("\n\n");
             });
             Hover hover = toHover(builder.toString());
-            hover.setRange(Ranges.toLSPRange(ctx));
+            hover.setRange(Ranges.toLspRange(ctx));
             return hover;
         }
 
