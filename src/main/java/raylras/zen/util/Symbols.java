@@ -1,12 +1,12 @@
 package raylras.zen.util;
 
 import raylras.zen.code.CompilationEnvironment;
+import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.SymbolProvider;
-import raylras.zen.code.symbol.Symbol;
+import raylras.zen.code.symbol.*;
 import raylras.zen.code.type.Type;
 
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
@@ -28,5 +28,34 @@ public class Symbols {
                 .collect(Collectors.toList());
 
     }
+
+
+    public static List<Symbol> lookupGlobalSymbols(CompilationUnit unit, String name) {
+        List<Symbol> globals = unit.getEnv().getGlobalSymbols()
+                .stream()
+                .filter(it -> !(it instanceof Locatable locatable && locatable.getUnit() == unit))
+                .filter(it -> Objects.equals(it.getName(), name))
+                .toList();
+        if (globals.isEmpty()) {
+            return getTopLevelPackageSymbols(unit)
+                    .stream()
+                    .filter(it -> Objects.equals(it.getName(), name))
+                    .toList();
+        }
+        return globals;
+    }
+
+    private static List<Symbol> getTopLevelPackageSymbols(CompilationUnit unit) {
+        PackageTree<ClassSymbol> packageTree = PackageTree.of(".", unit.getEnv().getClassSymbolMap());
+        List<Symbol> globalPackages = new ArrayList<>(packageTree.getSubTrees().size());
+        CompilationEnvironment environment = unit.getEnv();
+        for (Map.Entry<String, PackageTree<ClassSymbol>> entry : packageTree.getSubTrees().entrySet()) {
+            boolean isGenerated = !"scripts".equals(entry.getKey());
+            PackageSymbol packageSymbol = SymbolFactory.createPackageSymbol(entry.getKey(), entry.getKey(), entry.getValue(), environment, isGenerated);
+            globalPackages.add(packageSymbol);
+        }
+        return globalPackages;
+    }
+
 
 }

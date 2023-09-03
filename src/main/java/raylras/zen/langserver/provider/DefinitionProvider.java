@@ -9,6 +9,7 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.resolve.SymbolResolver;
 import raylras.zen.code.symbol.Locatable;
 import raylras.zen.code.symbol.Symbol;
+import raylras.zen.code.symbol.UriLocatable;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Position;
 import raylras.zen.util.Range;
@@ -30,17 +31,22 @@ public class DefinitionProvider {
         org.eclipse.lsp4j.Range originSelectionRange = Range.of(cst).toLspRange();
         Collection<Symbol> symbols = SymbolResolver.lookupSymbol(cst, unit);
         return symbols.stream()
-                .filter(symbol -> symbol instanceof Locatable)
+                .filter(symbol -> symbol instanceof UriLocatable)
                 .map(symbol -> toLocationLink(symbol, originSelectionRange))
                 .toList();
     }
 
     private static LocationLink toLocationLink(Symbol symbol, org.eclipse.lsp4j.Range originSelectionRange) {
-        Locatable locatable = ((Locatable) symbol);
-        String uri = locatable.getUri();
-        org.eclipse.lsp4j.Range range = locatable.getRange().toLspRange();
-        org.eclipse.lsp4j.Range selectionRange = locatable.getSelectionRange().toLspRange();
-        return new LocationLink(uri, range, selectionRange, originSelectionRange);
+        UriLocatable uriLocatable = ((UriLocatable) symbol);
+        String uri = uriLocatable.getUri();
+        if(uriLocatable instanceof Locatable locatable) {
+            org.eclipse.lsp4j.Range range = locatable.getRange().toLspRange();
+            org.eclipse.lsp4j.Range selectionRange = locatable.getSelectionRange().toLspRange();
+            return new LocationLink(uri, range, selectionRange, originSelectionRange);
+        }
+        org.eclipse.lsp4j.Position empty = new org.eclipse.lsp4j.Position();
+        org.eclipse.lsp4j.Range range = new org.eclipse.lsp4j.Range(empty, empty);
+        return new LocationLink(uri, range, range, originSelectionRange);
     }
 
 }

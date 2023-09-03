@@ -4,7 +4,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.util.Range;
 
-public interface Locatable {
+public interface Locatable extends UriLocatable {
 
     ParseTree getCst();
 
@@ -14,6 +14,7 @@ public interface Locatable {
 
     Range getSelectionRange();
 
+    @Override
     default String getUri() {
         return getUnit().getPath().toUri().toString();
     }

@@ -13,7 +13,9 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Listener;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.resolve.SymbolResolver;
-import raylras.zen.code.symbol.*;
+import raylras.zen.code.symbol.ImportSymbol;
+import raylras.zen.code.symbol.OperatorFunctionSymbol;
+import raylras.zen.code.symbol.Symbol;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Position;
 import raylras.zen.util.Ranges;
@@ -121,7 +123,18 @@ public class ReferencesProvider {
     private static void filterToActualUsage(CompilationUnit unit, List<ParseTree> possibleUsage, Symbol targetSymbol, List<ParseTree> result) {
         possibleUsage.stream().filter(cst -> {
             Collection<Symbol> symbols = SymbolResolver.lookupSymbol(cst, unit);
-            return symbols.stream().anyMatch(it -> Objects.equals(it, targetSymbol));
+            if (targetSymbol.getKind() == Symbol.Kind.IMPORT) {
+                return symbols.stream().anyMatch(it -> {
+                    return Objects.equals(it, targetSymbol);
+                });
+            } else {
+                return symbols.stream().anyMatch(it -> {
+                    if (it instanceof ImportSymbol importSymbol) {
+                        return importSymbol.getTargets().stream().anyMatch(imported -> Objects.equals(imported, targetSymbol));
+                    }
+                    return Objects.equals(it, targetSymbol);
+                });
+            }
         }).forEach(result::add);
     }
 

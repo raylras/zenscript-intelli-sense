@@ -86,6 +86,32 @@ public class CSTNodes {
         }
     }
 
+    public static <T extends ParseTree> T findParentOfType(ParseTree cst, Class<T> parentClass) {
+        ParseTree current = cst;
+        while (current != null) {
+            if (parentClass.isInstance(current)) {
+                return parentClass.cast(current);
+            } else {
+                current = current.getParent();
+            }
+        }
+        return null;
+    }
+
+
+    public static ParseTree findParentOfTypes(ParseTree cst, Class<?>... parents) {
+        ParseTree current = cst;
+        while (current != null) {
+            for (Class<?> parent : parents) {
+                if (parent.isInstance(current)) {
+                    return current;
+                }
+            }
+            current = current.getParent();
+        }
+        return null;
+    }
+
     private static int getStartTokenIndex(ParseTree node) {
         if (node instanceof TerminalNode) {
             return ((TerminalNode) node).getSymbol().getTokenIndex();
