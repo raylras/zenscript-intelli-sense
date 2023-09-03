@@ -10,10 +10,12 @@ import raylras.zen.code.parser.ZenScriptParser.StatementContext;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
+import raylras.zen.util.PackageTree;
 import raylras.zen.util.Ranges;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Objects;
 import java.util.function.Predicate;
 
 public class SymbolResolver {
@@ -95,10 +97,21 @@ public class SymbolResolver {
         private SymbolProvider lookupSymbol(ParseTree cst, String name) {
             Scope scope = unit.lookupScope(cst);
             if (scope != null) {
-                return scope.filter(isSymbolNameEquals(name));
+                return scope.filter(isSymbolNameEquals(name))
+                        .orElse(() -> lookupGlobalSymbols(name));
             } else {
-                return SymbolProvider.EMPTY;
+                return () -> lookupGlobalSymbols(name);
             }
+        }
+
+        private Collection<Symbol> lookupGlobalSymbols(String name) {
+            Collection<Symbol> globals = unit.getEnv().getGlobalSymbols().stream().filter(it -> Objects.equals(it.getName(), name)).toList();
+            if (globals.isEmpty()) {
+                // TODO: find package
+                PackageTree<ClassSymbol> packageTree = PackageTree.of(".", unit.getEnv().getClassSymbolMap());
+                return Collections.emptyList();
+            }
+            return globals;
         }
 
         private static Predicate<Symbol> isSymbolNameEquals(ParseTree name) {

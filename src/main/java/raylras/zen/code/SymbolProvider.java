@@ -3,7 +3,9 @@ package raylras.zen.code;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.Type;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -31,6 +33,14 @@ public interface SymbolProvider extends Iterable<Symbol> {
 
     default SymbolProvider merge(SymbolProvider other) {
         return () -> Stream.concat(getSymbols().stream(), other.getSymbols().stream()).toList();
+    }
+
+    default SymbolProvider orElse(SymbolProvider other) {
+        Collection<Symbol> symbols = getSymbols();
+        if (symbols.isEmpty()) {
+            return other;
+        }
+        return () -> symbols;
     }
 
     default int size() {

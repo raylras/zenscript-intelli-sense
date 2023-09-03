@@ -101,6 +101,19 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     }
 
     @Override
+    public CompletableFuture<List<? extends Location>> references(ReferenceParams params) {
+        try {
+            Path path = PathUtils.toPath(params.getTextDocument().getUri());
+            CompilationUnit unit = manager.getUnit(path);
+            List<Location> usages = ReferencesProvider.references(unit, params);
+            return CompletableFuture.completedFuture(usages);
+        } catch (Exception e) {
+            logger.error("Failed to process 'documentSymbol' request: {}", params, e);
+            return CompletableFuture.completedFuture(null);
+        }
+    }
+
+    @Override
     public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(DocumentSymbolParams params) {
         try {
             Path path = PathUtils.toPath(params.getTextDocument().getUri());
