@@ -13,6 +13,7 @@ import raylras.zen.util.Operators;
 import raylras.zen.util.Range;
 
 import java.util.*;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -98,7 +99,9 @@ public class SymbolFactory {
 
             @Override
             public List<Symbol> getDeclaredMembers() {
-                return unit.getScope(cst).getSymbols();
+                return unit.getScope(cst).getSymbols().stream()
+                        .filter(Predicate.not(ThisSymbol.class::isInstance))
+                        .toList();
             }
 
             @Override
