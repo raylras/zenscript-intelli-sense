@@ -5,10 +5,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.net.Socket;
 import java.util.Collections;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 public class RpcClient {
@@ -28,6 +32,9 @@ public class RpcClient {
                 return Collections.emptyMap();
             });
             return future.get(3, TimeUnit.SECONDS);
+        } catch (ConnectException e) {
+            logger.warn("Failed to query bracket handler: {}, not connected to server", raw);
+            return Collections.emptyMap();
         } catch (Exception e) {
             logger.error("Failed to query bracket handler: {}", raw, e);
             return Collections.emptyMap();

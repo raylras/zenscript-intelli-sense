@@ -16,6 +16,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -29,10 +31,12 @@ public class CompilationEnvironment {
     private final Path root;
     private final Map<Path, CompilationUnit> unitMap = new HashMap<>();
     private BracketHandlerManager bracketHandlerManager;
+    private final ReadWriteLock lock;
 
     public CompilationEnvironment(Path root) {
         Objects.requireNonNull(root);
         this.root = root;
+        this.lock = new ReentrantReadWriteLock(true);
     }
 
     public CompilationUnit createUnit(Path unitPath) {
@@ -120,6 +124,10 @@ public class CompilationEnvironment {
     @Override
     public String toString() {
         return root.toString();
+    }
+
+    public ReadWriteLock getLock() {
+        return lock;
     }
 
     private BracketHandlerManager loadBracketHandlerManager() {

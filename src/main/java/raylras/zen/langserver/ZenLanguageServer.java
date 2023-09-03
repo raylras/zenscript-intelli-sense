@@ -10,15 +10,19 @@ import raylras.zen.util.l10n.L10N;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 
     private static final Logger logger = LoggerFactory.getLogger(ZenLanguageServer.class);
 
     private final ZenLanguageService service;
+    private final ExecutorService mainExecutor = Executors.newCachedThreadPool();
 
     public ZenLanguageServer() {
-        this.service = new ZenLanguageService();
+        this.service = new ZenLanguageService(mainExecutor);
     }
 
     @Override
@@ -27,30 +31,32 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 
     @Override
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
-        List<WorkspaceFolder> workspaceFolders = params.getWorkspaceFolders();
-        ServerCapabilities capabilities = new ServerCapabilities();
-        capabilities.setTextDocumentSync(TextDocumentSyncKind.Full);
-        L10N.setLocale(params.getLocale());
-        if (workspaceFolders != null) {
-            service.initializeWorkspaces(workspaceFolders);
-            CompletionOptions completionOptions = new CompletionOptions();
-            completionOptions.setTriggerCharacters(Arrays.asList(".", ":"));
-            capabilities.setCompletionProvider(completionOptions);
-            capabilities.setDocumentSymbolProvider(true);
+        return CompletableFuture.supplyAsync(() -> {
+            List<WorkspaceFolder> workspaceFolders = params.getWorkspaceFolders();
+            ServerCapabilities capabilities = new ServerCapabilities();
+            capabilities.setTextDocumentSync(TextDocumentSyncKind.Full);
+            L10N.setLocale(params.getLocale());
+            if (workspaceFolders != null) {
+                service.initializeWorkspaces(workspaceFolders);
+                CompletionOptions completionOptions = new CompletionOptions();
+                completionOptions.setTriggerCharacters(Arrays.asList(".", ":"));
+                capabilities.setCompletionProvider(completionOptions);
+                capabilities.setDocumentSymbolProvider(true);
 //          capabilities.setWorkspaceSymbolProvider(true);
 //          capabilities.setDocumentHighlightProvider(true);
 //          SignatureHelpOptions signatureHelpOptions = new SignatureHelpOptions();
 //          signatureHelpOptions.setTriggerCharacters(Arrays.asList("(", ","));
 //          capabilities.setSignatureHelpProvider(signatureHelpOptions);
 //          capabilities.setSemanticTokensProvider(new SemanticTokensWithRegistrationOptions(Semantics.SEMANTIC_TOKENS_LEGEND, true));
-          capabilities.setReferencesProvider(true);
+                capabilities.setReferencesProvider(true);
 //          capabilities.setDeclarationProvider(true);
-          capabilities.setDefinitionProvider(true);
+                capabilities.setDefinitionProvider(true);
 //          capabilities.setTypeDefinitionProvider(true);
-            capabilities.setHoverProvider(true);
+                capabilities.setHoverProvider(true);
 //          capabilities.setRenameProvider(true);
-        }
-        return CompletableFuture.completedFuture(new InitializeResult(capabilities));
+            }
+            return new InitializeResult(capabilities);
+        }, mainExecutor);
     }
 
     @Override
@@ -71,7 +77,15 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 
     @Override
     public CompletableFuture<Object> shutdown() {
-        return new CompletableFuture<>();
+        mainExecutor.shutdown();
+        return CompletableFuture.supplyAsync(() -> {
+            logger.info("waiting operation to stop..");
+            try {
+                return mainExecutor.awaitTermination(60, TimeUnit.SECONDS);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
     @Override
@@ -85,6 +99,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
     }
 
     private void startListeningFileChanges() {
+
         List<FileSystemWatcher> watchers = new ArrayList<>(1);
         watchers.add(new FileSystemWatcher(Either.forLeft("**/*" + CompilationUnit.ZS_FILE_EXTENSION), WatchKind.Create + WatchKind.Change + WatchKind.Delete));
         Object options = new DidChangeWatchedFilesRegistrationOptions(watchers);
