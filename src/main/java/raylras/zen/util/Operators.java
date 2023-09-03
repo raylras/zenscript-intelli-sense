@@ -27,7 +27,7 @@ public class Operators {
 
     public static Type getBinaryOperatorResult(Type type, Operator operator, CompilationEnvironment env, Type rightType) {
         return find(type, env, operator).stream()
-                .min(Comparator.comparing(it -> rightType.isSubtypeOf(it.getParameterList().get(0).getType(), env), SubtypeResult.PRIORITY_COMPARATOR))
+                .min(Comparator.comparing(it -> rightType.testSubtypeOf(it.getParameterList().get(0).getType(), env), SubtypeResult.PRIORITY_COMPARATOR))
                 .map(OperatorFunctionSymbol::getReturnType)
                 .orElse(AnyType.INSTANCE);
     }
@@ -43,25 +43,25 @@ public class Operators {
         return symbols.stream()
                 .filter(it -> it instanceof OperatorFunctionSymbol)
                 .map(it -> (OperatorFunctionSymbol) it)
-                .min(Comparator.comparing(it -> rightType.isSubtypeOf(it.getParameterList().get(0).getType(), env), SubtypeResult.PRIORITY_COMPARATOR));
+                .min(Comparator.comparing(it -> rightType.testSubtypeOf(it.getParameterList().get(0).getType(), env), SubtypeResult.PRIORITY_COMPARATOR));
     }
 
     public static Type getTrinaryOperatorResult(Type type, Operator operator, CompilationEnvironment env, Type rightType1, Type rightType2) {
         return find(type, env, operator).stream()
                 .min(Comparator.comparing(it -> {
                     List<ParameterSymbol> parameterList = it.getParameterList();
-                    return SubtypeResult.higher(rightType1.isSubtypeOf(parameterList.get(0).getType(), env), rightType2.isSubtypeOf(parameterList.get(1).getType(), env));
+                    return SubtypeResult.higher(rightType1.testSubtypeOf(parameterList.get(0).getType(), env), rightType2.testSubtypeOf(parameterList.get(1).getType(), env));
                 }, SubtypeResult.PRIORITY_COMPARATOR))
                 .map(OperatorFunctionSymbol::getReturnType)
                 .orElse(AnyType.INSTANCE);
     }
 
-    public static boolean hasCaster(Type type, Type target, CompilationEnvironment env) {
-        Type result = getUnaryOperatorResult(type, Operator.AS, env);
+    public static boolean hasCaster(Type from, Type to, CompilationEnvironment env) {
+        Type result = getUnaryOperatorResult(from, Operator.AS, env);
         if (result instanceof IntersectionType intersectionType) {
-            return intersectionType.getTypeList().contains(target);
+            return intersectionType.getTypeList().contains(to);
         } else {
-            return target.equals(type);
+            return from.equals(to);
         }
     }
 

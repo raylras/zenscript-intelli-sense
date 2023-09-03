@@ -25,13 +25,13 @@ public class Functions {
         int arguments = argumentTypeList.size();
         for (int i = 0; i < Math.max(parameters, arguments); i++) {
             if (i < parameters && i < arguments) {
-                functionMatchingResult = SubtypeResult.higher(functionMatchingResult, argumentTypeList.get(i).isSubtypeOf(parameterList.get(i).getType(), env));
+                functionMatchingResult = SubtypeResult.higher(functionMatchingResult, argumentTypeList.get(i).testSubtypeOf(parameterList.get(i).getType(), env));
             } else if (i > arguments) {
                 functionMatchingResult = SubtypeResult.higher(functionMatchingResult, parameterList.get(i).isOptional() ? SubtypeResult.SELF : SubtypeResult.MISMATCH);
             } else if (i > parameters) {
                 ParameterSymbol lastParameter = parameterList.get(parameterList.size() - 1);
                 if (lastParameter.isVararg()) {
-                    functionMatchingResult = SubtypeResult.higher(functionMatchingResult, argumentTypeList.get(i).isSubtypeOf(lastParameter.getType(), env));
+                    functionMatchingResult = SubtypeResult.higher(functionMatchingResult, argumentTypeList.get(i).testSubtypeOf(lastParameter.getType(), env));
                 } else {
                     functionMatchingResult = SubtypeResult.MISMATCH;
                 }
@@ -58,7 +58,7 @@ public class Functions {
             for (int i = 0; i < argumentTypes.size(); i++) {
                 Type argType = argumentTypes.get(i);
                 Type paramType = parameterList.get(i).getType();
-                functionMatchingResult = SubtypeResult.higher(functionMatchingResult, argType.isSubtypeOf(paramType, env));
+                functionMatchingResult = SubtypeResult.higher(functionMatchingResult, argType.testSubtypeOf(paramType, env));
             }
             if (functionMatchingResult.priority < foundMatchingResult.priority) {
                 found = parameterList.get(argumentTypes.size()).getType();
