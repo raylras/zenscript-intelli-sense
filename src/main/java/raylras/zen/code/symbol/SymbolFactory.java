@@ -13,6 +13,7 @@ import raylras.zen.util.Operators;
 import raylras.zen.util.Range;
 
 import java.util.*;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -612,6 +613,30 @@ public class SymbolFactory {
             }
         }
         return new ParameterSymbolImpl();
+    }
+
+    public static ThisSymbol createThisSymbol(Supplier<Type> typeSupplier) {
+        return new ThisSymbol() {
+            @Override
+            public String getName() {
+                return "this";
+            }
+
+            @Override
+            public Kind getKind() {
+                return Kind.VARIABLE;
+            }
+
+            @Override
+            public Type getType() {
+                return typeSupplier.get();
+            }
+
+            @Override
+            public Modifier getModifier() {
+                return Modifier.VAL;
+            }
+        };
     }
 
     public static SymbolsBuilder builtinSymbols() {

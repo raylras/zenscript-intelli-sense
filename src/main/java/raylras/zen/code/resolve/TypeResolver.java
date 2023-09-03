@@ -145,8 +145,14 @@ public final class TypeResolver {
         @Override
         public Type visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
             List<Type> paramTypes = toTypeList(ctx.formalParameterList());
-            // FIXME: should be zen class type
             Type returnType = AnyType.INSTANCE;
+            if (ctx.getParent() instanceof ClassMemberDeclarationContext cmd) {
+                if (cmd.getParent() instanceof ClassBodyContext bodyContext) {
+                    if (bodyContext.getParent() instanceof ClassDeclarationContext declarationContext) {
+                        returnType = visit(declarationContext);
+                    }
+                }
+            }
             return new FunctionType(returnType, paramTypes);
         }
 
@@ -207,8 +213,12 @@ public final class TypeResolver {
 
         @Override
         public Type visitThisExpr(ThisExprContext ctx) {
-            // FIXME: inferring the type of this expression
-            return AnyType.INSTANCE;
+            Symbol symbol = lookupSymbol(ctx, "this");
+            if (symbol != null) {
+                return symbol.getType();
+            } else {
+                return AnyType.INSTANCE;
+            }
         }
 
         @Override
