@@ -5,18 +5,26 @@ import raylras.zen.util.Operators;
 
 public abstract class Type {
 
-    public boolean isAssignableTo(Type type, CompilationEnvironment env) {
+    public final boolean isAssignableTo(Type type, CompilationEnvironment env) {
         return isSubtypeOf(type, env).matched();
     }
 
-    public SubtypeResult isSubtypeOf(Type type, CompilationEnvironment env) {
+    public boolean isCastableTo(Type type, CompilationEnvironment env) {
+        return Operators.hasCaster(this, type, env);
+    }
+
+    public boolean isInheritedFrom(Type type) {
+        return type == AnyType.INSTANCE;
+    }
+
+    public final SubtypeResult isSubtypeOf(Type type, CompilationEnvironment env) {
         if (this.equals(type)) {
             return SubtypeResult.SELF;
         }
-        if (type.equals(AnyType.INSTANCE)) {
+        if (isInheritedFrom(type)) {
             return SubtypeResult.INHERIT;
         }
-        if (Operators.hasCaster(this, type, env)) {
+        if (isCastableTo(type, env)) {
             return SubtypeResult.CASTER;
         }
         return SubtypeResult.MISMATCH;

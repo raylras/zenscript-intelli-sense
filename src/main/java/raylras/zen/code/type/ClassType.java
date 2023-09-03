@@ -25,19 +25,27 @@ public class ClassType extends Type implements SymbolProvider {
     }
 
     @Override
-    public SubtypeResult isSubtypeOf(Type type, CompilationEnvironment env) {
-        if (this.equals(type)) {
-            return SubtypeResult.SELF;
-        }
+    public boolean isInheritedFrom(Type type) {
         if (type instanceof ClassType) {
             boolean matchedInterface = symbol.getInterfaces().stream()
                     .flatMap(classType -> classType.getSymbol().getInterfaces().stream())
-                    .anyMatch(classType -> classType.isSubtypeOf(type, env).matched());
+                    .anyMatch(classType -> classType.isInheritedFrom(type) || classType.equals(type));
             if (matchedInterface) {
-                return SubtypeResult.INHERIT;
+                return true;
             }
         }
-        return super.isSubtypeOf(type, env);
+        return super.isInheritedFrom(type);
+    }
+
+    @Override
+    public boolean isCastableTo(Type type, CompilationEnvironment env) {
+        boolean interfacesCastable = symbol.getInterfaces().stream()
+                .flatMap(classType -> classType.getSymbol().getInterfaces().stream())
+                .anyMatch(classType -> classType.isCastableTo(type, env));
+        if (interfacesCastable) {
+            return true;
+        }
+        return super.isInheritedFrom(type);
     }
 
     @Override

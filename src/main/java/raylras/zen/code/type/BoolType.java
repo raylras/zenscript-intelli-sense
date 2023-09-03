@@ -14,11 +14,11 @@ public class BoolType extends Type implements SymbolProvider {
     public static final BoolType INSTANCE = new BoolType();
 
     @Override
-    public SubtypeResult isSubtypeOf(Type type, CompilationEnvironment env) {
+    public boolean isCastableTo(Type type, CompilationEnvironment env) {
         if (type == StringType.INSTANCE) {
-            return SubtypeResult.CASTER;
+            return true;
         }
-        return super.isSubtypeOf(type, env);
+        return super.isCastableTo(type, env);
     }
 
     @Override

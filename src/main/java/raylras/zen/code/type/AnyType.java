@@ -7,8 +7,8 @@ public class AnyType extends Type {
     public static final AnyType INSTANCE = new AnyType();
 
     @Override
-    public SubtypeResult isSubtypeOf(Type type, CompilationEnvironment env) {
-        return SubtypeResult.INHERIT;
+    public boolean isCastableTo(Type type, CompilationEnvironment env) {
+        return true;
     }
 
     @Override

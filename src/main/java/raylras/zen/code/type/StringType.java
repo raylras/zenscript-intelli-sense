@@ -18,14 +18,11 @@ public class StringType extends Type implements SymbolProvider {
     }
 
     @Override
-    public SubtypeResult isSubtypeOf(Type type, CompilationEnvironment env) {
-        if (this.equals(type)) {
-            return SubtypeResult.SELF;
-        }
+    public boolean isCastableTo(Type type, CompilationEnvironment env) {
         if (type instanceof NumberType || BoolType.INSTANCE.equals(type)) {
-            return SubtypeResult.CASTER;
+            return true;
         }
-        return super.isSubtypeOf(type, env);
+        return super.isCastableTo(type, env);
     }
 
     @Override
