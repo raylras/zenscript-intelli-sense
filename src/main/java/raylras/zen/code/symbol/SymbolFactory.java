@@ -6,6 +6,7 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.resolve.FormalParameterResolver;
 import raylras.zen.code.resolve.ModifierResolver;
+import raylras.zen.code.resolve.SymbolResolver;
 import raylras.zen.code.resolve.TypeResolver;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.type.AnyType;
@@ -39,9 +40,8 @@ public class SymbolFactory {
             }
 
             @Override
-            public List<Symbol> getTargets() {
-                // TODO: import static members and implement this
-                return Collections.emptyList();
+            public Collection<Symbol> getTargets() {
+                return SymbolResolver.getSymbol(cst.qualifiedName(), unit);
             }
 
             @Override

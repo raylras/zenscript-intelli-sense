@@ -15,6 +15,9 @@ public class Ranges {
     }
 
     public static boolean contains(ParseTree a, ParseTree b) {
+        if (a == null || b == null) {
+            return false;
+        }
         return Range.of(a).contains(Range.of(b));
     }
 

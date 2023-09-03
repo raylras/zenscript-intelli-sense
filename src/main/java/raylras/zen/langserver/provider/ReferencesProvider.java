@@ -176,6 +176,7 @@ public class ReferencesProvider {
             return true;
         }
 
+
         return symbol.getKind() == Symbol.Kind.VARIABLE && !(symbol.isGlobal() || symbol.isStatic());
     }
 

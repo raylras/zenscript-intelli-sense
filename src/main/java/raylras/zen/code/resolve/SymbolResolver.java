@@ -38,6 +38,10 @@ public class SymbolResolver {
         visitor.visit(owner);
         return visitor.result;
     }
+    public static Collection<Symbol> getSymbol(ParseTree cst, CompilationUnit unit) {
+        SymbolVisitor visitor = new SymbolVisitor(unit, null);
+        return visitor.visit(cst).getSymbols();
+    }
 
     private static class SymbolVisitor extends Visitor<SymbolProvider> {
         private final CompilationUnit unit;
