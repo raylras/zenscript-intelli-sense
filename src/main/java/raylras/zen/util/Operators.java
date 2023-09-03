@@ -10,10 +10,7 @@ import raylras.zen.code.type.IntersectionType;
 import raylras.zen.code.type.SubtypeResult;
 import raylras.zen.code.type.Type;
 
-import java.util.Comparator;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 public class Operators {
     public static List<OperatorFunctionSymbol> find(Type type, CompilationEnvironment env, Operator operator) {
@@ -61,7 +58,7 @@ public class Operators {
         if (result instanceof IntersectionType intersectionType) {
             return intersectionType.getTypeList().contains(to);
         } else {
-            return from.equals(to);
+            return Objects.equals(result, to);
         }
     }
 
