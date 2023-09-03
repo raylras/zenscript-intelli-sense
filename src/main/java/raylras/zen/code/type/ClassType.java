@@ -1,6 +1,5 @@
 package raylras.zen.code.type;
 
-import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
@@ -33,17 +32,6 @@ public class ClassType extends Type implements SymbolProvider {
             if (matchedInterface) {
                 return true;
             }
-        }
-        return super.isInheritedFrom(type);
-    }
-
-    @Override
-    public boolean isCastableTo(Type type, CompilationEnvironment env) {
-        boolean interfacesCastable = symbol.getInterfaces().stream()
-                .flatMap(classType -> classType.getSymbol().getInterfaces().stream())
-                .anyMatch(classType -> classType.isCastableTo(type, env));
-        if (interfacesCastable) {
-            return true;
         }
         return super.isInheritedFrom(type);
     }
