@@ -7,6 +7,7 @@ import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.UnaryOperator;
 
 public class MapType extends Type implements SymbolProvider {
@@ -51,14 +52,32 @@ public class MapType extends Type implements SymbolProvider {
     }
 
     @Override
-    public SubtypeResult isSubtypeOf(Type type, CompilationEnvironment env) {
-        if (type instanceof MapType) {
-            MapType that = ((MapType) type);
-            SubtypeResult key = this.keyType.isSubtypeOf(that.keyType, env);
-            SubtypeResult value = this.valueType.isSubtypeOf(that.valueType, env);
-            return SubtypeResult.higher(key, value);
+    public boolean isInheritedFrom(Type type) {
+        if (type instanceof MapType that) {
+            Type thatKeyType = that.keyType;
+            Type thatValueType = that.valueType;
+            boolean keyMatched = Objects.equals(keyType, thatKeyType) && keyType.isInheritedFrom(thatKeyType);
+            boolean valueMatched = Objects.equals(valueType, thatValueType) && valueType.isInheritedFrom(thatValueType);
+            if (keyMatched && valueMatched) {
+                return true;
+            }
         }
-        return super.isSubtypeOf(type, env);
+        return super.isInheritedFrom(type);
+    }
+
+    @Override
+    public boolean isCastableTo(Type type, CompilationEnvironment env) {
+        if (type instanceof MapType that) {
+            boolean keyMatched = keyType.isAssignableTo(that.keyType, env);
+            boolean valueMatched = valueType.isAssignableTo(that.valueType, env);
+            if (keyMatched && valueMatched) {
+                return true;
+            }
+        }
+        if (type instanceof ClassType that && that.getSymbol().getQualifiedName().equals("crafttweaker.data.IData")) {
+            return true;
+        }
+        return super.isCastableTo(type, env);
     }
 
     @Override

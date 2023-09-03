@@ -8,7 +8,6 @@ import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.ExpandFunctionSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.ClassType;
-import raylras.zen.code.type.SubtypeResult;
 import raylras.zen.code.type.Type;
 
 import java.io.BufferedReader;
@@ -105,7 +104,7 @@ public class CompilationEnvironment {
 
     public List<Symbol> getExpandMembers(Type type) {
         List<Symbol> expands = getExpandFunctions().stream()
-                .filter(symbol -> type.isSubtypeOf(symbol.getOwner(), this).priority <= SubtypeResult.INHERIT.priority)
+                .filter(symbol -> type.isInheritedFrom(symbol.getOwner()))
                 .map(Symbol.class::cast)
                 .toList();
         if (type instanceof ClassType) {

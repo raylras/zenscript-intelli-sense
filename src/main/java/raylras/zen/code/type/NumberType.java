@@ -12,17 +12,19 @@ import java.util.function.UnaryOperator;
 public abstract class NumberType extends Type implements SymbolProvider {
 
     @Override
-    public SubtypeResult isSubtypeOf(Type type, CompilationEnvironment env) {
-        if (this == type) {
-            return SubtypeResult.SELF;
-        }
+    public boolean isInheritedFrom(Type type) {
         if (type instanceof NumberType) {
-            return SubtypeResult.INHERIT;
+            return true;
         }
+        return super.isInheritedFrom(type);
+    }
+
+    @Override
+    public boolean isCastableTo(Type type, CompilationEnvironment env) {
         if (type == StringType.INSTANCE) {
-            return SubtypeResult.CASTER;
+            return true;
         }
-        return super.isSubtypeOf(type, env);
+        return super.isCastableTo(type, env);
     }
 
     @Override

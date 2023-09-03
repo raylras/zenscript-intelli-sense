@@ -36,22 +36,22 @@ public class ListType extends Type implements SymbolProvider {
     }
 
     @Override
-    public SubtypeResult isSubtypeOf(Type type, CompilationEnvironment env) {
-        if (this.equals(type)) {
-            return SubtypeResult.SELF;
+    public boolean isInheritedFrom(Type type) {
+        if (type instanceof ListType that && elementType.isInheritedFrom(that.getElementType())) {
+            return true;
         }
-        if (type == AnyType.INSTANCE) {
-            return SubtypeResult.INHERIT;
+        return super.isInheritedFrom(type);
+    }
+
+    @Override
+    public boolean isCastableTo(Type type, CompilationEnvironment env) {
+        if (type instanceof ListType that && elementType.isCastableTo(that.getElementType(), env)) {
+            return true;
         }
-        if (type instanceof ArrayType) {
-            ArrayType that = (ArrayType) type;
-            return SubtypeResult.higher(this.elementType.isSubtypeOf(that.getElementType(), env), SubtypeResult.CASTER);
+        if (type instanceof ArrayType that && elementType.isAssignableTo(that.getElementType(), env)) {
+            return true;
         }
-        if (type instanceof ListType) {
-            ListType that = (ListType) type;
-            return this.elementType.isSubtypeOf(that.getElementType(), env);
-        }
-        return super.isSubtypeOf(type, env);
+        return super.isCastableTo(type, env);
     }
 
     @Override

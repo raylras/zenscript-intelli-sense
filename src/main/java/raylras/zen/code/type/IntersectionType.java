@@ -25,11 +25,13 @@ public class IntersectionType extends Type implements SymbolProvider {
     }
 
     @Override
-    public SubtypeResult isSubtypeOf(Type type, CompilationEnvironment env) {
-        return typeList.stream()
-                .map(it -> it.isSubtypeOf(type, env))
-                .min(SubtypeResult.PRIORITY_COMPARATOR)
-                .orElse(SubtypeResult.MISMATCH);
+    public boolean isInheritedFrom(Type type) {
+        return typeList.stream().anyMatch(it -> it.isInheritedFrom(type));
+    }
+
+    @Override
+    public boolean isCastableTo(Type type, CompilationEnvironment env) {
+        return typeList.stream().anyMatch(it -> it.isCastableTo(type, env));
     }
 
     public List<Type> getTypeList() {
