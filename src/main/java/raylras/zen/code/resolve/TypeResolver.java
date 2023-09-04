@@ -367,13 +367,15 @@ public final class TypeResolver {
             if (!(leftType instanceof SymbolProvider symbolProvider)) {
                 return null;
             }
-            String simpleName = ctx.simpleName().getText();
-            for (Symbol member : symbolProvider.withExpands(unit.getEnv())) {
-                if (Objects.equals(member.getName(), simpleName)) {
-                    return member.getType();
+            if (ctx.simpleName() != null) {
+                String simpleName = ctx.simpleName().getText();
+                for (Symbol member : symbolProvider.withExpands(unit.getEnv())) {
+                    if (Objects.equals(member.getName(), simpleName)) {
+                        return member.getType();
+                    }
                 }
             }
-            return leftType;
+            return Operators.getBinaryOperatorResult(leftType, Operator.MEMBER_GET, unit.getEnv(), StringType.INSTANCE);
         }
 
         @Override
