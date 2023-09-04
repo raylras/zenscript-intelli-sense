@@ -134,7 +134,7 @@ public final class DeclarationResolver {
 
         @Override
         public void enterConstructorDeclaration(ConstructorDeclarationContext ctx) {
-            FunctionSymbol symbol = SymbolFactory.createFunctionSymbol(ctx.ZEN_CONSTRUCTOR(), ctx, unit);
+            ConstructorSymbol symbol = SymbolFactory.createConstructorSymbol(ctx.ZEN_CONSTRUCTOR(), ctx, unit);
             enterSymbol(ctx, symbol);
             enterScope(new Scope(currentScope(), ctx));
         }

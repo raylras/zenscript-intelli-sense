@@ -642,6 +642,65 @@ public class SymbolFactory {
         };
     }
 
+    public static ConstructorSymbol createConstructorSymbol(ParseTree nameCst, ParseTree cst, CompilationUnit unit) {
+        class ConstructorSymbolImpl implements ConstructorSymbol, Locatable {
+            private final Range range = Range.of(cst);
+            private final Range selectionRange = Range.of(nameCst);
+
+            @Override
+            public List<ParameterSymbol> getParameterList() {
+                return FormalParameterResolver.getFormalParameterList(cst, unit);
+            }
+
+            @Override
+            public Type getReturnType() {
+                return getType().getReturnType();
+            }
+
+            @Override
+            public ParseTree getCst() {
+                return cst;
+            }
+
+            @Override
+            public CompilationUnit getUnit() {
+                return unit;
+            }
+
+            @Override
+            public Range getRange() {
+                return range;
+            }
+
+            @Override
+            public Range getSelectionRange() {
+                return selectionRange;
+            }
+
+            @Override
+            public String getName() {
+                return getReturnType().toString();
+            }
+
+            @Override
+            public Kind getKind() {
+                return Kind.FUNCTION;
+            }
+
+            @Override
+            public FunctionType getType() {
+                Type type = TypeResolver.getType(cst, unit);
+                return (type instanceof FunctionType) ? (FunctionType) type : new FunctionType(AnyType.INSTANCE);
+            }
+
+            @Override
+            public Modifier getModifier() {
+                return Modifier.NONE;
+            }
+        }
+        return new ConstructorSymbolImpl();
+    }
+
     public static SymbolsBuilder builtinSymbols() {
         return new SymbolsBuilder();
     }

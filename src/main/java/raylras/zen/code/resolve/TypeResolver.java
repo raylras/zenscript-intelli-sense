@@ -406,6 +406,8 @@ public final class TypeResolver {
                 Type leftType = visit(ctx.expression());
                 if (leftType instanceof FunctionType) {
                     return ((FunctionType) leftType).getReturnType();
+                } else if (leftType instanceof ClassType) {
+                    return leftType;
                 } else {
                     return null;
                 }

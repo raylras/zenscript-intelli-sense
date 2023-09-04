@@ -16,10 +16,7 @@ import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.resolve.TypeResolver;
 import raylras.zen.code.scope.Scope;
-import raylras.zen.code.symbol.Executable;
-import raylras.zen.code.symbol.ImportSymbol;
-import raylras.zen.code.symbol.OperatorFunctionSymbol;
-import raylras.zen.code.symbol.Symbol;
+import raylras.zen.code.symbol.*;
 import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.Type;
@@ -508,7 +505,7 @@ public final class CompletionProvider {
             if (type instanceof SymbolProvider memberProvider) {
                 memberProvider.withExpands(unit.getEnv()).stream()
                         .filter(symbol -> symbol.getName().startsWith(text))
-                        .filter(symbol -> !(symbol instanceof OperatorFunctionSymbol))
+                        .filter(this::shouldAddedToCompletion)
                         .forEach(this::addToCompletionList);
             }
         }
@@ -578,6 +575,12 @@ public final class CompletionProvider {
                 return CompletionItemKind.Function;
             }
             return CompletionItemKind.Variable;
+        }
+
+        private boolean shouldAddedToCompletion(Symbol symbol) {
+            return symbol instanceof FunctionSymbol ||
+                    symbol instanceof VariableSymbol ||
+                    symbol instanceof ExpandFunctionSymbol;
         }
 
         private CompletionItemLabelDetails getLabelDetails(Symbol symbol) {
