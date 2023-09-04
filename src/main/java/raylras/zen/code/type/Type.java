@@ -27,7 +27,7 @@ public abstract class Type {
     }
 
     public boolean isCastableTo(Type type, CompilationEnvironment env) {
-        return Operators.hasCaster(this, type, env);
+        return Operators.hasCaster(this, type, env) || this.isInheritedFrom(type);
     }
 
     @Override
