@@ -8,23 +8,22 @@ import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.ReferenceParams;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Listener;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.resolve.SymbolResolver;
+import raylras.zen.code.symbol.Locatable;
 import raylras.zen.code.symbol.OperatorFunctionSymbol;
 import raylras.zen.code.symbol.Symbol;
+import raylras.zen.langserver.Document;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Position;
 import raylras.zen.util.Ranges;
 
-import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
-import java.util.stream.Collectors;
 
 public class ReferencesProvider {
     private static final Logger logger = LoggerFactory.getLogger(ReferencesProvider.class);
@@ -37,99 +36,72 @@ public class ReferencesProvider {
      * 3. search the terminal node at all documents
      * 4. get the cst at every searched node, and resolve its symbol, filtering those containing the current symbol.
      */
-    public static List<Location> references(CompilationUnit unit, ReferenceParams params) {
-        // FIXME: refactor ReferencesProvider.references() to async
-        Position cursor = Position.of(params.getPosition());
-        Symbol symbol = getSymbolOnCursor(unit, cursor);
-        if (symbol == null) {
-            logger.warn("Could not get symbol at ({}, {}), skipping find usages", params.getPosition().getLine(), params.getPosition().getCharacter());
-            return Collections.emptyList();
-        }
-        logger.info("Finding usages for {}", symbol.getName());
+    public static CompletableFuture<List<? extends Location>> references(Document doc, ReferenceParams params) {
 
-        Predicate<TerminalNode> search = getSymbolSearchRule(symbol);
+        return doc.getUnit().map(unit -> CompletableFuture.<List<? extends Location>>supplyAsync(() -> {
+            Position cursor = Position.of(params.getPosition());
+            Symbol symbol = getSymbolOnCursor(unit, cursor);
+            if (symbol == null) {
+                logger.warn("Could not get symbol at ({}, {}), skipping find usages", params.getPosition().getLine(), params.getPosition().getCharacter());
+                return null;
+            }
+            logger.info("Finding usages for {}", symbol.getName());
+            Instant searchStart = Instant.now();
+            Predicate<TerminalNode> searchRule = getSymbolSearchRule(symbol);
+            if (searchRule == null) {
+                logger.warn("Could not get symbol search rule at ({}, {}), for symbol {}", params.getPosition().getLine(), params.getPosition().getCharacter(), symbol);
+                return null;
+            }
 
-        if (search == null) {
-            return Collections.emptyList();
-        }
-        Instant searchStart = Instant.now();
 
-        boolean isLocalSymbol = isLocalSymbol(symbol);
-        Map<Path, List<ParseTree>> possibleRange = searchPossible(unit, search, isLocalSymbol);
-        Instant filterStart = Instant.now();
-        logger.info("Found {} possible usages for {} ms, filtering", possibleRange.size(), Duration.between(searchStart, filterStart).toMillis());
-        Map<Path, List<ParseTree>> usages = filterActual(unit.getEnv(), possibleRange, symbol);
-        logger.info("Found {} usages for {} ms", usages.size(), Duration.between(filterStart, Instant.now()).toMillis());
-        return usages.entrySet().stream().flatMap(pair -> {
-            String uri = pair.getKey().toUri().toString();
-            return pair.getValue().stream()
-                    .map(it -> {
-                        Location location = new Location();
-                        location.setUri(uri);
-                        location.setRange(Ranges.toLspRange(it));
-                        return location;
-                    });
-        }).collect(Collectors.toList());
+            List<Location> result = getSearchingScope(symbol, unit).stream().parallel().flatMap(cu -> {
+                        String uri = cu.getPath().toUri().toString();
+                        return searchPossible(searchRule, cu.getParseTree())
+                                .stream().parallel().filter(cst -> {
+                                    Collection<Symbol> symbols = SymbolResolver.lookupSymbol(cst, unit);
+                                    return symbols.stream().anyMatch(it -> Objects.equals(it, symbol));
+                                })
+                                .map(it -> toLocation(uri, it));
+                    }
+            ).toList();
 
+            logger.info("Found {} references for {} ms", result.size(), Duration.between(searchStart, Instant.now()).toMillis());
+            return result;
+        })).orElseGet(ReferencesProvider::empty);
     }
+
 
     public static CompletableFuture<List<? extends Location>> empty() {
         return CompletableFuture.completedFuture(null);
     }
 
-    private static Map<Path, List<ParseTree>> filterActual(CompilationEnvironment env, Map<Path, List<ParseTree>> possibleRanges, Symbol targetSymbol) {
-
-        Map<Path, List<ParseTree>> result = new HashMap<>();
-
-        for (Map.Entry<Path, List<ParseTree>> entry : possibleRanges.entrySet()) {
-            List<ParseTree> usages = new ArrayList<>();
-            CompilationUnit unit = env.getUnit(entry.getKey());
-            if (unit == null) {
-                continue;
-            }
-            filterToActualUsage(unit, entry.getValue(), targetSymbol, usages);
-
-            if (!usages.isEmpty()) {
-                result.put(entry.getKey(), usages);
-            }
-        }
-
-        return result;
+    private static Location toLocation(String uri, ParseTree cst) {
+        Location location = new Location();
+        location.setUri(uri);
+        location.setRange(Ranges.toLspRange(cst));
+        return location;
     }
 
-    private static Map<Path, List<ParseTree>> searchPossible(CompilationUnit symbolUnit, Predicate<TerminalNode> search, boolean isLocalSymbol) {
-        Map<Path, List<ParseTree>> result = new HashMap<>();
-        if (isLocalSymbol) {
-            doSearchPossible(search, symbolUnit, result);
-        } else {
-            for (CompilationUnit cu : symbolUnit.getEnv().getUnits()) {
-                doSearchPossible(search, cu, result);
-            }
+    private static Collection<CompilationUnit> getSearchingScope(Symbol symbol, CompilationUnit symbolUnit) {
+        if (isGloballyAccessibleSymbol(symbol)) {
+            return symbolUnit.getEnv().getUnits();
         }
-        return result;
+
+        return Collections.singletonList(symbolUnit);
+
     }
 
-    private static void doSearchPossible(Predicate<TerminalNode> search, CompilationUnit cu, Map<Path, List<ParseTree>> result) {
-        List<ParseTree> nodes = new ArrayList<>();
+    private static List<ParseTree> searchPossible(Predicate<TerminalNode> search, ParseTree searchingScope) {
+        List<ParseTree> result = new ArrayList<>();
         ParseTreeWalker.DEFAULT.walk(new Listener() {
             @Override
             public void visitTerminal(TerminalNode node) {
                 if (search.test(node)) {
-                    nodes.add(node);
+                    result.add(node);
                 }
             }
-        }, cu.getParseTree());
-
-        if (!nodes.isEmpty()) {
-            result.put(cu.getPath(), nodes);
-        }
-    }
-
-    private static void filterToActualUsage(CompilationUnit unit, List<ParseTree> possibleUsage, Symbol targetSymbol, List<ParseTree> result) {
-        possibleUsage.stream().filter(cst -> {
-            Collection<Symbol> symbols = SymbolResolver.lookupSymbol(cst, unit);
-            return symbols.stream().anyMatch(it -> Objects.equals(it, targetSymbol));
-        }).forEach(result::add);
+        }, searchingScope);
+        return result;
     }
 
     private static Predicate<TerminalNode> getSymbolSearchRule(Symbol symbol) {
@@ -165,12 +137,31 @@ public class ReferencesProvider {
 
     }
 
-    private static boolean isLocalSymbol(Symbol symbol) {
-        if (symbol.getKind() == Symbol.Kind.PARAMETER || symbol.getKind() == Symbol.Kind.IMPORT) {
+    private static boolean isGloballyAccessibleSymbol(Symbol symbol) {
+        // parameters and import can never be accessed by other units.
+        if (symbol.getKind() == Symbol.Kind.PARAMETER || symbol.getKind() == Symbol.Kind.IMPORT || symbol.getKind() == Symbol.Kind.NONE) {
+            return false;
+        }
+
+        // classes and packages can never be accessed by other units.
+        if (symbol.getKind() == Symbol.Kind.CLASS || symbol.getKind() == Symbol.Kind.PACKAGE) {
             return true;
         }
 
-        return symbol.getKind() == Symbol.Kind.VARIABLE && !(symbol.isGlobal() || symbol.isStatic());
+        if (symbol.getKind() == Symbol.Kind.VARIABLE && symbol instanceof Locatable locatable) {
+            ParseTree parent = CSTNodes.findParentOfTypes(locatable.getCst(), ZenScriptParser.ClassDeclarationContext.class, ZenScriptParser.BlockStatementContext.class);
+            // variables and functions in classes are accessible by other units.
+            if (parent instanceof ZenScriptParser.ClassDeclarationContext) {
+                return true;
+            }
+
+            // variables in block statement could never be accessible by other units.
+            if (parent instanceof ZenScriptParser.TopLevelElementContext) {
+                return false;
+            }
+        }
+
+        return symbol.isGlobal() || symbol.isStatic();
     }
 
     private static Symbol getSymbolOnCursor(CompilationUnit unit, Position cursor) {
@@ -191,6 +182,5 @@ public class ReferencesProvider {
         }
         return null;
     }
-
 
 }

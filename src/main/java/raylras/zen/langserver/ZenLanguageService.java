@@ -89,9 +89,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public CompletableFuture<List<? extends Location>> references(ReferenceParams params) {
         try (Document doc = workspaceManager.openAsRead(params.getTextDocument())){
-            // FIXME: refactor ReferencesProvider.references() to async
-            List<Location> usages = ReferencesProvider.references(doc.getUnit().orElse(null), params);
-            return CompletableFuture.completedFuture(usages);
+            return ReferencesProvider.references(doc, params);
         } catch (Exception e) {
             logger.error("Failed to process 'documentSymbol' request: {}", params, e);
             return ReferencesProvider.empty();
