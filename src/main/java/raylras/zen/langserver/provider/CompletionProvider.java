@@ -18,11 +18,12 @@ import raylras.zen.code.symbol.*;
 import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.Type;
+import raylras.zen.code.type.VoidType;
 import raylras.zen.langserver.Document;
 import raylras.zen.langserver.provider.data.Keywords;
-import raylras.zen.util.*;
 import raylras.zen.util.Position;
 import raylras.zen.util.Range;
+import raylras.zen.util.*;
 import raylras.zen.util.l10n.L10N;
 
 import java.util.ArrayList;
@@ -32,7 +33,8 @@ import java.util.stream.Collectors;
 
 public final class CompletionProvider {
 
-    private CompletionProvider() {}
+    private CompletionProvider() {
+    }
 
     public static CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(Document doc, CompletionParams params) {
         return doc.getUnit().map(unit -> CompletableFuture.supplyAsync(() -> {
@@ -537,6 +539,17 @@ public final class CompletionProvider {
             CompletionItem item = new CompletionItem(symbol.getName());
             item.setKind(toCompletionKind(symbol));
             item.setLabelDetails(getLabelDetails(symbol));
+            if (symbol instanceof Executable executable) {
+                item.setInsertTextFormat(InsertTextFormat.Snippet);
+                if (executable.getParameterList().isEmpty()) {
+                    item.setInsertText(item.getLabel() + "()");
+                } else {
+                    item.setInsertText(item.getLabel() + "($1)");
+                }
+                if (executable.getReturnType() == VoidType.INSTANCE) {
+                    item.setInsertText(item.getInsertText() + ";");
+                }
+            }
             completionList.add(item);
         }
 
