@@ -1,17 +1,23 @@
 package raylras.zen.code.symbol;
 
 import org.antlr.v4.runtime.tree.ParseTree;
+import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.resolve.FormalParameterResolver;
 import raylras.zen.code.resolve.ModifierResolver;
 import raylras.zen.code.resolve.TypeResolver;
 import raylras.zen.code.scope.Scope;
-import raylras.zen.code.type.*;
+import raylras.zen.code.type.AnyType;
+import raylras.zen.code.type.ClassType;
+import raylras.zen.code.type.FunctionType;
+import raylras.zen.code.type.Type;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Operators;
+import raylras.zen.util.PackageTree;
 import raylras.zen.util.Range;
 
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -31,13 +37,6 @@ public class SymbolFactory {
             public String getQualifiedName() {
                 return cst.qualifiedName().getText();
             }
-
-            @Override
-            public List<Symbol> getTargets() {
-                // TODO: import static members and implement this
-                return Collections.emptyList();
-            }
-
             @Override
             public String getName() {
                 return name;
@@ -50,8 +49,7 @@ public class SymbolFactory {
 
             @Override
             public Type getType() {
-                // TODO: import static members
-                return unit.getEnv().getClassTypeMap().get(getQualifiedName());
+                return AnyType.INSTANCE;
             }
 
             @Override
@@ -613,6 +611,94 @@ public class SymbolFactory {
         }
         return new ParameterSymbolImpl();
     }
+
+    public static PackageSymbol createPackageSymbol(String name, String qualifiedName, PackageTree<ClassSymbol> packageTree, CompilationEnvironment environment, boolean isGenerated) {
+        Path root;
+        if (isGenerated) {
+            root = environment.getGeneratedRoot();
+        } else {
+            root = environment.getRoot();
+        }
+        if (packageTree.hasElement()) {
+            String relativePath = qualifiedName.replace(".", "/");
+            if (isGenerated) {
+                relativePath += ".dzs";
+            } else {
+                relativePath += ".zs";
+            }
+            root = root.resolve(relativePath).normalize();
+        } else {
+            root = root.resolve(qualifiedName.replace(".", "/")).normalize();
+        }
+
+        final Path rootFinal = root;
+        class PackageSymbolImpl implements PackageSymbol, Locatable {
+
+            @Override
+            public String getName() {
+                return name;
+            }
+
+            @Override
+            public Kind getKind() {
+                return Kind.PACKAGE;
+            }
+
+            @Override
+            public Type getType() {
+                return AnyType.INSTANCE;
+            }
+
+            @Override
+            public Modifier getModifier() {
+                return Modifier.NONE;
+            }
+
+            @Override
+            public Path getPath() {
+                return rootFinal;
+            }
+
+            @Override
+            public String getUri() {
+                return getPath().toUri().toString();
+            }
+
+            @Override
+            public Range getRange() {
+                return Range.NO_RANGE;
+            }
+
+            @Override
+            public Range getSelectionRange() {
+                return Range.NO_RANGE;
+            }
+
+            @Override
+            public String getQualifiedName() {
+                return qualifiedName;
+            }
+
+            @Override
+            public List<Symbol> getSymbols() {
+                List<Symbol> result = new ArrayList<>();
+                for (Map.Entry<String, PackageTree<ClassSymbol>> entry : packageTree.getSubTrees().entrySet()) {
+                    PackageTree<ClassSymbol> tree = entry.getValue();
+                    if (tree.hasElement()) {
+                        result.add(tree.getElement());
+                    } else {
+                        String name = entry.getKey();
+                        PackageSymbol packageSymbol = createPackageSymbol(name, qualifiedName + "." + name, entry.getValue(), environment, isGenerated);
+                        result.add(packageSymbol);
+                    }
+                }
+                return result;
+            }
+        }
+
+        return new PackageSymbolImpl();
+    }
+
 
     public static SymbolsBuilder builtinSymbols() {
         return new SymbolsBuilder();
