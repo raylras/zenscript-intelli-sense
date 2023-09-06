@@ -30,3 +30,4 @@ src/main/gen
 
 # mac
 .DS_Store
+.history
