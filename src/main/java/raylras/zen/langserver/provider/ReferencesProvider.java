@@ -12,7 +12,7 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Listener;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.resolve.SymbolResolver;
-import raylras.zen.code.symbol.Locatable;
+import raylras.zen.code.symbol.ParseTreeLocatable;
 import raylras.zen.code.symbol.OperatorFunctionSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.langserver.Document;
@@ -148,7 +148,7 @@ public class ReferencesProvider {
             return true;
         }
 
-        if (symbol.getKind() == Symbol.Kind.VARIABLE && symbol instanceof Locatable locatable) {
+        if (symbol.getKind() == Symbol.Kind.VARIABLE && symbol instanceof ParseTreeLocatable locatable) {
             ParseTree parent = CSTNodes.findParentOfTypes(locatable.getCst(), ZenScriptParser.ClassDeclarationContext.class, ZenScriptParser.BlockStatementContext.class);
             // variables and functions in classes are accessible by other units.
             if (parent instanceof ZenScriptParser.ClassDeclarationContext) {

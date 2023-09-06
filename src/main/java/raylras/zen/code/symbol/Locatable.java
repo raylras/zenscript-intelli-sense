@@ -1,21 +1,17 @@
 package raylras.zen.code.symbol;
 
-import org.antlr.v4.runtime.tree.ParseTree;
-import raylras.zen.code.CompilationUnit;
 import raylras.zen.util.Range;
+
+import java.nio.file.Path;
 
 public interface Locatable {
 
-    ParseTree getCst();
+    Path getPath();
 
-    CompilationUnit getUnit();
+    String getUri();
 
     Range getRange();
 
     Range getSelectionRange();
-
-    default String getUri() {
-        return getUnit().getPath().toUri().toString();
-    }
 
 }

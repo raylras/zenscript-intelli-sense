@@ -22,7 +22,7 @@ public class SymbolFactory {
     }
 
     public static ImportSymbol createImportSymbol(ParseTree nameCst, ImportDeclarationContext cst, CompilationUnit unit) {
-        class ImportSymbolImpl implements ImportSymbol, Locatable {
+        class ImportSymbolImpl implements ImportSymbol, ParseTreeLocatable {
             private final String name = CSTNodes.getText(nameCst);
             private final Range range = Range.of(cst);
             private final Range selectionRange = Range.of(nameCst);
@@ -83,7 +83,7 @@ public class SymbolFactory {
     }
 
     public static ClassSymbol createClassSymbol(ParseTree nameCst, ClassDeclarationContext cst, CompilationUnit unit) {
-        class ClassSymbolImpl implements ClassSymbol, Locatable {
+        class ClassSymbolImpl implements ClassSymbol, ParseTreeLocatable {
             private final String name = CSTNodes.getText(nameCst);
             private final Range range = Range.of(cst);
             private final Range selectionRange = Range.of(nameCst);
@@ -175,7 +175,7 @@ public class SymbolFactory {
     }
 
     public static VariableSymbol createVariableSymbol(ParseTree nameCst, ParseTree cst, CompilationUnit unit) {
-        class VariableSymbolImpl implements VariableSymbol, Locatable {
+        class VariableSymbolImpl implements VariableSymbol, ParseTreeLocatable {
             private final String name = CSTNodes.getText(nameCst);
             private final Modifier modifier = ModifierResolver.getModifier(cst);
             private final Range range = Range.of(cst);
@@ -250,7 +250,7 @@ public class SymbolFactory {
     }
 
     public static FunctionSymbol createFunctionSymbol(ParseTree nameCst, ParseTree cst, CompilationUnit unit) {
-        class FunctionSymbolImpl implements FunctionSymbol, Locatable {
+        class FunctionSymbolImpl implements FunctionSymbol, ParseTreeLocatable {
             private final String name = CSTNodes.getText(nameCst);
             private final Modifier modifier = ModifierResolver.getModifier(cst);
             private final Range range = Range.of(cst);
@@ -349,7 +349,7 @@ public class SymbolFactory {
     }
 
     public static OperatorFunctionSymbol createOperatorFunctionSymbol(OperatorContext opCst, OperatorFunctionDeclarationContext cst, CompilationUnit unit) {
-        class OperatorFunctionSymbolImpl implements OperatorFunctionSymbol, Locatable {
+        class OperatorFunctionSymbolImpl implements OperatorFunctionSymbol, ParseTreeLocatable {
             private final Operator operator = Operators.of(opCst.getText(), cst.formalParameterList().formalParameter().size());
             private final Range range = Range.of(cst);
             private final Range selectionRange = Range.of(opCst);
@@ -456,7 +456,7 @@ public class SymbolFactory {
     }
 
     public static ParameterSymbol createParameterSymbol(ParseTree nameCst, FormalParameterContext cst, CompilationUnit unit) {
-        class ParameterSymbolImpl implements ParameterSymbol, Locatable {
+        class ParameterSymbolImpl implements ParameterSymbol, ParseTreeLocatable {
             private final String name = CSTNodes.getText(nameCst);
             private final Range range = Range.of(cst);
             private final Range selectionRange = Range.of(nameCst);
@@ -515,7 +515,7 @@ public class SymbolFactory {
     }
 
     public static ExpandFunctionSymbol createExpandFunctionSymbol(ParseTree nameCst, ExpandFunctionDeclarationContext cst, CompilationUnit unit) {
-        class ExpandFunctionSymbolImpl implements ExpandFunctionSymbol, Locatable {
+        class ExpandFunctionSymbolImpl implements ExpandFunctionSymbol, ParseTreeLocatable {
             private final String name = CSTNodes.getText(nameCst);
             private final Range range = Range.of(cst);
             private final Range selectionRange = Range.of(nameCst);
