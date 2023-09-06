@@ -28,7 +28,7 @@ public class ClassType extends Type implements SymbolProvider {
         if (type instanceof ClassType) {
             boolean matchedInterface = symbol.getInterfaces().stream()
                     .flatMap(classType -> classType.getSymbol().getInterfaces().stream())
-                    .anyMatch(classType -> classType.isInheritedFrom(type) || classType.equals(type));
+                    .anyMatch(classType -> classType.isInheritedFrom(type));
             if (matchedInterface) {
                 return true;
             }

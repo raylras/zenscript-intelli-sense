@@ -7,7 +7,6 @@ import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.function.UnaryOperator;
 
 public class MapType extends Type implements SymbolProvider {
@@ -54,10 +53,8 @@ public class MapType extends Type implements SymbolProvider {
     @Override
     public boolean isInheritedFrom(Type type) {
         if (type instanceof MapType that) {
-            Type thatKeyType = that.keyType;
-            Type thatValueType = that.valueType;
-            boolean keyMatched = Objects.equals(keyType, thatKeyType) && keyType.isInheritedFrom(thatKeyType);
-            boolean valueMatched = Objects.equals(valueType, thatValueType) && valueType.isInheritedFrom(thatValueType);
+            boolean keyMatched = keyType.isInheritedFrom(that.keyType);
+            boolean valueMatched = valueType.isInheritedFrom(that.valueType);
             if (keyMatched && valueMatched) {
                 return true;
             }

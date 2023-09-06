@@ -14,7 +14,7 @@ import raylras.zen.code.symbol.Operator;
 import raylras.zen.code.symbol.Operator.OperatorType;
 import raylras.zen.code.type.*;
 import raylras.zen.util.CSTNodes;
-import raylras.zen.util.Functions;
+import raylras.zen.util.Executables;
 import raylras.zen.util.Operators;
 import raylras.zen.util.Symbols;
 
@@ -115,7 +115,7 @@ public final class TypeResolver {
             if (functionType instanceof FunctionType) {
                 return ((FunctionType) functionType).getParameterTypes().get(argumentIndex);
             } else if (functionType instanceof ClassType classType) {
-                return Functions.findLambdaForm(classType, unit.getEnv())
+                return Executables.findLambdaForm(classType, unit.getEnv())
                         .map(it -> it.getParameterTypes().get(argumentIndex))
                         .orElse(AnyType.INSTANCE);
             }
@@ -305,8 +305,8 @@ public final class TypeResolver {
                         }
                         Type type = visit(memberAccessExpr.expression());
                         String name = memberAccessExpr.simpleName().getText();
-                        List<FunctionSymbol> functions = Symbols.getMembersByName(type, name, FunctionSymbol.class, unit.getEnv());
-                        return Functions.predictNextArgumentType(functions, argumentTypes, unit.getEnv());
+                        List<Executable> functions = Symbols.getExecutableMembersByName(type, name, unit.getEnv());
+                        return Executables.predictNextArgumentType(functions, argumentTypes, unit.getEnv());
                     }
                 }
             }
@@ -410,8 +410,8 @@ public final class TypeResolver {
                     }
                     argumentTypes.add(argumentType);
                 }
-                List<FunctionSymbol> functions = Symbols.getMembersByName(owner, memberAccessExpr.simpleName().getText(), FunctionSymbol.class, unit.getEnv());
-                FunctionSymbol matchedFunction = Functions.findBestMatch(functions, argumentTypes, unit.getEnv());
+                List<Executable> functions = Symbols.getExecutableMembersByName(owner, memberAccessExpr.simpleName().getText(), unit.getEnv());
+                Executable matchedFunction = Executables.findBestMatch(functions, argumentTypes, unit.getEnv());
                 return matchedFunction == null ? null : matchedFunction.getReturnType();
             } else {
                 Type leftType = visit(ctx.expression());

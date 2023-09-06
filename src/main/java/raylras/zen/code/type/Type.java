@@ -23,11 +23,11 @@ public abstract class Type {
     }
 
     public boolean isInheritedFrom(Type type) {
-        return type == AnyType.INSTANCE;
+        return type == AnyType.INSTANCE || this.equals(type);
     }
 
     public boolean isCastableTo(Type type, CompilationEnvironment env) {
-        return Operators.hasCaster(this, type, env);
+        return Operators.hasCaster(this, type, env) || this.isInheritedFrom(type);
     }
 
     @Override
