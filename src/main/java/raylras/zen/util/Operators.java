@@ -6,11 +6,13 @@ import raylras.zen.code.symbol.OperatorFunctionSymbol;
 import raylras.zen.code.symbol.ParameterSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.AnyType;
-import raylras.zen.code.type.IntersectionType;
 import raylras.zen.code.type.SubtypeResult;
 import raylras.zen.code.type.Type;
 
-import java.util.*;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 public class Operators {
     public static List<OperatorFunctionSymbol> find(Type type, CompilationEnvironment env, Operator operator) {
@@ -55,11 +57,7 @@ public class Operators {
 
     public static boolean hasCaster(Type from, Type to, CompilationEnvironment env) {
         Type result = getUnaryOperatorResult(from, Operator.AS, env);
-        if (result instanceof IntersectionType intersectionType) {
-            return intersectionType.getTypeList().contains(to);
-        } else {
-            return Objects.equals(result, to);
-        }
+        return result.isInheritedFrom(to);
     }
 
     public static Operator of(String literal, int params) {

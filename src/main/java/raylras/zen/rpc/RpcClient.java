@@ -27,7 +27,7 @@ public class RpcClient {
                 RpcClient.bracketHandlerService = null;
                 return Collections.emptyMap();
             });
-            return future.get(3, TimeUnit.SECONDS);
+            return future.get();
         } catch (Exception e) {
             logger.error("Failed to query bracket handler: {}", raw, e);
             return Collections.emptyMap();

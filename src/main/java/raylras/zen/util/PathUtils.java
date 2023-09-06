@@ -36,6 +36,11 @@ public final class PathUtils {
         return fileName.substring(0, fileName.lastIndexOf('.'));
     }
 
+    public static Path findUpwardsOrSelf(Path start, String targetName) {
+        Path target = findUpwards(start, targetName);
+        return (target != null) ? target : start;
+    }
+
     public static Path findUpwards(Path start, String targetName) {
         Path current = start;
         while (current != null) {

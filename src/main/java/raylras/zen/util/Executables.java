@@ -1,6 +1,7 @@
 package raylras.zen.util;
 
 import raylras.zen.code.CompilationEnvironment;
+import raylras.zen.code.symbol.Executable;
 import raylras.zen.code.symbol.FunctionSymbol;
 import raylras.zen.code.symbol.ParameterSymbol;
 import raylras.zen.code.type.ClassType;
@@ -12,13 +13,13 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
-public class Functions {
+public class Executables {
 
-    public static boolean areArgumentsMatch(FunctionSymbol function, List<Type> argumentTypeList, CompilationEnvironment env) {
+    public static boolean areArgumentsMatch(Executable function, List<Type> argumentTypeList, CompilationEnvironment env) {
         return matchArguments(function, argumentTypeList, env).matched();
     }
 
-    public static SubtypeResult matchArguments(FunctionSymbol function, List<Type> argumentTypeList, CompilationEnvironment env) {
+    public static SubtypeResult matchArguments(Executable function, List<Type> argumentTypeList, CompilationEnvironment env) {
         List<ParameterSymbol> parameterList = function.getParameterList();
         SubtypeResult functionMatchingResult = SubtypeResult.SELF;
         int parameters = parameterList.size();
@@ -40,16 +41,16 @@ public class Functions {
         return functionMatchingResult;
     }
 
-    public static FunctionSymbol findBestMatch(List<FunctionSymbol> functions, List<Type> argumentTypeList, CompilationEnvironment env) {
+    public static Executable findBestMatch(List<Executable> functions, List<Type> argumentTypeList, CompilationEnvironment env) {
         return functions.stream()
                 .min(Comparator.comparing(it -> matchArguments(it, argumentTypeList, env), SubtypeResult.PRIORITY_COMPARATOR))
                 .orElse(null);
     }
 
-    public static Type predictNextArgumentType(List<FunctionSymbol> functions, List<Type> argumentTypes, CompilationEnvironment env) {
+    public static Type predictNextArgumentType(List<Executable> functions, List<Type> argumentTypes, CompilationEnvironment env) {
         Type found = null;
         SubtypeResult foundMatchingResult = SubtypeResult.MISMATCH;
-        for (FunctionSymbol function : functions) {
+        for (Executable function : functions) {
             List<ParameterSymbol> parameterList = function.getParameterList();
             SubtypeResult functionMatchingResult = SubtypeResult.SELF;
             if (argumentTypes.size() >= parameterList.size()) {
