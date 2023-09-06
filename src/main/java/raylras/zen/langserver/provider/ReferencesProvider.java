@@ -12,8 +12,8 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Listener;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.resolve.SymbolResolver;
-import raylras.zen.code.symbol.ParseTreeLocatable;
 import raylras.zen.code.symbol.OperatorFunctionSymbol;
+import raylras.zen.code.symbol.ParseTreeLocatable;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.langserver.Document;
 import raylras.zen.util.CSTNodes;
@@ -57,10 +57,7 @@ public class ReferencesProvider {
             List<Location> result = getSearchingScope(symbol, unit).stream().parallel().flatMap(cu -> {
                         String uri = cu.getPath().toUri().toString();
                         return searchPossible(searchRule, cu.getParseTree())
-                                .stream().parallel().filter(cst -> {
-                                    Collection<Symbol> symbols = SymbolResolver.lookupSymbol(cst, unit);
-                                    return symbols.stream().anyMatch(it -> Objects.equals(it, symbol));
-                                })
+                                .stream().parallel().filter(cst -> isReferenceToSymbol(cu, cst, symbol))
                                 .map(it -> toLocation(uri, it));
                     }
             ).toList();
@@ -102,6 +99,16 @@ public class ReferencesProvider {
             }
         }, searchingScope);
         return result;
+    }
+
+    private static boolean isReferenceToSymbol(CompilationUnit unit, ParseTree cst, Symbol targetSymbol) {
+        if (targetSymbol.getKind() == Symbol.Kind.IMPORT) {
+            Collection<Symbol> symbols = SymbolResolver.lookupSymbol(cst, unit, false);
+            return symbols.stream().anyMatch(it -> Objects.equals(it, targetSymbol));
+        } else {
+            Collection<Symbol> symbols = SymbolResolver.lookupSymbol(cst, unit);
+            return symbols.stream().anyMatch(it -> Objects.equals(it, targetSymbol));
+        }
     }
 
     private static Predicate<TerminalNode> getSymbolSearchRule(Symbol symbol) {
@@ -148,7 +155,7 @@ public class ReferencesProvider {
             return true;
         }
 
-        if (symbol.getKind() == Symbol.Kind.VARIABLE && symbol instanceof ParseTreeLocatable locatable) {
+        if (symbol instanceof ParseTreeLocatable locatable) {
             ParseTree parent = CSTNodes.findParentOfTypes(locatable.getCst(), ZenScriptParser.ClassDeclarationContext.class, ZenScriptParser.BlockStatementContext.class);
             // variables and functions in classes are accessible by other units.
             if (parent instanceof ZenScriptParser.ClassDeclarationContext) {
