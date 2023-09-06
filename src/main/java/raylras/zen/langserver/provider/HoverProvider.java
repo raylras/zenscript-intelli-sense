@@ -5,28 +5,40 @@ import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
-import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptParser.BracketHandlerExprContext;
+import raylras.zen.langserver.Document;
 import raylras.zen.rpc.RpcClient;
-import raylras.zen.util.*;
+import raylras.zen.util.CSTNodes;
+import raylras.zen.util.MapUtils;
+import raylras.zen.util.Position;
+import raylras.zen.util.Ranges;
 
 import java.util.Deque;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 public class HoverProvider {
 
-    public static Hover hover(CompilationUnit unit, HoverParams params) {
-        Position cursor = Position.of(params.getPosition());
-        Deque<ParseTree> cstStack = CSTNodes.getCstStackAtPosition(unit.getParseTree(), cursor);
-        HoverVisitor visitor = new HoverVisitor();
-        for (ParseTree cst : cstStack) {
-            Hover hover = cst.accept(visitor);
-            if (hover != null) {
-                return hover;
+    private HoverProvider() {}
+
+    public static CompletableFuture<Hover> hover(Document doc, HoverParams params) {
+        return doc.getUnit().map(unit -> CompletableFuture.supplyAsync(() -> {
+            Position cursor = Position.of(params.getPosition());
+            Deque<ParseTree> cstStack = CSTNodes.getCstStackAtPosition(unit.getParseTree(), cursor);
+            HoverVisitor visitor = new HoverVisitor();
+            for (ParseTree cst : cstStack) {
+                Hover hover = cst.accept(visitor);
+                if (hover != null) {
+                    return hover;
+                }
             }
-        }
-        return null;
+            return null;
+        })).orElseGet(HoverProvider::empty);
+    }
+
+    public static CompletableFuture<Hover> empty() {
+        return CompletableFuture.completedFuture(null);
     }
 
     private static final class HoverVisitor extends Visitor<Hover> {

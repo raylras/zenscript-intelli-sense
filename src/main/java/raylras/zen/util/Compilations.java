@@ -11,8 +11,8 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.resolve.DeclarationResolver;
+import raylras.zen.langserver.Document;
 
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.stream.Stream;
@@ -61,6 +61,12 @@ public class Compilations {
             DeclarationResolver.resolveDeclarations(unit);
         } catch (Exception e) {
             logger.error("Failed to load unit: {}", unit, e);
+        }
+    }
+
+    public static void reload(Document document, String source) {
+        if (document.getUnit().isPresent()) {
+            loadUnit(document.getUnit().get(), source);
         }
     }
 

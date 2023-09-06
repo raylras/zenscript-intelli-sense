@@ -15,6 +15,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -27,6 +28,7 @@ public class CompilationEnvironment {
 
     private final Path root;
     private final Map<Path, CompilationUnit> unitMap = new HashMap<>();
+    private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
     private BracketHandlerManager bracketHandlerManager;
 
     public CompilationEnvironment(Path root) {
@@ -114,6 +116,15 @@ public class CompilationEnvironment {
             symbols.addAll(getPrimitiveTypeExpandMembers(type));
             return symbols;
         }
+    }
+
+
+    public ReentrantReadWriteLock.ReadLock readLock() {
+        return readWriteLock.readLock();
+    }
+
+    public ReentrantReadWriteLock.WriteLock writeLock() {
+        return readWriteLock.writeLock();
     }
 
     @Override

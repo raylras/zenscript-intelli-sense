@@ -27,29 +27,25 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 
     @Override
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
-        List<WorkspaceFolder> workspaceFolders = params.getWorkspaceFolders();
+        service.initializeWorkspaces(params.getWorkspaceFolders());
+        L10N.setLocale(params.getLocale());
+
         ServerCapabilities capabilities = new ServerCapabilities();
         capabilities.setTextDocumentSync(TextDocumentSyncKind.Full);
-        L10N.setLocale(params.getLocale());
-        if (workspaceFolders != null) {
-            service.initializeWorkspaces(workspaceFolders);
-            CompletionOptions completionOptions = new CompletionOptions();
-            completionOptions.setTriggerCharacters(Arrays.asList(".", ":"));
-            capabilities.setCompletionProvider(completionOptions);
-            capabilities.setDocumentSymbolProvider(true);
-//          capabilities.setWorkspaceSymbolProvider(true);
-//          capabilities.setDocumentHighlightProvider(true);
-//          SignatureHelpOptions signatureHelpOptions = new SignatureHelpOptions();
-//          signatureHelpOptions.setTriggerCharacters(Arrays.asList("(", ","));
-//          capabilities.setSignatureHelpProvider(signatureHelpOptions);
-//          capabilities.setSemanticTokensProvider(new SemanticTokensWithRegistrationOptions(Semantics.SEMANTIC_TOKENS_LEGEND, true));
-          capabilities.setReferencesProvider(true);
-//          capabilities.setDeclarationProvider(true);
-          capabilities.setDefinitionProvider(true);
-//          capabilities.setTypeDefinitionProvider(true);
-            capabilities.setHoverProvider(true);
-//          capabilities.setRenameProvider(true);
-        }
+        capabilities.setCompletionProvider(new CompletionOptions(true, List.of(".", ":")));
+        capabilities.setDocumentSymbolProvider(true);
+        // capabilities.setWorkspaceSymbolProvider(true);
+        // capabilities.setDocumentHighlightProvider(true);
+        // SignatureHelpOptions signatureHelpOptions = new SignatureHelpOptions();
+        // signatureHelpOptions.setTriggerCharacters(Arrays.asList("(", ","));
+        // capabilities.setSignatureHelpProvider(signatureHelpOptions);
+        // capabilities.setSemanticTokensProvider(new SemanticTokensWithRegistrationOptions(Semantics.SEMANTIC_TOKENS_LEGEND, true));
+        capabilities.setReferencesProvider(true);
+        // capabilities.setDeclarationProvider(true);
+        capabilities.setDefinitionProvider(true);
+        // capabilities.setTypeDefinitionProvider(true);
+        capabilities.setHoverProvider(true);
+        // capabilities.setRenameProvider(true);
         return CompletableFuture.completedFuture(new InitializeResult(capabilities));
     }
 

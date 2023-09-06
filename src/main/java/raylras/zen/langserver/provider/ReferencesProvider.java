@@ -13,7 +13,8 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Listener;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.resolve.SymbolResolver;
-import raylras.zen.code.symbol.*;
+import raylras.zen.code.symbol.OperatorFunctionSymbol;
+import raylras.zen.code.symbol.Symbol;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Position;
 import raylras.zen.util.Ranges;
@@ -22,6 +23,7 @@ import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public class ReferencesProvider {
@@ -36,6 +38,7 @@ public class ReferencesProvider {
      * 4. get the cst at every searched node, and resolve its symbol, filtering those containing the current symbol.
      */
     public static List<Location> references(CompilationUnit unit, ReferenceParams params) {
+        // FIXME: refactor ReferencesProvider.references() to async
         Position cursor = Position.of(params.getPosition());
         Symbol symbol = getSymbolOnCursor(unit, cursor);
         if (symbol == null) {
@@ -68,6 +71,10 @@ public class ReferencesProvider {
                     });
         }).collect(Collectors.toList());
 
+    }
+
+    public static CompletableFuture<List<? extends Location>> empty() {
+        return CompletableFuture.completedFuture(null);
     }
 
     private static Map<Path, List<ParseTree>> filterActual(CompilationEnvironment env, Map<Path, List<ParseTree>> possibleRanges, Symbol targetSymbol) {

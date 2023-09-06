@@ -4,16 +4,24 @@ import org.eclipse.lsp4j.SemanticTokens;
 import org.eclipse.lsp4j.SemanticTokensParams;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Listener;
+import raylras.zen.langserver.Document;
 import raylras.zen.util.Range;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public class SemanticTokensProvider extends Listener {
 
-    public static SemanticTokens semanticTokensFull(CompilationUnit unit, SemanticTokensParams params) {
-        SemanticTokensProvider provider = new SemanticTokensProvider(unit);
-        return new SemanticTokens(provider.data);
+    public static CompletableFuture<SemanticTokens> semanticTokensFull(Document doc, SemanticTokensParams params) {
+        return doc.getUnit().map(unit -> CompletableFuture.supplyAsync(() -> {
+            SemanticTokensProvider provider = new SemanticTokensProvider(unit);
+            return new SemanticTokens(provider.data);
+        })).orElseGet(SemanticTokensProvider::empty);
+    }
+
+    public static CompletableFuture<SemanticTokens> empty() {
+        return CompletableFuture.completedFuture(null);
     }
 
     private final CompilationUnit unit;

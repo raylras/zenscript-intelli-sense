@@ -5,10 +5,8 @@ import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import org.eclipse.lsp4j.CompletionItem;
-import org.eclipse.lsp4j.CompletionItemKind;
-import org.eclipse.lsp4j.CompletionItemLabelDetails;
-import org.eclipse.lsp4j.CompletionParams;
+import org.eclipse.lsp4j.*;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.Visitor;
@@ -23,23 +21,32 @@ import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.FunctionType;
 import raylras.zen.code.type.Type;
+import raylras.zen.langserver.Document;
 import raylras.zen.langserver.provider.data.Keywords;
 import raylras.zen.util.*;
+import raylras.zen.util.Position;
+import raylras.zen.util.Range;
 import raylras.zen.util.l10n.L10N;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public final class CompletionProvider {
 
-    private CompletionProvider() {
+    private CompletionProvider() {}
+
+    public static CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(Document doc, CompletionParams params) {
+        return doc.getUnit().map(unit -> CompletableFuture.supplyAsync(() -> {
+            CompletionVisitor visitor = new CompletionVisitor(unit, params);
+            unit.accept(visitor);
+            return Either.<List<CompletionItem>, CompletionList>forLeft(visitor.completionList);
+        })).orElseGet(CompletionProvider::empty);
     }
 
-    public static List<CompletionItem> completion(CompilationUnit unit, CompletionParams params) {
-        CompletionVisitor visitor = new CompletionVisitor(unit, params);
-        unit.accept(visitor);
-        return visitor.getCompletionList();
+    public static CompletableFuture<Either<List<CompletionItem>, CompletionList>> empty() {
+        return CompletableFuture.completedFuture(null);
     }
 
     private static final class CompletionVisitor extends Visitor<Void> {
@@ -596,10 +603,6 @@ public final class CompletionProvider {
                 labelDetails.setDescription(type);
                 return labelDetails;
             }
-        }
-
-        private List<CompletionItem> getCompletionList() {
-            return completionList;
         }
     }
 

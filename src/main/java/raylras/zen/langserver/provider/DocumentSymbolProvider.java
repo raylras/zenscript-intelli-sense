@@ -2,13 +2,11 @@ package raylras.zen.langserver.provider;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
-import org.eclipse.lsp4j.DocumentSymbol;
-import org.eclipse.lsp4j.DocumentSymbolParams;
-import org.eclipse.lsp4j.Range;
-import org.eclipse.lsp4j.SymbolKind;
-import raylras.zen.code.CompilationUnit;
+import org.eclipse.lsp4j.*;
+import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptParser.*;
+import raylras.zen.langserver.Document;
 import raylras.zen.util.ArrayStack;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Ranges;
@@ -16,15 +14,24 @@ import raylras.zen.util.Stack;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public final class DocumentSymbolProvider {
 
     private DocumentSymbolProvider() {}
 
-    public static List<DocumentSymbol> documentSymbol(CompilationUnit unit, DocumentSymbolParams params) {
-        DocumentSymbolVisitor visitor = new DocumentSymbolVisitor();
-        unit.accept(visitor);
-        return visitor.getTopLevelSymbolList();
+    public static CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(Document doc, DocumentSymbolParams params) {
+        return doc.getUnit().map(unit -> CompletableFuture.supplyAsync(() -> {
+            DocumentSymbolVisitor visitor = new DocumentSymbolVisitor();
+            unit.getParseTree().accept(visitor);
+            return visitor.topLevelSymbolList.stream()
+                    .map(Either::<SymbolInformation, DocumentSymbol>forRight)
+                    .toList();
+        })).orElseGet(DocumentSymbolProvider::empty);
+    }
+
+    public static CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> empty() {
+        return CompletableFuture.completedFuture(null);
     }
 
     private static final class DocumentSymbolVisitor extends Visitor<DocumentSymbol> {
@@ -111,10 +118,6 @@ public final class DocumentSymbolProvider {
                 parent.setChildren(new ArrayList<>());
             }
             parent.getChildren().add(symbol);
-        }
-
-        private List<DocumentSymbol> getTopLevelSymbolList() {
-            return topLevelSymbolList;
         }
     }
 
