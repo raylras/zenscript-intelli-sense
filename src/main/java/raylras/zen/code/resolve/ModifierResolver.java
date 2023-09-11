@@ -29,22 +29,13 @@ public final class ModifierResolver {
 
         @Override
         public Modifier visitVariableDeclaration(VariableDeclarationContext ctx) {
-            switch (CSTNodes.getTokenType(ctx.prefix)) {
-                case ZenScriptLexer.VAR:
-                    return Symbol.Modifier.VAR;
-
-                case ZenScriptLexer.VAL:
-                    return Symbol.Modifier.VAL;
-
-                case ZenScriptLexer.STATIC:
-                    return Symbol.Modifier.STATIC;
-
-                case ZenScriptLexer.GLOBAL:
-                    return Symbol.Modifier.GLOBAL;
-
-                default:
-                    return Symbol.Modifier.NONE;
-            }
+            return switch (CSTNodes.getTokenType(ctx.prefix)) {
+                case ZenScriptLexer.VAR -> Modifier.VAR;
+                case ZenScriptLexer.VAL -> Modifier.VAL;
+                case ZenScriptLexer.STATIC -> Modifier.STATIC;
+                case ZenScriptLexer.GLOBAL -> Modifier.GLOBAL;
+                default -> Modifier.NONE;
+            };
         }
 
         @Override
@@ -54,16 +45,11 @@ public final class ModifierResolver {
 
         @Override
         public Modifier visitFunctionDeclaration(FunctionDeclarationContext ctx) {
-            switch (CSTNodes.getTokenType(ctx.prefix)) {
-                case ZenScriptLexer.STATIC:
-                    return Symbol.Modifier.STATIC;
-
-                case ZenScriptLexer.GLOBAL:
-                    return Symbol.Modifier.GLOBAL;
-
-                default:
-                    return Symbol.Modifier.NONE;
-            }
+            return switch (CSTNodes.getTokenType(ctx.prefix)) {
+                case ZenScriptLexer.STATIC -> Modifier.STATIC;
+                case ZenScriptLexer.GLOBAL -> Modifier.GLOBAL;
+                default -> Modifier.NONE;
+            };
         }
 
         @Override

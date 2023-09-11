@@ -572,19 +572,12 @@ public final class CompletionProvider {
         }
 
         private CompletionItemKind toCompletionKind(Symbol symbol) {
-            switch (symbol.getKind()) {
-                case IMPORT:
-                case CLASS:
-                    return CompletionItemKind.Class;
-                case FUNCTION:
-                    return CompletionItemKind.Function;
-                case VARIABLE:
-                case PARAMETER:
-                    return CompletionItemKind.Variable;
-                case NONE:
-                default:
-                    return null;
-            }
+            return switch (symbol.getKind()) {
+                case IMPORT, CLASS -> CompletionItemKind.Class;
+                case FUNCTION -> CompletionItemKind.Function;
+                case VARIABLE, PARAMETER -> CompletionItemKind.Variable;
+                default -> null;
+            };
         }
 
         private CompletionItemKind toCompletionKind(Type type) {
