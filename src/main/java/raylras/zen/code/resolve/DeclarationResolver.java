@@ -86,7 +86,9 @@ public final class DeclarationResolver {
         public void enterExpandFunctionDeclaration(ExpandFunctionDeclarationContext ctx) {
             ExpandFunctionSymbol symbol = SymbolFactory.createExpandFunctionSymbol(ctx.simpleName(), ctx, unit);
             enterSymbol(ctx, symbol);
-            enterScope(new Scope(currentScope(), ctx));
+            Scope scope = new Scope(currentScope(), ctx);
+            enterScope(scope);
+            scope.addSymbol(SymbolFactory.createThisSymbol(symbol::getOwner));
         }
 
         @Override
@@ -120,7 +122,9 @@ public final class DeclarationResolver {
             }
             ClassSymbol symbol = SymbolFactory.createClassSymbol(name, ctx, unit);
             enterSymbol(ctx, symbol);
-            enterScope(new Scope(currentScope(), ctx));
+            Scope scope = new Scope(currentScope(), ctx);
+            enterScope(scope);
+            scope.addSymbol(SymbolFactory.createThisSymbol(symbol::getType));
         }
 
         @Override
@@ -130,7 +134,7 @@ public final class DeclarationResolver {
 
         @Override
         public void enterConstructorDeclaration(ConstructorDeclarationContext ctx) {
-            FunctionSymbol symbol = SymbolFactory.createFunctionSymbol(ctx.ZEN_CONSTRUCTOR(), ctx, unit);
+            ConstructorSymbol symbol = SymbolFactory.createConstructorSymbol(ctx.ZEN_CONSTRUCTOR(), ctx, unit);
             enterSymbol(ctx, symbol);
             enterScope(new Scope(currentScope(), ctx));
         }

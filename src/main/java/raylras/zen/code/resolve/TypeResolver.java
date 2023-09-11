@@ -145,8 +145,14 @@ public final class TypeResolver {
         @Override
         public Type visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
             List<Type> paramTypes = toTypeList(ctx.formalParameterList());
-            // FIXME: should be zen class type
             Type returnType = AnyType.INSTANCE;
+            if (ctx.getParent() instanceof ClassMemberDeclarationContext cmd) {
+                if (cmd.getParent() instanceof ClassBodyContext bodyContext) {
+                    if (bodyContext.getParent() instanceof ClassDeclarationContext declarationContext) {
+                        returnType = visit(declarationContext);
+                    }
+                }
+            }
             return new FunctionType(returnType, paramTypes);
         }
 
@@ -207,8 +213,12 @@ public final class TypeResolver {
 
         @Override
         public Type visitThisExpr(ThisExprContext ctx) {
-            // FIXME: inferring the type of this expression
-            return AnyType.INSTANCE;
+            Symbol symbol = lookupSymbol(ctx, "this");
+            if (symbol != null) {
+                return symbol.getType();
+            } else {
+                return AnyType.INSTANCE;
+            }
         }
 
         @Override
@@ -288,11 +298,9 @@ public final class TypeResolver {
                     if (leftType != null) {
                         return leftType;
                     }
-                } else if (caller.getParent() instanceof CallExprContext) {
-                    CallExprContext callExpr = (CallExprContext) caller.getParent();
+                } else if (caller.getParent() instanceof CallExprContext callExpr) {
                     ExpressionContext expression = callExpr.expression();
-                    if (expression instanceof MemberAccessExprContext) {
-                        MemberAccessExprContext memberAccessExpr = (MemberAccessExprContext) expression;
+                    if (expression instanceof MemberAccessExprContext memberAccessExpr) {
                         List<Type> argumentTypes = new ArrayList<>();
                         List<ExpressionContext> callExpressions = callExpr.expressionList().expression();
                         int functionExprPosition = callExpressions.indexOf(ctx);
@@ -341,32 +349,16 @@ public final class TypeResolver {
 
         @Override
         public Type visitLiteralExpr(LiteralExprContext ctx) {
-            switch (CSTNodes.getTokenType(ctx.start)) {
-                case ZenScriptLexer.INT_LITERAL:
-                    return IntType.INSTANCE;
-
-                case ZenScriptLexer.LONG_LITERAL:
-                    return LongType.INSTANCE;
-
-                case ZenScriptLexer.FLOAT_LITERAL:
-                    return FloatType.INSTANCE;
-
-                case ZenScriptLexer.DOUBLE_LITERAL:
-                    return DoubleType.INSTANCE;
-
-                case ZenScriptLexer.STRING_LITERAL:
-                    return StringType.INSTANCE;
-
-                case ZenScriptLexer.TRUE_LITERAL:
-                case ZenScriptLexer.FALSE_LITERAL:
-                    return BoolType.INSTANCE;
-
-                case ZenScriptLexer.NULL_LITERAL:
-                    return AnyType.INSTANCE;
-
-                default:
-                    return null;
-            }
+            return switch (CSTNodes.getTokenType(ctx.start)) {
+                case ZenScriptLexer.INT_LITERAL -> IntType.INSTANCE;
+                case ZenScriptLexer.LONG_LITERAL -> LongType.INSTANCE;
+                case ZenScriptLexer.FLOAT_LITERAL -> FloatType.INSTANCE;
+                case ZenScriptLexer.DOUBLE_LITERAL -> DoubleType.INSTANCE;
+                case ZenScriptLexer.STRING_LITERAL -> StringType.INSTANCE;
+                case ZenScriptLexer.TRUE_LITERAL, ZenScriptLexer.FALSE_LITERAL -> BoolType.INSTANCE;
+                case ZenScriptLexer.NULL_LITERAL -> AnyType.INSTANCE;
+                default -> null;
+            };
         }
 
         @Override
@@ -375,29 +367,26 @@ public final class TypeResolver {
             if (!(leftType instanceof SymbolProvider symbolProvider)) {
                 return null;
             }
-            String simpleName = ctx.simpleName().getText();
-            for (Symbol member : symbolProvider.withExpands(unit.getEnv())) {
-                if (Objects.equals(member.getName(), simpleName)) {
-                    return member.getType();
+            if (ctx.simpleName() != null) {
+                String simpleName = ctx.simpleName().getText();
+                for (Symbol member : symbolProvider.withExpands(unit.getEnv())) {
+                    if (Objects.equals(member.getName(), simpleName)) {
+                        return member.getType();
+                    }
                 }
             }
-            return leftType;
+            return Operators.getBinaryOperatorResult(leftType, Operator.MEMBER_GET, unit.getEnv(), StringType.INSTANCE);
         }
 
         @Override
         public Type visitArrayLiteralExpr(ArrayLiteralExprContext ctx) {
             Type firstElementType = visit(ctx.expressionList().expression(0));
-            if (firstElementType != null) {
-                return new ArrayType(firstElementType);
-            } else {
-                return new ArrayType(AnyType.INSTANCE);
-            }
+            return new ArrayType(Objects.requireNonNullElse(firstElementType, AnyType.INSTANCE));
         }
 
         @Override
         public Type visitCallExpr(CallExprContext ctx) {
-            if (ctx.expression() instanceof MemberAccessExprContext) {
-                MemberAccessExprContext memberAccessExpr = (MemberAccessExprContext) ctx.expression();
+            if (ctx.expression() instanceof MemberAccessExprContext memberAccessExpr) {
                 Type owner = visit(memberAccessExpr.expression());
                 if (owner == null) {
                     return null;
@@ -417,6 +406,8 @@ public final class TypeResolver {
                 Type leftType = visit(ctx.expression());
                 if (leftType instanceof FunctionType) {
                     return ((FunctionType) leftType).getReturnType();
+                } else if (leftType instanceof ClassType) {
+                    return leftType;
                 } else {
                     return null;
                 }

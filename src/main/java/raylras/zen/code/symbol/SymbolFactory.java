@@ -13,6 +13,8 @@ import raylras.zen.util.Operators;
 import raylras.zen.util.Range;
 
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
@@ -97,7 +99,9 @@ public class SymbolFactory {
 
             @Override
             public List<Symbol> getDeclaredMembers() {
-                return unit.getScope(cst).getSymbols();
+                return unit.getScope(cst).getSymbols().stream()
+                        .filter(Predicate.not(ThisSymbol.class::isInstance))
+                        .toList();
             }
 
             @Override
@@ -612,6 +616,89 @@ public class SymbolFactory {
             }
         }
         return new ParameterSymbolImpl();
+    }
+
+    public static ThisSymbol createThisSymbol(Supplier<Type> typeSupplier) {
+        return new ThisSymbol() {
+            @Override
+            public String getName() {
+                return "this";
+            }
+
+            @Override
+            public Kind getKind() {
+                return Kind.VARIABLE;
+            }
+
+            @Override
+            public Type getType() {
+                return typeSupplier.get();
+            }
+
+            @Override
+            public Modifier getModifier() {
+                return Modifier.VAL;
+            }
+        };
+    }
+
+    public static ConstructorSymbol createConstructorSymbol(ParseTree nameCst, ParseTree cst, CompilationUnit unit) {
+        class ConstructorSymbolImpl implements ConstructorSymbol, Locatable {
+            private final Range range = Range.of(cst);
+            private final Range selectionRange = Range.of(nameCst);
+
+            @Override
+            public List<ParameterSymbol> getParameterList() {
+                return FormalParameterResolver.getFormalParameterList(cst, unit);
+            }
+
+            @Override
+            public Type getReturnType() {
+                return getType().getReturnType();
+            }
+
+            @Override
+            public ParseTree getCst() {
+                return cst;
+            }
+
+            @Override
+            public CompilationUnit getUnit() {
+                return unit;
+            }
+
+            @Override
+            public Range getRange() {
+                return range;
+            }
+
+            @Override
+            public Range getSelectionRange() {
+                return selectionRange;
+            }
+
+            @Override
+            public String getName() {
+                return getReturnType().toString();
+            }
+
+            @Override
+            public Kind getKind() {
+                return Kind.FUNCTION;
+            }
+
+            @Override
+            public FunctionType getType() {
+                Type type = TypeResolver.getType(cst, unit);
+                return (type instanceof FunctionType) ? (FunctionType) type : new FunctionType(AnyType.INSTANCE);
+            }
+
+            @Override
+            public Modifier getModifier() {
+                return Modifier.NONE;
+            }
+        }
+        return new ConstructorSymbolImpl();
     }
 
     public static SymbolsBuilder builtinSymbols() {
