@@ -16,7 +16,7 @@ public interface ParseTreeLocatable extends Locatable {
     }
 
     default String getUri() {
-        return getUnit().getPath().toUri().toString();
+        return getPath().toUri().toString();
     }
 
 }
