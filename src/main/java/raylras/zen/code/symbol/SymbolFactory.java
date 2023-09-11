@@ -643,7 +643,7 @@ public class SymbolFactory {
     }
 
     public static ConstructorSymbol createConstructorSymbol(ParseTree nameCst, ParseTree cst, CompilationUnit unit, ClassSymbol declaringClass) {
-        class ConstructorSymbolImpl implements ConstructorSymbol, Locatable {
+        class ConstructorSymbolImpl implements ConstructorSymbol, ParseTreeLocatable {
             private final Range range = Range.of(cst);
             private final Range selectionRange = Range.of(nameCst);
 
