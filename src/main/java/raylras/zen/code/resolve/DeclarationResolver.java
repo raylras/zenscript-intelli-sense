@@ -101,7 +101,7 @@ public final class DeclarationResolver {
             enterSymbol(ctx, symbol);
             Scope scope = new Scope(currentScope(), ctx);
             enterScope(scope);
-            scope.addSymbol(SymbolFactory.createThisSymbol(symbol::getOwner));
+            scope.addSymbol(SymbolFactory.createThisSymbol(symbol::getExpandingType));
         }
 
         @Override

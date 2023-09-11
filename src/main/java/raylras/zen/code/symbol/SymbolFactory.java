@@ -535,7 +535,7 @@ public class SymbolFactory {
             }
 
             @Override
-            public Type getOwner() {
+            public Type getExpandingType() {
                 return TypeResolver.getType(cst.typeLiteral(), unit);
             }
 

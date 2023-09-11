@@ -4,6 +4,6 @@ import raylras.zen.code.type.Type;
 
 public interface ExpandFunctionSymbol extends Symbol, Executable {
 
-    Type getOwner();
+    Type getExpandingType();
 
 }
