@@ -145,13 +145,11 @@ public final class TypeResolver {
         @Override
         public Type visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
             List<Type> paramTypes = toTypeList(ctx.formalParameterList());
-            Type returnType = AnyType.INSTANCE;
-            if (ctx.getParent() instanceof ClassMemberDeclarationContext cmd) {
-                if (cmd.getParent() instanceof ClassBodyContext bodyContext) {
-                    if (bodyContext.getParent() instanceof ClassDeclarationContext declarationContext) {
-                        returnType = visit(declarationContext);
-                    }
-                }
+            Type returnType;
+            if (unit.getSymbol(ctx) instanceof ConstructorSymbol symbol) {
+                returnType = symbol.getDeclaringClass().getType();
+            } else {
+                returnType = AnyType.INSTANCE;
             }
             return new FunctionType(returnType, paramTypes);
         }

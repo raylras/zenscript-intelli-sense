@@ -23,7 +23,8 @@ public final class DeclarationResolver {
 
     private static final class DeclarationListener extends Listener {
         private final CompilationUnit unit;
-        private final Stack<Scope> stack = new ArrayStack<>();
+        private final Stack<Scope> scopeStack = new ArrayStack<>();
+        private final Stack<ClassSymbol> classStack = new ArrayStack<>();
 
         public DeclarationListener(CompilationUnit unit) {
             this.unit = unit;
@@ -31,15 +32,27 @@ public final class DeclarationResolver {
 
         private void enterScope(Scope scope) {
             unit.addScope(scope);
-            stack.push(scope);
+            scopeStack.push(scope);
         }
 
         private void exitScope() {
-            stack.pop();
+            scopeStack.pop();
         }
 
         private Scope currentScope() {
-            return stack.peek();
+            return scopeStack.peek();
+        }
+
+        private void enterClass(ClassSymbol symbol) {
+            classStack.push(symbol);
+        }
+
+        private void exitClass() {
+            classStack.pop();
+        }
+
+        private ClassSymbol currentClass() {
+            return classStack.peek();
         }
 
         private void enterSymbol(ParseTree cst, Symbol symbol) {
@@ -120,8 +133,11 @@ public final class DeclarationResolver {
             } else {
                 name = ctx.simpleNameOrPrimitiveType();
             }
+
             ClassSymbol symbol = SymbolFactory.createClassSymbol(name, ctx, unit);
             enterSymbol(ctx, symbol);
+            enterClass(symbol);
+
             Scope scope = new Scope(currentScope(), ctx);
             enterScope(scope);
             scope.addSymbol(SymbolFactory.createThisSymbol(symbol::getType));
@@ -130,11 +146,12 @@ public final class DeclarationResolver {
         @Override
         public void exitClassDeclaration(ClassDeclarationContext ctx) {
             exitScope();
+            exitClass();
         }
 
         @Override
         public void enterConstructorDeclaration(ConstructorDeclarationContext ctx) {
-            ConstructorSymbol symbol = SymbolFactory.createConstructorSymbol(ctx.ZEN_CONSTRUCTOR(), ctx, unit);
+            ConstructorSymbol symbol = SymbolFactory.createConstructorSymbol(ctx.ZEN_CONSTRUCTOR(), ctx, unit, currentClass());
             enterSymbol(ctx, symbol);
             enterScope(new Scope(currentScope(), ctx));
         }

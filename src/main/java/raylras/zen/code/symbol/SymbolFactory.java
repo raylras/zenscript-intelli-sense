@@ -642,7 +642,7 @@ public class SymbolFactory {
         };
     }
 
-    public static ConstructorSymbol createConstructorSymbol(ParseTree nameCst, ParseTree cst, CompilationUnit unit) {
+    public static ConstructorSymbol createConstructorSymbol(ParseTree nameCst, ParseTree cst, CompilationUnit unit, ClassSymbol declaringClass) {
         class ConstructorSymbolImpl implements ConstructorSymbol, Locatable {
             private final Range range = Range.of(cst);
             private final Range selectionRange = Range.of(nameCst);
@@ -696,6 +696,11 @@ public class SymbolFactory {
             @Override
             public Modifier getModifier() {
                 return Modifier.NONE;
+            }
+
+            @Override
+            public ClassSymbol getDeclaringClass() {
+                return declaringClass;
             }
         }
         return new ConstructorSymbolImpl();
