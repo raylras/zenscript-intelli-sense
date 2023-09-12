@@ -12,16 +12,15 @@ import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.Listener;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.resolve.SymbolResolver;
-import raylras.zen.code.symbol.ParseTreeLocatable;
 import raylras.zen.code.symbol.OperatorFunctionSymbol;
+import raylras.zen.code.symbol.ParseTreeLocatable;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.langserver.Document;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Position;
 import raylras.zen.util.Ranges;
+import raylras.zen.util.StopWatch;
 
-import java.time.Duration;
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
@@ -39,6 +38,9 @@ public class ReferencesProvider {
     public static CompletableFuture<List<? extends Location>> references(Document doc, ReferenceParams params) {
 
         return doc.getUnit().map(unit -> CompletableFuture.<List<? extends Location>>supplyAsync(() -> {
+            StopWatch sw = new StopWatch();
+            sw.start();
+
             Position cursor = Position.of(params.getPosition());
             Symbol symbol = getSymbolOnCursor(unit, cursor);
             if (symbol == null) {
@@ -46,7 +48,6 @@ public class ReferencesProvider {
                 return null;
             }
             logger.info("Finding usages for {}", symbol.getName());
-            Instant searchStart = Instant.now();
             Predicate<TerminalNode> searchRule = getSymbolSearchRule(symbol);
             if (searchRule == null) {
                 logger.warn("Could not get symbol search rule at ({}, {}), for symbol {}", params.getPosition().getLine(), params.getPosition().getCharacter(), symbol);
@@ -65,7 +66,8 @@ public class ReferencesProvider {
                     }
             ).toList();
 
-            logger.info("Found {} references for {} ms", result.size(), Duration.between(searchStart, Instant.now()).toMillis());
+            sw.stop();
+            logger.info("Found {} references for {} ms", result.size(), sw.getFormattedMillis());
             return result;
         })).orElseGet(ReferencesProvider::empty);
     }
