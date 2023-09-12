@@ -131,6 +131,10 @@ public class CompilationUnit implements SymbolProvider {
         ParseTreeWalker.DEFAULT.walk(listener, parseTree);
     }
 
+    public boolean isGenerated() {
+        return PathUtils.isSubPath(env.getGeneratedRoot(), path);
+    }
+
     @Override
     public String toString() {
         return String.valueOf(path);
