@@ -22,7 +22,7 @@ public class CompilationUnit implements SymbolProvider {
 
     private final Path path;
     private final CompilationEnvironment env;
-    private final String zenClassName;
+    private final String unitName;
     private final Map<ParseTree, Scope> scopeProperties = new IdentityHashMap<>();
     private final Map<ParseTree, Symbol> symbolProperties = new IdentityHashMap<>();
 
@@ -32,7 +32,7 @@ public class CompilationUnit implements SymbolProvider {
     public CompilationUnit(Path path, CompilationEnvironment env) {
         this.path = path;
         this.env = env;
-        this.zenClassName = ZenClasses.getClassName(this);
+        this.unitName = ZenClasses.getClassName(this);
     }
 
     public Scope lookupScope(ParseTree lookupCst) {
@@ -97,8 +97,8 @@ public class CompilationUnit implements SymbolProvider {
         return path;
     }
 
-    public String getZenClassName() {
-        return zenClassName;
+    public String getUnitName() {
+        return unitName;
     }
 
     public CompilationEnvironment getEnv() {

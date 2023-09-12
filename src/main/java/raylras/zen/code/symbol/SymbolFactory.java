@@ -93,11 +93,11 @@ public class SymbolFactory {
 
             @Override
             public String getQualifiedName() {
-                String unitClassName = unit.getZenClassName();
-                if (!unitClassName.isEmpty()) {
-                    return unitClassName + "." + name;
+                String unitName = unit.getUnitName();
+                if (unit.isGenerated()) {
+                    return unitName;
                 } else {
-                    return "<unknown>" + "." + name;
+                    return unitName + '.' + name;
                 }
             }
 
