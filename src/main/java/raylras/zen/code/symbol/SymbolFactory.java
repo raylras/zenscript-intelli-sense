@@ -93,8 +93,12 @@ public class SymbolFactory {
 
             @Override
             public String getQualifiedName() {
-                String packageName = unit.getPackage();
-                return packageName.isEmpty() ? name : packageName + "." + name;
+                String unitClassName = unit.getZenClassName();
+                if (!unitClassName.isEmpty()) {
+                    return unitClassName + "." + name;
+                } else {
+                    return "<unknown>" + "." + name;
+                }
             }
 
             @Override

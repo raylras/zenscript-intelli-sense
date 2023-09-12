@@ -9,6 +9,7 @@ import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.util.PathUtils;
+import raylras.zen.util.ZenClasses;
 
 import java.nio.file.Path;
 import java.util.*;
@@ -21,7 +22,7 @@ public class CompilationUnit implements SymbolProvider {
 
     private final Path path;
     private final CompilationEnvironment env;
-    private final String zsPackage;
+    private final String zenClassName;
     private final Map<ParseTree, Scope> scopeProperties = new IdentityHashMap<>();
     private final Map<ParseTree, Symbol> symbolProperties = new IdentityHashMap<>();
 
@@ -31,7 +32,7 @@ public class CompilationUnit implements SymbolProvider {
     public CompilationUnit(Path path, CompilationEnvironment env) {
         this.path = path;
         this.env = env;
-        this.zsPackage = processPackage();
+        this.zenClassName = ZenClasses.getClassName(this);
     }
 
     public Scope lookupScope(ParseTree lookupCst) {
@@ -96,8 +97,8 @@ public class CompilationUnit implements SymbolProvider {
         return path;
     }
 
-    public String getPackage() {
-        return zsPackage;
+    public String getZenClassName() {
+        return zenClassName;
     }
 
     public CompilationEnvironment getEnv() {
@@ -134,45 +135,19 @@ public class CompilationUnit implements SymbolProvider {
         return PathUtils.isSubPath(env.getGeneratedRoot(), path);
     }
 
+    public Path getRelativePath() {
+        Path root;
+        if (isGenerated()) {
+            root = env.getGeneratedRoot();
+        } else {
+            root = env.getRoot().getParent();
+        }
+        return root.relativize(path);
+    }
+
     @Override
     public String toString() {
         return String.valueOf(path);
     }
 
-    private String processPackage() {
-        StringBuilder sb = new StringBuilder();
-        if (PathUtils.isZsFile(path)) {
-            Path current = path;
-            List<String> strings = new ArrayList<>();
-            do {
-                strings.add(current.getFileName().toString());
-                current = current.getParent();
-            } while (!"scripts".equals(current.getFileName().toString()));
-            sb.append("scripts.");
-            for (int i = strings.size() - 1; i >= 0; i--) {
-                sb.append(strings.get(i));
-                if (i != 0) {
-                    sb.append('.');
-                }
-            }
-            // remove .zs suffix
-            return sb.substring(0, sb.length() - 3);
-        } else if (PathUtils.isDzsFile(path)) {
-            Path current = path.getParent();
-            List<String> strings = new ArrayList<>();
-            while (!"generated".equals(current.getFileName().toString())) {
-                strings.add(current.getFileName().toString());
-                current = current.getParent();
-            }
-            for (int i = strings.size() - 1; i >= 0; i--) {
-                sb.append(strings.get(i));
-                if (i != 0) {
-                    sb.append('.');
-                }
-            }
-            return sb.toString();
-        } else {
-            return sb.toString();
-        }
-    }
 }
