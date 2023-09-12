@@ -8,7 +8,6 @@ import raylras.zen.code.annotation.Annotation;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.Symbol;
-import raylras.zen.util.ParseTreeProperty;
 import raylras.zen.util.PathUtils;
 
 import java.nio.file.Path;
@@ -23,8 +22,8 @@ public class CompilationUnit implements SymbolProvider {
     private final Path path;
     private final CompilationEnvironment env;
     private final String zsPackage;
-    private final ParseTreeProperty<Scope> scopeProp = new ParseTreeProperty<>();
-    private final ParseTreeProperty<Symbol> symbolProp = new ParseTreeProperty<>();
+    private final Map<ParseTree, Scope> scopeProperties = new IdentityHashMap<>();
+    private final Map<ParseTree, Symbol> symbolProperties = new IdentityHashMap<>();
 
     private CommonTokenStream tokenStream;
     private ParseTree parseTree;
@@ -38,7 +37,7 @@ public class CompilationUnit implements SymbolProvider {
     public Scope lookupScope(ParseTree lookupCst) {
         ParseTree cst = lookupCst;
         while (cst != null) {
-            Scope scope = scopeProp.get(cst);
+            Scope scope = scopeProperties.get(cst);
             if (scope != null) {
                 return scope;
             }
@@ -48,19 +47,19 @@ public class CompilationUnit implements SymbolProvider {
     }
 
     public Scope getScope(ParseTree cst) {
-        return scopeProp.get(cst);
+        return scopeProperties.get(cst);
     }
 
     public void addScope(Scope scope) {
-        scopeProp.put(scope.getCst(), scope);
+        scopeProperties.put(scope.getCst(), scope);
     }
 
     public Symbol getSymbol(ParseTree cst) {
-        return symbolProp.get(cst);
+        return symbolProperties.get(cst);
     }
 
     public <T extends Symbol> T getSymbol(ParseTree cst, Class<T> clazz) {
-        Symbol symbol = symbolProp.get(cst);
+        Symbol symbol = symbolProperties.get(cst);
         if (clazz.isInstance(symbol)) {
             return clazz.cast(symbol);
         } else {
@@ -69,16 +68,16 @@ public class CompilationUnit implements SymbolProvider {
     }
 
     public void putSymbol(ParseTree cst, Symbol symbol) {
-        symbolProp.put(cst, symbol);
+        symbolProperties.put(cst, symbol);
     }
 
     public Collection<Scope> getScopes() {
-        return scopeProp.values();
+        return scopeProperties.values();
     }
 
     @Override
     public Collection<Symbol> getSymbols() {
-        return symbolProp.values();
+        return symbolProperties.values();
     }
 
     public List<Symbol> getTopLevelSymbols() {
