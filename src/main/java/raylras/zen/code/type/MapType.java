@@ -7,6 +7,7 @@ import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.UnaryOperator;
 
 public class MapType extends Type implements SymbolProvider {
@@ -82,4 +83,16 @@ public class MapType extends Type implements SymbolProvider {
         return valueType + "[" + keyType + "]";
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        MapType symbols = (MapType) o;
+        return Objects.equals(keyType, symbols.keyType) && Objects.equals(valueType, symbols.valueType);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(toString());
+    }
 }
