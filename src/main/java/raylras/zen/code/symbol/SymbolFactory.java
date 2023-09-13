@@ -390,7 +390,7 @@ public class SymbolFactory {
 
             @Override
             public Kind getKind() {
-                return Kind.FUNCTION;
+                return Kind.OPERATOR;
             }
 
             @Override
@@ -452,7 +452,7 @@ public class SymbolFactory {
 
             @Override
             public Kind getKind() {
-                return Kind.FUNCTION;
+                return Kind.OPERATOR;
             }
 
             @Override
