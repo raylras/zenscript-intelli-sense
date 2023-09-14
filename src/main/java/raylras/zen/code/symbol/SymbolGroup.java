@@ -68,7 +68,7 @@ public class SymbolGroup implements Iterable<Symbol> {
 
     private void addExecutable(Symbol symbol, Executable executable) {
         List<Type> parameterTypes = executable.getParameterList().stream().map(Symbol::getType).toList();
-        executables.putIfAbsent(new ExecutableWrapper(symbol.getName(), parameterTypes), symbol);
+        executables.putIfAbsent(new ExecutableWrapper(symbol.getName(), parameterTypes, symbol.getKind()), symbol);
     }
 
     private void addCaster(OperatorFunctionSymbol operatorFunctionSymbol) {
@@ -83,6 +83,6 @@ public class SymbolGroup implements Iterable<Symbol> {
         }
     }
 
-    private record ExecutableWrapper(String name, List<Type> parameters) {
+    private record ExecutableWrapper(String name, List<Type> parameters, Symbol.Kind kind) {
     }
 }
