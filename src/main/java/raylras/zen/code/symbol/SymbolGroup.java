@@ -8,7 +8,7 @@ import java.util.stream.Stream;
 
 public class SymbolGroup implements Iterable<Symbol> {
     private final Map<String, Symbol> fields = new HashMap<>();
-    private final Map<ExecutableWrapper, Symbol> executables = new HashMap<>();
+    private final Map<ExecutableKey, Symbol> executables = new HashMap<>();
     private OperatorFunctionSymbol caster = null;
 
     public static SymbolGroup of(Iterable<Symbol> symbols) {
@@ -68,7 +68,7 @@ public class SymbolGroup implements Iterable<Symbol> {
 
     private void addExecutable(Symbol symbol, Executable executable) {
         List<Type> parameterTypes = executable.getParameterList().stream().map(Symbol::getType).toList();
-        executables.putIfAbsent(new ExecutableWrapper(symbol.getName(), parameterTypes, symbol.getKind()), symbol);
+        executables.putIfAbsent(new ExecutableKey(symbol.getName(), parameterTypes, symbol.getKind()), symbol);
     }
 
     private void addCaster(OperatorFunctionSymbol operatorFunctionSymbol) {
@@ -83,6 +83,6 @@ public class SymbolGroup implements Iterable<Symbol> {
         }
     }
 
-    private record ExecutableWrapper(String name, List<Type> parameters, Symbol.Kind kind) {
+    private record ExecutableKey(String name, List<Type> parameters, Symbol.Kind kind) {
     }
 }
