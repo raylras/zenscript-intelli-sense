@@ -2,6 +2,7 @@ package raylras.zen.code.symbol;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
+import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.resolve.FormalParameterResolver;
 import raylras.zen.code.resolve.ModifierResolver;
@@ -109,12 +110,19 @@ public class SymbolFactory {
             }
 
             @Override
+            public List<Symbol> getInheritedMembers() {
+                // FIXME: check overrides
+                return getInterfaces().stream()
+                        .flatMap(SymbolProvider::stream)
+                        .toList();
+            }
+
+            @Override
             public List<Symbol> getMembers() {
-                List<Symbol> symbols = new ArrayList<>(getDeclaredMembers());
-                for (ClassType superClass : getInterfaces()) {
-                    symbols.addAll(superClass.getSymbols());
-                }
-                return symbols;
+                List<Symbol> members = new ArrayList<>();
+                members.addAll(getDeclaredMembers());
+                members.addAll(getInheritedMembers());
+                return members;
             }
 
             @Override
