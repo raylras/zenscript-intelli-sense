@@ -10,6 +10,8 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import raylras.zen.code.CompilationUnit;
 import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.Visitor;
+import raylras.zen.code.bracket.BracketHandler;
+import raylras.zen.code.bracket.BracketHandlerManager;
 import raylras.zen.code.parser.ZenScriptParser;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.resolve.TypeResolver;
@@ -339,7 +341,7 @@ public final class CompletionProvider {
 
         @Override
         public Void visitBracketHandlerExpr(BracketHandlerExprContext ctx) {
-            unit.getEnv().getBracketHandlerManager().complete(ctx.raw().getText(), completionList);
+            completeBracketHandlers(ctx.raw().getText());
             return null;
         }
 
@@ -533,6 +535,30 @@ public final class CompletionProvider {
                     addToCompletionList(keyword);
                 }
             }
+        }
+
+        private void completeBracketHandlers(String text) {
+            BracketHandlerManager bracketHandlerManager = unit.getEnv().getBracketHandlerManager();
+            if (text.startsWith("item:")) {
+                completeBracketHandler(text.substring(5), bracketHandlerManager.getItemBracketHandler());
+            } else {
+                for (BracketHandler bracketHandler : bracketHandlerManager.getBracketHandlers()) {
+                    completeBracketHandler(text, bracketHandler);
+                }
+            }
+        }
+
+        private void completeBracketHandler(String text, BracketHandler bracketHandler) {
+            bracketHandler.getMembers().complete(text).forEach((key, subTree) -> {
+                CompletionItem completionItem = new CompletionItem(key);
+                if (subTree.hasElement()) {
+                    completionItem.setKind(CompletionItemKind.Value);
+                    completionItem.setDetail(bracketHandler.getMemberDetails(subTree.getElement()));
+                } else {
+                    completionItem.setKind(CompletionItemKind.Module);
+                }
+                completionList.add(completionItem);
+            });
         }
 
         private void addToCompletionList(Symbol symbol) {
