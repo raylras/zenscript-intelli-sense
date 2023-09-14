@@ -1,17 +1,15 @@
 package raylras.zen.code.type;
 
 import raylras.zen.code.symbol.Operator;
-import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
-
-import java.util.List;
+import raylras.zen.code.symbol.SymbolGroup;
 
 public class IntType extends NumberType {
 
     public static final IntType INSTANCE = new IntType();
 
     @Override
-    public List<Symbol> getSymbols() {
+    public SymbolGroup getSymbols() {
         return SymbolFactory.builtinSymbols()
                 .add(super.getSymbols())
                 .operator(Operator.RANGE, IntRangeType.INSTANCE, params -> params.parameter("val", this))

@@ -3,10 +3,9 @@ package raylras.zen.code.type;
 import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.symbol.Operator;
-import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
+import raylras.zen.code.symbol.SymbolGroup;
 
-import java.util.List;
 import java.util.function.UnaryOperator;
 
 public class BoolType extends Type implements SymbolProvider {
@@ -27,7 +26,7 @@ public class BoolType extends Type implements SymbolProvider {
     }
 
     @Override
-    public List<Symbol> getSymbols() {
+    public SymbolGroup getSymbols() {
         return SymbolFactory.builtinSymbols()
                 .operator(Operator.AND, this, params -> params.parameter("val", this))
                 .operator(Operator.OR, this, params -> params.parameter("val", this))

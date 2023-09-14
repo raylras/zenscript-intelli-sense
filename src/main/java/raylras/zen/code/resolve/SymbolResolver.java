@@ -10,6 +10,7 @@ import raylras.zen.code.parser.ZenScriptParser.StatementContext;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
+import raylras.zen.code.symbol.SymbolGroup;
 import raylras.zen.util.PackageTree;
 import raylras.zen.util.Ranges;
 
@@ -56,7 +57,7 @@ public class SymbolResolver {
         public SymbolProvider visitSimpleNameExpr(SimpleNameExprContext ctx) {
             SymbolProvider possibles = lookupSymbol(ctx, ctx.simpleName());
             if (Ranges.contains(cst, ctx.simpleName())) {
-                result = possibles.getSymbols();
+                result = possibles.getSymbols().toList();
             }
             return possibles;
         }
@@ -80,7 +81,7 @@ public class SymbolResolver {
                 foundResults = SymbolProvider.EMPTY;
             }
             if (Ranges.contains(cst, ctx.simpleName())) {
-                result = foundResults.getSymbols();
+                result = foundResults.getSymbols().toList();
             }
             return foundResults;
         }
@@ -98,9 +99,9 @@ public class SymbolResolver {
             Scope scope = unit.lookupScope(cst);
             if (scope != null) {
                 return scope.filter(isSymbolNameEquals(name))
-                        .orElse(() -> lookupGlobalSymbols(name));
+                        .orElse(() -> SymbolGroup.of(lookupGlobalSymbols(name)));
             } else {
-                return () -> lookupGlobalSymbols(name);
+                return () -> SymbolGroup.of(lookupGlobalSymbols(name));
             }
         }
 

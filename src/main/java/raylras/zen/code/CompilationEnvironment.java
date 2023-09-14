@@ -142,11 +142,11 @@ public class CompilationEnvironment {
         return new BracketHandlerManager(Collections.emptyList());
     }
 
-    private List<Symbol> getPrimitiveTypeExpandMembers(Type type) {
+    private Collection<Symbol> getPrimitiveTypeExpandMembers(Type type) {
         String typeName = type.toString();
         Map<String, ClassType> classTypeMap = getClassTypeMap();
         ClassType dumpClassType = classTypeMap.get(typeName);
-        return dumpClassType != null ? dumpClassType.getSymbols() : Collections.emptyList();
+        return dumpClassType != null ? dumpClassType.getSymbols().toList() : Collections.emptyList();
     }
 
 }

@@ -2,9 +2,8 @@ package raylras.zen.code.type;
 
 import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.symbol.ClassSymbol;
-import raylras.zen.code.symbol.Symbol;
+import raylras.zen.code.symbol.SymbolGroup;
 
-import java.util.List;
 import java.util.Objects;
 
 public class ClassType extends Type implements SymbolProvider {
@@ -20,7 +19,7 @@ public class ClassType extends Type implements SymbolProvider {
     }
 
     @Override
-    public List<Symbol> getSymbols() {
+    public SymbolGroup getSymbols() {
         return symbol.getMembers();
     }
 

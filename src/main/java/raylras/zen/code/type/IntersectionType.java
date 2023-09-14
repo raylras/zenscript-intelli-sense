@@ -2,7 +2,7 @@ package raylras.zen.code.type;
 
 import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.SymbolProvider;
-import raylras.zen.code.symbol.Symbol;
+import raylras.zen.code.symbol.SymbolGroup;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,12 +16,12 @@ public class IntersectionType extends Type implements SymbolProvider {
     }
 
     @Override
-    public List<Symbol> getSymbols() {
-        return typeList.stream()
+    public SymbolGroup getSymbols() {
+        return SymbolGroup.of(typeList.stream()
                 .filter(SymbolProvider.class::isInstance)
                 .map(SymbolProvider.class::cast)
                 .flatMap(it -> it.getSymbols().stream())
-                .collect(Collectors.toList());
+                .toList());
     }
 
     @Override

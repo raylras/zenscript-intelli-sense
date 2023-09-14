@@ -3,10 +3,8 @@ package raylras.zen.code.type;
 import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.symbol.Operator;
-import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
-
-import java.util.List;
+import raylras.zen.code.symbol.SymbolGroup;
 
 public class StringType extends Type implements SymbolProvider {
 
@@ -26,7 +24,7 @@ public class StringType extends Type implements SymbolProvider {
     }
 
     @Override
-    public List<Symbol> getSymbols() {
+    public SymbolGroup getSymbols() {
         return SymbolFactory.builtinSymbols()
                 .operator(Operator.ADD, this, params -> params.parameter("str", this))
                 .operator(Operator.CAT, this, params -> params.parameter("str", this))

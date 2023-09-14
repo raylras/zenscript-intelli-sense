@@ -109,8 +109,8 @@ public class SymbolFactory {
             }
 
             @Override
-            public List<Symbol> getMembers() {
-                List<Symbol> symbols = new ArrayList<>(getDeclaredMembers());
+            public SymbolGroup getMembers() {
+                SymbolGroup symbols = SymbolGroup.of(getDeclaredMembers());
                 for (ClassType superClass : getInterfaces()) {
                     symbols.addAll(superClass.getSymbols());
                 }
@@ -140,8 +140,8 @@ public class SymbolFactory {
             }
 
             @Override
-            public List<Symbol> getSymbols() {
-                return getDeclaredMembers();
+            public SymbolGroup getSymbols() {
+                return SymbolGroup.of(getDeclaredMembers());
             }
 
             @Override
@@ -715,7 +715,7 @@ public class SymbolFactory {
     }
 
     public static class SymbolsBuilder {
-        private final List<Symbol> symbols = new ArrayList<>();
+        private final SymbolGroup symbols = new SymbolGroup();
 
         public SymbolsBuilder variable(String name, Type type, Symbol.Modifier modifier) {
             symbols.add(createVariableSymbol(name, type, modifier));
@@ -732,12 +732,12 @@ public class SymbolFactory {
             return this;
         }
 
-        public SymbolsBuilder add(List<Symbol> members) {
+        public SymbolsBuilder add(Iterable<Symbol> members) {
             this.symbols.addAll(members);
             return this;
         }
 
-        public List<Symbol> build() {
+        public SymbolGroup build() {
             return symbols;
         }
     }

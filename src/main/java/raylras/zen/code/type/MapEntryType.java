@@ -3,8 +3,8 @@ package raylras.zen.code.type;
 import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
+import raylras.zen.code.symbol.SymbolGroup;
 
-import java.util.List;
 import java.util.Objects;
 
 public class MapEntryType extends Type implements SymbolProvider {
@@ -26,7 +26,7 @@ public class MapEntryType extends Type implements SymbolProvider {
     }
 
     @Override
-    public List<Symbol> getSymbols() {
+    public SymbolGroup getSymbols() {
         return SymbolFactory.builtinSymbols()
                 .variable("key", keyType, Symbol.Modifier.VAL)
                 .variable("value", valueType, Symbol.Modifier.VAL)
