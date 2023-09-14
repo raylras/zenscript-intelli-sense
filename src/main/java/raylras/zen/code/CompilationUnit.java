@@ -9,8 +9,8 @@ import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.util.PathUtils;
-import raylras.zen.util.ZenClasses;
 
+import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -22,7 +22,7 @@ public class CompilationUnit implements SymbolProvider {
 
     private final Path path;
     private final CompilationEnvironment env;
-    private final String unitName;
+    private final String qualifiedName;
     private final Map<ParseTree, Scope> scopeProperties = new IdentityHashMap<>();
     private final Map<ParseTree, Symbol> symbolProperties = new IdentityHashMap<>();
 
@@ -32,7 +32,7 @@ public class CompilationUnit implements SymbolProvider {
     public CompilationUnit(Path path, CompilationEnvironment env) {
         this.path = path;
         this.env = env;
-        this.unitName = ZenClasses.getClassName(this);
+        this.qualifiedName = extractClassName(getRelativePath());
     }
 
     public Scope lookupScope(ParseTree lookupCst) {
@@ -97,8 +97,8 @@ public class CompilationUnit implements SymbolProvider {
         return path;
     }
 
-    public String getUnitName() {
-        return unitName;
+    public String getQualifiedName() {
+        return qualifiedName;
     }
 
     public CompilationEnvironment getEnv() {
@@ -148,6 +148,21 @@ public class CompilationUnit implements SymbolProvider {
     @Override
     public String toString() {
         return String.valueOf(path);
+    }
+
+    private static String extractClassName(Path path) {
+        String classNameWithSlash = path.toString().replace(File.separatorChar, '/');
+
+        // trim extension
+        int lastDot = classNameWithSlash.lastIndexOf('.');
+        if (lastDot > 0) {
+            classNameWithSlash = classNameWithSlash.substring(0, lastDot);
+        }
+
+        classNameWithSlash = classNameWithSlash.replace(".", "_");
+        classNameWithSlash = classNameWithSlash.replace(" ", "_");
+
+        return classNameWithSlash.replace('/', '.');
     }
 
 }

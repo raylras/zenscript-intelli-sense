@@ -94,7 +94,7 @@ public class SymbolFactory {
 
             @Override
             public String getQualifiedName() {
-                String unitName = unit.getUnitName();
+                String unitName = unit.getQualifiedName();
                 if (unit.isGenerated()) {
                     return unitName;
                 } else {
