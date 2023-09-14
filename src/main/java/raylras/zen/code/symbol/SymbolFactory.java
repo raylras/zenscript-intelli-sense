@@ -2,6 +2,7 @@ package raylras.zen.code.symbol;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
+import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.resolve.FormalParameterResolver;
 import raylras.zen.code.resolve.ModifierResolver;
@@ -93,7 +94,7 @@ public class SymbolFactory {
 
             @Override
             public String getQualifiedName() {
-                String unitName = unit.getUnitName();
+                String unitName = unit.getQualifiedName();
                 if (unit.isGenerated()) {
                     return unitName;
                 } else {

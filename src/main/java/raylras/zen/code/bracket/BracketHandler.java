@@ -1,14 +1,11 @@
 package raylras.zen.code.bracket;
 
 import com.google.gson.*;
-import org.eclipse.lsp4j.CompletionItem;
-import org.eclipse.lsp4j.CompletionItemKind;
 import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.type.ClassType;
 import raylras.zen.util.PackageTree;
 
 import java.lang.reflect.Type;
-import java.util.List;
 
 /**
  * @author youyihj
@@ -21,24 +18,11 @@ public class BracketHandler {
         this.typeName = typeName;
     }
 
-    public void complete(String text, List<CompletionItem> completionItems) {
-        members.complete(text).forEach((key, subTree) -> {
-            CompletionItem completionItem = new CompletionItem(key);
-            if (subTree.hasElement()) {
-                completionItem.setKind(CompletionItemKind.Value);
-                completionItem.setDetail(getCompletionItemDetails(subTree.getElement()));
-            } else {
-                completionItem.setKind(CompletionItemKind.Module);
-            }
-            completionItems.add(completionItem);
-        });
-    }
-
     public boolean has(String member) {
         return members.get(member).hasElement();
     }
 
-    private String getCompletionItemDetails(JsonElement json) {
+    public String getMemberDetails(JsonElement json) {
         if (json.isJsonObject()) {
             JsonElement name = json.getAsJsonObject().get("name");
             if (name != null) {
@@ -46,6 +30,14 @@ public class BracketHandler {
             }
         }
         return null;
+    }
+
+    public String getTypeName() {
+        return typeName;
+    }
+
+    public PackageTree<JsonElement> getMembers() {
+        return members;
     }
 
     public ClassType getType(CompilationEnvironment environment) {

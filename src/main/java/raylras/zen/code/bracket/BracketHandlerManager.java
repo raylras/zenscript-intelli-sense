@@ -1,7 +1,6 @@
 package raylras.zen.code.bracket;
 
 import com.google.gson.*;
-import org.eclipse.lsp4j.CompletionItem;
 import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.type.AnyType;
 import raylras.zen.code.type.ClassType;
@@ -22,27 +21,27 @@ public class BracketHandlerManager {
             .create();
 
     private final List<BracketHandler> bracketHandlers;
+    private final BracketHandler itemBracketHandler;
 
     public BracketHandlerManager(List<BracketHandler> bracketHandlers) {
         this.bracketHandlers = bracketHandlers;
+        this.itemBracketHandler = bracketHandlers.stream()
+                .filter(it -> "crafttweaker.item.IItemStack".equals(it.getTypeName()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("No item bracket handler found"));
     }
 
     public List<BracketHandler> getBracketHandlers() {
         return bracketHandlers;
     }
 
-    public void complete(String text, List<CompletionItem> completionItems) {
-        if (text.startsWith("item:")) {
-            text = text.substring(5);
-        }
-        for (BracketHandler bracketHandler : bracketHandlers) {
-            bracketHandler.complete(text, completionItems);
-        }
+    public BracketHandler getItemBracketHandler() {
+        return itemBracketHandler;
     }
 
     public Type getType(String text, CompilationEnvironment env) {
         if (text.startsWith("item:")) {
-            text = text.substring(5);
+            return itemBracketHandler.getType(env);
         }
         for (BracketHandler bracketHandler : bracketHandlers) {
             if (bracketHandler.has(text)) {
