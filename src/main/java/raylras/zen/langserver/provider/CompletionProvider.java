@@ -617,7 +617,9 @@ public final class CompletionProvider {
         }
 
         private boolean shouldAddedToCompletion(Symbol symbol) {
-            return symbol.getKind() == Symbol.Kind.FUNCTION || symbol.getKind() == Symbol.Kind.VARIABLE;
+            return symbol instanceof FunctionSymbol ||
+                    symbol instanceof VariableSymbol ||
+                    symbol instanceof ExpandFunctionSymbol;
         }
 
         private CompletionItemLabelDetails getLabelDetails(Symbol symbol) {
