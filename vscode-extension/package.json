@@ -73,8 +73,8 @@
 		"package": "vsce package",
 		"vscode:prepublish": "npm run yaml2json && npm run prod",
 		"yaml2json": "yaml2json ./language/ZenScript.tmLanguage.yaml | json-minify > ./language/ZenScript.tmLanguage.json",
-		"prod": "rollup --config ./build/rollup.config.prod.mjs --environment BUILD:production",
-		"dev": "rollup --config ./build/rollup.config.dev.mjs --environment BUILD:development"
+		"prod": "rollup --config ./rollup.config.prod.mjs --environment BUILD:production",
+		"dev": "rollup --config ./rollup.config.dev.mjs --environment BUILD:development"
 	},
 	"dependencies": {
 		"@viperproject/locate-java-home": "^1.1.13",
