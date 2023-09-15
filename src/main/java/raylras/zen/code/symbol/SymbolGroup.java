@@ -32,7 +32,7 @@ public class SymbolGroup implements Iterable<Symbol> {
             if (symbol instanceof OperatorFunctionSymbol operator && operator.getOperator() == Operator.AS) {
                 addCaster(operator);
             } else {
-                addExecutable(symbol, executable);
+                addExecutable((Symbol & Executable) executable);
             }
         } else {
             addField(symbol);
@@ -66,9 +66,9 @@ public class SymbolGroup implements Iterable<Symbol> {
         fields.putIfAbsent(symbol.getName(), symbol);
     }
 
-    private void addExecutable(Symbol symbol, Executable executable) {
-        List<Type> parameterTypes = executable.getParameterList().stream().map(Symbol::getType).toList();
-        executables.putIfAbsent(new ExecutableKey(symbol.getName(), parameterTypes, symbol.getKind()), symbol);
+    private <T extends Symbol & Executable> void addExecutable(T executableSymbol) {
+        List<Type> parameterTypes = executableSymbol.getParameterList().stream().map(Symbol::getType).toList();
+        executables.putIfAbsent(new ExecutableKey(executableSymbol.getName(), parameterTypes, executableSymbol.getKind()), executableSymbol);
     }
 
     private void addCaster(OperatorFunctionSymbol operatorFunctionSymbol) {
