@@ -82,8 +82,8 @@ public class CompilationUnit implements SymbolProvider {
         return SymbolGroup.of(symbolProperties.values());
     }
 
-    public List<Symbol> getTopLevelSymbols() {
-        return getScope(parseTree).getSymbols().toList();
+    public SymbolGroup getTopLevelSymbols() {
+        return getScope(parseTree).getSymbols();
     }
 
     public List<Annotation> getDeclaredAnnotations() {
