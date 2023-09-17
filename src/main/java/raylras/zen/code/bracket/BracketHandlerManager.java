@@ -1,11 +1,11 @@
 package raylras.zen.code.bracket;
 
 import com.google.gson.*;
+import raylras.zen.bracket.BracketHandlerService;
 import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.type.AnyType;
 import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.Type;
-import raylras.zen.rpc.RpcClient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,7 +48,7 @@ public class BracketHandlerManager {
                 return bracketHandler.getType(env);
             }
         }
-        String bracketTypeName = RpcClient.queryBracketHandler(text).get("type");
+        String bracketTypeName = BracketHandlerService.queryEntity(text).get("type").orElse(null);
         ClassType classType = env.getClassTypeMap().get(bracketTypeName);
         return (classType != null) ? classType : AnyType.INSTANCE;
     }

@@ -5,17 +5,16 @@ import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
+import raylras.zen.bracket.BracketHandlerEntity;
+import raylras.zen.bracket.BracketHandlerService;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptParser.BracketHandlerExprContext;
 import raylras.zen.langserver.Document;
-import raylras.zen.rpc.RpcClient;
 import raylras.zen.util.CSTNodes;
-import raylras.zen.util.MapUtils;
 import raylras.zen.util.Position;
 import raylras.zen.util.Ranges;
 
 import java.util.Deque;
-import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public class HoverProvider {
@@ -45,14 +44,14 @@ public class HoverProvider {
 
         @Override
         public Hover visitBracketHandlerExpr(BracketHandlerExprContext ctx) {
-            Map<String, String> properties = RpcClient.queryBracketHandler(ctx.raw().getText());
+            BracketHandlerEntity entity = BracketHandlerService.queryEntity(ctx.raw().getText());
             StringBuilder builder = new StringBuilder();
-            MapUtils.ifPresent(properties, "name", name -> {
+            entity.ifPresent("name", name -> {
                 builder.append("#### ");
                 builder.append(name);
                 builder.append("\n\n");
             });
-            MapUtils.ifPresent(properties, "icon", icon -> {
+            entity.ifPresent("icon", icon -> {
                 String img = "![img](data:image/png;base64," + icon + ")";
                 builder.append(img);
                 builder.append("\n\n");
