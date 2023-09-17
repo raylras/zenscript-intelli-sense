@@ -90,6 +90,6 @@
 		"@types/vscode": "^1.81.0",
 		"@vscode/vsce": "^2.20.1",
 		"json-minify": "^1.0.0",
-		"rollup": "^3.28.1"
+		"rollup": "^3.29.2"
 	}
 }
