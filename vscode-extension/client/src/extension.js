@@ -17,7 +17,7 @@ export function activate(context) {
         }
         const config = workspace.getConfiguration();
         const java = javaHomes[0].executables.java;
-        const classpath = join(__dirname, '..', '..', 'server', '*');
+        const classpath = join(__dirname, '..', '..', 'server', 'zenscript-language-server.jar');
         const args = ['-cp', classpath];
         const main = 'raylras.zen.langserver.StandardIOLauncher';
         let debug = '-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005,quiet=y';

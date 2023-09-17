@@ -4,7 +4,7 @@
 	"description": "ZenScript Language Server",
 	"author": "raylras",
 	"license": "MIT",
-	"version": "0.11.0",
+	"version": "0.1.0-snapshot",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/Raylras/zenscript-language-server"
@@ -73,8 +73,8 @@
 		"package": "vsce package",
 		"vscode:prepublish": "npm run yaml2json && npm run prod",
 		"yaml2json": "yaml2json ./language/ZenScript.tmLanguage.yaml | json-minify > ./language/ZenScript.tmLanguage.json",
-		"prod": "rollup --config ./build/rollup.config.prod.mjs --environment BUILD:production",
-		"dev": "rollup --config ./build/rollup.config.dev.mjs --environment BUILD:development"
+		"prod": "rollup --config ./rollup.config.prod.mjs --environment BUILD:production",
+		"dev": "rollup --config ./rollup.config.dev.mjs --environment BUILD:development"
 	},
 	"dependencies": {
 		"@viperproject/locate-java-home": "^1.1.13",
@@ -88,8 +88,8 @@
 		"@rollup/plugin-terser": "^0.4.3",
 		"@types/node": "^20.5.1",
 		"@types/vscode": "^1.81.0",
-		"@vscode/vsce": "^2.20.1",
+		"@vscode/vsce": "^2.21.0",
 		"json-minify": "^1.0.0",
-		"rollup": "^3.28.1"
+		"rollup": "^3.29.2"
 	}
 }

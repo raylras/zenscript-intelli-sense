@@ -1,17 +1,29 @@
 name: Release
 
 on:
-  push:
-    tags:
-      - "v*"
   workflow_dispatch:
+    inputs:
+      tag:
+        type: string
+        description: The tag to publish (e.g. v1.0.0)
+        required: true
 
 jobs:
-  build:
+  build-and-release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
       - name: Checkout sources
         uses: actions/checkout@v3
+
+      - name: Setup release version
+        run: |
+          TAG="${{ github.event.inputs.tag }}"
+          VERSION="${TAG#v}"
+          sed -i "s/version=.*/version=${VERSION}/" gradle.properties
+          cd vscode-extension
+          npm version ${VERSION}
 
       - name: Setup JDK
         uses: actions/setup-java@v3
@@ -22,23 +34,26 @@ jobs:
       - name: Setup Gradle
         uses: gradle/gradle-build-action@v2
 
-      - name: Build server
-        run: ./gradlew dist
-
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18.x'
 
-      - name: Install Node.js dependencies
-        run: npm install
+      - name: Setup Node.js dependencies
+        run: npm ci
         working-directory: ./vscode-extension
 
-      - name: Build VSCode extension
+      - name: Build server
+        run: ./gradlew dist
+
+      - name: Build vscode extension
         run: npm run package
         working-directory: ./vscode-extension
 
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: ncipollo/release-action@v1
         with:
-          files: vscode-extension/*.vsix
+          tag: ${{ github.event.inputs.tag }}
+          artifacts: "vscode-extension/*.vsix"
+          generateReleaseNotes: true
+          token: ${{ secrets.GITHUB_TOKEN }}
