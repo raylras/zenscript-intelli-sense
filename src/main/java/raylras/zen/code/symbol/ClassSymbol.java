@@ -11,7 +11,7 @@ public interface ClassSymbol extends Symbol, SymbolProvider {
 
     List<Symbol> getDeclaredMembers();
 
-    SymbolGroup getMembers();
+    List<Symbol> getMembers();
 
     List<ClassType> getInterfaces();
 

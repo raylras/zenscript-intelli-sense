@@ -1,22 +1,22 @@
 package raylras.zen.code;
 
 import raylras.zen.code.symbol.Symbol;
-import raylras.zen.code.symbol.SymbolGroup;
 import raylras.zen.code.type.Type;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 public interface SymbolProvider extends Iterable<Symbol> {
 
-    SymbolGroup getSymbols();
+    Collection<Symbol> getSymbols();
 
-    SymbolProvider EMPTY = SymbolGroup::new;
+    SymbolProvider EMPTY = Collections::emptyList;
 
     static SymbolProvider of(Collection<Symbol> members) {
-        return () -> SymbolGroup.of(members);
+        return () -> members;
     }
 
     default Symbol getFirst() {
@@ -24,23 +24,23 @@ public interface SymbolProvider extends Iterable<Symbol> {
     }
 
     default SymbolProvider filter(Predicate<Symbol> predicate) {
-        return () -> SymbolGroup.of(getSymbols().stream().filter(predicate).toList());
+        return () -> getSymbols().stream().filter(predicate).toList();
     }
 
     default SymbolProvider limit(long maxSize) {
-        return () -> SymbolGroup.of(getSymbols().stream().limit(maxSize).toList());
+        return () -> getSymbols().stream().limit(maxSize).toList();
     }
 
     default SymbolProvider merge(SymbolProvider other) {
-        return () -> SymbolGroup.of(this).addAll(other);
+        return () -> Stream.concat(this.stream(), other.stream()).toList();
     }
 
     default SymbolProvider orElse(SymbolProvider other) {
-        SymbolGroup symbols = getSymbols();
+        Collection<Symbol> symbols = getSymbols();
         if (symbols.isEmpty()) {
             return other;
         }
-        return this;
+        return SymbolProvider.of(symbols);
     }
 
     default int size() {
@@ -53,7 +53,7 @@ public interface SymbolProvider extends Iterable<Symbol> {
 
     default SymbolProvider withExpands(CompilationEnvironment env) {
         if (this instanceof Type type) {
-            return merge(() -> SymbolGroup.of(env.getExpandMembers(type)));
+            return merge(() -> env.getExpandMembers(type));
         } else {
             return this;
         }

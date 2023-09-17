@@ -8,7 +8,6 @@ import raylras.zen.code.annotation.Annotation;
 import raylras.zen.code.parser.ZenScriptLexer;
 import raylras.zen.code.scope.Scope;
 import raylras.zen.code.symbol.Symbol;
-import raylras.zen.code.symbol.SymbolGroup;
 import raylras.zen.util.PathUtils;
 
 import java.io.File;
@@ -78,11 +77,11 @@ public class CompilationUnit implements SymbolProvider {
     }
 
     @Override
-    public SymbolGroup getSymbols() {
-        return SymbolGroup.of(symbolProperties.values());
+    public Collection<Symbol> getSymbols() {
+        return symbolProperties.values();
     }
 
-    public SymbolGroup getTopLevelSymbols() {
+    public Collection<Symbol> getTopLevelSymbols() {
         return getScope(parseTree).getSymbols();
     }
 

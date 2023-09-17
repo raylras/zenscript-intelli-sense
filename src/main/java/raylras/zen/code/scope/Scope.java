@@ -3,9 +3,9 @@ package raylras.zen.code.scope;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.symbol.Symbol;
-import raylras.zen.code.symbol.SymbolGroup;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
@@ -69,8 +69,8 @@ public class Scope implements SymbolProvider {
     }
 
     @Override
-    public SymbolGroup getSymbols() {
-        return SymbolGroup.of(symbols);
+    public Collection<Symbol> getSymbols() {
+        return symbols;
     }
 
     public ParseTree getCst() {

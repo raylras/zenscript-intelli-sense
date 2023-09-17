@@ -4,9 +4,8 @@ import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.symbol.Operator;
 import raylras.zen.code.symbol.Symbol;
-import raylras.zen.code.symbol.SymbolFactory;
-import raylras.zen.code.symbol.SymbolGroup;
 
+import java.util.Collection;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 
@@ -23,8 +22,8 @@ public class ListType extends Type implements SymbolProvider {
     }
 
     @Override
-    public SymbolGroup getSymbols() {
-        return SymbolFactory.builtinSymbols()
+    public Collection<Symbol> getSymbols() {
+        return MembersBuilder.of()
                 .variable("length", IntType.INSTANCE, Symbol.Modifier.VAL)
                 .function("remove", VoidType.INSTANCE, params -> params.parameter("index", IntType.INSTANCE))
                 .operator(Operator.INDEX_GET, elementType, params -> params.parameter("index", IntType.INSTANCE))

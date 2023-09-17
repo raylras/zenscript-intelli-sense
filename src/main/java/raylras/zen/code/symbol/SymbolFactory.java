@@ -2,7 +2,6 @@ package raylras.zen.code.symbol;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.resolve.FormalParameterResolver;
 import raylras.zen.code.resolve.ModifierResolver;
@@ -16,7 +15,6 @@ import raylras.zen.util.Range;
 import java.util.*;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
 
 public class SymbolFactory {
@@ -110,12 +108,12 @@ public class SymbolFactory {
             }
 
             @Override
-            public SymbolGroup getMembers() {
-                SymbolGroup symbols = SymbolGroup.of(getDeclaredMembers());
+            public List<Symbol> getMembers() {
+                MembersBuilder builder = MembersBuilder.of().addAll(getDeclaredMembers());
                 for (ClassType superClass : getInterfaces()) {
-                    symbols.addAll(superClass.getSymbols());
+                    builder.addAll(superClass.getSymbols());
                 }
-                return symbols;
+                return builder.build();
             }
 
             @Override
@@ -141,8 +139,8 @@ public class SymbolFactory {
             }
 
             @Override
-            public SymbolGroup getSymbols() {
-                return SymbolGroup.of(getDeclaredMembers());
+            public Collection<Symbol> getSymbols() {
+                return getDeclaredMembers();
             }
 
             @Override
@@ -710,54 +708,4 @@ public class SymbolFactory {
         }
         return new ConstructorSymbolImpl();
     }
-
-    public static SymbolsBuilder builtinSymbols() {
-        return new SymbolsBuilder();
-    }
-
-    public static class SymbolsBuilder {
-        private final SymbolGroup symbols = new SymbolGroup();
-
-        public SymbolsBuilder variable(String name, Type type, Symbol.Modifier modifier) {
-            symbols.add(createVariableSymbol(name, type, modifier));
-            return this;
-        }
-
-        public SymbolsBuilder function(String name, Type returnType, UnaryOperator<ParameterBuilder> paramsSupplier) {
-            symbols.add(createFunctionSymbol(name, returnType, paramsSupplier.apply(new ParameterBuilder()).build()));
-            return this;
-        }
-
-        public SymbolsBuilder operator(Operator operator, Type returnType, UnaryOperator<ParameterBuilder> paramsSupplier) {
-            symbols.add(createOperatorFunctionSymbol(operator, returnType, paramsSupplier.apply(new ParameterBuilder()).build()));
-            return this;
-        }
-
-        public SymbolsBuilder add(Iterable<Symbol> members) {
-            this.symbols.addAll(members);
-            return this;
-        }
-
-        public SymbolGroup build() {
-            return symbols;
-        }
-    }
-
-    public static class ParameterBuilder {
-        private final List<ParameterSymbol> parameters = new ArrayList<>();
-
-        public ParameterBuilder parameter(String name, Type type, boolean optional, boolean vararg) {
-            parameters.add(createParameterSymbol(name, type, optional, vararg));
-            return this;
-        }
-
-        public ParameterBuilder parameter(String name, Type type) {
-            return parameter(name, type, false, false);
-        }
-
-        public List<ParameterSymbol> build() {
-            return parameters;
-        }
-    }
-
 }

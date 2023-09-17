@@ -146,7 +146,7 @@ public class CompilationEnvironment {
         String typeName = type.toString();
         Map<String, ClassType> classTypeMap = getClassTypeMap();
         ClassType dumpClassType = classTypeMap.get(typeName);
-        return dumpClassType != null ? dumpClassType.getSymbols().toList() : Collections.emptyList();
+        return dumpClassType != null ? dumpClassType.getSymbols() : Collections.emptyList();
     }
 
 }
