@@ -14,10 +14,10 @@ public class BracketHandlerService {
 
     private static List<BracketHandlerMirror> bracketHandlerMirrors;
 
-    public static BracketHandlerEntity queryEntityDynamic(String raw) {
+    public static BracketHandlerEntry queryEntryDynamic(String raw) {
         Map<String, Object> properties;
         try {
-            properties = RpcClient.queryEntityDynamic(raw);
+            properties = RpcClient.queryEntryDynamic(raw);
         } catch (ConnectException e) {
             logger.warn("Failed to query <{}>, make sure your Minecraft instance is running", raw);
             properties = Collections.emptyMap();
@@ -25,7 +25,7 @@ public class BracketHandlerService {
             logger.error("Failed to query <{}>: {}", raw, e.getMessage());
             properties = Collections.emptyMap();
         }
-        return new BracketHandlerEntity(properties);
+        return new BracketHandlerEntry(properties);
     }
 
 }

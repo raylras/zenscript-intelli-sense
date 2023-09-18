@@ -5,7 +5,7 @@ import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
-import raylras.zen.bracket.BracketHandlerEntity;
+import raylras.zen.bracket.BracketHandlerEntry;
 import raylras.zen.bracket.BracketHandlerService;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptParser.BracketHandlerExprContext;
@@ -44,14 +44,14 @@ public class HoverProvider {
 
         @Override
         public Hover visitBracketHandlerExpr(BracketHandlerExprContext ctx) {
-            BracketHandlerEntity entity = BracketHandlerService.queryEntityDynamic(ctx.raw().getText());
+            BracketHandlerEntry entry = BracketHandlerService.queryEntryDynamic(ctx.raw().getText());
             StringBuilder builder = new StringBuilder();
-            entity.ifPresent("name", name -> {
+            entry.ifPresent("name", name -> {
                 builder.append("#### ");
                 builder.append(name);
                 builder.append("\n\n");
             });
-            entity.ifPresent("icon", icon -> {
+            entry.ifPresent("icon", icon -> {
                 String img = "![img](data:image/png;base64," + icon + ")";
                 builder.append(img);
                 builder.append("\n\n");
