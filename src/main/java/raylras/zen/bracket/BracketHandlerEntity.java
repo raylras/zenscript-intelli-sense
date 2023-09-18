@@ -4,17 +4,21 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public record BracketHandlerEntity(Map<String, String> properties) {
+public record BracketHandlerEntity(Map<String, Object> properties) {
 
-    public void ifPresent(String key, Consumer<String> action) {
-        String value = properties.get(key);
+    public void ifPresent(String key, Consumer<Object> action) {
+        Object value = properties.get(key);
         if (value != null) {
             action.accept(value);
         }
     }
 
-    public Optional<String> get(String key) {
+    public Optional<Object> get(String key) {
         return Optional.ofNullable(properties.get(key));
+    }
+
+    public Optional<String> getAsString(String key) {
+        return get(key).map(String::valueOf);
     }
 
 }

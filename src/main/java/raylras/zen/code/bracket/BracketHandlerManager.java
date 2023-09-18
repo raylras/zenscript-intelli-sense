@@ -48,7 +48,7 @@ public class BracketHandlerManager {
                 return bracketHandler.getType(env);
             }
         }
-        String bracketTypeName = BracketHandlerService.queryEntity(text).get("type").orElse(null);
+        String bracketTypeName = BracketHandlerService.queryEntityDynamic(text).getAsString("type").orElse(null);
         ClassType classType = env.getClassTypeMap().get(bracketTypeName);
         return (classType != null) ? classType : AnyType.INSTANCE;
     }

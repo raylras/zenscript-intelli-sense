@@ -44,7 +44,7 @@ public class HoverProvider {
 
         @Override
         public Hover visitBracketHandlerExpr(BracketHandlerExprContext ctx) {
-            BracketHandlerEntity entity = BracketHandlerService.queryEntity(ctx.raw().getText());
+            BracketHandlerEntity entity = BracketHandlerService.queryEntityDynamic(ctx.raw().getText());
             StringBuilder builder = new StringBuilder();
             entity.ifPresent("name", name -> {
                 builder.append("#### ");

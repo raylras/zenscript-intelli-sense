@@ -5,14 +5,17 @@ import org.slf4j.LoggerFactory;
 
 import java.net.ConnectException;
 import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 
 public class BracketHandlerService {
 
     private static final Logger logger = LoggerFactory.getLogger(BracketHandlerService.class);
 
-    public static BracketHandlerEntity queryEntity(String raw) {
-        Map<String, String> properties;
+    private static List<BracketHandlerMirror> bracketHandlerMirrors;
+
+    public static BracketHandlerEntity queryEntityDynamic(String raw) {
+        Map<String, Object> properties;
         try {
             properties = RpcClient.queryEntityDynamic(raw);
         } catch (ConnectException e) {
