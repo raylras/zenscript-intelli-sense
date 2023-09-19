@@ -16,7 +16,6 @@ import raylras.zen.util.Operators;
 import raylras.zen.util.Range;
 
 import java.util.*;
-import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -107,7 +106,7 @@ public class SymbolFactory {
             @Override
             public List<Symbol> getDeclaredMembers() {
                 return unit.getScope(cst).getSymbols().stream()
-                        .filter(Predicate.not(ThisSymbol.class::isInstance))
+                        .filter(ParseTreeLocatable.class::isInstance)
                         .toList();
             }
 
@@ -617,7 +616,7 @@ public class SymbolFactory {
     }
 
     public static ThisSymbol createThisSymbol(Supplier<Type> typeSupplier) {
-        return new ThisSymbol() {
+        class ThisSymbolImpl implements ThisSymbol {
             @Override
             public String getName() {
                 return "this";
@@ -637,7 +636,8 @@ public class SymbolFactory {
             public Modifier getModifier() {
                 return Modifier.VAL;
             }
-        };
+        }
+        return new ThisSymbolImpl();
     }
 
     public static ConstructorSymbol createConstructorSymbol(ParseTree nameCst, ParseTree cst, CompilationUnit unit, ClassSymbol declaringClass) {
