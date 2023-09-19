@@ -5,6 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import raylras.zen.code.CompilationEnvironment;
+import raylras.zen.util.StopWatch;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -39,7 +40,11 @@ public class BracketHandlerService {
     public BracketHandlerEntry queryEntryDynamic(String fullBracketHandlerExpr) {
         Map<String, Object> properties;
         try {
+            StopWatch sw = new StopWatch();
+            sw.start();
             properties = RpcClient.queryEntryDynamic(fullBracketHandlerExpr);
+            sw.stop();
+            logger.info("Query dynamic <{}> [{}ms]", fullBracketHandlerExpr, sw.getFormattedMillis());
         } catch (ConnectException e) {
             logger.warn("Failed to query <{}>, make sure your Minecraft instance is running", fullBracketHandlerExpr);
             properties = Collections.emptyMap();
@@ -68,6 +73,8 @@ public class BracketHandlerService {
     }
 
     private void loadFromJson() {
+        StopWatch sw = new StopWatch();
+        sw.start();
         Path jsonPath = env.getGeneratedRoot().resolve("brackets.json");
         if (Files.isRegularFile(jsonPath) || Files.isReadable(jsonPath)) {
             try (Reader reader = Files.newBufferedReader(jsonPath)) {
@@ -76,6 +83,8 @@ public class BracketHandlerService {
                 logger.error("Failed to open brackets.json", e);
             }
         }
+        sw.stop();
+        logger.info("Load mirrors from {} [{}ms]", jsonPath.getFileName(), sw.getFormattedMillis());
     }
 
 }
