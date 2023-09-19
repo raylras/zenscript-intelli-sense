@@ -25,7 +25,7 @@ public class HoverProvider {
         return doc.getUnit().map(unit -> CompletableFuture.supplyAsync(() -> {
             Position cursor = Position.of(params.getPosition());
             Deque<ParseTree> cstStack = CSTNodes.getCstStackAtPosition(unit.getParseTree(), cursor);
-            HoverVisitor visitor = new HoverVisitor();
+            HoverVisitor visitor = new HoverVisitor(unit.getEnv().getBracketHandlerService());
             for (ParseTree cst : cstStack) {
                 Hover hover = cst.accept(visitor);
                 if (hover != null) {
@@ -42,16 +42,22 @@ public class HoverProvider {
 
     private static final class HoverVisitor extends Visitor<Hover> {
 
+        private final BracketHandlerService brackets;
+
+        private HoverVisitor(BracketHandlerService brackets) {
+            this.brackets = brackets;
+        }
+
         @Override
         public Hover visitBracketHandlerExpr(BracketHandlerExprContext ctx) {
-            BracketHandlerEntry entry = BracketHandlerService.queryEntryDynamic(ctx.raw().getText());
+            BracketHandlerEntry entry = brackets.queryEntryDynamic(ctx.raw().getText());
             StringBuilder builder = new StringBuilder();
-            entry.ifPresent("name", name -> {
+            entry.ifPresent("_name", name -> {
                 builder.append("#### ");
                 builder.append(name);
                 builder.append("\n\n");
             });
-            entry.ifPresent("icon", icon -> {
+            entry.ifPresent("_icon", icon -> {
                 String img = "![img](data:image/png;base64," + icon + ")";
                 builder.append(img);
                 builder.append("\n\n");

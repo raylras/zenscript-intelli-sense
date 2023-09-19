@@ -18,9 +18,9 @@ public class RpcClient {
 
     private static final Logger logger = LoggerFactory.getLogger(RpcClient.class);
 
-    static Map<String, Object> queryEntryDynamic(String raw)
+    static Map<String, Object> queryEntryDynamic(String fullBracketHandlerExpr)
             throws IOException, ExecutionException, InterruptedException {
-        return getRemoteService().query(raw, true)
+        return getRemoteService().query(fullBracketHandlerExpr, true)
                 .exceptionally(e -> {
                     invalidateRemoteService();
                     throw new RuntimeException(e);
@@ -71,7 +71,7 @@ public class RpcClient {
         CompletableFuture<Map<String, Object>> query(String content, boolean extras);
 
         @JsonRequest
-        default CompletableFuture<Map<String, Object>> queryEntryDynamic(String raw) {
+        default CompletableFuture<Map<String, Object>> queryEntryDynamic(String fullBracketHandlerExpr) {
             throw new RuntimeException("Experimental, not yet implemented");
         }
     }
