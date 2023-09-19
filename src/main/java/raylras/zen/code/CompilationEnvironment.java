@@ -1,18 +1,14 @@
 package raylras.zen.code;
 
-import com.google.gson.JsonSyntaxException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import raylras.zen.code.bracket.BracketHandlerManager;
+import raylras.zen.bracket.BracketHandlerService;
 import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.ExpandFunctionSymbol;
 import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.type.ClassType;
 import raylras.zen.code.type.Type;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -28,8 +24,9 @@ public class CompilationEnvironment {
 
     private final Path root;
     private final Map<Path, CompilationUnit> unitMap = new HashMap<>();
+    private final BracketHandlerService bracketHandlerService = new BracketHandlerService(this);
+
     private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
-    private BracketHandlerManager bracketHandlerManager;
 
     public CompilationEnvironment(Path root) {
         Objects.requireNonNull(root);
@@ -97,11 +94,8 @@ public class CompilationEnvironment {
         return root.resolve(DEFAULT_GENERATED_DIRECTORY);
     }
 
-    public BracketHandlerManager getBracketHandlerManager() {
-        if (bracketHandlerManager == null) {
-            bracketHandlerManager = loadBracketHandlerManager();
-        }
-        return bracketHandlerManager;
+    public BracketHandlerService getBracketHandlerService() {
+        return bracketHandlerService;
     }
 
     public List<Symbol> getExpandMembers(Type type) {
@@ -118,7 +112,6 @@ public class CompilationEnvironment {
         }
     }
 
-
     public ReentrantReadWriteLock.ReadLock readLock() {
         return readWriteLock.readLock();
     }
@@ -130,16 +123,6 @@ public class CompilationEnvironment {
     @Override
     public String toString() {
         return root.toString();
-    }
-
-    private BracketHandlerManager loadBracketHandlerManager() {
-        try {
-            BufferedReader jsonReader = Files.newBufferedReader(getGeneratedRoot().resolve("brackets.json"));
-            return BracketHandlerManager.GSON.fromJson(jsonReader, BracketHandlerManager.class);
-        } catch (IOException | JsonSyntaxException e) {
-            logger.error("Failed to open brackets.json: {}", this, e);
-        }
-        return new BracketHandlerManager(Collections.emptyList());
     }
 
     private Collection<Symbol> getPrimitiveTypeExpandMembers(Type type) {

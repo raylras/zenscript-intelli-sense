@@ -5,7 +5,7 @@ import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
-import raylras.zen.bracket.BracketHandlerEntity;
+import raylras.zen.bracket.BracketHandlerEntry;
 import raylras.zen.bracket.BracketHandlerService;
 import raylras.zen.code.Visitor;
 import raylras.zen.code.parser.ZenScriptParser.BracketHandlerExprContext;
@@ -25,7 +25,7 @@ public class HoverProvider {
         return doc.getUnit().map(unit -> CompletableFuture.supplyAsync(() -> {
             Position cursor = Position.of(params.getPosition());
             Deque<ParseTree> cstStack = CSTNodes.getCstStackAtPosition(unit.getParseTree(), cursor);
-            HoverVisitor visitor = new HoverVisitor();
+            HoverVisitor visitor = new HoverVisitor(unit.getEnv().getBracketHandlerService());
             for (ParseTree cst : cstStack) {
                 Hover hover = cst.accept(visitor);
                 if (hover != null) {
@@ -42,16 +42,22 @@ public class HoverProvider {
 
     private static final class HoverVisitor extends Visitor<Hover> {
 
+        private final BracketHandlerService brackets;
+
+        private HoverVisitor(BracketHandlerService brackets) {
+            this.brackets = brackets;
+        }
+
         @Override
         public Hover visitBracketHandlerExpr(BracketHandlerExprContext ctx) {
-            BracketHandlerEntity entity = BracketHandlerService.queryEntity(ctx.raw().getText());
+            BracketHandlerEntry entry = brackets.queryEntryDynamic(ctx.raw().getText());
             StringBuilder builder = new StringBuilder();
-            entity.ifPresent("name", name -> {
+            entry.ifPresent("_name", name -> {
                 builder.append("#### ");
                 builder.append(name);
                 builder.append("\n\n");
             });
-            entity.ifPresent("icon", icon -> {
+            entry.ifPresent("_icon", icon -> {
                 String img = "![img](data:image/png;base64," + icon + ")";
                 builder.append(img);
                 builder.append("\n\n");
