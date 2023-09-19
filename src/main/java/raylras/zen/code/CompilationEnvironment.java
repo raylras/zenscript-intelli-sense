@@ -125,7 +125,7 @@ public class CompilationEnvironment {
         return root.toString();
     }
 
-    private List<Symbol> getPrimitiveTypeExpandMembers(Type type) {
+    private Collection<Symbol> getPrimitiveTypeExpandMembers(Type type) {
         String typeName = type.toString();
         Map<String, ClassType> classTypeMap = getClassTypeMap();
         ClassType dumpClassType = classTypeMap.get(typeName);

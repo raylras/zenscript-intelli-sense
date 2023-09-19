@@ -4,6 +4,7 @@ import raylras.zen.code.CompilationEnvironment;
 import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.symbol.Symbol;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,12 +17,14 @@ public class IntersectionType extends Type implements SymbolProvider {
     }
 
     @Override
-    public List<Symbol> getSymbols() {
-        return typeList.stream()
-                .filter(SymbolProvider.class::isInstance)
-                .map(SymbolProvider.class::cast)
-                .flatMap(it -> it.getSymbols().stream())
-                .collect(Collectors.toList());
+    public Collection<Symbol> getSymbols() {
+        MemberValidator validator = new MemberValidator();
+        for (Type type : typeList) {
+            if (type instanceof SymbolProvider symbolProvider) {
+                validator.addAll(symbolProvider);
+            }
+        }
+        return validator.getMembers();
     }
 
     @Override

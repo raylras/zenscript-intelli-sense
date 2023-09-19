@@ -7,6 +7,7 @@ import raylras.zen.code.symbol.Symbol;
 import raylras.zen.code.symbol.SymbolFactory;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.function.UnaryOperator;
 
 public class ListType extends Type implements SymbolProvider {
@@ -59,4 +60,16 @@ public class ListType extends Type implements SymbolProvider {
         return "[" + elementType + "]";
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ListType symbols = (ListType) o;
+        return Objects.equals(elementType, symbols.elementType);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(toString());
+    }
 }

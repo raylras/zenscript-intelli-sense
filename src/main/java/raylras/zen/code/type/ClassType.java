@@ -4,7 +4,8 @@ import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.symbol.ClassSymbol;
 import raylras.zen.code.symbol.Symbol;
 
-import java.util.List;
+import java.util.Collection;
+import java.util.Objects;
 
 public class ClassType extends Type implements SymbolProvider {
 
@@ -19,8 +20,13 @@ public class ClassType extends Type implements SymbolProvider {
     }
 
     @Override
-    public List<Symbol> getSymbols() {
-        return symbol.getMembers();
+    public Collection<Symbol> getSymbols() {
+        MemberValidator validator = new MemberValidator();
+        validator.addAll(symbol.getDeclaredMembers());
+        for (ClassType anInterface : symbol.getInterfaces()) {
+            validator.addAll(anInterface.getSymbols());
+        }
+        return validator.getMembers();
     }
 
     @Override
@@ -41,4 +47,16 @@ public class ClassType extends Type implements SymbolProvider {
         return symbol.getName();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        ClassType type = (ClassType) o;
+        return Objects.equals(symbol, type.symbol);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(symbol.getQualifiedName());
+    }
 }

@@ -2,13 +2,15 @@ package raylras.zen.code.symbol;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.SymbolProvider;
 import raylras.zen.code.parser.ZenScriptParser.*;
 import raylras.zen.code.resolve.FormalParameterResolver;
 import raylras.zen.code.resolve.ModifierResolver;
 import raylras.zen.code.resolve.TypeResolver;
 import raylras.zen.code.scope.Scope;
-import raylras.zen.code.type.*;
+import raylras.zen.code.type.AnyType;
+import raylras.zen.code.type.ClassType;
+import raylras.zen.code.type.FunctionType;
+import raylras.zen.code.type.Type;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Operators;
 import raylras.zen.util.Range;
@@ -107,22 +109,6 @@ public class SymbolFactory {
                 return unit.getScope(cst).getSymbols().stream()
                         .filter(Predicate.not(ThisSymbol.class::isInstance))
                         .toList();
-            }
-
-            @Override
-            public List<Symbol> getInheritedMembers() {
-                // FIXME: check overrides
-                return getInterfaces().stream()
-                        .flatMap(SymbolProvider::stream)
-                        .toList();
-            }
-
-            @Override
-            public List<Symbol> getMembers() {
-                List<Symbol> members = new ArrayList<>();
-                members.addAll(getDeclaredMembers());
-                members.addAll(getInheritedMembers());
-                return members;
             }
 
             @Override
@@ -398,7 +384,7 @@ public class SymbolFactory {
 
             @Override
             public Kind getKind() {
-                return Kind.FUNCTION;
+                return Kind.OPERATOR;
             }
 
             @Override
@@ -460,7 +446,7 @@ public class SymbolFactory {
 
             @Override
             public Kind getKind() {
-                return Kind.FUNCTION;
+                return Kind.OPERATOR;
             }
 
             @Override

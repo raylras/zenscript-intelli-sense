@@ -25,7 +25,7 @@ public interface Symbol {
     }
 
     enum Kind {
-        IMPORT, PACKAGE, CLASS, VARIABLE, PARAMETER, FUNCTION, NONE
+        IMPORT, PACKAGE, CLASS, VARIABLE, PARAMETER, FUNCTION, OPERATOR, NONE
     }
 
     enum Modifier {
