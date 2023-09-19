@@ -4,7 +4,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-public record BracketHandlerEntry(String id, Map<String, ?> properties) {
+public record BracketHandlerEntry(Map<String, ?> properties) {
 
     public void ifPresent(String key, Consumer<Object> action) {
         Object value = properties.get(key);

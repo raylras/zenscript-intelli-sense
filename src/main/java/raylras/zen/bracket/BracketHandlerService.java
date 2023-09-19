@@ -47,7 +47,7 @@ public class BracketHandlerService {
             logger.error("Failed to query <{}>: {}", fullBracketHandlerExpr, e.getMessage());
             properties = Collections.emptyMap();
         }
-        return new BracketHandlerEntry(fullBracketHandlerExpr, properties);
+        return new BracketHandlerEntry(properties);
     }
 
     private static final Gson GSON = createGson();
@@ -57,13 +57,13 @@ public class BracketHandlerService {
             JsonObject jsonObject = json.getAsJsonObject();
             String qualifiedName = jsonObject.get("type").getAsString();
             String regex = jsonObject.get("regex").getAsString();
-            List<BracketHandlerEntry> entries = jsonObject.get("entries").getAsJsonObject().asMap().entrySet().stream()
-                    .map(entry -> new BracketHandlerEntry(entry.getKey(), entry.getValue().getAsJsonObject().asMap()))
-                    .toList();
+            List<BracketHandlerEntry> entries = context.deserialize(jsonObject.get("entries"), new TypeToken<List<BracketHandlerEntry>>() {}.getType());
             return new BracketHandlerMirror(qualifiedName, regex, entries);
         };
+        JsonDeserializer<BracketHandlerEntry> entryDeserializer = (json, typeOfT, context) -> new BracketHandlerEntry(json.getAsJsonObject().asMap());
         return new GsonBuilder()
                 .registerTypeAdapter(BracketHandlerMirror.class, mirrorDeserializer)
+                .registerTypeAdapter(BracketHandlerEntry.class, entryDeserializer)
                 .create();
     }
 
