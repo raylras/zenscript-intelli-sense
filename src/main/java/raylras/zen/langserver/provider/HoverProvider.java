@@ -50,7 +50,7 @@ public class HoverProvider {
 
         @Override
         public Hover visitBracketHandlerExpr(BracketHandlerExprContext ctx) {
-            BracketHandlerEntry entry = brackets.queryEntryDynamic(ctx.raw().getText());
+            BracketHandlerEntry entry = brackets.queryEntryRemote(ctx.raw().getText());
             StringBuilder builder = new StringBuilder();
             entry.ifPresent("_name", name -> {
                 builder.append("#### ");

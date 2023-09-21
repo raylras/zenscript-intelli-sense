@@ -12,10 +12,7 @@ import java.io.Reader;
 import java.net.ConnectException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class BracketHandlerService {
 
@@ -28,28 +25,38 @@ public class BracketHandlerService {
         this.env = env;
     }
 
-    public Optional<BracketHandlerMirror> queryMirror(String partBracketHandlerExpr) {
+    public List<BracketHandlerMirror> getMirrorsLocal() {
         if (mirrors == null) {
             loadFromJson();
         }
-        return mirrors.stream()
-                .filter(mirror -> partBracketHandlerExpr.matches(mirror.regex()))
+        return mirrors;
+    }
+
+    public Collection<BracketHandlerEntry> getEntriesLocal() {
+        return getMirrorsLocal().stream()
+                .flatMap(mirror -> mirror.entries().stream())
+                .toList();
+    }
+
+    public Optional<BracketHandlerMirror> queryMirrorLocal(String expr) {
+        return getMirrorsLocal().stream()
+                .filter(mirror -> expr.matches(mirror.regex()))
                 .findFirst();
     }
 
-    public BracketHandlerEntry queryEntryDynamic(String fullBracketHandlerExpr) {
+    public BracketHandlerEntry queryEntryRemote(String validExpr) {
         Map<String, Object> properties;
         try {
             StopWatch sw = new StopWatch();
             sw.start();
-            properties = RpcClient.queryEntryDynamic(fullBracketHandlerExpr);
+            properties = RpcClient.queryEntryProperties(validExpr);
             sw.stop();
-            logger.info("Query dynamic <{}> [{}ms]", fullBracketHandlerExpr, sw.getFormattedMillis());
+            logger.info("Query remote <{}> [{}ms]", validExpr, sw.getFormattedMillis());
         } catch (ConnectException e) {
-            logger.warn("Failed to query <{}>, make sure your Minecraft instance is running", fullBracketHandlerExpr);
+            logger.warn("Failed to query <{}>, make sure your Minecraft instance is running", validExpr);
             properties = Collections.emptyMap();
         } catch (Exception e) {
-            logger.error("Failed to query <{}>: {}", fullBracketHandlerExpr, e.getMessage());
+            logger.error("Failed to query <{}>: {}", validExpr, e.getMessage());
             properties = Collections.emptyMap();
         }
         return new BracketHandlerEntry(properties);
