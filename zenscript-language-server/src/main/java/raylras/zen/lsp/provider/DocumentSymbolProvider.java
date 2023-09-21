@@ -6,7 +6,7 @@ import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import raylras.zen.model.Visitor;
 import raylras.zen.model.parser.ZenScriptParser.*;
-import raylras.zen.lsp.Document;
+import raylras.zen.model.Document;
 import raylras.zen.util.ArrayStack;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Ranges;

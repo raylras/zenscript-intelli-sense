@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import raylras.zen.model.resolve.SymbolResolver;
 import raylras.zen.model.symbol.ParseTreeLocatable;
 import raylras.zen.model.symbol.Symbol;
-import raylras.zen.lsp.Document;
+import raylras.zen.model.Document;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Position;
 import raylras.zen.util.Range;

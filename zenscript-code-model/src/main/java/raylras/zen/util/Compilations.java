@@ -11,7 +11,7 @@ import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.parser.ZenScriptLexer;
 import raylras.zen.model.parser.ZenScriptParser;
 import raylras.zen.model.resolve.DeclarationResolver;
-import raylras.zen.lsp.Document;
+import raylras.zen.model.Document;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

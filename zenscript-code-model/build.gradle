@@ -1,0 +1,43 @@
+plugins {
+    id 'java'
+    id 'idea'
+    id 'antlr'
+}
+
+group 'raylras.zen.model'
+
+java {
+    sourceCompatibility = '17'
+    targetCompatibility = '17'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    antlr 'org.antlr:antlr4:4.13.1'
+    implementation 'org.antlr:antlr4-runtime:4.13.1'
+    implementation 'org.eclipse.lsp4j:org.eclipse.lsp4j:0.21.1'
+    implementation 'org.slf4j:slf4j-api:2.0.9'
+    implementation 'org.slf4j:slf4j-simple:2.0.9'
+
+    testImplementation platform('org.junit:junit-bom:5.9.1')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+sourceSets {
+    main {
+        java.srcDirs += 'build/generated-src/antlr/main'
+    }
+}
+
+generateGrammarSource {
+    maxHeapSize = '64m'
+    arguments += ['-visitor', '-listener', '-long-messages', '-package', 'raylras.zen.model.parser']
+    outputDirectory = file('build/generated-src/antlr/main/raylras/zen/model/parser')
+}

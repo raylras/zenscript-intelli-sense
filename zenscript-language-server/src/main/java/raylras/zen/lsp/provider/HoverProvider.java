@@ -9,7 +9,7 @@ import raylras.zen.bracket.BracketHandlerEntry;
 import raylras.zen.bracket.BracketHandlerService;
 import raylras.zen.model.Visitor;
 import raylras.zen.model.parser.ZenScriptParser.BracketHandlerExprContext;
-import raylras.zen.lsp.Document;
+import raylras.zen.model.Document;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Position;
 import raylras.zen.util.Ranges;

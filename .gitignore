@@ -1,4 +1,5 @@
 # eclipse
+eclipse
 bin
 *.launch
 .settings
@@ -14,20 +15,21 @@ out
 .idea
 
 # gradle
-/build
+build
 .gradle
 
-# other
-eclipse
-run
-src/main/gen
-
-# vscode-extension
-/vscode-extension/server
-/vscode-extension/node_modules
-/vscode-extension/*.vsix
-/vscode-extension/language/ZenScript.tmLanguage.json
+# node
+node_modules
 
 # mac
 .DS_Store
 .history
+
+# vscode-extension
+*.vsix
+/vscode-extension/server
+/vscode-extension/language/ZenScript.tmLanguage.json
+
+# other
+run
+gen

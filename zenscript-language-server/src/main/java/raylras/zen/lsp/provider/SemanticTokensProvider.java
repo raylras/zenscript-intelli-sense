@@ -4,7 +4,7 @@ import org.eclipse.lsp4j.SemanticTokens;
 import org.eclipse.lsp4j.SemanticTokensParams;
 import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.Listener;
-import raylras.zen.lsp.Document;
+import raylras.zen.model.Document;
 import raylras.zen.util.Range;
 
 import java.util.ArrayList;

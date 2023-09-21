@@ -1,6 +1,4 @@
-package raylras.zen.lsp;
-
-import raylras.zen.model.CompilationUnit;
+package raylras.zen.model;
 
 import java.util.Optional;
 

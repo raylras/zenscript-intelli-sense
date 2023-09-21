@@ -7,8 +7,9 @@ import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import raylras.zen.model.CompilationUnit;
 import raylras.zen.lsp.provider.*;
+import raylras.zen.model.CompilationUnit;
+import raylras.zen.model.Document;
 import raylras.zen.util.Compilations;
 import raylras.zen.util.PathUtils;
 
