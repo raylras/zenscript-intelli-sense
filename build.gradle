@@ -33,15 +33,15 @@ test {
 }
 
 sourceSets {
-    generated {
-        java.srcDir 'generated-src/antlr/main'
+    main {
+        java.srcDirs += 'build/generated-src/antlr/main'
     }
 }
 
 generateGrammarSource {
     maxHeapSize = '64m'
-    arguments += ['-visitor', '-listener', '-long-messages', '-package', 'raylras.zen.code.parser']
-    outputDirectory = new File(buildDir.toString() + '/generated-src/antlr/main/raylras/zen/code/parser')
+    arguments += ['-visitor', '-listener', '-long-messages', '-package', 'raylras.zen.model.parser']
+    outputDirectory = file('build/generated-src/antlr/main/raylras/zen/model/parser')
 }
 
 shadowJar {

@@ -11,8 +11,8 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
-import raylras.zen.code.parser.ZenScriptLexer;
-import raylras.zen.code.parser.ZenScriptParser;
+import raylras.zen.model.parser.ZenScriptLexer;
+import raylras.zen.model.parser.ZenScriptParser;
 
 import java.util.stream.Stream;
 

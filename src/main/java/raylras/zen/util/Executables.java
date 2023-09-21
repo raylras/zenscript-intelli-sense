@@ -1,13 +1,13 @@
 package raylras.zen.util;
 
-import raylras.zen.code.CompilationEnvironment;
-import raylras.zen.code.symbol.Executable;
-import raylras.zen.code.symbol.FunctionSymbol;
-import raylras.zen.code.symbol.ParameterSymbol;
-import raylras.zen.code.type.ClassType;
-import raylras.zen.code.type.FunctionType;
-import raylras.zen.code.type.SubtypeResult;
-import raylras.zen.code.type.Type;
+import raylras.zen.model.CompilationEnvironment;
+import raylras.zen.model.symbol.Executable;
+import raylras.zen.model.symbol.FunctionSymbol;
+import raylras.zen.model.symbol.ParameterSymbol;
+import raylras.zen.model.type.ClassType;
+import raylras.zen.model.type.FunctionType;
+import raylras.zen.model.type.SubtypeResult;
+import raylras.zen.model.type.Type;
 
 import java.util.Comparator;
 import java.util.List;

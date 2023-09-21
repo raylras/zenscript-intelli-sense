@@ -4,7 +4,7 @@ import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import raylras.zen.code.CompilationEnvironment;
+import raylras.zen.model.CompilationEnvironment;
 import raylras.zen.util.StopWatch;
 
 import java.io.IOException;

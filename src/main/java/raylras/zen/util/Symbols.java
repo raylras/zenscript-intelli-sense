@@ -1,10 +1,10 @@
 package raylras.zen.util;
 
-import raylras.zen.code.CompilationEnvironment;
-import raylras.zen.code.SymbolProvider;
-import raylras.zen.code.symbol.Symbol;
-import raylras.zen.code.symbol.Executable;
-import raylras.zen.code.type.Type;
+import raylras.zen.model.CompilationEnvironment;
+import raylras.zen.model.SymbolProvider;
+import raylras.zen.model.symbol.Symbol;
+import raylras.zen.model.symbol.Executable;
+import raylras.zen.model.type.Type;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Predicate;

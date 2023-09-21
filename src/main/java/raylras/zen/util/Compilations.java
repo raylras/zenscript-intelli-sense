@@ -6,12 +6,12 @@ import org.antlr.v4.runtime.misc.ParseCancellationException;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import raylras.zen.code.CompilationEnvironment;
-import raylras.zen.code.CompilationUnit;
-import raylras.zen.code.parser.ZenScriptLexer;
-import raylras.zen.code.parser.ZenScriptParser;
-import raylras.zen.code.resolve.DeclarationResolver;
-import raylras.zen.langserver.Document;
+import raylras.zen.model.CompilationEnvironment;
+import raylras.zen.model.CompilationUnit;
+import raylras.zen.model.parser.ZenScriptLexer;
+import raylras.zen.model.parser.ZenScriptParser;
+import raylras.zen.model.resolve.DeclarationResolver;
+import raylras.zen.lsp.Document;
 
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;

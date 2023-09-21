@@ -4,8 +4,8 @@ import org.antlr.v4.runtime.RuleContext;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
-import raylras.zen.code.parser.ZenScriptLexer;
-import raylras.zen.code.parser.ZenScriptParser;
+import raylras.zen.model.parser.ZenScriptLexer;
+import raylras.zen.model.parser.ZenScriptParser;
 
 public class DebugUtils {
 

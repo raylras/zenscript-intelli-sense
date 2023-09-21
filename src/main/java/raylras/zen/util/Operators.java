@@ -1,13 +1,13 @@
 package raylras.zen.util;
 
-import raylras.zen.code.CompilationEnvironment;
-import raylras.zen.code.symbol.Operator;
-import raylras.zen.code.symbol.OperatorFunctionSymbol;
-import raylras.zen.code.symbol.ParameterSymbol;
-import raylras.zen.code.symbol.Symbol;
-import raylras.zen.code.type.AnyType;
-import raylras.zen.code.type.SubtypeResult;
-import raylras.zen.code.type.Type;
+import raylras.zen.model.CompilationEnvironment;
+import raylras.zen.model.symbol.Operator;
+import raylras.zen.model.symbol.OperatorFunctionSymbol;
+import raylras.zen.model.symbol.ParameterSymbol;
+import raylras.zen.model.symbol.Symbol;
+import raylras.zen.model.type.AnyType;
+import raylras.zen.model.type.SubtypeResult;
+import raylras.zen.model.type.Type;
 
 import java.util.Comparator;
 import java.util.List;

@@ -1,6 +1,6 @@
 package raylras.zen.util;
 
-import raylras.zen.code.CompilationUnit;
+import raylras.zen.model.CompilationUnit;
 
 import java.net.URI;
 import java.nio.file.Files;
