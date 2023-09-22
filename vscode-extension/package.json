@@ -1,7 +1,7 @@
 {
-	"name": "zenscript-language-server",
-	"displayName": "ZenScript Language Server",
-	"description": "ZenScript Language Server",
+	"name": "zenscript-intelli-sense",
+	"displayName": "ZenScript IntelliSense",
+	"description": "ZenScript IntelliSense",
 	"author": "raylras",
 	"license": "MIT",
 	"version": "0.1.0-snapshot",
