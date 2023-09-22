@@ -41,3 +41,18 @@ generateGrammarSource {
     arguments += ['-visitor', '-listener', '-long-messages', '-package', 'raylras.zen.model.parser']
     outputDirectory = file('build/generated-src/antlr/main/raylras/zen/model/parser')
 }
+
+task dist(type: Copy) {
+    dependsOn 'build'
+    from (configurations.runtimeClasspath) {
+        include 'antlr4-runtime-*.jar'
+        include 'org.eclipse.lsp4j-*.jar'
+        include 'org.eclipse.lsp4j.jsonrpc-*.jar'
+        include 'gson-*.jar'
+        include 'slf4j-api-*.jar'
+        include 'slf4j-simple-*.jar'
+    }
+    into '../vscode-extension/server'
+    from "${buildDir}/libs/${project.name}-${project.version}.jar"
+    into '../vscode-extension/server'
+}

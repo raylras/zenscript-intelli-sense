@@ -27,3 +27,9 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+task dist(type: Copy) {
+    dependsOn 'build'
+    from "${buildDir}/libs/${project.name}-${project.version}.jar"
+    into '../vscode-extension/server'
+}
