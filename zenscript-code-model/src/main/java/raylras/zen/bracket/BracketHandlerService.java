@@ -1,13 +1,13 @@
 package raylras.zen.bracket;
 
 import com.google.gson.*;
-import com.google.gson.reflect.TypeToken;
-import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import com.google.gson.reflect.TypeToken;;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import raylras.zen.model.CompilationEnvironment;
 import raylras.zen.model.type.AnyType;
 import raylras.zen.model.type.Type;
+import raylras.zen.util.Either;
 import raylras.zen.util.PackageTree;
 import raylras.zen.util.StopWatch;
 
@@ -125,7 +125,8 @@ public class BracketHandlerService {
             JsonObject jsonObject = json.getAsJsonObject();
             String qualifiedName = jsonObject.get("type").getAsString();
             String regex = jsonObject.get("regex").getAsString();
-            List<BracketHandlerEntry> entries = context.deserialize(jsonObject.get("entries"), new TypeToken<List<BracketHandlerEntry>>() {}.getType());
+            List<BracketHandlerEntry> entries = context.deserialize(jsonObject.get("entries"), new TypeToken<List<BracketHandlerEntry>>() {
+            }.getType());
             PackageTree<BracketHandlerEntry> entriesTree = new PackageTree<>(":");
             for (BracketHandlerEntry entry : entries) {
                 entry.getAsString("_id").ifPresent(id -> entriesTree.put(id, entry));
@@ -158,7 +159,8 @@ public class BracketHandlerService {
         Path jsonPath = env.getGeneratedRoot().resolve("brackets.json");
         if (Files.isRegularFile(jsonPath) || Files.isReadable(jsonPath)) {
             try (Reader reader = Files.newBufferedReader(jsonPath)) {
-                mirrors = GSON.fromJson(reader, new TypeToken<>() {});
+                mirrors = GSON.fromJson(reader, new TypeToken<>() {
+                });
             } catch (IOException e) {
                 logger.error("Failed to open brackets.json", e);
             }

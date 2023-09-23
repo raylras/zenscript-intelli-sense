@@ -1,6 +1,6 @@
 package raylras.zen.bracket;
 
-import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import raylras.zen.util.Either;
 
 import java.util.List;
 import java.util.Map;
