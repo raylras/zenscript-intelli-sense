@@ -24,4 +24,5 @@ public record Position(int line, int column) {
         return "(" + line + ":" + column + ')';
     }
 
+
 }

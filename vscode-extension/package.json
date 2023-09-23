@@ -20,7 +20,10 @@
 		"vscode": "^1.81.0"
 	},
 	"activationEvents": [
-		"onLanguage:zenscript"
+		"onLanguage:zenscript",
+		"onDebugInitialConfigurations",
+		"onDebugResolve:zenscript",
+		"onDebugDynamicConfigurations:zenscript"
 	],
 	"icon": "./icon/zs.webp",
 	"main": "./client/out/extension.js",
@@ -45,6 +48,11 @@
 				"path": "./language/ZenScript.tmLanguage.json"
 			}
 		],
+		"breakpoints": [
+			{
+				"language": "zenscript"
+			}
+		],
 		"configuration": {
 			"title": "ZenScript Language Server",
 			"properties": {
@@ -58,16 +66,97 @@
 					"order": 1,
 					"type": "boolean",
 					"default": false,
-					"description": "Suspend to wait for the debugger to attach"
+					"description": "Suspend to wait for the debugger to attach for language server"
+				},
+				"zenscript.debugAdapter.debug": {
+					"order": 2,
+					"type": "boolean",
+					"default": false,
+					"description": "Enable/disable debug mode for debug adapter"
+				},
+				"zenscript.debugAdapter.suspend": {
+					"order": 3,
+					"type": "boolean",
+					"default": false,
+					"description": "Suspend to wait for the debugger to attach for debug adapter"
 				},
 				"zenscript.languageServer.javaHome": {
-					"order": 2,
+					"order": 4,
 					"type": "string",
 					"default": null,
 					"description": "Path of java home"
 				}
 			}
-		}
+		},
+		"debuggers": [
+			{
+				"type": "zenscript",
+				"label": "ZenScript",
+				"configurationAttributes": {
+					"attach": {
+						"required": [
+							"projectRoot",
+							"hostName",
+							"port",
+							"timeout"
+						],
+						"properties": {
+							"projectRoot": {
+								"type": "string",
+								"description": "Absolute path to your project's root folder. If you want to debug a subproject, specify the root/top-level directory here and the relative path in the 'subproject' attribute.",
+								"default": "${workspaceFolder}"
+							},
+							"hostName": {
+								"type": "string",
+								"description": "The host name of your running JVM.",
+								"default": "localhost"
+							},
+							"port": {
+								"type": "number",
+								"description": "The port number of your running JVM.",
+								"default": 8000
+							},
+							"timeout": {
+								"type": "number",
+								"description": "The connection timeout.",
+								"default": 30000
+							},
+							"scriptsPath": {
+								"type": "string",
+								"description": "The path relative to 'scripts' folder",
+								"default": false
+							}
+						}
+					}
+				},
+				"configurationSnippets": [
+					{
+						"label": "ZenScript: Attach VM",
+						"description": "Attaches a debugger to a running JVM",
+						"body": {
+							"type": "zenscript",
+							"request": "attach",
+							"name": "ZenScript Attach",
+							"projectRoot": "^\"\\${workspaceFolder}\"",
+							"hostName": "localhost",
+							"port": 8000,
+							"timeout": 30000
+						}
+					}
+				],
+				"initialConfigurations": [
+					{
+						"type": "zenscript",
+						"request": "attach",
+						"name": "ZenScript Attach",
+						"projectRoot": "${workspaceFolder}",
+						"hostName": "localhost",
+						"port": 8000,
+						"timeout": 30000
+					}
+				]
+			}
+		]
 	},
 	"scripts": {
 		"package": "vsce package",
@@ -78,6 +167,7 @@
 	},
 	"dependencies": {
 		"@viperproject/locate-java-home": "^1.1.13",
+		"@vscode/debugadapter": "^1.63.0",
 		"dayjs": "^1.11.9",
 		"vscode-languageclient": "^9.0.0"
 	},
