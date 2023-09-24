@@ -32,7 +32,6 @@
 				],
 				"extensions": [
 					".zs",
-					".d.zs",
 					".dzs"
 				],
 				"configuration": "./language/language-configuration.json"

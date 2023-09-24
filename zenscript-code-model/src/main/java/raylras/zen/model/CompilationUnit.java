@@ -18,7 +18,7 @@ import java.util.stream.Collectors;
 public class CompilationUnit implements SymbolProvider {
 
     public static final String ZS_FILE_EXTENSION = ".zs";
-    public static final Set<String> DZS_FILE_EXTENSIONS = Set.of(".d.zs", ".dzs");
+    public static final String DZS_FILE_EXTENSION = ".dzs";
 
     private final Path path;
     private final CompilationEnvironment env;

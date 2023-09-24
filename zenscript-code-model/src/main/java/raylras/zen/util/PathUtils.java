@@ -62,12 +62,7 @@ public final class PathUtils {
     }
 
     public static boolean isDzsFile(Path path) {
-        for (String ext : CompilationUnit.DZS_FILE_EXTENSIONS) {
-            if (path.toString().endsWith(ext)) {
-                return true;
-            }
-        }
-        return false;
+        return String.valueOf(path).endsWith(CompilationUnit.DZS_FILE_EXTENSION);
     }
 
 }
