@@ -1,8 +1,6 @@
 package raylras.zen.util;
 
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.function.Function;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -58,6 +56,15 @@ public class PackageTree<V> {
             }
         }
         return node;
+    }
+
+    public List<V> elements() {
+        List<V> elements = new ArrayList<>();
+        if (hasElement()) {
+            elements.add(getElement());
+        }
+        subTrees.values().forEach(it -> elements.addAll(it.elements()));
+        return elements;
     }
 
     public Map<String, PackageTree<V>> complete(String text) {

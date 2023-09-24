@@ -7,6 +7,7 @@ import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import raylras.zen.bracket.BracketHandlerEntry;
 import raylras.zen.lsp.provider.data.Keywords;
 import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.Document;
@@ -26,8 +27,7 @@ import raylras.zen.util.Range;
 import raylras.zen.util.*;
 import raylras.zen.util.l10n.L10N;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -536,29 +536,36 @@ public final class CompletionProvider {
         }
 
         private void completeBracketHandlers(String text) {
-            // FIXME
-//            BracketHandlerManager bracketHandlerManager = unit.getEnv().getBracketHandlerManager();
-//            if (text.startsWith("item:")) {
-//                completeBracketHandler(text.substring(5), bracketHandlerManager.getItemBracketHandler());
-//            } else {
-//                for (BracketHandler bracketHandler : bracketHandlerManager.getBracketHandlers()) {
-//                    completeBracketHandler(text, bracketHandler);
-//                }
-//            }
+            Collection<BracketHandlerEntry> entries = unit.getEnv().getBracketHandlerService().queryEntriesLocal(text);
+            PackageTree<BracketHandlerEntry> entriesTree = new PackageTree<>(":");
+            entries.forEach(it -> {
+                it.getAsString("_id").ifPresent(id -> {
+                    entriesTree.put(id, it);
+                });
+            });
+
+            if (text.startsWith("item:")) {
+                text = text.substring(5);
+            }
+
+            entriesTree.complete(text).forEach((key, subTree) -> {
+                if (subTree.hasElement()) {
+                    completeBracketHandlerEntry(key, subTree.getElement());
+                } else {
+                    CompletionItem completionItem = new CompletionItem(key);
+                    completionItem.setKind(CompletionItemKind.Module);
+                    completionList.add(completionItem);
+                }
+            });
         }
 
-//        private void completeBracketHandler(String text, BracketHandler bracketHandler) {
-//            bracketHandler.getMembers().complete(text).forEach((key, subTree) -> {
-//                CompletionItem completionItem = new CompletionItem(key);
-//                if (subTree.hasElement()) {
-//                    completionItem.setKind(CompletionItemKind.Value);
-//                    completionItem.setDetail(bracketHandler.getMemberDetails(subTree.getElement()));
-//                } else {
-//                    completionItem.setKind(CompletionItemKind.Module);
-//                }
-//                completionList.add(completionItem);
-//            });
-//        }
+        private void completeBracketHandlerEntry(String key, BracketHandlerEntry bracketHandlerEntry) {
+            // TODO: fill block state bracket handler
+            CompletionItem completionItem = new CompletionItem(key);
+            completionItem.setKind(CompletionItemKind.Value);
+            bracketHandlerEntry.getAsString("_name").ifPresent(completionItem::setDetail);
+            completionList.add(completionItem);
+        }
 
         private void addToCompletionList(Symbol symbol) {
             CompletionItem item = new CompletionItem(symbol.getName());

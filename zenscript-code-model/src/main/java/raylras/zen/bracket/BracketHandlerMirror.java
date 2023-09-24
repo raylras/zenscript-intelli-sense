@@ -1,6 +1,6 @@
 package raylras.zen.bracket;
 
-import java.util.List;
+import raylras.zen.util.PackageTree;
 
-public record BracketHandlerMirror(String qualifiedName, String regex, List<BracketHandlerEntry> entries) {
+public record BracketHandlerMirror(String typeQualifiedName, String regex, PackageTree<BracketHandlerEntry> entries) {
 }
