@@ -29,7 +29,14 @@ public class ZenDebugAdapter implements IDebugProtocolServer {
     public CompletableFuture<Capabilities> initialize(InitializeRequestArguments args) {
         Capabilities capabilities = new Capabilities();
         capabilities.setSupportsConfigurationDoneRequest(true);
+        capabilities.setSupportsSingleThreadExecutionRequests(true);
+        capabilities.setSupportsSteppingGranularity(true);
+        capabilities.setSupportsDelayedStackTraceLoading(true);
 
+        capabilities.setSupportsStepBack(false);
+        capabilities.setSupportsInstructionBreakpoints(false);
+        capabilities.setSupportsTerminateThreadsRequest(false);
+        capabilities.setSupportSuspendDebuggee(false);
 
         context.setLineStartAt1(args.getLinesStartAt1());
         context.setColumnStartAt1(args.getColumnsStartAt1());
@@ -195,16 +202,19 @@ public class ZenDebugAdapter implements IDebugProtocolServer {
 
     @Override
     public CompletableFuture<Void> next(NextArguments args) {
+        DebugJumpHandler.next(args, context);
         return CompletableFuture.completedFuture(null);
     }
 
     @Override
     public CompletableFuture<Void> stepIn(StepInArguments args) {
+        DebugJumpHandler.stepIn(args, context);
         return CompletableFuture.completedFuture(null);
     }
 
     @Override
     public CompletableFuture<Void> stepOut(StepOutArguments args) {
+        DebugJumpHandler.stepOut(args, context);
         return CompletableFuture.completedFuture(null);
     }
 

@@ -111,10 +111,9 @@ public class SetBreakpointsHandler {
                     arguments.setText("Breakpoint");
                     arguments.setThreadId(context.getThreadManager().getThreadId(bpThread));
                     arguments.setReason(StoppedEventArgumentsReason.BREAKPOINT);
-//                    arguments.setHitBreakpointIds(new Integer[]{breakpoint.getId()});
                     context.getClient().stopped(arguments);
-                    debugEvent.setResume(false);
                     context.getThreadManager().threadPaused(bpThread);
+                    debugEvent.setResume(false);
 
 
                 });

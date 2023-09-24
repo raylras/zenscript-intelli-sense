@@ -2,6 +2,7 @@ package raylras.zen.dap.debugserver;
 
 import raylras.zen.dap.debugserver.breakpoint.BreakpointManager;
 import raylras.zen.dap.debugserver.runtime.StackFrameManager;
+import raylras.zen.dap.debugserver.runtime.StepState;
 import raylras.zen.dap.debugserver.runtime.ThreadManager;
 
 import java.nio.file.Path;
@@ -17,6 +18,7 @@ public class DebugAdapterContext{
     private final BreakpointManager breakpointManager = new BreakpointManager();
     private final StackFrameManager stackFrameManager = new StackFrameManager();
     private final ThreadManager threadManager = new ThreadManager();
+    private StepState pendingStep = null;
 
     private Path scriptRootPath;
 
@@ -78,5 +80,13 @@ public class DebugAdapterContext{
 
     public StackFrameManager getStackFrameManager() {
         return stackFrameManager;
+    }
+
+    public StepState getPendingStep() {
+        return pendingStep;
+    }
+
+    public void setPendingStep(StepState pendingStep) {
+        this.pendingStep = pendingStep;
     }
 }

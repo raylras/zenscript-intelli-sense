@@ -7,7 +7,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import raylras.zen.dap.debugserver.DebugAdapterContext;
 import raylras.zen.dap.debugserver.runtime.StackFrameManager;
+import raylras.zen.dap.debugserver.runtime.StepState;
 import raylras.zen.dap.debugserver.runtime.ThreadManager;
+
+import java.util.Objects;
 
 
 public final class DebugJumpHandler {
@@ -15,12 +18,28 @@ public final class DebugJumpHandler {
 
 
     public static boolean continue_(ContinueArguments args, DebugAdapterContext context) {
+        return doResume(args.getSingleThread() != null && args.getSingleThread(), args.getThreadId(), context);
+    }
+
+    public static void pause(int threadId, DebugAdapterContext context) {
+        ThreadReference threadReference = context.getThreadManager().getById(threadId);
+        if (threadReference == null) {
+            logger.warn("Failed to pause, could not find running thread with id: {}", threadId);
+            return;
+        }
+        boolean succeed = context.getThreadManager().pauseThread(threadReference);
+        if (!succeed) {
+            logger.warn("Failed to pause thread: {}, is is already paused!", threadReference.name());
+        }
+    }
+
+    private static boolean doResume(boolean singleThread, Integer threadId, DebugAdapterContext context) {
         ThreadManager threadManager = context.getThreadManager();
         StackFrameManager stackFrameManager = context.getStackFrameManager();
-        if (args.getSingleThread() != null && args.getSingleThread()) {
-            ThreadReference threadReference = context.getThreadManager().getById(args.getThreadId());
+        if (singleThread) {
+            ThreadReference threadReference = context.getThreadManager().getById(threadId);
             if (threadReference == null) {
-                logger.warn("Failed to resume, could not find running thread with id: {}", args.getThreadId());
+                logger.warn("Failed to resume, could not find running thread with id: {}", threadId);
                 return false;
             }
             stackFrameManager.removeByThread(threadReference.uniqueID());
@@ -43,28 +62,32 @@ public final class DebugJumpHandler {
         return allResumed;
     }
 
-    public static void pause(int threadId, DebugAdapterContext context) {
+    private static void doStep(Boolean singleThread, int threadId, DebugAdapterContext context, StepState.Kind kind, boolean isLine) {
+        StepState pendingStep = context.getPendingStep();
+        if (pendingStep != null) {
+            pendingStep.close(context);
+        }
+        pendingStep = new StepState(kind, isLine);
         ThreadReference threadReference = context.getThreadManager().getById(threadId);
-        if (threadReference == null) {
-            logger.warn("Failed to pause, could not find running thread with id: {}", threadId);
-            return;
-        }
-        boolean succeed = context.getThreadManager().pauseThread(threadReference);
-        if (!succeed) {
-            logger.warn("Failed to pause thread: {}, is is already paused!", threadReference.name());
-        }
+        pendingStep.configure(context, threadReference);
+        pendingStep.install(context);
+        context.setPendingStep(pendingStep);
+        doResume(singleThread != null && singleThread, threadId, context);
     }
 
-    public static void next(NextArguments args) {
-
+    public static void next(NextArguments args, DebugAdapterContext context) {
+        boolean isLine = args.getGranularity() != SteppingGranularity.STATEMENT;
+        doStep(args.getSingleThread(), args.getThreadId(), context, StepState.Kind.STEP_OVER, isLine);
     }
 
-    public static void stepIn(StepInArguments args) {
-
+    public static void stepIn(StepInArguments args, DebugAdapterContext context) {
+        boolean isLine = args.getGranularity() != SteppingGranularity.STATEMENT;
+        doStep(args.getSingleThread(), args.getThreadId(), context, StepState.Kind.STEP_IN, isLine);
     }
 
-    public static void stepOut(StepOutArguments args) {
-
+    public static void stepOut(StepOutArguments args, DebugAdapterContext context) {
+        boolean isLine = args.getGranularity() != SteppingGranularity.STATEMENT;
+        doStep(args.getSingleThread(), args.getThreadId(), context, StepState.Kind.STEP_OUT, isLine);
     }
 
     public static void goto_(GotoArguments args) {
