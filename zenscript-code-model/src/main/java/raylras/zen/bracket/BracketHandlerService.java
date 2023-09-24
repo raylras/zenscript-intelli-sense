@@ -32,7 +32,7 @@ public class BracketHandlerService {
 
     public List<BracketHandlerMirror> getMirrorsLocal() {
         if (mirrors == null) {
-            loadFromJson();
+            loadMirrorFromJson();
         }
         return mirrors;
     }
@@ -153,20 +153,19 @@ public class BracketHandlerService {
                 .create();
     }
 
-    private void loadFromJson() {
-        StopWatch sw = new StopWatch();
-        sw.start();
+    private void loadMirrorFromJson() {
         Path jsonPath = env.getGeneratedRoot().resolve("brackets.json");
         if (Files.isRegularFile(jsonPath) || Files.isReadable(jsonPath)) {
             try (Reader reader = Files.newBufferedReader(jsonPath)) {
-                mirrors = GSON.fromJson(reader, new TypeToken<>() {
-                });
+                StopWatch sw = new StopWatch();
+                sw.start();
+                mirrors = GSON.fromJson(reader, new TypeToken<>() {});
+                sw.stop();
+                logger.info("Load bracket handler mirror from {} [{}ms]", jsonPath.getFileName(), sw.getFormattedMillis());
             } catch (IOException e) {
-                logger.error("Failed to open brackets.json", e);
+                logger.error("Failed to load bracket handler mirror from {}", jsonPath.getFileName(), e);
             }
         }
-        sw.stop();
-        logger.info("Load mirrors from {} [{}ms]", jsonPath.getFileName(), sw.getFormattedMillis());
     }
 
 }
