@@ -78,7 +78,7 @@
 	"dependencies": {
 		"@viperproject/locate-java-home": "^1.1.13",
 		"dayjs": "^1.11.9",
-		"vscode-languageclient": "^8.1.0"
+		"vscode-languageclient": "^9.0.0"
 	},
 	"devDependencies": {
 		"@odiak/yaml-to-json": "^0.0.1",
