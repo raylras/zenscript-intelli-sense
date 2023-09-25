@@ -653,7 +653,7 @@ public final class CompletionProvider {
         }
 
         private void completeIfNullStatement(Type type, MemberAccessExprContext expression) {
-            if (!(type instanceof NumberType) && type != VoidType.INSTANCE) {
+            if (!(type instanceof NumberType || type == BoolType.INSTANCE || type == VoidType.INSTANCE)) {
                 addSnippetCompletionItem(expression, "null", "if (isNull(expr))", "if (isNull(%s)) {\n\t$0\n}");
                 addSnippetCompletionItem(expression, "nn", "if (!isNull(expr))", "if (!isNull(%s)) {\n\t$0\n}");
             }
