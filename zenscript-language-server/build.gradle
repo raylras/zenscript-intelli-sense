@@ -42,6 +42,7 @@ task distDeps(type: Copy) {
         include 'org.eclipse.lsp4j-*.jar'
         include 'slf4j-api-*.jar'
         include 'slf4j-simple-*.jar'
+        include 'commons-text-*.jar'
     }
     into '../vscode-extension/server'
 }

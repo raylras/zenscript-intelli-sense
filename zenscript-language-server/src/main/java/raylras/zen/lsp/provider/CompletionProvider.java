@@ -9,6 +9,7 @@ import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import raylras.zen.bracket.BracketHandlerEntry;
 import raylras.zen.lsp.provider.data.Keywords;
+import raylras.zen.lsp.util.TextSimilarity;
 import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.Document;
 import raylras.zen.model.SymbolProvider;
@@ -494,7 +495,7 @@ public final class CompletionProvider {
             Scope scope = unit.lookupScope(tailing);
             while (scope != null) {
                 for (Symbol symbol : scope.getSymbols()) {
-                    if (symbol.getName().startsWith(text)) {
+                    if (TextSimilarity.isSubsequence(symbol.getName(), text)) {
                         addToCompletionList(symbol);
                     }
                 }
@@ -503,36 +504,31 @@ public final class CompletionProvider {
         }
 
         private void completeGlobalSymbols(String text) {
-            for (Symbol symbol : unit.getEnv().getGlobalSymbols()) {
-                if (symbol.getName().startsWith(text)) {
-                    addToCompletionList(symbol);
-                }
-            }
+            unit.getEnv().getGlobalSymbols().stream()
+                    .filter(symbol -> TextSimilarity.isSubsequence(symbol.getName(), text))
+                    .forEach(this::addToCompletionList);
         }
 
         private void completeMembers(String text, Type type) {
             if (type instanceof SymbolProvider memberProvider) {
                 memberProvider.withExpands(unit.getEnv()).stream()
-                        .filter(symbol -> symbol.getName().startsWith(text))
+                        .filter(symbol -> TextSimilarity.isSubsequence(symbol.getName(), text))
                         .filter(this::shouldAddedToCompletion)
                         .forEach(this::addToCompletionList);
             }
         }
 
         private void completeTypeSymbols(String text) {
-            for (Symbol topLevelSymbol : unit.getTopLevelSymbols()) {
-                if (topLevelSymbol instanceof ImportSymbol && topLevelSymbol.getName().startsWith(text)) {
-                    addToCompletionList(topLevelSymbol);
-                }
-            }
+            unit.getTopLevelSymbols().stream()
+                    .filter(ImportSymbol.class::isInstance)
+                    .filter(symbol -> TextSimilarity.isSubsequence(symbol.getName(), text))
+                    .forEach(this::addToCompletionList);
         }
 
         private void completeKeywords(String text, String... keywords) {
-            for (String keyword : keywords) {
-                if (keyword.startsWith(text)) {
-                    addToCompletionList(keyword);
-                }
-            }
+            Arrays.stream(keywords)
+                    .filter(keyword -> TextSimilarity.isSubsequence(keyword, text))
+                    .forEach(this::addToCompletionList);
         }
 
         private void completeBracketHandlers(String text) {
