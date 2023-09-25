@@ -1,0 +1,15 @@
+task dist(type: Copy) {
+    dependsOn ':zenscript-code-model:dist'
+    dependsOn ':zenscript-language-server:dist'
+    dependsOn ':zenscript-debug-adapter:dist'
+
+    dependsOn ':zenscript-code-model:distDeps'
+    dependsOn ':zenscript-language-server:distDeps'
+    dependsOn ':zenscript-debug-adapter:distDeps'
+}
+
+task clear(type: Delete) {
+    delete fileTree('vscode-extension/server') {
+        include '**/*.jar'
+    }
+}
