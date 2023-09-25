@@ -497,7 +497,7 @@ public final class CompletionProvider {
             Scope scope = unit.lookupScope(tailing);
             while (scope != null) {
                 for (Symbol symbol : scope.getSymbols()) {
-                    if (TextSimilarity.isSubsequence(symbol.getName(), text)) {
+                    if (TextSimilarity.isSubsequence(text, symbol.getName())) {
                         addToCompletionList(symbol);
                     }
                 }
@@ -507,14 +507,14 @@ public final class CompletionProvider {
 
         private void completeGlobalSymbols(String text) {
             unit.getEnv().getGlobalSymbols().stream()
-                    .filter(symbol -> TextSimilarity.isSubsequence(symbol.getName(), text))
+                    .filter(symbol -> TextSimilarity.isSubsequence(text, symbol.getName()))
                     .forEach(this::addToCompletionList);
         }
 
         private void completeMembers(String text, Type type) {
             if (type instanceof SymbolProvider memberProvider) {
                 memberProvider.withExpands(unit.getEnv()).stream()
-                        .filter(symbol -> TextSimilarity.isSubsequence(symbol.getName(), text))
+                        .filter(symbol -> TextSimilarity.isSubsequence(text, symbol.getName()))
                         .filter(this::shouldAddedToCompletion)
                         .forEach(this::addToCompletionList);
             }
@@ -523,26 +523,27 @@ public final class CompletionProvider {
         private void completeTypeSymbols(String text) {
             unit.getTopLevelSymbols().stream()
                     .filter(ImportSymbol.class::isInstance)
-                    .filter(symbol -> TextSimilarity.isSubsequence(symbol.getName(), text))
+                    .filter(symbol -> TextSimilarity.isSubsequence(text, symbol.getName()))
                     .forEach(this::addToCompletionList);
         }
 
         private void completeKeywords(String text, String... keywords) {
             Arrays.stream(keywords)
-                    .filter(keyword -> TextSimilarity.isSubsequence(keyword, text))
+                    .filter(keyword -> TextSimilarity.isSubsequence(text, keyword))
                     .forEach(this::addToCompletionList);
         }
 
         private void completeBracketHandlers(String text) {
             BracketHandlerService bracketService = unit.getEnv().getBracketHandlerService();
             bracketService.getEntryListLocal().stream()
-                    .filter(entry -> TextSimilarity.isSubsequence(entry.getAsString("_id").orElse(null), text))
+                    .filter(entry -> TextSimilarity.isSubsequence(text, entry.getAsString("_id").orElse(null)))
                     .forEach(entry -> {
                         CompletionItem item = new CompletionItem(entry.getAsString("_id").orElse(null));
                         item.setKind(CompletionItemKind.Value);
                         CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
-                        labelDetails.setDescription(entry.getAsString("_name").orElse(null));
+                        labelDetails.setDescription(entry.getAsString("_name").orElse(""));
                         item.setLabelDetails(labelDetails);
+                        item.setSortText(labelDetails.getDescription());
                         completionList.add(item);
                     });
         }

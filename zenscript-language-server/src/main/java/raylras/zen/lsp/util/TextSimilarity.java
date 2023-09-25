@@ -1,21 +1,26 @@
 package raylras.zen.lsp.util;
 
-import org.apache.commons.text.similarity.LongestCommonSubsequence;
-
 public class TextSimilarity {
 
-    public static final LongestCommonSubsequence algorithmLCS = new LongestCommonSubsequence();
-
-    public static boolean isSubsequence(String left, String right) {
-        if (right.isEmpty()) {
+    public static boolean isSubsequence(String s, String t) {
+        if (s.isEmpty()) {
             return true;
-        } else {
-            return lcs(left, right) > 0;
         }
-    }
 
-    public static Integer lcs(String left, String right) {
-        return algorithmLCS.apply(left, right);
+        int i = 0;
+        int j = 0;
+        while (i < s.length() && j < t.length()) {
+            if (s.charAt(i) == t.charAt(j)) {
+                i++;
+            }
+
+            j++;
+
+            if (i == s.length())
+                return true;
+        }
+
+        return false;
     }
 
 }
