@@ -7,6 +7,7 @@ import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import raylras.zen.bracket.BracketHandlerService;
 import raylras.zen.lsp.provider.data.Keywords;
 import raylras.zen.lsp.util.TextSimilarity;
 import raylras.zen.model.CompilationUnit;
@@ -533,15 +534,17 @@ public final class CompletionProvider {
         }
 
         private void completeBracketHandlers(String text) {
-            // FIXME
-//            BracketHandlerManager bracketHandlerManager = unit.getEnv().getBracketHandlerManager();
-//            if (text.startsWith("item:")) {
-//                completeBracketHandler(text.substring(5), bracketHandlerManager.getItemBracketHandler());
-//            } else {
-//                for (BracketHandler bracketHandler : bracketHandlerManager.getBracketHandlers()) {
-//                    completeBracketHandler(text, bracketHandler);
-//                }
-//            }
+            BracketHandlerService bracketService = unit.getEnv().getBracketHandlerService();
+            bracketService.getEntryListLocal().stream()
+                    .filter(entry -> TextSimilarity.isSubsequence(entry.getAsString("_id").orElse(null), text))
+                    .forEach(entry -> {
+                        CompletionItem item = new CompletionItem(entry.getAsString("_id").orElse(null));
+                        item.setKind(CompletionItemKind.Value);
+                        CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
+                        labelDetails.setDescription(entry.getAsString("_name").orElse(null));
+                        item.setLabelDetails(labelDetails);
+                        completionList.add(item);
+                    });
         }
 
 //        private void completeBracketHandler(String text, BracketHandler bracketHandler) {

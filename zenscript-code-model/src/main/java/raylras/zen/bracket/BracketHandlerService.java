@@ -66,7 +66,19 @@ public class BracketHandlerService {
             List<BracketHandlerEntry> entries = context.deserialize(jsonObject.get("entries"), new TypeToken<List<BracketHandlerEntry>>() {}.getType());
             return new BracketHandlerMirror(type, regex, entries);
         };
-        JsonDeserializer<BracketHandlerEntry> entryDeserializer = (json, typeOfT, context) -> new BracketHandlerEntry(json.getAsJsonObject().asMap());
+        JsonDeserializer<BracketHandlerEntry> entryDeserializer = (json, typeOfT, context) -> {
+            Map<String, Object> properties = new HashMap<>();
+            json.getAsJsonObject().asMap().forEach((key, value)-> {
+                if (value instanceof JsonArray array) {
+                    properties.put(key, context.deserialize(array, new TypeToken<List<String>>() {}.getType()));
+                } else if (value instanceof JsonPrimitive primitive) {
+                    properties.put(key, primitive.getAsString());
+                } else {
+                    logger.warn("Unknown type of value: {}", value);
+                }
+            });
+            return new BracketHandlerEntry(properties);
+        };
         return new GsonBuilder()
                 .registerTypeAdapter(BracketHandlerMirror.class, mirrorDeserializer)
                 .registerTypeAdapter(BracketHandlerEntry.class, entryDeserializer)
