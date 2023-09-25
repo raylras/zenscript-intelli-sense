@@ -1,16 +1,14 @@
 package raylras.zen.dap.debugserver.handler;
 
-import com.sun.jdi.ThreadReference;
+import com.sun.jdi.*;
+import com.sun.jdi.StackFrame;
 import org.eclipse.lsp4j.debug.*;
-import org.eclipse.lsp4j.debug.services.IDebugProtocolServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import raylras.zen.dap.debugserver.DebugAdapterContext;
 import raylras.zen.dap.debugserver.runtime.StackFrameManager;
 import raylras.zen.dap.debugserver.runtime.StepState;
 import raylras.zen.dap.debugserver.runtime.ThreadManager;
-
-import java.util.Objects;
 
 
 public final class DebugJumpHandler {
@@ -67,8 +65,15 @@ public final class DebugJumpHandler {
         if (pendingStep != null) {
             pendingStep.close(context);
         }
-        pendingStep = new StepState(kind, isLine);
         ThreadReference threadReference = context.getThreadManager().getById(threadId);
+        Location location = null;
+        try {
+            StackFrame frame = threadReference.frame(0);
+            location = frame.location();
+        } catch (IncompatibleThreadStateException ignored) {
+        }
+
+        pendingStep = new StepState(kind, isLine, location);
         pendingStep.configure(context, threadReference);
         pendingStep.install(context);
         context.setPendingStep(pendingStep);

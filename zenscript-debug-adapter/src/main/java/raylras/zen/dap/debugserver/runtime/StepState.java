@@ -27,14 +27,23 @@ public class StepState {
 
     }
 
-    public StepState(Kind kind, boolean isLine) {
+    public StepState(Kind kind, boolean isLine, Location startLocation) {
         this.kind = kind;
         this.isLine = isLine;
+        if (startLocation != null) {
+            this.startLine = startLocation.lineNumber();
+            this.startIndex = startLocation.codeIndex();
+            this.startMethod = startLocation.method();
+        }
     }
 
 
     private final Kind kind;
     private final boolean isLine;
+
+    private int startLine = 0;
+    private long startIndex = -1;
+    private Method startMethod = null;
 
     private EventRequest stepRequest;
     private Disposable eventSubscription;
@@ -43,18 +52,21 @@ public class StepState {
 
     private void createStepRequest(DebugAdapterContext context, ThreadReference threadReference) {
         this.stepRequest = context.getDebugSession().getVM().eventRequestManager().createStepRequest(threadReference, isLine ? StepRequest.STEP_LINE : StepRequest.STEP_MIN, this.kind.depth);
-        this.stepRequest.addCountFilter(1);
+
         this.stepRequest.setSuspendPolicy(EventRequest.SUSPEND_EVENT_THREAD);
         this.stepRequest.enable();
     }
 
     public void configure(DebugAdapterContext context, ThreadReference threadReference) {
-        if (this.stepRequest != null) {
+        if (this.stepRequest != null && this.threadId != threadReference.uniqueID()) {
             this.stepRequest.disable();
-            context.getDebugSession().getVM().eventRequestManager().deleteEventRequest(this.stepRequest);
+            context.getDebugSession().getVM().eventRequestManager().deleteEventRequest(stepRequest);
+            this.stepRequest = null;
+        }
+        if (this.stepRequest == null) {
+            createStepRequest(context, threadReference);
         }
         this.threadId = threadReference.uniqueID();
-        createStepRequest(context, threadReference);
 
     }
 
@@ -86,7 +98,7 @@ public class StepState {
                         return;
                     }
 
-                    if (canStepAt(stepEvent.location())) {
+                    if (canStepAt(stepEvent.location()) && !isSameLocation(stepEvent.location())) {
                         StoppedEventArguments arguments = new StoppedEventArguments();
                         arguments.setThreadId(context.getThreadManager().getThreadId(stepEvent.thread()));
                         arguments.setReason(StoppedEventArgumentsReason.STEP);
@@ -113,6 +125,17 @@ public class StepState {
             return false;
         }
     }
+
+    private boolean isSameLocation(Location location) {
+        if (location.method() != startMethod) {
+            return false;
+        }
+        if (isLine) {
+            return location.lineNumber() == startLine;
+        }
+        return location.codeIndex() == startIndex;
+    }
+
 
     private static boolean isOutOfStep(ThreadReference threadReference) {
         try {
