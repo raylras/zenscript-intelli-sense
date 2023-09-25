@@ -19,10 +19,7 @@ import raylras.zen.model.parser.ZenScriptParser.*;
 import raylras.zen.model.resolve.TypeResolver;
 import raylras.zen.model.scope.Scope;
 import raylras.zen.model.symbol.*;
-import raylras.zen.model.type.ClassType;
-import raylras.zen.model.type.FunctionType;
-import raylras.zen.model.type.Type;
-import raylras.zen.model.type.VoidType;
+import raylras.zen.model.type.*;
 import raylras.zen.util.Position;
 import raylras.zen.util.Range;
 import raylras.zen.util.*;
@@ -361,19 +358,21 @@ public final class CompletionProvider {
 
         @Override
         public Void visitMemberAccessExpr(MemberAccessExprContext ctx) {
+            ExpressionContext expression = ctx.expression();
+
             // expr.text|
             //     ^____
             if (containsLeading(ctx.DOT())) {
-                Type type = TypeResolver.getType(ctx.expression(), unit);
-                completeMembers(text, type);
+                Type type = TypeResolver.getType(expression, unit);
+                completeMembers(text, type, ctx);
                 return null;
             }
 
             // expr.|
             // ^^^^_
-            if (containsLeading(ctx.expression())) {
-                Type type = TypeResolver.getType(ctx.expression(), unit);
-                completeMembers("", type);
+            if (containsLeading(expression)) {
+                Type type = TypeResolver.getType(expression, unit);
+                completeMembers("", type, ctx);
                 return null;
             }
 
@@ -511,13 +510,16 @@ public final class CompletionProvider {
                     .forEach(this::addToCompletionList);
         }
 
-        private void completeMembers(String text, Type type) {
+        private void completeMembers(String text, Type type, MemberAccessExprContext expression) {
             if (type instanceof SymbolProvider memberProvider) {
                 memberProvider.withExpands(unit.getEnv()).stream()
                         .filter(symbol -> TextSimilarity.isSubsequence(text, symbol.getName()))
                         .filter(this::shouldAddedToCompletion)
                         .forEach(this::addToCompletionList);
             }
+            completeForStatement(type, expression);
+            completeIfNullStatement(type, expression);
+            completeVariableStatement(expression);
         }
 
         private void completeTypeSymbols(String text) {
@@ -617,9 +619,9 @@ public final class CompletionProvider {
         }
 
         private boolean shouldAddedToCompletion(Symbol symbol) {
-            return symbol instanceof FunctionSymbol ||
-                    symbol instanceof VariableSymbol ||
-                    symbol instanceof ExpandFunctionSymbol;
+            return symbol.getKind() == Symbol.Kind.FUNCTION ||
+                    symbol.getKind() == Symbol.Kind.VARIABLE ||
+                    symbol.getKind() == Symbol.Kind.PARAMETER;
         }
 
         private CompletionItemLabelDetails getLabelDetails(Symbol symbol) {
@@ -637,6 +639,44 @@ public final class CompletionProvider {
                 String type = symbol.getType().toString();
                 labelDetails.setDescription(type);
                 return labelDetails;
+            }
+        }
+
+        private void completeForStatement(Type type, MemberAccessExprContext expression) {
+            Type iteratorType = Operators.getUnaryOperatorResult(type, Operator.ITERATOR, unit.getEnv());
+            if (iteratorType instanceof MapType) {
+                addSnippetCompletionItem(expression, "for", "for key, value in map", "for $1, $2 in %s {\n\t$0\n}");
+            } else if (iteratorType instanceof ListType) {
+                addSnippetCompletionItem(expression, "for", "for element in list", "for $1 in %s {\n\t$0\n}");
+                addSnippetCompletionItem(expression, "fori", "for index, element in list", "for ${1:i}, $2 in %s {\n\t$0\n}");
+            }
+        }
+
+        private void completeIfNullStatement(Type type, MemberAccessExprContext expression) {
+            if (!(type instanceof NumberType) && type != VoidType.INSTANCE) {
+                addSnippetCompletionItem(expression, "null", "if (isNull(expr))", "if (isNull(%s)) {\n\t$0\n}");
+                addSnippetCompletionItem(expression, "nn", "if (!isNull(expr))", "if (!isNull(%s)) {\n\t$0\n}");
+            }
+        }
+
+        private void completeVariableStatement(MemberAccessExprContext expression) {
+            addSnippetCompletionItem(expression, "val", "val name = expr", "val $1 = %s;");
+            addSnippetCompletionItem(expression, "var", "var name = expr", "var $1 = %s;");
+        }
+
+        private void addSnippetCompletionItem(MemberAccessExprContext expression, String name, String description, String snippet) {
+            if (name.startsWith(text)) {
+                CompletionItem item = new CompletionItem(name);
+                item.setInsertTextMode(InsertTextMode.AdjustIndentation);
+                item.setInsertTextFormat(InsertTextFormat.Snippet);
+                CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
+                labelDetails.setDescription(description);
+                item.setLabelDetails(labelDetails);
+                TextEdit isNullTextEdit = new TextEdit(Ranges.toLspRange(expression), snippet.formatted(expression.expression().getText()));
+                item.setTextEdit(Either.forLeft(isNullTextEdit));
+                item.setSortText(name);
+                item.setFilterText(expression.getText() + "." + name);
+                completionList.add(item);
             }
         }
     }
