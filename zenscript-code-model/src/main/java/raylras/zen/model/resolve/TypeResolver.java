@@ -325,7 +325,8 @@ public final class TypeResolver {
 
         @Override
         public Type visitBracketHandlerExpr(BracketHandlerExprContext ctx) {
-            return unit.getEnv().getBracketHandlerService().queryType(ctx.raw().getText());
+            // FIXME
+            return AnyType.INSTANCE;
         }
 
         @Override
