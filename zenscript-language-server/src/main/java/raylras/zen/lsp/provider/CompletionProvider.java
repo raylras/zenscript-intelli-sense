@@ -9,6 +9,7 @@ import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import raylras.zen.bracket.BracketHandlerService;
 import raylras.zen.lsp.provider.data.Keywords;
+import raylras.zen.lsp.provider.data.Snippet;
 import raylras.zen.lsp.util.TextSimilarity;
 import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.Document;
@@ -19,10 +20,7 @@ import raylras.zen.model.parser.ZenScriptParser.*;
 import raylras.zen.model.resolve.TypeResolver;
 import raylras.zen.model.scope.Scope;
 import raylras.zen.model.symbol.*;
-import raylras.zen.model.type.ClassType;
-import raylras.zen.model.type.FunctionType;
-import raylras.zen.model.type.Type;
-import raylras.zen.model.type.VoidType;
+import raylras.zen.model.type.*;
 import raylras.zen.util.Position;
 import raylras.zen.util.Range;
 import raylras.zen.util.*;
@@ -361,19 +359,23 @@ public final class CompletionProvider {
 
         @Override
         public Void visitMemberAccessExpr(MemberAccessExprContext ctx) {
+            ExpressionContext expression = ctx.expression();
+
             // expr.text|
             //     ^____
             if (containsLeading(ctx.DOT())) {
-                Type type = TypeResolver.getType(ctx.expression(), unit);
+                Type type = TypeResolver.getType(expression, unit);
                 completeMembers(text, type);
+                completeMemberSnippets(type, ctx);
                 return null;
             }
 
             // expr.|
             // ^^^^_
-            if (containsLeading(ctx.expression())) {
-                Type type = TypeResolver.getType(ctx.expression(), unit);
+            if (containsLeading(expression)) {
+                Type type = TypeResolver.getType(expression, unit);
                 completeMembers("", type);
+                completeMemberSnippets(type, ctx);
                 return null;
             }
 
@@ -617,9 +619,10 @@ public final class CompletionProvider {
         }
 
         private boolean shouldAddedToCompletion(Symbol symbol) {
-            return symbol instanceof FunctionSymbol ||
-                    symbol instanceof VariableSymbol ||
-                    symbol instanceof ExpandFunctionSymbol;
+            return switch (symbol.getKind()) {
+                case FUNCTION, VARIABLE, PARAMETER -> true;
+                default -> false;
+            };
         }
 
         private CompletionItemLabelDetails getLabelDetails(Symbol symbol) {
@@ -638,6 +641,23 @@ public final class CompletionProvider {
                 labelDetails.setDescription(type);
                 return labelDetails;
             }
+        }
+
+        private void completeSnippet(Snippet snippet) {
+            CompletionItem completionItem = snippet.get();
+            if (completionItem != null) {
+                completionItem.setKind(CompletionItemKind.Snippet);
+                completionList.add(completionItem);
+            }
+        }
+
+        private void completeMemberSnippets(Type type, MemberAccessExprContext memberAccessExprContext) {
+            completeSnippet(Snippet.createFor(type, unit.getEnv(), memberAccessExprContext));
+            completeSnippet(Snippet.createForI(type, unit.getEnv(), memberAccessExprContext));
+            completeSnippet(Snippet.createIfNull(type, memberAccessExprContext));
+            completeSnippet(Snippet.createIfNotNull(type, memberAccessExprContext));
+            completeSnippet(Snippet.createVal(memberAccessExprContext));
+            completeSnippet(Snippet.createVar(memberAccessExprContext));
         }
     }
 
