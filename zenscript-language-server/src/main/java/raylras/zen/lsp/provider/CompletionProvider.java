@@ -9,6 +9,7 @@ import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import raylras.zen.bracket.BracketHandlerService;
 import raylras.zen.lsp.provider.data.Keywords;
+import raylras.zen.lsp.provider.data.Snippet;
 import raylras.zen.lsp.util.TextSimilarity;
 import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.Document;
@@ -365,6 +366,7 @@ public final class CompletionProvider {
             if (containsLeading(ctx.DOT())) {
                 Type type = TypeResolver.getType(expression, unit);
                 completeMembers(text, type, ctx);
+                completeMemberSnippets(type, ctx);
                 return null;
             }
 
@@ -373,6 +375,7 @@ public final class CompletionProvider {
             if (containsLeading(expression)) {
                 Type type = TypeResolver.getType(expression, unit);
                 completeMembers("", type, ctx);
+                completeMemberSnippets(type, ctx);
                 return null;
             }
 
@@ -517,9 +520,6 @@ public final class CompletionProvider {
                         .filter(this::shouldAddedToCompletion)
                         .forEach(this::addToCompletionList);
             }
-            completeForStatement(type, expression);
-            completeIfNullStatement(type, expression);
-            completeVariableStatement(expression);
         }
 
         private void completeTypeSymbols(String text) {
@@ -642,42 +642,20 @@ public final class CompletionProvider {
             }
         }
 
-        private void completeForStatement(Type type, MemberAccessExprContext expression) {
-            Type iteratorType = Operators.getUnaryOperatorResult(type, Operator.ITERATOR, unit.getEnv());
-            if (iteratorType instanceof MapType) {
-                addSnippetCompletionItem(expression, "for", "for key, value in map", "for $1, $2 in %s {\n\t$0\n}");
-            } else if (iteratorType instanceof ListType) {
-                addSnippetCompletionItem(expression, "for", "for element in list", "for $1 in %s {\n\t$0\n}");
-                addSnippetCompletionItem(expression, "fori", "for index, element in list", "for ${1:i}, $2 in %s {\n\t$0\n}");
-            }
+        private void completeSnippet(Snippet snippet) {
+            snippet.get().ifPresent(it -> {
+                it.setKind(CompletionItemKind.Snippet);
+                completionList.add(it);
+            });
         }
 
-        private void completeIfNullStatement(Type type, MemberAccessExprContext expression) {
-            if (!(type instanceof NumberType || type == BoolType.INSTANCE || type == VoidType.INSTANCE)) {
-                addSnippetCompletionItem(expression, "null", "if (isNull(expr))", "if (isNull(%s)) {\n\t$0\n}");
-                addSnippetCompletionItem(expression, "nn", "if (!isNull(expr))", "if (!isNull(%s)) {\n\t$0\n}");
-            }
-        }
-
-        private void completeVariableStatement(MemberAccessExprContext expression) {
-            addSnippetCompletionItem(expression, "val", "val name = expr", "val $1 = %s;");
-            addSnippetCompletionItem(expression, "var", "var name = expr", "var $1 = %s;");
-        }
-
-        private void addSnippetCompletionItem(MemberAccessExprContext expression, String name, String description, String snippet) {
-            if (name.startsWith(text)) {
-                CompletionItem item = new CompletionItem(name);
-                item.setInsertTextMode(InsertTextMode.AdjustIndentation);
-                item.setInsertTextFormat(InsertTextFormat.Snippet);
-                CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
-                labelDetails.setDescription(description);
-                item.setLabelDetails(labelDetails);
-                TextEdit isNullTextEdit = new TextEdit(Ranges.toLspRange(expression), snippet.formatted(expression.expression().getText()));
-                item.setTextEdit(Either.forLeft(isNullTextEdit));
-                item.setSortText(name);
-                item.setFilterText(expression.getText() + "." + name);
-                completionList.add(item);
-            }
+        private void completeMemberSnippets(Type type, MemberAccessExprContext memberAccessExprContext) {
+            completeSnippet(Snippet.createFor(type, unit.getEnv(), memberAccessExprContext));
+            completeSnippet(Snippet.createForI(type, unit.getEnv(), memberAccessExprContext));
+            completeSnippet(Snippet.createIfNull(type, memberAccessExprContext));
+            completeSnippet(Snippet.createIfNotNull(type, memberAccessExprContext));
+            completeSnippet(Snippet.createVal(memberAccessExprContext));
+            completeSnippet(Snippet.createVar(memberAccessExprContext));
         }
     }
 
