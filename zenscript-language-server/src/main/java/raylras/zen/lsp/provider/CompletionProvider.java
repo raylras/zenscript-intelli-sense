@@ -365,7 +365,7 @@ public final class CompletionProvider {
             //     ^____
             if (containsLeading(ctx.DOT())) {
                 Type type = TypeResolver.getType(expression, unit);
-                completeMembers(text, type, ctx);
+                completeMembers(text, type);
                 completeMemberSnippets(type, ctx);
                 return null;
             }
@@ -374,7 +374,7 @@ public final class CompletionProvider {
             // ^^^^_
             if (containsLeading(expression)) {
                 Type type = TypeResolver.getType(expression, unit);
-                completeMembers("", type, ctx);
+                completeMembers("", type);
                 completeMemberSnippets(type, ctx);
                 return null;
             }
@@ -513,7 +513,7 @@ public final class CompletionProvider {
                     .forEach(this::addToCompletionList);
         }
 
-        private void completeMembers(String text, Type type, MemberAccessExprContext expression) {
+        private void completeMembers(String text, Type type) {
             if (type instanceof SymbolProvider memberProvider) {
                 memberProvider.withExpands(unit.getEnv()).stream()
                         .filter(symbol -> TextSimilarity.isSubsequence(text, symbol.getName()))
