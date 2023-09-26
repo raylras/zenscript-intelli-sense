@@ -31,7 +31,7 @@ public interface Snippet {
     static Snippet createForI(Type type, CompilationEnvironment env, MemberAccessExprContext memberAccessExprContext) {
         Type iteratorType = Operators.getUnaryOperatorResult(type, Operator.ITERATOR, env);
         if (iteratorType instanceof ListType) {
-            return () -> Optional.of(createMemberCompletionItem(memberAccessExprContext, "fori", "for index, element in list", "for $1 in %s {\n\t$0\n}"));
+            return () -> Optional.of(createMemberCompletionItem(memberAccessExprContext, "fori", "for index, element in list", "for ${1:i} $2 in %s {\n\t$0\n}"));
         }
         return NONE;
     }
