@@ -619,9 +619,10 @@ public final class CompletionProvider {
         }
 
         private boolean shouldAddedToCompletion(Symbol symbol) {
-            return symbol.getKind() == Symbol.Kind.FUNCTION ||
-                    symbol.getKind() == Symbol.Kind.VARIABLE ||
-                    symbol.getKind() == Symbol.Kind.PARAMETER;
+            return switch (symbol.getKind()) {
+                case FUNCTION, VARIABLE, PARAMETER -> true;
+                default -> false;
+            };
         }
 
         private CompletionItemLabelDetails getLabelDetails(Symbol symbol) {
