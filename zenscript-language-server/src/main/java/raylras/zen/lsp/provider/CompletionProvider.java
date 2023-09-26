@@ -644,10 +644,11 @@ public final class CompletionProvider {
         }
 
         private void completeSnippet(Snippet snippet) {
-            snippet.get().ifPresent(it -> {
-                it.setKind(CompletionItemKind.Snippet);
-                completionList.add(it);
-            });
+            CompletionItem completionItem = snippet.get();
+            if (completionItem != null) {
+                completionItem.setKind(CompletionItemKind.Snippet);
+                completionList.add(completionItem);
+            }
         }
 
         private void completeMemberSnippets(Type type, MemberAccessExprContext memberAccessExprContext) {

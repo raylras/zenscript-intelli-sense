@@ -9,21 +9,19 @@ import raylras.zen.model.type.*;
 import raylras.zen.util.Operators;
 import raylras.zen.util.Ranges;
 
-import java.util.Optional;
-
 @FunctionalInterface
 public interface Snippet {
 
-    Snippet NONE = Optional::empty;
+    Snippet NONE = () -> null;
 
-    Optional<CompletionItem> get();
+    CompletionItem get();
 
     static Snippet createFor(Type type, CompilationEnvironment env, MemberAccessExprContext memberAccessExprContext) {
         Type iteratorType = Operators.getUnaryOperatorResult(type, Operator.ITERATOR, env);
         if (iteratorType instanceof MapType) {
-            return () -> Optional.of(createMemberCompletionItem(memberAccessExprContext, "for", "for key, value in map", "for $1, $2 in %s {\n\t$0\n}"));
+            return () -> createMemberCompletionItem(memberAccessExprContext, "for", "for key, value in map", "for $1, $2 in %s {\n\t$0\n}");
         } else if (iteratorType instanceof ListType) {
-            return () -> Optional.of(createMemberCompletionItem(memberAccessExprContext, "for", "for element in list", "for $1 in %s {\n\t$0\n}"));
+            return () -> createMemberCompletionItem(memberAccessExprContext, "for", "for element in list", "for $1 in %s {\n\t$0\n}");
         }
         return NONE;
     }
@@ -31,29 +29,29 @@ public interface Snippet {
     static Snippet createForI(Type type, CompilationEnvironment env, MemberAccessExprContext memberAccessExprContext) {
         Type iteratorType = Operators.getUnaryOperatorResult(type, Operator.ITERATOR, env);
         if (iteratorType instanceof ListType) {
-            return () -> Optional.of(createMemberCompletionItem(memberAccessExprContext, "fori", "for index, element in list", "for ${1:i}, $2 in %s {\n\t$0\n}"));
+            return () -> createMemberCompletionItem(memberAccessExprContext, "fori", "for index, element in list", "for ${1:i}, $2 in %s {\n\t$0\n}");
         }
         return NONE;
     }
 
     static Snippet createVal(MemberAccessExprContext memberAccessExprContext) {
-        return () -> Optional.of(createMemberCompletionItem(memberAccessExprContext, "val", "val name = expr", "val $1 = %s;"));
+        return () -> createMemberCompletionItem(memberAccessExprContext, "val", "val name = expr", "val $1 = %s;");
     }
 
     static Snippet createVar(MemberAccessExprContext memberAccessExprContext) {
-        return () -> Optional.of(createMemberCompletionItem(memberAccessExprContext, "var", "var name = expr", "var $1 = %s;"));
+        return () -> createMemberCompletionItem(memberAccessExprContext, "var", "var name = expr", "var $1 = %s;");
     }
 
     static Snippet createIfNull(Type type, MemberAccessExprContext memberAccessExprContext) {
         if (!(type instanceof NumberType || type == BoolType.INSTANCE || type == VoidType.INSTANCE)) {
-            return () -> Optional.of(createMemberCompletionItem(memberAccessExprContext, "null", "if (isNull(expr))", "if (isNull(%s)) {\n\t$0\n}"));
+            return () -> createMemberCompletionItem(memberAccessExprContext, "null", "if (isNull(expr))", "if (isNull(%s)) {\n\t$0\n}");
         }
         return NONE;
     }
 
     static Snippet createIfNotNull(Type type, MemberAccessExprContext memberAccessExprContext) {
         if (!(type instanceof NumberType || type == BoolType.INSTANCE || type == VoidType.INSTANCE)) {
-            return () -> Optional.of(createMemberCompletionItem(memberAccessExprContext, "nn", "if (!isNull(expr))", "if (!isNull(%s)) {\n\t$0\n}"));
+            return () -> createMemberCompletionItem(memberAccessExprContext, "nn", "if (!isNull(expr))", "if (!isNull(%s)) {\n\t$0\n}");
         }
         return NONE;
     }
