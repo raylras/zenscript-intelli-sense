@@ -13,6 +13,7 @@ import raylras.zen.util.Compilations;
 import raylras.zen.util.PathUtils;
 import raylras.zen.util.l10n.L10N;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -123,10 +124,14 @@ public class WorkspaceManager {
 
     private void checkDzs(Workspace workspace) {
         for (CompilationEnvironment env : workspace) {
-            if (!Compilations.hasDzsUnit(env)) {
-                logger.info("Could not find *.dzs files in project environment: {}", env);
-                ZenLanguageService.showMessage(new MessageParams(MessageType.Info, L10N.getString("environment.dzs_not_found")));
+            Path generatedRoot = env.getGeneratedRoot();
+            if (Files.exists(generatedRoot)
+                    && Files.isDirectory(generatedRoot)
+                    && Files.isReadable(generatedRoot)) {
                 return;
+            } else {
+                logger.info("Cannot find .dzs file directory of environment: {}", env);
+                ZenLanguageService.showMessage(new MessageParams(MessageType.Info, L10N.getString("environment.dzs_not_found")));
             }
         }
     }

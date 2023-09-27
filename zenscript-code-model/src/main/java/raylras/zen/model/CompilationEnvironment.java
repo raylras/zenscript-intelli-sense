@@ -8,7 +8,9 @@ import raylras.zen.model.symbol.ExpandFunctionSymbol;
 import raylras.zen.model.symbol.Symbol;
 import raylras.zen.model.type.ClassType;
 import raylras.zen.model.type.Type;
+import raylras.zen.util.PathUtils;
 
+import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -23,6 +25,7 @@ public class CompilationEnvironment {
     public static final String DEFAULT_GENERATED_DIRECTORY = "generated";
 
     private final Path root;
+    private final Path generatedRoot;
     private final Map<Path, CompilationUnit> unitMap = new HashMap<>();
     private final BracketHandlerService bracketHandlerService = new BracketHandlerService(this);
 
@@ -31,6 +34,7 @@ public class CompilationEnvironment {
     public CompilationEnvironment(Path root) {
         Objects.requireNonNull(root);
         this.root = root;
+        this.generatedRoot = resolveGeneratedRoot(this);
     }
 
     public CompilationUnit createUnit(Path unitPath) {
@@ -91,7 +95,7 @@ public class CompilationEnvironment {
     }
 
     public Path getGeneratedRoot() {
-        return root.resolve(DEFAULT_GENERATED_DIRECTORY);
+        return generatedRoot;
     }
 
     public BracketHandlerService getBracketHandlerService() {
@@ -130,6 +134,14 @@ public class CompilationEnvironment {
         Map<String, ClassType> classTypeMap = getClassTypeMap();
         ClassType dumpClassType = classTypeMap.get(typeName);
         return dumpClassType != null ? dumpClassType.getSymbols() : Collections.emptyList();
+    }
+
+    private static Path resolveGeneratedRoot(CompilationEnvironment env) {
+        return FileSystems.getDefault()
+                .getPath(System.getProperty("user.home"))
+                .resolve(".probezs")
+                .resolve(PathUtils.toHash(env.getRoot()))
+                .resolve(DEFAULT_GENERATED_DIRECTORY);
     }
 
 }

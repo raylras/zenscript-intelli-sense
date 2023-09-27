@@ -2,17 +2,26 @@ package raylras.zen.util;
 
 import raylras.zen.model.CompilationUnit;
 
+import java.io.IOException;
+import java.math.BigInteger;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 
 public final class PathUtils {
 
     private PathUtils() {}
 
     public static Path toPath(String uri) {
-        return Paths.get(URI.create(uri));
+        try {
+            return Paths.get(URI.create(uri)).toRealPath();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public static boolean isSubPath(String parentUri, String childUri) {
@@ -63,6 +72,18 @@ public final class PathUtils {
 
     public static boolean isDzsFile(Path path) {
         return String.valueOf(path).endsWith(CompilationUnit.DZS_FILE_EXTENSION);
+    }
+
+    public static String toHash(Path path) {
+        try {
+            MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
+            byte[] bytes = path.toString().getBytes(StandardCharsets.UTF_8);
+            BigInteger hash = new BigInteger(1, sha1.digest(bytes));
+            return hash.toString(16);
+        } catch (NoSuchAlgorithmException e) {
+            // Should never happen
+            return "0";
+        }
     }
 
 }
