@@ -99,9 +99,10 @@ public class WorkspaceManager {
     /* Private Methods */
 
     private void createEnvIfNotExists(Path documentPath) {
-        Optional<CompilationEnvironment> env = getEnv(documentPath);
-        if (env.isEmpty()) {
-            createEnv(documentPath);
+        if (PathUtils.isZsFile(documentPath)) {
+            if (getEnv(documentPath).isEmpty()) {
+                createEnv(documentPath);
+            }
         }
     }
 
