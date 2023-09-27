@@ -21,7 +21,5 @@ export async function activate(context) {
 }
 
 export async function deactivate() {
-    if (languageClient) {
-        return languageClient.stop();
-    }
+    return languageClient?.stop();
 }

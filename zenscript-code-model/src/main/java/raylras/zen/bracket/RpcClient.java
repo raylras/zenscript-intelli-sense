@@ -29,7 +29,7 @@ public class RpcClient {
 
     public static void shutdown() {
         invalidateRemoteService();
-        executorService.shutdownNow();
+        executorService.shutdown();
     }
 
     private static final ExecutorService executorService = Executors.newCachedThreadPool();

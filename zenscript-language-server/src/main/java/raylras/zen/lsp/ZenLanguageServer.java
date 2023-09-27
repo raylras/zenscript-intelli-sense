@@ -5,20 +5,27 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import raylras.zen.bracket.RpcClient;
 import raylras.zen.model.CompilationUnit;
 import raylras.zen.util.l10n.L10N;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 
     private static final Logger logger = LoggerFactory.getLogger(ZenLanguageServer.class);
 
-    private final ZenLanguageService service;
+    private final ExecutorService executorService = Executors.newCachedThreadPool();
+    private final ZenLanguageService languageService = new ZenLanguageService();
 
-    public ZenLanguageServer() {
-        this.service = new ZenLanguageService();
+    public ExecutorService getExecutorService() {
+        return executorService;
     }
 
     @Override
@@ -27,7 +34,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 
     @Override
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
-        service.initializeWorkspaces(params.getWorkspaceFolders());
+        languageService.initializeWorkspaces(params.getWorkspaceFolders());
         L10N.setLocale(params.getLocale());
 
         ServerCapabilities capabilities = new ServerCapabilities();
@@ -57,21 +64,27 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 
     @Override
     public TextDocumentService getTextDocumentService() {
-        return service;
+        return languageService;
     }
 
     @Override
     public WorkspaceService getWorkspaceService() {
-        return service;
+        return languageService;
     }
 
     @Override
     public CompletableFuture<Object> shutdown() {
-        return new CompletableFuture<>();
+        return CompletableFuture.supplyAsync(() -> {
+            logger.info("Language server shutting down");
+            RpcClient.shutdown();
+            executorService.shutdown();
+            return null;
+        });
     }
 
     @Override
     public void exit() {
+        logger.info("Language server exiting");
         System.exit(0);
     }
 
