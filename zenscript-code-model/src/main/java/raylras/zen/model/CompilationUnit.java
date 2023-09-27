@@ -4,7 +4,6 @@ import org.antlr.v4.runtime.CommonTokenStream;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
-import raylras.zen.model.annotation.Annotation;
 import raylras.zen.model.parser.ZenScriptLexer;
 import raylras.zen.model.scope.Scope;
 import raylras.zen.model.symbol.Symbol;
@@ -85,11 +84,11 @@ public class CompilationUnit implements SymbolProvider {
         return getScope(parseTree).getSymbols();
     }
 
-    public List<Annotation> getDeclaredAnnotations() {
-        List<Token> annoTokens = tokenStream.getHiddenTokensToRight(0, ZenScriptLexer.PREPROCESSOR_CHANNEL);
-        return annoTokens.stream()
+    public List<Preprocessor> getPreprocessors() {
+        List<Token> tokens = tokenStream.getHiddenTokensToRight(0, ZenScriptLexer.PREPROCESSOR_CHANNEL);
+        return tokens.stream()
                 .map(Token::getText)
-                .map(Annotation::create)
+                .map(Preprocessor::create)
                 .collect(Collectors.toList());
     }
 
