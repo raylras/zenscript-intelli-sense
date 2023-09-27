@@ -4,3 +4,5 @@ language/ZenScript.tmLanguage.yaml
 node_modules
 client/src
 build
+rollup.config.dev.mjs
+rollup.config.prod.mjs
