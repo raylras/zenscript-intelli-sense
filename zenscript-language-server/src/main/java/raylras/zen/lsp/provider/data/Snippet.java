@@ -12,62 +12,64 @@ import raylras.zen.util.Ranges;
 @FunctionalInterface
 public interface Snippet {
 
-    Snippet NONE = () -> null;
-
     CompletionItem get();
 
-    static Snippet createFor(Type type, CompilationEnvironment env, MemberAccessExprContext memberAccessExprContext) {
+    static Snippet dotFor(Type type, CompilationEnvironment env, MemberAccessExprContext ctx) {
         Type iteratorType = Operators.getUnaryOperatorResult(type, Operator.ITERATOR, env);
         if (iteratorType instanceof MapType) {
-            return () -> createMemberCompletionItem(memberAccessExprContext, "for", "for key, value in map", "for $1, $2 in %s {\n\t$0\n}");
+            return () -> createMemberAccessCompletion("for", "for key, value in map", "for ${1:key}, ${2:value} in %s {\n\t$0\n}", ctx);
         } else if (iteratorType instanceof ListType) {
-            return () -> createMemberCompletionItem(memberAccessExprContext, "for", "for element in list", "for $1 in %s {\n\t$0\n}");
+            return () -> createMemberAccessCompletion("for", "for element in list", "for ${1:value} in %s {\n\t$0\n}", ctx);
+        } else {
+            return () -> null;
         }
-        return NONE;
     }
 
-    static Snippet createForI(Type type, CompilationEnvironment env, MemberAccessExprContext memberAccessExprContext) {
+    static Snippet dotForI(Type type, CompilationEnvironment env, MemberAccessExprContext ctx) {
         Type iteratorType = Operators.getUnaryOperatorResult(type, Operator.ITERATOR, env);
         if (iteratorType instanceof ListType) {
-            return () -> createMemberCompletionItem(memberAccessExprContext, "fori", "for index, element in list", "for ${1:i}, $2 in %s {\n\t$0\n}");
+            return () -> createMemberAccessCompletion("fori", "for index, element in list", "for ${1:i}, ${2:value} in %s {\n\t$0\n}", ctx);
+        } else {
+            return () -> null;
         }
-        return NONE;
     }
 
-    static Snippet createVal(MemberAccessExprContext memberAccessExprContext) {
-        return () -> createMemberCompletionItem(memberAccessExprContext, "val", "val name = expr", "val $1 = %s;");
+    static Snippet dotVal(MemberAccessExprContext ctx) {
+        return () -> createMemberAccessCompletion("val", "val name = expr", "val ${1:value} = %s;", ctx);
     }
 
-    static Snippet createVar(MemberAccessExprContext memberAccessExprContext) {
-        return () -> createMemberCompletionItem(memberAccessExprContext, "var", "var name = expr", "var $1 = %s;");
+    static Snippet dotVar(MemberAccessExprContext ctx) {
+        return () -> createMemberAccessCompletion("var", "var name = expr", "var ${1:value} = %s;", ctx);
     }
 
-    static Snippet createIfNull(Type type, MemberAccessExprContext memberAccessExprContext) {
-        if (!(type instanceof NumberType || type == BoolType.INSTANCE || type == VoidType.INSTANCE)) {
-            return () -> createMemberCompletionItem(memberAccessExprContext, "null", "if (isNull(expr))", "if (isNull(%s)) {\n\t$0\n}");
+    static Snippet dotIfNull(Type type, MemberAccessExprContext ctx) {
+        if (type instanceof NumberType || type == BoolType.INSTANCE || type == VoidType.INSTANCE) {
+            return () -> null;
+        } else {
+            return () -> createMemberAccessCompletion("null", "if (isNull(expr))", "if (isNull(%s)) {\n\t$0\n}", ctx);
         }
-        return NONE;
     }
 
-    static Snippet createIfNotNull(Type type, MemberAccessExprContext memberAccessExprContext) {
-        if (!(type instanceof NumberType || type == BoolType.INSTANCE || type == VoidType.INSTANCE)) {
-            return () -> createMemberCompletionItem(memberAccessExprContext, "nn", "if (!isNull(expr))", "if (!isNull(%s)) {\n\t$0\n}");
+    static Snippet dotIfNotNull(Type type, MemberAccessExprContext ctx) {
+        if (type instanceof NumberType || type == BoolType.INSTANCE || type == VoidType.INSTANCE) {
+            return () -> null;
+        } else {
+            return () -> createMemberAccessCompletion("nn", "if (!isNull(expr))", "if (!isNull(%s)) {\n\t$0\n}", ctx);
         }
-        return NONE;
     }
 
-
-    private static CompletionItem createMemberCompletionItem(MemberAccessExprContext memberAccessExprContext, String name, String description, String snippet) {
+    private static CompletionItem createMemberAccessCompletion(String name, String description, String snippet, MemberAccessExprContext ctx) {
         CompletionItem item = new CompletionItem(name);
         item.setInsertTextMode(InsertTextMode.AdjustIndentation);
         item.setInsertTextFormat(InsertTextFormat.Snippet);
         CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
         labelDetails.setDescription(description);
         item.setLabelDetails(labelDetails);
-        TextEdit textEdit = new TextEdit(Ranges.toLspRange(memberAccessExprContext), snippet.formatted(memberAccessExprContext.expression().getText()));
+        TextEdit textEdit = new TextEdit(Ranges.toLspRange(ctx), snippet.formatted(ctx.expression().getText()));
         item.setTextEdit(Either.forLeft(textEdit));
         item.setSortText(name);
-        item.setFilterText(memberAccessExprContext.expression().getText() + "." + name);
+        item.setFilterText(ctx.expression().getText() + "." + name);
         return item;
     }
+
 }

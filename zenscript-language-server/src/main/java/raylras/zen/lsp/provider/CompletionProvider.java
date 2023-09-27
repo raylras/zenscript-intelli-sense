@@ -366,7 +366,7 @@ public final class CompletionProvider {
             if (containsLeading(ctx.DOT())) {
                 Type type = TypeResolver.getType(expression, unit);
                 completeMembers(text, type);
-                completeMemberSnippets(type, ctx);
+                completeMemberAccessSnippets(type, ctx);
                 return null;
             }
 
@@ -375,7 +375,7 @@ public final class CompletionProvider {
             if (containsLeading(expression)) {
                 Type type = TypeResolver.getType(expression, unit);
                 completeMembers("", type);
-                completeMemberSnippets(type, ctx);
+                completeMemberAccessSnippets(type, ctx);
                 return null;
             }
 
@@ -651,13 +651,13 @@ public final class CompletionProvider {
             }
         }
 
-        private void completeMemberSnippets(Type type, MemberAccessExprContext memberAccessExprContext) {
-            completeSnippet(Snippet.createFor(type, unit.getEnv(), memberAccessExprContext));
-            completeSnippet(Snippet.createForI(type, unit.getEnv(), memberAccessExprContext));
-            completeSnippet(Snippet.createIfNull(type, memberAccessExprContext));
-            completeSnippet(Snippet.createIfNotNull(type, memberAccessExprContext));
-            completeSnippet(Snippet.createVal(memberAccessExprContext));
-            completeSnippet(Snippet.createVar(memberAccessExprContext));
+        private void completeMemberAccessSnippets(Type type, MemberAccessExprContext ctx) {
+            completeSnippet(Snippet.dotFor(type, unit.getEnv(), ctx));
+            completeSnippet(Snippet.dotForI(type, unit.getEnv(), ctx));
+            completeSnippet(Snippet.dotIfNull(type, ctx));
+            completeSnippet(Snippet.dotIfNotNull(type, ctx));
+            completeSnippet(Snippet.dotVal(ctx));
+            completeSnippet(Snippet.dotVar(ctx));
         }
     }
 
