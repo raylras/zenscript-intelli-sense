@@ -1,4 +1,50 @@
+plugins {
+    id 'idea'
+}
+
+subprojects {
+    apply plugin: 'java'
+
+    version = rootProject.version
+
+    sourceCompatibility = '17'
+    targetCompatibility = '17'
+
+    repositories {
+        mavenCentral()
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    dependencies {
+        implementation 'org.slf4j:slf4j-api:2.0.9'
+        implementation 'org.slf4j:slf4j-simple:2.0.9'
+
+        testImplementation platform('org.junit:junit-bom:5.10.0')
+        testImplementation 'org.junit.jupiter:junit-jupiter'
+    }
+
+    tasks.register('dist', Copy) {
+        group 'distribution'
+        dependsOn 'build'
+        from tasks.jar.archiveFile
+        into '../vscode-extension/server'
+    }
+
+    tasks.register('distDeps', Copy) {
+        group 'distribution'
+        from (configurations.runtimeClasspath) {
+            include 'slf4j-api-*.jar'
+            include 'slf4j-simple-*.jar'
+        }
+        into '../vscode-extension/server'
+    }
+}
+
 task dist(type: Copy) {
+    group 'distribution'
     dependsOn ':zenscript-code-model:dist'
     dependsOn ':zenscript-language-server:dist'
     dependsOn ':zenscript-debug-adapter:dist'
@@ -9,6 +55,7 @@ task dist(type: Copy) {
 }
 
 task clear(type: Delete) {
+    group 'distribution'
     delete fileTree('vscode-extension/server') {
         include '**/*.jar'
     }
