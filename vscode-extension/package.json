@@ -1,13 +1,13 @@
 {
 	"name": "zenscript-intelli-sense",
 	"displayName": "ZenScript IntelliSense",
-	"description": "ZenScript IntelliSense",
+	"description": "Code IntelliSense for ZenScript",
 	"author": "raylras",
 	"license": "MIT",
 	"version": "0.13.0",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/Raylras/zenscript-language-server"
+		"url": "https://github.com/raylras/zenscript-intelli-sense"
 	},
 	"publisher": "raylras",
 	"categories": [
