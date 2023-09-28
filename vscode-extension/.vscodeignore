@@ -6,4 +6,4 @@ client/src
 build
 rollup.config.dev.mjs
 rollup.config.prod.mjs
-icon/zs.svg
+icon/*.svg

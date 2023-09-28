@@ -1,0 +1,8 @@
+<!--
+License under [CC0](https://creativecommons.org/publicdomain/zero/1.0/) (public domain).
+Use it for your own project without attribution.
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <circle cx="50" cy="50" r="50" fill="#00BCD1"/>
+  <text x="52" y="68" fill="white" font-size="50" font-family="Arial" font-weight="bold" text-anchor="middle">ZS</text>
+</svg>
