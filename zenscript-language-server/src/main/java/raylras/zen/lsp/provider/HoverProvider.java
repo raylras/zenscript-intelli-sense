@@ -52,12 +52,12 @@ public class HoverProvider {
         public Hover visitBracketHandlerExpr(BracketHandlerExprContext ctx) {
             BracketHandlerEntry entry = brackets.queryEntryRemote(ctx.raw().getText());
             StringBuilder builder = new StringBuilder();
-            entry.ifPresent("_name", name -> {
+            entry.getFirst("_name").ifPresent(name -> {
                 builder.append("#### ");
                 builder.append(name);
                 builder.append("\n\n");
             });
-            entry.ifPresent("_icon", icon -> {
+            entry.getFirst("_icon").ifPresent(icon -> {
                 String img = "![img](data:image/png;base64," + icon + ")";
                 builder.append(img);
                 builder.append("\n\n");

@@ -537,13 +537,13 @@ public final class CompletionProvider {
 
         private void completeBracketHandlers(String text) {
             BracketHandlerService bracketService = unit.getEnv().getBracketHandlerService();
-            bracketService.getEntryListLocal().stream()
-                    .filter(entry -> TextSimilarity.isSubsequence(text, entry.getAsString("_id").orElse(null)))
+            bracketService.getEntriesLocal().stream()
+                    .filter(entry -> TextSimilarity.isSubsequence(text, entry.getFirst("_id").orElse("")))
                     .forEach(entry -> {
-                        CompletionItem item = new CompletionItem(entry.getAsString("_id").orElse(null));
+                        CompletionItem item = new CompletionItem(entry.getFirst("_id").orElse(null));
                         item.setKind(CompletionItemKind.Value);
                         CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
-                        labelDetails.setDescription(entry.getAsString("_name").orElse(""));
+                        labelDetails.setDescription(entry.getFirst("_name").orElse(""));
                         item.setLabelDetails(labelDetails);
                         item.setSortText(labelDetails.getDescription());
                         completionList.add(item);

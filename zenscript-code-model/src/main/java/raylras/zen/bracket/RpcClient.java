@@ -7,24 +7,36 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.Socket;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class RpcClient {
 
     private static final Logger logger = LoggerFactory.getLogger(RpcClient.class);
 
-    static Map<String, Object> queryEntryProperties(String validExpr)
+    static Map<String, List<String>> queryEntryProperties(String validExpr)
             throws IOException, ExecutionException, InterruptedException {
-        return getRemoteService().query(validExpr, true)
+        Map<String, Object> properties = getRemoteService().query(validExpr, true)
                 .exceptionally(e -> {
                     invalidateRemoteService();
                     throw new RuntimeException(e);
                 }).get();
+        return properties.entrySet().stream()
+                .collect(Collectors.toMap(Map.Entry::getKey, entry -> {
+                    if (entry.getValue() instanceof String str) {
+                        return List.of(str);
+                    } else if (entry.getValue() instanceof List<?> list) {
+                        return list.stream().map(Object::toString).toList();
+                    } else {
+                        throw new RuntimeException("Unexpected type of value: " + entry.getValue());
+                    }
+                }));
     }
 
     public static void shutdown() {

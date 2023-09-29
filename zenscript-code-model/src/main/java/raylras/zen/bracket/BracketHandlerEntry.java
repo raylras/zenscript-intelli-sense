@@ -1,24 +1,20 @@
 package raylras.zen.bracket;
 
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 
-public record BracketHandlerEntry(Map<String, ?> properties) {
+public record BracketHandlerEntry(Map<String, List<String>> properties) {
 
-    public void ifPresent(String key, Consumer<Object> action) {
-        Object value = properties.get(key);
-        if (value != null) {
-            action.accept(value);
-        }
+    public List<String> get(String key) {
+        List<String> values = properties.get(key);
+        return (values != null) ? values : Collections.emptyList();
     }
 
-    public Optional<Object> get(String key) {
-        return Optional.ofNullable(properties.get(key));
-    }
-
-    public Optional<String> getAsString(String key) {
-        return get(key).map(String::valueOf);
+    public Optional<String> getFirst(String key) {
+        List<String> values = get(key);
+        return !values.isEmpty() ? Optional.of(values.get(0)) : Optional.empty();
     }
 
 }
