@@ -13,8 +13,8 @@ public interface SymbolProvider extends Iterable<Symbol> {
 
     SymbolProvider EMPTY = Collections::emptyList;
 
-    static SymbolProvider of(Collection<Symbol> symbols) {
-        return () -> symbols;
+    static SymbolProvider of(Collection<? extends Symbol> symbols) {
+        return () -> symbols.stream().map(Symbol.class::cast).toList();
     }
 
     default Symbol getFirst() {

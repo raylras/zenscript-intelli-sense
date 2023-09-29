@@ -6,6 +6,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import raylras.zen.model.parser.ZenScriptLexer;
 import raylras.zen.model.scope.Scope;
+import raylras.zen.model.symbol.ImportSymbol;
 import raylras.zen.model.symbol.Symbol;
 import raylras.zen.model.symbol.SymbolProvider;
 import raylras.zen.util.PathUtils;
@@ -23,6 +24,7 @@ public class CompilationUnit implements SymbolProvider {
     private final Path path;
     private final CompilationEnvironment env;
     private final String qualifiedName;
+    private final List<ImportSymbol> importSymbols = new ArrayList<>();
     private final Map<ParseTree, Scope> scopeProperties = new IdentityHashMap<>();
     private final Map<ParseTree, Symbol> symbolProperties = new IdentityHashMap<>();
 
@@ -83,6 +85,10 @@ public class CompilationUnit implements SymbolProvider {
 
     public List<Symbol> getTopLevelSymbols() {
         return getScope(parseTree).getSymbols();
+    }
+
+    public List<ImportSymbol> getImportSymbols() {
+        return importSymbols;
     }
 
     public List<Preprocessor> getPreprocessors() {
