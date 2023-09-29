@@ -5,12 +5,10 @@ import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.parser.ZenScriptParser.*;
 import raylras.zen.model.resolve.FormalParameterResolver;
 import raylras.zen.model.resolve.ModifierResolver;
+import raylras.zen.model.resolve.SymbolResolver;
 import raylras.zen.model.resolve.TypeResolver;
 import raylras.zen.model.scope.Scope;
-import raylras.zen.model.type.AnyType;
-import raylras.zen.model.type.ClassType;
-import raylras.zen.model.type.FunctionType;
-import raylras.zen.model.type.Type;
+import raylras.zen.model.type.*;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Operators;
 import raylras.zen.util.Range;
@@ -37,12 +35,6 @@ public class SymbolFactory {
             }
 
             @Override
-            public List<Symbol> getTargets() {
-                // TODO: import static members and implement this
-                return Collections.emptyList();
-            }
-
-            @Override
             public String getName() {
                 return name;
             }
@@ -54,8 +46,7 @@ public class SymbolFactory {
 
             @Override
             public Type getType() {
-                // TODO: import static members
-                return unit.getEnv().getClassTypeMap().get(getQualifiedName());
+                return VoidType.INSTANCE;
             }
 
             @Override
@@ -81,6 +72,11 @@ public class SymbolFactory {
             @Override
             public Range getSelectionRange() {
                 return selectionRange;
+            }
+
+            @Override
+            public Collection<Symbol> getSymbols() {
+                return SymbolResolver.lookupSymbol(cst, unit);
             }
         }
         return new ImportSymbolImpl();
