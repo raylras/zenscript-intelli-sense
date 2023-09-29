@@ -13,7 +13,7 @@ import raylras.zen.lsp.provider.data.Snippet;
 import raylras.zen.lsp.util.TextSimilarity;
 import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.Document;
-import raylras.zen.model.SymbolProvider;
+import raylras.zen.model.symbol.SymbolProvider;
 import raylras.zen.model.Visitor;
 import raylras.zen.model.parser.ZenScriptParser;
 import raylras.zen.model.parser.ZenScriptParser.*;

@@ -7,6 +7,7 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import raylras.zen.model.parser.ZenScriptLexer;
 import raylras.zen.model.scope.Scope;
 import raylras.zen.model.symbol.Symbol;
+import raylras.zen.model.symbol.SymbolProvider;
 import raylras.zen.util.PathUtils;
 
 import java.io.File;

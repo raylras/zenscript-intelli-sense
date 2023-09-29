@@ -1,6 +1,5 @@
 package raylras.zen.model.symbol;
 
-import raylras.zen.model.SymbolProvider;
 import raylras.zen.model.type.ClassType;
 
 import java.util.List;

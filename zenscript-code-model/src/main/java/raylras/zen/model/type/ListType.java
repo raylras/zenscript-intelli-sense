@@ -1,7 +1,7 @@
 package raylras.zen.model.type;
 
 import raylras.zen.model.CompilationEnvironment;
-import raylras.zen.model.SymbolProvider;
+import raylras.zen.model.symbol.SymbolProvider;
 import raylras.zen.model.symbol.Operator;
 import raylras.zen.model.symbol.Symbol;
 import raylras.zen.model.symbol.SymbolFactory;

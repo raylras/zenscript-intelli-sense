@@ -6,8 +6,7 @@ import raylras.zen.bracket.BracketHandlerService;
 import raylras.zen.model.symbol.ClassSymbol;
 import raylras.zen.model.symbol.ExpandFunctionSymbol;
 import raylras.zen.model.symbol.Symbol;
-import raylras.zen.model.type.ClassType;
-import raylras.zen.model.type.Type;
+import raylras.zen.model.type.*;
 import raylras.zen.util.PathUtils;
 
 import java.nio.file.FileSystems;
@@ -16,6 +15,7 @@ import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class CompilationEnvironment {
 
@@ -102,18 +102,18 @@ public class CompilationEnvironment {
         return bracketHandlerService;
     }
 
-    public List<Symbol> getExpandMembers(Type type) {
-        List<Symbol> expands = getExpandFunctions().stream()
-                .filter(symbol -> type.isInheritedFrom(symbol.getExpandingType()))
-                .map(Symbol.class::cast)
-                .toList();
-        if (type instanceof ClassType) {
-            return expands;
-        } else {
-            List<Symbol> symbols = new ArrayList<>(expands);
-            symbols.addAll(getPrimitiveTypeExpandMembers(type));
-            return symbols;
+    public List<Symbol> getExpands(Type type) {
+        Stream<? extends Symbol> expands = getExpandFunctions().stream()
+                .filter(symbol -> type.isInheritedFrom(symbol.getExpandingType()));
+
+        if (isPrimitive(type)) {
+            ClassType primitiveClass = getClassTypeMap().get(type.toString());
+            if (primitiveClass != null) {
+                expands = Stream.concat(expands, primitiveClass.getSymbols().stream());
+            }
         }
+
+        return expands.map(Symbol.class::cast).toList();
     }
 
     public ReentrantReadWriteLock.ReadLock readLock() {
@@ -129,19 +129,27 @@ public class CompilationEnvironment {
         return root.toString();
     }
 
-    private Collection<Symbol> getPrimitiveTypeExpandMembers(Type type) {
-        String typeName = type.toString();
-        Map<String, ClassType> classTypeMap = getClassTypeMap();
-        ClassType dumpClassType = classTypeMap.get(typeName);
-        return dumpClassType != null ? dumpClassType.getSymbols() : Collections.emptyList();
-    }
-
     private static Path resolveGeneratedRoot(CompilationEnvironment env) {
         return FileSystems.getDefault()
                 .getPath(System.getProperty("user.home"))
                 .resolve(".probezs")
                 .resolve(PathUtils.toHash(env.getRoot()))
                 .resolve(DEFAULT_GENERATED_DIRECTORY);
+    }
+
+    private static final List<Type> primitives = List.of(
+            BoolType.INSTANCE,
+            ByteType.INSTANCE,
+            ShortType.INSTANCE,
+            IntType.INSTANCE,
+            LongType.INSTANCE,
+            FloatType.INSTANCE,
+            DoubleType.INSTANCE,
+            StringType.INSTANCE
+    );
+
+    private static boolean isPrimitive(Type type) {
+        return primitives.contains(type);
     }
 
 }

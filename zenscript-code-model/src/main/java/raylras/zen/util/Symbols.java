@@ -1,7 +1,7 @@
 package raylras.zen.util;
 
 import raylras.zen.model.CompilationEnvironment;
-import raylras.zen.model.SymbolProvider;
+import raylras.zen.model.symbol.SymbolProvider;
 import raylras.zen.model.symbol.Symbol;
 import raylras.zen.model.symbol.Executable;
 import raylras.zen.model.type.Type;

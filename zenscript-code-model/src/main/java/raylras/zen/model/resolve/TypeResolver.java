@@ -4,7 +4,7 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import raylras.zen.model.CompilationUnit;
-import raylras.zen.model.SymbolProvider;
+import raylras.zen.model.symbol.SymbolProvider;
 import raylras.zen.model.Visitor;
 import raylras.zen.model.parser.ZenScriptLexer;
 import raylras.zen.model.parser.ZenScriptParser.*;

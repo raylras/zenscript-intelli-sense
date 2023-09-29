@@ -2,7 +2,7 @@ package raylras.zen.model.resolve;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.model.CompilationUnit;
-import raylras.zen.model.SymbolProvider;
+import raylras.zen.model.symbol.SymbolProvider;
 import raylras.zen.model.Visitor;
 import raylras.zen.model.parser.ZenScriptParser.MemberAccessExprContext;
 import raylras.zen.model.parser.ZenScriptParser.SimpleNameExprContext;
@@ -98,7 +98,7 @@ public class SymbolResolver {
             Scope scope = unit.lookupScope(cst);
             if (scope != null) {
                 return scope.filter(isSymbolNameEquals(name))
-                        .orElse(() -> lookupGlobalSymbols(name));
+                        .orElse(lookupGlobalSymbols(name));
             } else {
                 return () -> lookupGlobalSymbols(name);
             }

@@ -1,11 +1,9 @@
-package raylras.zen.model;
+package raylras.zen.model.symbol;
 
-import raylras.zen.model.symbol.Symbol;
+import raylras.zen.model.CompilationEnvironment;
 import raylras.zen.model.type.Type;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Iterator;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -15,36 +13,42 @@ public interface SymbolProvider extends Iterable<Symbol> {
 
     SymbolProvider EMPTY = Collections::emptyList;
 
-    static SymbolProvider of(Collection<Symbol> members) {
-        return () -> members;
+    static SymbolProvider of(Collection<Symbol> symbols) {
+        return () -> symbols;
     }
 
     default Symbol getFirst() {
-        return getSymbols().iterator().next();
+        if (isNotEmpty()) {
+            return iterator().next();
+        } else {
+            return null;
+        }
     }
 
     default SymbolProvider filter(Predicate<Symbol> predicate) {
         return () -> getSymbols().stream().filter(predicate).toList();
     }
 
-    default SymbolProvider limit(long maxSize) {
-        return () -> getSymbols().stream().limit(maxSize).toList();
+    default SymbolProvider addAll(Collection<? extends Symbol> others) {
+        Collection<Symbol> symbols = new ArrayList<>(getSymbols());
+        symbols.addAll(others);
+        return of(symbols);
     }
 
-    default SymbolProvider merge(SymbolProvider other) {
-        return () -> Stream.concat(getSymbols().stream(), other.getSymbols().stream()).toList();
-    }
-
-    default SymbolProvider orElse(SymbolProvider other) {
-        Collection<Symbol> symbols = getSymbols();
-        if (symbols.isEmpty()) {
-            return other;
-        }
-        return () -> symbols;
+    default SymbolProvider orElse(Collection<Symbol> others) {
+        return isNotEmpty() ? this : of(others);
     }
 
     default int size() {
         return getSymbols().size();
+    }
+
+    default boolean isEmpty() {
+        return getSymbols().isEmpty();
+    }
+
+    default boolean isNotEmpty() {
+        return !isEmpty();
     }
 
     default Stream<Symbol> stream() {
@@ -53,7 +57,7 @@ public interface SymbolProvider extends Iterable<Symbol> {
 
     default SymbolProvider withExpands(CompilationEnvironment env) {
         if (this instanceof Type type) {
-            return merge(() -> env.getExpandMembers(type));
+            return addAll(env.getExpands(type));
         } else {
             return this;
         }
