@@ -2,19 +2,21 @@ package raylras.zen.model.resolve;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.model.CompilationUnit;
-import raylras.zen.model.Import;
-import raylras.zen.model.SymbolProvider;
 import raylras.zen.model.Visitor;
-import raylras.zen.model.parser.ZenScriptParser.*;
+import raylras.zen.model.parser.ZenScriptParser.ImportDeclarationContext;
+import raylras.zen.model.parser.ZenScriptParser.MemberAccessExprContext;
+import raylras.zen.model.parser.ZenScriptParser.SimpleNameExprContext;
+import raylras.zen.model.parser.ZenScriptParser.StatementContext;
 import raylras.zen.model.scope.Scope;
 import raylras.zen.model.symbol.ClassSymbol;
+import raylras.zen.model.symbol.ImportSymbol;
 import raylras.zen.model.symbol.Symbol;
 import raylras.zen.model.symbol.SymbolProvider;
+import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Ranges;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 import java.util.function.Predicate;
 
 public class SymbolResolver {
@@ -53,18 +55,13 @@ public class SymbolResolver {
 
         @Override
         public SymbolProvider visitImportDeclaration(ImportDeclarationContext ctx) {
-            // FIXME: Not correct when import like crafttweaker.item.IItemStack.amount
-            String qualifiedName = ctx.qualifiedName().getText();
-            ClassSymbol classSymbol = unit.getEnv().getClassSymbolMap().get(qualifiedName);
-            if (classSymbol != null) {
-                result = List.of(classSymbol);
-            }
+            result = unit.getEnv().getSymbolTree().get(ctx.qualifiedName().getText());
             return SymbolProvider.EMPTY;
         }
 
         @Override
         public SymbolProvider visitSimpleNameExpr(SimpleNameExprContext ctx) {
-            SymbolProvider possibles = lookupSymbol(ctx, ctx.simpleName().getText());
+            SymbolProvider possibles = lookupSymbol(ctx, CSTNodes.getText(ctx));
             if (Ranges.contains(cst, ctx.simpleName())) {
                 result = possibles.getSymbols();
             }
@@ -83,10 +80,10 @@ public class SymbolResolver {
             if (leftSymbol instanceof ClassSymbol classSymbol) {
                 foundResults = classSymbol
                         .filter(Symbol::isStatic)
-                        .filter(isSymbolNameEquals(ctx.simpleName().getText()));
+                        .filter(isSymbolNameEquals(CSTNodes.getText(ctx.simpleName())));
             } else if (leftSymbol.getType() instanceof SymbolProvider type) {
                 foundResults = type.withExpands(unit.getEnv())
-                        .filter(isSymbolNameEquals(ctx.simpleName().getText()));
+                        .filter(isSymbolNameEquals(CSTNodes.getText(ctx.simpleName())));
             } else {
                 foundResults = SymbolProvider.EMPTY;
             }
@@ -132,8 +129,10 @@ public class SymbolResolver {
         }
 
         private SymbolProvider lookupImportSymbol(String name) {
-            return SymbolProvider.of(unit.getImportSymbols())
-                    .filter(isSymbolNameEquals(name));
+            return () -> unit.getImportSymbols().stream()
+                    .filter(isSymbolNameEquals(name))
+                    .flatMap(ImportSymbol::stream)
+                    .toList();
         }
 
         private SymbolProvider lookupGlobalSymbol(String name) {

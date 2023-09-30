@@ -61,7 +61,7 @@ public class CompilationEnvironment {
     }
 
     public SymbolTree getSymbolTree() {
-        SymbolTree symbolTree = new SymbolTree("", this);
+        SymbolTree symbolTree = new SymbolTree("", null, this);
         getUnits().forEach(symbolTree::addUnitTopLevelSymbols);
         return symbolTree;
     }
@@ -126,7 +126,7 @@ public class CompilationEnvironment {
                 .filter(symbol -> type.isInheritedFrom(symbol.getExpandingType()));
 
         if (isPrimitive(type)) {
-            ClassType primitiveClass = getClassTypeMap().get(type.toString());
+            ClassType primitiveClass = getClassType(type.toString());
             if (primitiveClass != null) {
                 expands = Stream.concat(expands, primitiveClass.getSymbols().stream());
             }

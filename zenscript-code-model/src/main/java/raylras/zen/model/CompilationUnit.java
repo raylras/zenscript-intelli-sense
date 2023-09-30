@@ -28,8 +28,6 @@ public class CompilationUnit implements SymbolProvider {
     private final Map<ParseTree, Scope> scopeProperties = new IdentityHashMap<>();
     private final Map<ParseTree, Symbol> symbolProperties = new IdentityHashMap<>();
 
-    private final Map<String, Import> imports = new HashMap<>();
-
     private CommonTokenStream tokenStream;
     private ParseTree parseTree;
 
@@ -151,14 +149,6 @@ public class CompilationUnit implements SymbolProvider {
             root = env.getRoot().getParent();
         }
         return root.relativize(path);
-    }
-
-    public void addImport(String name, Import anImport) {
-        imports.put(name, anImport);
-    }
-
-    public Map<String, Import> getImports() {
-        return imports;
     }
 
     @Override

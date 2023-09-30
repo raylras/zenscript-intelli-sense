@@ -8,7 +8,6 @@ import raylras.zen.model.resolve.FormalParameterResolver;
 import raylras.zen.model.resolve.ModifierResolver;
 import raylras.zen.model.resolve.SymbolResolver;
 import raylras.zen.model.resolve.TypeResolver;
-import raylras.zen.model.scope.Scope;
 import raylras.zen.model.type.*;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Operators;
@@ -115,9 +114,16 @@ public class SymbolFactory {
                 }
                 return cst.qualifiedNameList().qualifiedName().stream()
                         .map(CSTNodes::getText)
-                        .map(interfaceName -> unit.getImports().get(interfaceName))
+                        .map(interfaceName -> {
+                            for (ImportSymbol importSymbol : unit.getImportSymbols()) {
+                                if (importSymbol.getName().equals(interfaceName)) {
+                                    return importSymbol;
+                                }
+                            }
+                            return null;
+                        })
                         .filter(Objects::nonNull)
-                        .map(it -> it.targets(unit.getEnv()))
+                        .flatMap(SymbolProvider::stream)
                         .filter(ClassSymbol.class::isInstance)
                         .map(ClassSymbol.class::cast)
                         .map(ClassSymbol::getType)
@@ -707,6 +713,9 @@ public class SymbolFactory {
             @Override
             public Path getPath() {
                 String path = symbolTree.getQualifiedName();
+                if (path.isEmpty()) {
+                    return env.getRoot();
+                }
                 Path root;
                 if (path.startsWith(CompilationEnvironment.DEFAULT_ROOT_DIRECTORY)) {
                     root = env.getRoot().getParent();
@@ -738,7 +747,7 @@ public class SymbolFactory {
 
             @Override
             public List<Symbol> getSymbols() {
-                return symbolTree.getSubTrees().values()
+                return symbolTree.getChildren().values()
                         .stream()
                         .flatMap(it -> it.getSymbols().stream())
                         .toList();

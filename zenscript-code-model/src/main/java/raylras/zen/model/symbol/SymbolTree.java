@@ -2,47 +2,36 @@ package raylras.zen.model.symbol;
 
 import raylras.zen.model.CompilationEnvironment;
 import raylras.zen.model.CompilationUnit;
-import raylras.zen.model.SymbolProvider;
 
 import java.util.*;
 
 public class SymbolTree {
     private final String qualifiedName;
     private final List<Symbol> symbols = new ArrayList<>();
-    private final Map<String, SymbolTree> subTrees = new HashMap<>();
+    private final Map<String, SymbolTree> children = new HashMap<>();
+    private final CompilationEnvironment env;
 
-    public SymbolTree(String qualifiedName, CompilationEnvironment env) {
-        this.qualifiedName = qualifiedName;
-        this.symbols.add(SymbolFactory.createPackageSymbol(this, env));
+    private boolean isPackage = false;
+
+    public SymbolTree(String name, SymbolTree parent, CompilationEnvironment env) {
+        if (parent == null || parent.getQualifiedName().isEmpty()) {
+            this.qualifiedName = name;
+        } else {
+            this.qualifiedName = parent.getQualifiedName() + "." + name;
+        }
+        this.env = env;
     }
 
     public void addUnitTopLevelSymbols(CompilationUnit unit) {
-        SymbolTree leaf = this;
-        for (String s : unit.getQualifiedName().split("\\.")) {
-            SymbolTree subTree = leaf.subTrees.get(s);
-            if (subTree == null) {
-                String leafName = leaf.getQualifiedName();
-                subTree = new SymbolTree(leafName.isEmpty() ? s : leafName + "." + s, unit.getEnv());
-                leaf.subTrees.put(s, subTree);
-            }
-            leaf = subTree;
-        }
-        leaf.symbols.clear();
-        for (Symbol topLevelSymbol : unit.getTopLevelSymbols()) {
-            if (topLevelSymbol.isStatic() || topLevelSymbol instanceof FunctionSymbol) {
-                leaf.symbols.add(topLevelSymbol);
-            }
-            if (topLevelSymbol instanceof ClassSymbol classSymbol) {
-                leaf.symbols.add(topLevelSymbol);
-                SymbolProvider staticMembers = classSymbol.filter(Symbol::isStatic);
-                if (staticMembers.size() != 0) {
-                    SymbolTree classSymbolTree = new SymbolTree(classSymbol.getQualifiedName(), unit.getEnv());
-                    for (Symbol declaredMember : classSymbol.getDeclaredMembers()) {
-                        if (declaredMember.isStatic()) {
-                            classSymbolTree.symbols.add(declaredMember);
-                        }
-                    }
-                    leaf.subTrees.put(classSymbol.getName(), classSymbolTree);
+        if (!unit.isGenerated()) {
+            SymbolTree symbolTree = switchChildren(unit.getQualifiedName(), null);
+            unit.getTopLevelSymbols().forEach(symbolTree::addMember);
+        } else {
+            if (unit.getTopLevelSymbols().size() == 1 && unit.getTopLevelSymbols().get(0) instanceof ClassSymbol classSymbol) {
+                SymbolTree symbolTree = switchChildren(classSymbol.getQualifiedName(), classSymbol);
+                symbolTree.symbols.add(classSymbol);
+                for (Symbol staticMembers : classSymbol.filter(Symbol::isStatic)) {
+                    symbolTree.addMember(staticMembers);
                 }
             }
         }
@@ -51,7 +40,7 @@ public class SymbolTree {
     public List<Symbol> get(String qualifiedName) {
         SymbolTree leaf = this;
         for (String s : qualifiedName.split("\\.")) {
-            leaf = leaf.subTrees.get(s);
+            leaf = leaf.children.get(s);
             if (leaf == null) {
                 return Collections.emptyList();
             }
@@ -63,11 +52,47 @@ public class SymbolTree {
         return qualifiedName;
     }
 
-    public Map<String, SymbolTree> getSubTrees() {
-        return subTrees;
+    public Map<String, SymbolTree> getChildren() {
+        return children;
     }
 
     public List<Symbol> getSymbols() {
         return symbols;
+    }
+
+    private void markPackage() {
+        if (!isPackage) {
+            isPackage = true;
+            symbols.add(SymbolFactory.createPackageSymbol(this, env));
+        }
+    }
+
+    private void addMember(Symbol symbol) {
+        children.computeIfAbsent(symbol.getName(), it ->
+                new SymbolTree(it, this, env)
+        ).symbols.add(symbol);
+    }
+
+    private SymbolTree switchChildren(String path, Symbol symbol) {
+        String[] split = path.split("\\.");
+        SymbolTree current = this;
+        for (int i = 0; i < split.length; i++) {
+            SymbolTree child = current.children.get(split[i]);
+            if (child == null) {
+                child = new SymbolTree(split[i], current, env);
+                current.children.put(split[i], child);
+            }
+            if (symbol == null) {
+                child.markPackage();
+            } else {
+                if (i != split.length - 1) {
+                    child.markPackage();
+                } else {
+                    child.symbols.add(symbol);
+                }
+            }
+            current = child;
+        }
+        return current;
     }
 }

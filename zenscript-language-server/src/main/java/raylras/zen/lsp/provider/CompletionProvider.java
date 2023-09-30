@@ -495,9 +495,13 @@ public final class CompletionProvider {
                 toComplete = text;
             }
             for (Symbol symbol : unit.getEnv().getSymbolTree().get(toComplete)) {
-                CompletionItem completionItem = new CompletionItem(symbol.getName());
-                completionItem.setKind(toCompletionKind(symbol));
-                completionList.add(completionItem);
+                if (symbol instanceof SymbolProvider symbolProvider) {
+                    for (Symbol member : symbolProvider) {
+                        CompletionItem completionItem = new CompletionItem(member.getName());
+                        completionItem.setKind(toCompletionKind(member));
+                        completionList.add(completionItem);
+                    }
+                }
             }
         }
 
@@ -511,9 +515,9 @@ public final class CompletionProvider {
                 }
                 scope = scope.getParent();
             }
-            unit.getImports().forEach((name, anImport) -> {
-                if (TextSimilarity.isSubsequence(text, name)) {
-                    anImport.targets(unit.getEnv()).forEach(this::addToCompletionList);
+            unit.getImportSymbols().forEach(anImport -> {
+                if (TextSimilarity.isSubsequence(text, anImport.getName())) {
+                    anImport.getSymbols().forEach(this::addToCompletionList);
                 }
             });
         }
@@ -534,13 +538,11 @@ public final class CompletionProvider {
         }
 
         private void completeTypeSymbols(String text) {
-            List<Symbol> symbols = new ArrayList<>(unit.getTopLevelSymbols());
-            unit.getImports().values().forEach(it -> symbols.addAll(it.targets(unit.getEnv())));
-            for (Symbol symbol : symbols) {
-                if (symbol.getKind() == Symbol.Kind.CLASS) {
-                    addToCompletionList(symbol);
-                }
-            }
+            unit.getImportSymbols()
+                    .stream()
+                    .flatMap(SymbolProvider::stream)
+                    .filter(it -> it.getKind() == Symbol.Kind.CLASS)
+                    .forEach(this::addToCompletionList);
         }
 
         private void completeKeywords(String text, String... keywords) {
