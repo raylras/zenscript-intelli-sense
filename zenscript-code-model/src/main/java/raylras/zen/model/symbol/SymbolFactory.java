@@ -1,12 +1,12 @@
 package raylras.zen.model.symbol;
 
 import org.antlr.v4.runtime.tree.ParseTree;
+import raylras.zen.model.CompilationEnvironment;
 import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.parser.ZenScriptParser.*;
 import raylras.zen.model.resolve.FormalParameterResolver;
 import raylras.zen.model.resolve.ModifierResolver;
 import raylras.zen.model.resolve.TypeResolver;
-import raylras.zen.model.scope.Scope;
 import raylras.zen.model.type.AnyType;
 import raylras.zen.model.type.ClassType;
 import raylras.zen.model.type.FunctionType;
@@ -15,7 +15,11 @@ import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Operators;
 import raylras.zen.util.Range;
 
-import java.util.*;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
 import java.util.stream.Collectors;
@@ -115,15 +119,14 @@ public class SymbolFactory {
                 if (cst.qualifiedNameList() == null) {
                     return Collections.emptyList();
                 }
-                Map<String, ClassType> classTypeMap = unit.getEnv().getClassTypeMap();
-                Scope scope = unit.lookupScope(cst);
                 return cst.qualifiedNameList().qualifiedName().stream()
                         .map(CSTNodes::getText)
-                        .map(interfaceName -> scope.lookupSymbol(ImportSymbol.class, interfaceName))
+                        .map(interfaceName -> unit.getImports().get(interfaceName))
                         .filter(Objects::nonNull)
-                        .map(ImportSymbol::getQualifiedName)
-                        .map(classTypeMap::get)
-                        .filter(Objects::nonNull)
+                        .map(it -> it.targets(unit.getEnv()))
+                        .filter(ClassSymbol.class::isInstance)
+                        .map(ClassSymbol.class::cast)
+                        .map(ClassSymbol::getType)
                         .collect(Collectors.toList());
             }
 
@@ -702,6 +705,73 @@ public class SymbolFactory {
             }
         }
         return new ConstructorSymbolImpl();
+    }
+
+    public static PackageSymbol createPackageSymbol(SymbolTree symbolTree, CompilationEnvironment env) {
+        class PackageSymbolImpl implements PackageSymbol, Locatable {
+
+            @Override
+            public Path getPath() {
+                String path = symbolTree.getQualifiedName();
+                Path root;
+                if (path.startsWith(CompilationEnvironment.DEFAULT_ROOT_DIRECTORY)) {
+                    root = env.getRoot().getParent();
+                } else {
+                    root = env.getGeneratedRoot();
+                }
+                return root.resolve(path.replace('.', '/'));
+            }
+
+            @Override
+            public String getUri() {
+                return getPath().toUri().toString();
+            }
+
+            @Override
+            public Range getRange() {
+                return Range.NO_RANGE;
+            }
+
+            @Override
+            public Range getSelectionRange() {
+                return Range.NO_RANGE;
+            }
+
+            @Override
+            public String getQualifiedName() {
+                return symbolTree.getQualifiedName();
+            }
+
+            @Override
+            public List<Symbol> getSymbols() {
+                return symbolTree.getSubTrees().values()
+                        .stream()
+                        .flatMap(it -> it.getSymbols().stream())
+                        .toList();
+            }
+
+            @Override
+            public String getName() {
+                String[] split = symbolTree.getQualifiedName().split("\\.");
+                return split[split.length - 1];
+            }
+
+            @Override
+            public Kind getKind() {
+                return Kind.PACKAGE;
+            }
+
+            @Override
+            public Type getType() {
+                return AnyType.INSTANCE;
+            }
+
+            @Override
+            public Modifier getModifier() {
+                return Modifier.NONE;
+            }
+        }
+        return new PackageSymbolImpl();
     }
 
     public static SymbolsBuilder builtinSymbols() {

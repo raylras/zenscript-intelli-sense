@@ -2,6 +2,7 @@ package raylras.zen.model.resolve;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.model.CompilationUnit;
+import raylras.zen.model.Import;
 import raylras.zen.model.Listener;
 import raylras.zen.model.parser.ZenScriptParser.*;
 import raylras.zen.model.scope.Scope;
@@ -79,8 +80,7 @@ public final class DeclarationResolver {
                 List<SimpleNameContext> simpleNameList = ctx.qualifiedName().simpleName();
                 name = simpleNameList.get(simpleNameList.size() - 1);
             }
-            ImportSymbol symbol = SymbolFactory.createImportSymbol(name, ctx, unit);
-            enterSymbol(ctx, symbol);
+            unit.addImport(name.getText(), new Import(ctx.qualifiedName().getText()));
         }
 
         @Override

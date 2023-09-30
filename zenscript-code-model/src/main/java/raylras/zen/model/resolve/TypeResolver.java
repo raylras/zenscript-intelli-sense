@@ -10,7 +10,6 @@ import raylras.zen.model.parser.ZenScriptLexer;
 import raylras.zen.model.parser.ZenScriptParser.*;
 import raylras.zen.model.scope.Scope;
 import raylras.zen.model.symbol.*;
-import raylras.zen.model.symbol.Operator;
 import raylras.zen.model.symbol.Operator.OperatorType;
 import raylras.zen.model.type.*;
 import raylras.zen.util.CSTNodes;
@@ -19,6 +18,7 @@ import raylras.zen.util.Operators;
 import raylras.zen.util.Symbols;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -54,20 +54,12 @@ public final class TypeResolver {
                     .collect(Collectors.toList());
         }
 
-        private Symbol lookupSymbol(ParseTree cst, String simpleName) {
-            Scope scope = unit.lookupScope(cst);
-            Symbol symbol = null;
-            if (scope != null) {
-                symbol = scope.lookupSymbol(simpleName);
+        private Symbol lookupSymbol(ParseTree cst) {
+            Collection<Symbol> symbols = SymbolResolver.lookupSymbol(cst, unit);
+            for (Symbol symbol : symbols) {
+                return symbol;
             }
-            if (symbol == null) {
-                for (Symbol globalSymbol : unit.getEnv().getGlobalSymbols()) {
-                    if (simpleName.equals(globalSymbol.getName())) {
-                        symbol = globalSymbol;
-                    }
-                }
-            }
-            return symbol;
+            return null;
         }
 
         @Override
@@ -211,7 +203,7 @@ public final class TypeResolver {
 
         @Override
         public Type visitThisExpr(ThisExprContext ctx) {
-            Symbol symbol = lookupSymbol(ctx, "this");
+            Symbol symbol = lookupSymbol(ctx);
             if (symbol != null) {
                 return symbol.getType();
             } else {
@@ -237,7 +229,7 @@ public final class TypeResolver {
 
         @Override
         public Type visitSimpleNameExpr(SimpleNameExprContext ctx) {
-            Symbol symbol = lookupSymbol(ctx, ctx.simpleName().getText());
+            Symbol symbol = lookupSymbol(ctx);
             if (symbol != null) {
                 return symbol.getType();
             } else {

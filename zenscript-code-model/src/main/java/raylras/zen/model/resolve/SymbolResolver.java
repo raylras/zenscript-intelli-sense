@@ -2,6 +2,7 @@ package raylras.zen.model.resolve;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.model.CompilationUnit;
+import raylras.zen.model.Import;
 import raylras.zen.model.SymbolProvider;
 import raylras.zen.model.Visitor;
 import raylras.zen.model.parser.ZenScriptParser.MemberAccessExprContext;
@@ -10,7 +11,6 @@ import raylras.zen.model.parser.ZenScriptParser.StatementContext;
 import raylras.zen.model.scope.Scope;
 import raylras.zen.model.symbol.ClassSymbol;
 import raylras.zen.model.symbol.Symbol;
-import raylras.zen.util.PackageTree;
 import raylras.zen.util.Ranges;
 
 import java.util.Collection;
@@ -97,21 +97,25 @@ public class SymbolResolver {
         private SymbolProvider lookupSymbol(ParseTree cst, String name) {
             Scope scope = unit.lookupScope(cst);
             if (scope != null) {
-                return scope.filter(isSymbolNameEquals(name))
+                return SymbolProvider.of(scope.lookupSymbols(name))
+                        .orElse(() -> lookupImportSymbols(name))
                         .orElse(() -> lookupGlobalSymbols(name));
             } else {
                 return () -> lookupGlobalSymbols(name);
             }
         }
 
-        private Collection<Symbol> lookupGlobalSymbols(String name) {
-            Collection<Symbol> globals = unit.getEnv().getGlobalSymbols().stream().filter(it -> Objects.equals(it.getName(), name)).toList();
-            if (globals.isEmpty()) {
-                // TODO: find package
-                PackageTree<ClassSymbol> packageTree = PackageTree.of(".", unit.getEnv().getClassSymbolMap());
+        private Collection<Symbol> lookupImportSymbols(String name) {
+            Import anImport = unit.getImports().get(name);
+            if (anImport != null) {
+                return anImport.targets(unit.getEnv());
+            } else {
                 return Collections.emptyList();
             }
-            return globals;
+        }
+
+        private Collection<Symbol> lookupGlobalSymbols(String name) {
+            return unit.getEnv().getGlobalSymbols().stream().filter(it -> Objects.equals(it.getName(), name)).toList();
         }
 
         private static Predicate<Symbol> isSymbolNameEquals(ParseTree name) {

@@ -6,6 +6,7 @@ import raylras.zen.bracket.BracketHandlerService;
 import raylras.zen.model.symbol.ClassSymbol;
 import raylras.zen.model.symbol.ExpandFunctionSymbol;
 import raylras.zen.model.symbol.Symbol;
+import raylras.zen.model.symbol.SymbolTree;
 import raylras.zen.model.type.ClassType;
 import raylras.zen.model.type.Type;
 import raylras.zen.util.PathUtils;
@@ -59,6 +60,12 @@ public class CompilationEnvironment {
         return unitMap;
     }
 
+    public SymbolTree getSymbolTree() {
+        SymbolTree symbolTree = new SymbolTree("", this);
+        getUnits().forEach(symbolTree::addUnitTopLevelSymbols);
+        return symbolTree;
+    }
+
     public List<Symbol> getGlobalSymbols() {
         return getUnits().stream()
                 .flatMap(unit -> unit.getTopLevelSymbols().stream())
@@ -74,6 +81,17 @@ public class CompilationEnvironment {
                 .toList();
     }
 
+    public ClassType getClassType(String qualifiedName) {
+        return getSymbolTree().get(qualifiedName).stream()
+                .filter(ClassSymbol.class::isInstance)
+                .map(ClassSymbol.class::cast)
+                .map(ClassSymbol::getType)
+                .findFirst()
+                .orElse(null);
+    }
+
+    // use getClassType
+    @Deprecated
     public Map<String, ClassType> getClassTypeMap() {
         return getUnits().stream()
                 .flatMap(unit -> unit.getTopLevelSymbols().stream())
@@ -82,6 +100,7 @@ public class CompilationEnvironment {
                 .collect(Collectors.toMap(ClassSymbol::getQualifiedName, ClassSymbol::getType));
     }
 
+    @Deprecated
     public Map<String, ClassSymbol> getClassSymbolMap() {
         return getUnits().stream()
                 .flatMap(unit -> unit.getTopLevelSymbols().stream())
@@ -131,8 +150,7 @@ public class CompilationEnvironment {
 
     private Collection<Symbol> getPrimitiveTypeExpandMembers(Type type) {
         String typeName = type.toString();
-        Map<String, ClassType> classTypeMap = getClassTypeMap();
-        ClassType dumpClassType = classTypeMap.get(typeName);
+        ClassType dumpClassType = getClassType(typeName);
         return dumpClassType != null ? dumpClassType.getSymbols() : Collections.emptyList();
     }
 

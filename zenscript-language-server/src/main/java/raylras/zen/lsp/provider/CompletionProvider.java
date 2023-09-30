@@ -487,12 +487,18 @@ public final class CompletionProvider {
         }
 
         private void completeImports(String text) {
-            PackageTree<ClassType> tree = PackageTree.of(".", unit.getEnv().getClassTypeMap());
-            tree.complete(text).forEach((key, subTree) -> {
-                CompletionItem completionItem = new CompletionItem(key);
-                completionItem.setKind(subTree.hasElement() ? CompletionItemKind.Class : CompletionItemKind.Module);
+            int lastDelimiterPos = text.lastIndexOf(".");
+            String toComplete;
+            if (lastDelimiterPos != -1) {
+                toComplete = text.substring(0, lastDelimiterPos);
+            } else {
+                toComplete = text;
+            }
+            for (Symbol symbol : unit.getEnv().getSymbolTree().get(toComplete)) {
+                CompletionItem completionItem = new CompletionItem(symbol.getName());
+                completionItem.setKind(toCompletionKind(symbol));
                 completionList.add(completionItem);
-            });
+            }
         }
 
         private void completeLocalSymbols(String text) {
@@ -505,6 +511,11 @@ public final class CompletionProvider {
                 }
                 scope = scope.getParent();
             }
+            unit.getImports().forEach((name, anImport) -> {
+                if (TextSimilarity.isSubsequence(text, name)) {
+                    anImport.targets(unit.getEnv()).forEach(this::addToCompletionList);
+                }
+            });
         }
 
         private void completeGlobalSymbols(String text) {
@@ -523,10 +534,13 @@ public final class CompletionProvider {
         }
 
         private void completeTypeSymbols(String text) {
-            unit.getTopLevelSymbols().stream()
-                    .filter(ImportSymbol.class::isInstance)
-                    .filter(symbol -> TextSimilarity.isSubsequence(text, symbol.getName()))
-                    .forEach(this::addToCompletionList);
+            List<Symbol> symbols = new ArrayList<>(unit.getTopLevelSymbols());
+            unit.getImports().values().forEach(it -> symbols.addAll(it.targets(unit.getEnv())));
+            for (Symbol symbol : symbols) {
+                if (symbol.getKind() == Symbol.Kind.CLASS) {
+                    addToCompletionList(symbol);
+                }
+            }
         }
 
         private void completeKeywords(String text, String... keywords) {
@@ -604,6 +618,7 @@ public final class CompletionProvider {
                 case IMPORT, CLASS -> CompletionItemKind.Class;
                 case FUNCTION -> CompletionItemKind.Function;
                 case VARIABLE, PARAMETER -> CompletionItemKind.Variable;
+                case PACKAGE -> CompletionItemKind.Module;
                 default -> null;
             };
         }
