@@ -12,7 +12,18 @@ public class StopWatch {
     // See http://jonamiller.com/2015/12/21/decimalformat-is-not-thread-safe/
     private final DecimalFormat fmt = new DecimalFormat("0.000");
 
-    public StopWatch() {}
+    private StopWatch() {
+    }
+
+    public static StopWatch create() {
+        return new StopWatch();
+    }
+
+    public static StopWatch createAndStart() {
+        StopWatch sw = new StopWatch();
+        sw.start();
+        return sw;
+    }
 
     public void start() {
         start = System.nanoTime();
@@ -22,26 +33,16 @@ public class StopWatch {
         stop = System.nanoTime();
     }
 
-    public void reset() {
-        start = 0;
-        stop = 0;
+    public String getFormattedMillis() {
+        return fmt.format(getElapsedMicros() / 1000.0) + "ms";
     }
 
-    public void restart() {
-        reset();
-        start();
-    }
-
-    public long getElapsedNanos() {
+    private long getElapsedNanos() {
         return stop - start;
     }
 
-    public long getElapsedMicros() {
+    private long getElapsedMicros() {
         return TimeUnit.NANOSECONDS.toMicros(getElapsedNanos());
-    }
-
-    public String getFormattedMillis() {
-        return fmt.format(getElapsedMicros() / 1000.0);
     }
 
 }

@@ -38,8 +38,7 @@ public class ReferencesProvider {
     public static CompletableFuture<List<? extends Location>> references(Document doc, ReferenceParams params) {
 
         return doc.getUnit().map(unit -> CompletableFuture.<List<? extends Location>>supplyAsync(() -> {
-            StopWatch sw = new StopWatch();
-            sw.start();
+            StopWatch sw = StopWatch.createAndStart();
 
             Position cursor = Position.of(params.getPosition());
             Symbol symbol = getSymbolOnCursor(unit, cursor);
@@ -67,7 +66,7 @@ public class ReferencesProvider {
             ).toList();
 
             sw.stop();
-            logger.info("Found {} references for {} ms", result.size(), sw.getFormattedMillis());
+            logger.info("Found {} references [{}]", result.size(), sw.getFormattedMillis());
             return result;
         })).orElseGet(ReferencesProvider::empty);
     }

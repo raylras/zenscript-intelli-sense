@@ -41,11 +41,10 @@ public class BracketHandlerService {
     public BracketHandlerEntry queryEntryRemote(String validExpr) {
         Map<String, List<String>> properties;
         try {
-            StopWatch sw = new StopWatch();
-            sw.start();
+            StopWatch sw = StopWatch.createAndStart();
             properties = RpcClient.queryEntryProperties(validExpr);
             sw.stop();
-            logger.info("Query remote <{}> [{}ms]", validExpr, sw.getFormattedMillis());
+            logger.info("Query remote <{}> [{}]", validExpr, sw.getFormattedMillis());
         } catch (ConnectException e) {
             logger.warn("Failed to query remote <{}>, make sure your Minecraft instance is running", validExpr);
             properties = Collections.emptyMap();
@@ -88,11 +87,10 @@ public class BracketHandlerService {
     private void loadMirrorsFromJson() {
         Path jsonPath = env.getGeneratedRoot().resolve("brackets.json");
         try (Reader reader = Files.newBufferedReader(jsonPath)) {
-            StopWatch sw = new StopWatch();
-            sw.start();
+            StopWatch sw = StopWatch.createAndStart();
             mirrors = GSON.fromJson(reader, new TypeToken<>() {});
             sw.stop();
-            logger.info("Load bracket handler mirrors from {} [{}ms]", jsonPath.getFileName(), sw.getFormattedMillis());
+            logger.info("Load bracket handler mirrors from {} [{}]", jsonPath.getFileName(), sw.getFormattedMillis());
         } catch (IOException e) {
             logger.error("Failed to load bracket handler mirrors from {}", jsonPath.getFileName(), e);
         }
