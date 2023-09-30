@@ -2,7 +2,6 @@ package raylras.zen.model.resolve;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.model.CompilationUnit;
-import raylras.zen.model.Import;
 import raylras.zen.model.Listener;
 import raylras.zen.model.parser.ZenScriptParser.*;
 import raylras.zen.model.scope.Scope;
