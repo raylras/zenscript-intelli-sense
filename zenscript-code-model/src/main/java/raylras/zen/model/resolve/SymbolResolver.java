@@ -130,7 +130,7 @@ public class SymbolResolver {
         }
 
         private SymbolProvider lookupImportSymbol(String name) {
-            return SymbolProvider.of(unit.getImportSymbols())
+            return SymbolProvider.of(unit.getImports())
                     .filter(isSymbolNameEquals(name));
         }
 

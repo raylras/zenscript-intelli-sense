@@ -24,9 +24,9 @@ public class CompilationUnit implements SymbolProvider {
     private final Path path;
     private final CompilationEnvironment env;
     private final String qualifiedName;
-    private final List<ImportSymbol> importSymbols = new ArrayList<>();
-    private final Map<ParseTree, Scope> scopeProperties = new IdentityHashMap<>();
-    private final Map<ParseTree, Symbol> symbolProperties = new IdentityHashMap<>();
+    private final List<ImportSymbol> imports = new ArrayList<>();
+    private final Map<ParseTree, Scope> scopeMap = new IdentityHashMap<>();
+    private final Map<ParseTree, Symbol> symbolMap = new IdentityHashMap<>();
 
     private CommonTokenStream tokenStream;
     private ParseTree parseTree;
@@ -40,7 +40,7 @@ public class CompilationUnit implements SymbolProvider {
     public Scope lookupScope(ParseTree lookupCst) {
         ParseTree cst = lookupCst;
         while (cst != null) {
-            Scope scope = scopeProperties.get(cst);
+            Scope scope = scopeMap.get(cst);
             if (scope != null) {
                 return scope;
             }
@@ -50,19 +50,19 @@ public class CompilationUnit implements SymbolProvider {
     }
 
     public Scope getScope(ParseTree cst) {
-        return scopeProperties.get(cst);
+        return scopeMap.get(cst);
     }
 
     public void addScope(Scope scope) {
-        scopeProperties.put(scope.getCst(), scope);
+        scopeMap.put(scope.getCst(), scope);
     }
 
     public Symbol getSymbol(ParseTree cst) {
-        return symbolProperties.get(cst);
+        return symbolMap.get(cst);
     }
 
     public <T extends Symbol> T getSymbol(ParseTree cst, Class<T> clazz) {
-        Symbol symbol = symbolProperties.get(cst);
+        Symbol symbol = symbolMap.get(cst);
         if (clazz.isInstance(symbol)) {
             return clazz.cast(symbol);
         } else {
@@ -71,24 +71,28 @@ public class CompilationUnit implements SymbolProvider {
     }
 
     public void putSymbol(ParseTree cst, Symbol symbol) {
-        symbolProperties.put(cst, symbol);
+        symbolMap.put(cst, symbol);
     }
 
     public Collection<Scope> getScopes() {
-        return scopeProperties.values();
+        return scopeMap.values();
     }
 
     @Override
     public Collection<Symbol> getSymbols() {
-        return symbolProperties.values();
+        return symbolMap.values();
     }
 
     public List<Symbol> getTopLevelSymbols() {
         return getScope(parseTree).getSymbols();
     }
 
-    public List<ImportSymbol> getImportSymbols() {
-        return importSymbols;
+    public List<ImportSymbol> getImports() {
+        return Collections.unmodifiableList(imports);
+    }
+
+    public void addImport(ImportSymbol importSymbol) {
+        imports.add(importSymbol);
     }
 
     public List<Preprocessor> getPreprocessors() {
@@ -149,6 +153,14 @@ public class CompilationUnit implements SymbolProvider {
             root = env.getRoot().getParent();
         }
         return root.relativize(path);
+    }
+
+    public void clear() {
+        imports.clear();
+        scopeMap.clear();
+        symbolMap.clear();
+        tokenStream = null;
+        parseTree = null;
     }
 
     @Override

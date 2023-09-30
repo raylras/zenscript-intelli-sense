@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 import raylras.zen.model.CompilationEnvironment;
 import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.Document;
-import raylras.zen.util.Compilations;
+import raylras.zen.model.Compilations;
 import raylras.zen.util.PathUtils;
 import raylras.zen.util.l10n.L10N;
 
@@ -88,7 +88,7 @@ public class WorkspaceManager {
                 workspace -> {
                     Path compilationRoot = PathUtils.findUpwardsOrSelf(documentPath, CompilationEnvironment.DEFAULT_ROOT_DIRECTORY);
                     CompilationEnvironment env = new CompilationEnvironment(compilationRoot);
-                    Compilations.loadEnv(env);
+                    Compilations.load(env);
                     workspace.add(env);
                     checkDzs(workspace);
                 },

@@ -80,7 +80,7 @@ public final class DeclarationResolver {
                 name = simpleNameList.get(simpleNameList.size() - 1);
             }
             ImportSymbol symbol = SymbolFactory.createImportSymbol(name, ctx, unit);
-            unit.getImportSymbols().add(symbol);
+            unit.addImport(symbol);
         }
 
         @Override

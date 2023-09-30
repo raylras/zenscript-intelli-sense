@@ -460,9 +460,9 @@ public final class TypeResolver {
 
         @Override
         public Type visitClassType(ClassTypeContext ctx) {
-            List<ImportSymbol> importSymbols = unit.getImportSymbols();
+            List<ImportSymbol> imports = unit.getImports();
             String qualifiedName = ctx.qualifiedName().getText();
-            ImportSymbol symbolImport = importSymbols.stream()
+            ImportSymbol symbolImport = imports.stream()
                     .filter(symbol -> symbol.getName().equals(qualifiedName))
                     .findFirst()
                     .orElse(null);

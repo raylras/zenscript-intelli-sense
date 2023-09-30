@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory;
 import raylras.zen.lsp.provider.*;
 import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.Document;
-import raylras.zen.util.Compilations;
+import raylras.zen.model.Compilations;
 import raylras.zen.util.PathUtils;
 import raylras.zen.util.StopWatch;
 import raylras.zen.util.Watcher;
@@ -51,7 +51,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
             doc.getUnit().ifPresent(unit -> {
                 StopWatch stopWatch = StopWatch.createAndStart();
                 String source = params.getContentChanges().get(0).getText();
-                Compilations.loadUnit(unit, source);
+                Compilations.load(unit, source);
                 stopWatch.stop();
                 logger.trace("didChange {} [{}]", unit.getPath().getFileName(), stopWatch.getFormattedMillis());
             });
@@ -198,11 +198,11 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
                     switch (event.getType()) {
                         case Created -> {
                             CompilationUnit unit = env.createUnit(documentPath);
-                            Compilations.loadUnit(unit);
+                            Compilations.load(unit);
                         }
                         case Changed -> {
                             CompilationUnit unit = env.getUnit(documentPath);
-                            Compilations.loadUnit(unit);
+                            Compilations.load(unit);
                         }
                         case Deleted -> {
                             env.removeUnit(documentPath);

@@ -1,7 +1,5 @@
 package raylras.zen.model;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import raylras.zen.bracket.BracketHandlerService;
 import raylras.zen.model.symbol.ClassSymbol;
 import raylras.zen.model.symbol.ExpandFunctionSymbol;
@@ -18,8 +16,6 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class CompilationEnvironment {
-
-    private static final Logger logger = LoggerFactory.getLogger(CompilationEnvironment.class);
 
     public static final String DEFAULT_ROOT_DIRECTORY = "scripts";
     public static final String DEFAULT_GENERATED_DIRECTORY = "generated";
@@ -53,10 +49,6 @@ public class CompilationEnvironment {
 
     public Collection<CompilationUnit> getUnits() {
         return unitMap.values();
-    }
-
-    public Map<Path, CompilationUnit> getUnitMap() {
-        return unitMap;
     }
 
     public List<Symbol> getGlobalSymbols() {
@@ -122,6 +114,10 @@ public class CompilationEnvironment {
 
     public ReentrantReadWriteLock.WriteLock writeLock() {
         return readWriteLock.writeLock();
+    }
+
+    public void clear() {
+        unitMap.clear();
     }
 
     @Override
