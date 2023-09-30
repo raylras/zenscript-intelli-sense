@@ -4,7 +4,6 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import raylras.zen.model.CompilationUnit;
-import raylras.zen.model.SymbolProvider;
 import raylras.zen.model.Visitor;
 import raylras.zen.model.parser.ZenScriptLexer;
 import raylras.zen.model.parser.ZenScriptParser.*;
@@ -17,10 +16,7 @@ import raylras.zen.util.Executables;
 import raylras.zen.util.Operators;
 import raylras.zen.util.Symbols;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public final class TypeResolver {
@@ -456,14 +452,18 @@ public final class TypeResolver {
 
         @Override
         public Type visitClassType(ClassTypeContext ctx) {
-            Scope scope = unit.getScope(unit.getParseTree());
+            List<ImportSymbol> importSymbols = unit.getImportSymbols();
             String qualifiedName = ctx.qualifiedName().getText();
-            Symbol symbol = scope.lookupSymbol(qualifiedName);
-            if (symbol != null) {
-                return symbol.getType();
-            } else {
-                return null;
+            ImportSymbol symbolImport = importSymbols.stream()
+                    .filter(symbol -> symbol.getName().equals(qualifiedName))
+                    .findFirst()
+                    .orElse(null);
+            if (symbolImport != null) {
+                if (symbolImport.size() == 1) {
+                    return symbolImport.getFirst().getType();
+                }
             }
+            return AnyType.INSTANCE;
         }
 
         @Override

@@ -1,7 +1,7 @@
 package raylras.zen.model.scope;
 
 import org.antlr.v4.runtime.tree.ParseTree;
-import raylras.zen.model.SymbolProvider;
+import raylras.zen.model.symbol.SymbolProvider;
 import raylras.zen.model.symbol.Symbol;
 
 import java.util.ArrayList;

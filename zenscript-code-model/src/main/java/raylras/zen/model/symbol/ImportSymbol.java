@@ -1,11 +1,7 @@
 package raylras.zen.model.symbol;
 
-import java.util.List;
-
-public interface ImportSymbol extends Symbol {
+public interface ImportSymbol extends Symbol, SymbolProvider {
 
     String getQualifiedName();
-
-    List<Symbol> getTargets();
 
 }
