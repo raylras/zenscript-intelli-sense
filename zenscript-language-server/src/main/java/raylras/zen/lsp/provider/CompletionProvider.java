@@ -12,8 +12,6 @@ import raylras.zen.lsp.provider.data.Keywords;
 import raylras.zen.lsp.provider.data.Snippet;
 import raylras.zen.lsp.util.TextSimilarity;
 import raylras.zen.model.CompilationUnit;
-import raylras.zen.model.Document;
-import raylras.zen.model.symbol.SymbolProvider;
 import raylras.zen.model.Visitor;
 import raylras.zen.model.parser.ZenScriptParser;
 import raylras.zen.model.parser.ZenScriptParser.*;
@@ -29,6 +27,7 @@ import raylras.zen.util.l10n.L10N;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
@@ -37,12 +36,14 @@ public final class CompletionProvider {
     private CompletionProvider() {
     }
 
-    public static CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(Document doc, CompletionParams params) {
-        return doc.getUnit().map(unit -> CompletableFuture.supplyAsync(() -> {
-            CompletionVisitor visitor = new CompletionVisitor(unit, params);
-            unit.accept(visitor);
-            return Either.<List<CompletionItem>, CompletionList>forLeft(visitor.completionList);
-        })).orElseGet(CompletionProvider::empty);
+    public static Optional<Either<List<CompletionItem>, CompletionList>> completion(CompilationUnit unit, CompletionParams params) {
+        CompletionVisitor visitor = new CompletionVisitor(unit, params);
+        unit.accept(visitor);
+        if (visitor.completionList.isEmpty()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(Either.forLeft(visitor.completionList));
+        }
     }
 
     public static CompletableFuture<Either<List<CompletionItem>, CompletionList>> empty() {

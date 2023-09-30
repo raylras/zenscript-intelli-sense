@@ -7,37 +7,31 @@ import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
 import raylras.zen.bracket.BracketHandlerEntry;
 import raylras.zen.bracket.BracketHandlerService;
+import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.Visitor;
 import raylras.zen.model.parser.ZenScriptParser.BracketHandlerExprContext;
-import raylras.zen.model.Document;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Position;
 import raylras.zen.util.Ranges;
 
 import java.util.Deque;
-import java.util.concurrent.CompletableFuture;
+import java.util.Optional;
 
 public class HoverProvider {
 
     private HoverProvider() {}
 
-    public static CompletableFuture<Hover> hover(Document doc, HoverParams params) {
-        return doc.getUnit().map(unit -> CompletableFuture.supplyAsync(() -> {
-            Position cursor = Position.of(params.getPosition());
-            Deque<ParseTree> cstStack = CSTNodes.getCstStackAtPosition(unit.getParseTree(), cursor);
-            HoverVisitor visitor = new HoverVisitor(unit.getEnv().getBracketHandlerService());
-            for (ParseTree cst : cstStack) {
-                Hover hover = cst.accept(visitor);
-                if (hover != null) {
-                    return hover;
-                }
+    public static Optional<Hover> hover(CompilationUnit unit, HoverParams params) {
+        Position cursor = Position.of(params.getPosition());
+        Deque<ParseTree> cstStack = CSTNodes.getCstStackAtPosition(unit.getParseTree(), cursor);
+        HoverVisitor visitor = new HoverVisitor(unit.getEnv().getBracketHandlerService());
+        for (ParseTree cst : cstStack) {
+            Hover hover = cst.accept(visitor);
+            if (hover != null) {
+                return Optional.of(hover);
             }
-            return null;
-        })).orElseGet(HoverProvider::empty);
-    }
-
-    public static CompletableFuture<Hover> empty() {
-        return CompletableFuture.completedFuture(null);
+        }
+        return Optional.empty();
     }
 
     private static final class HoverVisitor extends Visitor<Hover> {

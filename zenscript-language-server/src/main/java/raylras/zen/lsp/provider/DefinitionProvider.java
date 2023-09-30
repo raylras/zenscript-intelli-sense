@@ -5,35 +5,33 @@ import org.eclipse.lsp4j.DefinitionParams;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.LocationLink;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.resolve.SymbolResolver;
 import raylras.zen.model.symbol.ParseTreeLocatable;
 import raylras.zen.model.symbol.Symbol;
-import raylras.zen.model.Document;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Position;
 import raylras.zen.util.Range;
 
-import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public class DefinitionProvider {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefinitionProvider.class);
-
-    public static CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> definition(Document doc, DefinitionParams params) {
-        return doc.getUnit().map(unit -> CompletableFuture.supplyAsync(() -> {
-            Position cursor = Position.of(params.getPosition());
-            ParseTree cst = CSTNodes.getCstAtPosition(unit.getParseTree(), cursor);
-            org.eclipse.lsp4j.Range originSelectionRange = Range.of(cst).toLspRange();
-            Collection<Symbol> symbols = SymbolResolver.lookupSymbol(cst, unit);
-            return Either.<List<? extends Location>, List<? extends LocationLink>>forRight(symbols.stream()
-                    .filter(symbol -> symbol instanceof ParseTreeLocatable)
-                    .map(symbol -> toLocationLink(symbol, originSelectionRange))
-                    .toList());
-        })).orElseGet(DefinitionProvider::empty);
+    public static Optional<Either<List<? extends Location>, List<? extends LocationLink>>> definition(CompilationUnit unit, DefinitionParams params) {
+        Position cursor = Position.of(params.getPosition());
+        ParseTree cst = CSTNodes.getCstAtPosition(unit.getParseTree(), cursor);
+        org.eclipse.lsp4j.Range originSelectionRange = Range.of(cst).toLspRange();
+        List<LocationLink> list = SymbolResolver.lookupSymbol(cst, unit).stream()
+                .filter(symbol -> symbol instanceof ParseTreeLocatable)
+                .map(symbol -> toLocationLink(symbol, originSelectionRange))
+                .toList();
+        if (list.isEmpty()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(Either.forRight(list));
+        }
     }
 
     public static CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> empty() {

@@ -75,8 +75,12 @@ public class WorkspaceManager {
         workspaceSet.removeIf(workspace -> workspace.path().equals(workspacePath));
     }
 
-    public void createEnvIfNotExists(String uri) {
-        createEnvIfNotExists(PathUtils.toPath(uri));
+    public void createEnvIfNotExists(Path documentPath) {
+        if (PathUtils.isZsFile(documentPath)) {
+            if (getEnv(documentPath).isEmpty()) {
+                createEnv(documentPath);
+            }
+        }
     }
 
     public void createEnv(Path documentPath) {
@@ -92,30 +96,18 @@ public class WorkspaceManager {
         );
     }
 
-    public Optional<CompilationEnvironment> getEnv(String documentUri) {
-        return getEnv(PathUtils.toPath(documentUri));
+    public Optional<CompilationEnvironment> getEnv(Path documentPath) {
+        return getWorkspace(documentPath).stream()
+                .flatMap(Workspace::stream)
+                .filter(env -> PathUtils.isSubPath(env.getRoot(), documentPath))
+                .findFirst();
     }
 
     /* Private Methods */
 
-    private void createEnvIfNotExists(Path documentPath) {
-        if (PathUtils.isZsFile(documentPath)) {
-            if (getEnv(documentPath).isEmpty()) {
-                createEnv(documentPath);
-            }
-        }
-    }
-
     private Optional<Workspace> getWorkspace(Path documentPath) {
         return workspaceSet.stream()
                 .filter(workspace -> PathUtils.isSubPath(workspace.path, documentPath))
-                .findFirst();
-    }
-
-    private Optional<CompilationEnvironment> getEnv(Path documentPath) {
-        return getWorkspace(documentPath).stream()
-                .flatMap(Workspace::stream)
-                .filter(env -> PathUtils.isSubPath(env.getRoot(), documentPath))
                 .findFirst();
     }
 

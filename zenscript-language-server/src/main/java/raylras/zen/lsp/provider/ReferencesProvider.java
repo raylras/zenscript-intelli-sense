@@ -15,11 +15,9 @@ import raylras.zen.model.resolve.SymbolResolver;
 import raylras.zen.model.symbol.OperatorFunctionSymbol;
 import raylras.zen.model.symbol.ParseTreeLocatable;
 import raylras.zen.model.symbol.Symbol;
-import raylras.zen.model.Document;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Position;
 import raylras.zen.util.Ranges;
-import raylras.zen.util.StopWatch;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -35,42 +33,34 @@ public class ReferencesProvider {
      * 3. search the terminal node at all documents
      * 4. get the cst at every searched node, and resolve its symbol, filtering those containing the current symbol.
      */
-    public static CompletableFuture<List<? extends Location>> references(Document doc, ReferenceParams params) {
+    public static Optional<List<? extends Location>> references(CompilationUnit unit, ReferenceParams params) {
+        Position cursor = Position.of(params.getPosition());
 
-        return doc.getUnit().map(unit -> CompletableFuture.<List<? extends Location>>supplyAsync(() -> {
-            StopWatch sw = StopWatch.createAndStart();
+        Symbol symbol = getSymbolOnCursor(unit, cursor);
+        if (symbol == null) {
+            return Optional.empty();
+        }
 
-            Position cursor = Position.of(params.getPosition());
-            Symbol symbol = getSymbolOnCursor(unit, cursor);
-            if (symbol == null) {
-                logger.warn("Could not get symbol at ({}, {}), skipping find usages", params.getPosition().getLine(), params.getPosition().getCharacter());
-                return null;
-            }
-            logger.info("Finding usages for {}", symbol.getName());
-            Predicate<TerminalNode> searchRule = getSymbolSearchRule(symbol);
-            if (searchRule == null) {
-                logger.warn("Could not get symbol search rule at ({}, {}), for symbol {}", params.getPosition().getLine(), params.getPosition().getCharacter(), symbol);
-                return null;
-            }
+        Predicate<TerminalNode> searchRule = getSymbolSearchRule(symbol);
+        if (searchRule == null) {
+            return Optional.empty();
+        }
 
-
-            List<Location> result = getSearchingScope(symbol, unit).stream().parallel().flatMap(cu -> {
-                        String uri = cu.getPath().toUri().toString();
-                        return searchPossible(searchRule, cu.getParseTree())
-                                .stream().parallel().filter(cst -> {
-                                    Collection<Symbol> symbols = SymbolResolver.lookupSymbol(cst, unit);
-                                    return symbols.stream().anyMatch(it -> Objects.equals(it, symbol));
-                                })
-                                .map(it -> toLocation(uri, it));
-                    }
-            ).toList();
-
-            sw.stop();
-            logger.info("Found {} references [{}]", result.size(), sw.getFormattedMillis());
-            return result;
-        })).orElseGet(ReferencesProvider::empty);
+        List<Location> list = getSearchingScope(symbol, unit).stream().parallel()
+                .flatMap(cu -> {
+                            String uri = cu.getPath().toUri().toString();
+                            return searchPossible(searchRule, cu.getParseTree()).stream().parallel().filter(cst -> {
+                                Collection<Symbol> symbols = SymbolResolver.lookupSymbol(cst, unit);
+                                return symbols.stream().anyMatch(it -> Objects.equals(it, symbol));
+                            }).map(it -> toLocation(uri, it));
+                        }
+                ).toList();
+        if (list.isEmpty()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(list);
+        }
     }
-
 
     public static CompletableFuture<List<? extends Location>> empty() {
         return CompletableFuture.completedFuture(null);

@@ -4,9 +4,9 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.Visitor;
 import raylras.zen.model.parser.ZenScriptParser.*;
-import raylras.zen.model.Document;
 import raylras.zen.util.ArrayStack;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Ranges;
@@ -14,20 +14,23 @@ import raylras.zen.util.Stack;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 public final class DocumentSymbolProvider {
 
     private DocumentSymbolProvider() {}
 
-    public static CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(Document doc, DocumentSymbolParams params) {
-        return doc.getUnit().map(unit -> CompletableFuture.supplyAsync(() -> {
-            DocumentSymbolVisitor visitor = new DocumentSymbolVisitor();
-            unit.getParseTree().accept(visitor);
-            return visitor.topLevelSymbolList.stream()
+    public static Optional<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(CompilationUnit unit, DocumentSymbolParams params) {
+        DocumentSymbolVisitor visitor = new DocumentSymbolVisitor();
+        unit.getParseTree().accept(visitor);
+        if (visitor.topLevelSymbolList.isEmpty()) {
+            return Optional.empty();
+        } else {
+            return Optional.of(visitor.topLevelSymbolList.stream()
                     .map(Either::<SymbolInformation, DocumentSymbol>forRight)
-                    .toList();
-        })).orElseGet(DocumentSymbolProvider::empty);
+                    .toList());
+        }
     }
 
     public static CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> empty() {
