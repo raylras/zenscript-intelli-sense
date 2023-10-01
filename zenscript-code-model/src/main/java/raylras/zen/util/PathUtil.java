@@ -67,10 +67,11 @@ public final class PathUtil {
             MessageDigest sha1 = MessageDigest.getInstance("SHA-1");
             byte[] bytes = path.toString().getBytes(StandardCharsets.UTF_8);
             BigInteger hash = new BigInteger(1, sha1.digest(bytes));
-            return hash.toString(16);
+            String hex = hash.toString(16);
+            return "0".repeat(40 - hex.length()) + hex;
         } catch (NoSuchAlgorithmException e) {
             // Should never happen
-            return "0";
+            return "0".repeat(40);
         }
     }
 
