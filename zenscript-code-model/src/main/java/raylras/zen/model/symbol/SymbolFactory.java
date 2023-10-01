@@ -75,7 +75,7 @@ public class SymbolFactory {
             }
 
             @Override
-            public Collection<Symbol> getSymbols() {
+            public Collection<? extends Symbol> getSymbols() {
                 return SymbolResolver.lookupSymbol(cst.qualifiedName(), unit);
             }
         }

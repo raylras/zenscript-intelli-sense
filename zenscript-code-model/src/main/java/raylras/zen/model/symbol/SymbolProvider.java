@@ -7,14 +7,14 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public interface SymbolProvider extends Iterable<Symbol> {
+public interface SymbolProvider<T extends Symbol> extends Iterable<T> {
 
-    Collection<Symbol> getSymbols();
+    Collection<T> getSymbols();
 
-    SymbolProvider EMPTY = Collections::emptyList;
+    SymbolProvider<Symbol> EMPTY = Collections::emptyList;
 
-    static SymbolProvider of(Collection<? extends Symbol> symbols) {
-        return () -> symbols.stream().map(Symbol.class::cast).toList();
+    static <T extends Symbol> SymbolProvider<T> of(Collection<T> symbols) {
+        return () -> symbols;
     }
 
     default Symbol getFirst() {
@@ -25,17 +25,17 @@ public interface SymbolProvider extends Iterable<Symbol> {
         }
     }
 
-    default SymbolProvider filter(Predicate<Symbol> predicate) {
+    default SymbolProvider<T> filter(Predicate<T> predicate) {
         return () -> getSymbols().stream().filter(predicate).toList();
     }
 
-    default SymbolProvider addAll(Collection<? extends Symbol> others) {
+    default SymbolProvider<Symbol> addAll(Collection<? extends Symbol> others) {
         Collection<Symbol> symbols = new ArrayList<>(getSymbols());
         symbols.addAll(others);
         return of(symbols);
     }
 
-    default SymbolProvider orElse(Collection<Symbol> others) {
+    default SymbolProvider<T> orElse(Collection<T> others) {
         return isNotEmpty() ? this : of(others);
     }
 
@@ -51,20 +51,20 @@ public interface SymbolProvider extends Iterable<Symbol> {
         return !isEmpty();
     }
 
-    default Stream<Symbol> stream() {
+    default Stream<T> stream() {
         return getSymbols().stream();
     }
 
-    default SymbolProvider withExpands(CompilationEnvironment env) {
+    default SymbolProvider<Symbol> withExpands(CompilationEnvironment env) {
+        Collection<Symbol> result = new ArrayList<>(getSymbols());
         if (this instanceof Type type) {
-            return addAll(env.getExpands(type));
-        } else {
-            return this;
+            result.addAll(env.getExpands(type));
         }
+        return of(result);
     }
 
     @Override
-    default Iterator<Symbol> iterator() {
+    default Iterator<T> iterator() {
         return getSymbols().iterator();
     }
 

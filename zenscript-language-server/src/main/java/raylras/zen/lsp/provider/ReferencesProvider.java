@@ -50,7 +50,7 @@ public class ReferencesProvider {
                 .flatMap(cu -> {
                             String uri = cu.getPath().toUri().toString();
                             return searchPossible(searchRule, cu.getParseTree()).stream().parallel().filter(cst -> {
-                                Collection<Symbol> symbols = SymbolResolver.lookupSymbol(cst, unit);
+                                Collection<? extends Symbol> symbols = SymbolResolver.lookupSymbol(cst, unit);
                                 return symbols.stream().anyMatch(it -> Objects.equals(it, symbol));
                             }).map(it -> toLocation(uri, it));
                         }

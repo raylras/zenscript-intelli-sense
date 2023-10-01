@@ -17,10 +17,10 @@ public class Symbols {
     }
 
     public static List<Executable> getExecutableMembersByName(Type type, String simpleName, CompilationEnvironment env) {
-        if (!(type instanceof SymbolProvider symbolProvider)) {
+        if (!(type instanceof SymbolProvider<?> provider)) {
             return Collections.emptyList();
         }
-        return symbolProvider.withExpands(env).getSymbols().stream()
+        return provider.withExpands(env).getSymbols().stream()
                 .filter(it -> it.getName().equals(simpleName))
                 .filter(Executable.class::isInstance)
                 .map(Executable.class::cast)
@@ -29,10 +29,10 @@ public class Symbols {
 
     public static <T extends Symbol> List<T> getMember(Type type, Class<T> clazz, CompilationEnvironment env, Predicate<T> filter) {
 
-        if (!(type instanceof SymbolProvider symbolProvider)) {
+        if (!(type instanceof SymbolProvider<?> provider)) {
             return Collections.emptyList();
         }
-        return symbolProvider.withExpands(env).getSymbols().stream()
+        return provider.withExpands(env).getSymbols().stream()
                 .filter(clazz::isInstance)
                 .map(clazz::cast)
                 .filter(filter)

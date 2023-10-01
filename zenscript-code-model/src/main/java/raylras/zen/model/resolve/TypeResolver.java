@@ -315,12 +315,12 @@ public final class TypeResolver {
         @Override
         public Type visitMemberAccessExpr(MemberAccessExprContext ctx) {
             Type leftType = visit(ctx.expression());
-            if (!(leftType instanceof SymbolProvider symbolProvider)) {
+            if (!(leftType instanceof SymbolProvider<?> provider)) {
                 return null;
             }
             if (ctx.simpleName() != null) {
                 String simpleName = ctx.simpleName().getText();
-                for (Symbol member : symbolProvider.withExpands(unit.getEnv())) {
+                for (Symbol member : provider.withExpands(unit.getEnv())) {
                     if (Objects.equals(member.getName(), simpleName)) {
                         return member.getType();
                     }
