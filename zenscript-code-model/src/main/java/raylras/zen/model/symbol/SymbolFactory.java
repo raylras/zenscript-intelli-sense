@@ -76,7 +76,7 @@ public class SymbolFactory {
 
             @Override
             public Collection<Symbol> getSymbols() {
-                return SymbolResolver.lookupSymbol(cst, unit);
+                return SymbolResolver.lookupSymbol(cst.qualifiedName(), unit);
             }
         }
         return new ImportSymbolImpl();
@@ -190,7 +190,7 @@ public class SymbolFactory {
 
             @Override
             public Type getType() {
-                return TypeResolver.getType(cst, unit);
+                return TypeResolver.getType(cst, unit).orElse(AnyType.INSTANCE);
             }
 
             @Override
@@ -255,8 +255,10 @@ public class SymbolFactory {
 
             @Override
             public FunctionType getType() {
-                Type type = TypeResolver.getType(cst, unit);
-                return (type instanceof FunctionType) ? (FunctionType) type : new FunctionType(AnyType.INSTANCE);
+                return TypeResolver.getType(cst, unit)
+                        .filter(FunctionType.class::isInstance)
+                        .map(FunctionType.class::cast)
+                        .orElse(new FunctionType(AnyType.INSTANCE));
             }
 
             @Override
@@ -358,8 +360,10 @@ public class SymbolFactory {
 
             @Override
             public FunctionType getType() {
-                Type type = TypeResolver.getType(cst, unit);
-                return (type instanceof FunctionType) ? (FunctionType) type : new FunctionType(AnyType.INSTANCE);
+                return TypeResolver.getType(cst, unit)
+                        .filter(FunctionType.class::isInstance)
+                        .map(FunctionType.class::cast)
+                        .orElse(new FunctionType(AnyType.INSTANCE));
             }
 
             @Override
@@ -480,7 +484,7 @@ public class SymbolFactory {
 
             @Override
             public Type getType() {
-                return TypeResolver.getType(cst, unit);
+                return TypeResolver.getType(cst, unit).orElse(AnyType.INSTANCE);
             }
 
             @Override
@@ -529,7 +533,7 @@ public class SymbolFactory {
 
             @Override
             public Type getExpandingType() {
-                return TypeResolver.getType(cst.typeLiteral(), unit);
+                return TypeResolver.getType(cst.typeLiteral(), unit).orElse(null);
             }
 
             @Override
@@ -549,8 +553,10 @@ public class SymbolFactory {
 
             @Override
             public FunctionType getType() {
-                Type type = TypeResolver.getType(cst, unit);
-                return (type instanceof FunctionType) ? (FunctionType) type : new FunctionType(AnyType.INSTANCE);
+                return TypeResolver.getType(cst, unit)
+                        .filter(FunctionType.class::isInstance)
+                        .map(FunctionType.class::cast)
+                        .orElse(new FunctionType(AnyType.INSTANCE));
             }
 
             @Override
@@ -683,8 +689,10 @@ public class SymbolFactory {
 
             @Override
             public FunctionType getType() {
-                Type type = TypeResolver.getType(cst, unit);
-                return (type instanceof FunctionType) ? (FunctionType) type : new FunctionType(AnyType.INSTANCE);
+                return TypeResolver.getType(cst, unit)
+                        .filter(FunctionType.class::isInstance)
+                        .map(FunctionType.class::cast)
+                        .orElse(new FunctionType(AnyType.INSTANCE));
             }
 
             @Override

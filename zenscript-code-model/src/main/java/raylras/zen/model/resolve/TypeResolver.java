@@ -24,46 +24,15 @@ public final class TypeResolver {
     private TypeResolver() {
     }
 
-    public static Type getType(ParseTree cst, CompilationUnit unit) {
-        Objects.requireNonNull(cst);
-        Objects.requireNonNull(unit);
-        Type type = cst.accept(new TypeVisitor(unit));
-        return type == null ? AnyType.INSTANCE : type;
+    public static Optional<Type> getType(ParseTree cst, CompilationUnit unit) {
+        return Optional.ofNullable(cst).map(it -> it.accept(new TypeVisitor(unit)));
     }
 
     private static final class TypeVisitor extends Visitor<Type> {
-        private final CompilationUnit unit;
+        final CompilationUnit unit;
 
-        public TypeVisitor(CompilationUnit unit) {
+        TypeVisitor(CompilationUnit unit) {
             this.unit = unit;
-        }
-
-        private List<Type> toTypeList(FormalParameterListContext ctx) {
-            return ctx.formalParameter().stream()
-                    .map(this::visit)
-                    .collect(Collectors.toList());
-        }
-
-        private List<Type> toTypeList(TypeLiteralListContext ctx) {
-            return ctx.typeLiteral().stream()
-                    .map(this::visit)
-                    .collect(Collectors.toList());
-        }
-
-        private Symbol lookupSymbol(ParseTree cst, String simpleName) {
-            Scope scope = unit.lookupScope(cst);
-            Symbol symbol = null;
-            if (scope != null) {
-                symbol = scope.lookupSymbol(simpleName);
-            }
-            if (symbol == null) {
-                for (Symbol globalSymbol : unit.getEnv().getGlobalSymbols()) {
-                    if (simpleName.equals(globalSymbol.getName())) {
-                        symbol = globalSymbol;
-                    }
-                }
-            }
-            return symbol;
         }
 
         @Override
@@ -253,24 +222,6 @@ public final class TypeResolver {
         }
 
         @Override
-        public Type visitCompareExpr(CompareExprContext ctx) {
-            Type leftType = visit(ctx.left);
-            Type result = Operators.getBinaryOperatorResult(leftType, Operator.COMPARE, unit.getEnv(), visit(ctx.right));
-            if (IntType.INSTANCE.equals(result)) {
-                return BoolType.INSTANCE;
-            }
-            if (ctx.EQUAL() != null || ctx.NOT_EQUAL() != null) {
-                return Operators.getBinaryOperatorResult(leftType, Operator.EQUALS, unit.getEnv(), visit(ctx.right));
-            }
-            return AnyType.INSTANCE;
-        }
-
-        @Override
-        public Type visitLogicExpr(LogicExprContext ctx) {
-            return visit(ctx.left);
-        }
-
-        @Override
         public Type visitParensExpr(ParensExprContext ctx) {
             return visit(ctx.expression());
         }
@@ -357,6 +308,11 @@ public final class TypeResolver {
         }
 
         @Override
+        public Type visitLogicExpr(LogicExprContext ctx) {
+            return visit(ctx.left);
+        }
+
+        @Override
         public Type visitMemberAccessExpr(MemberAccessExprContext ctx) {
             Type leftType = visit(ctx.expression());
             if (!(leftType instanceof SymbolProvider symbolProvider)) {
@@ -413,6 +369,19 @@ public final class TypeResolver {
         public Type visitMemberIndexExpr(MemberIndexExprContext ctx) {
             Type leftType = visit(ctx.left);
             return Operators.getBinaryOperatorResult(leftType, Operator.INDEX_GET, unit.getEnv(), visit(ctx.index));
+        }
+
+        @Override
+        public Type visitCompareExpr(CompareExprContext ctx) {
+            Type leftType = visit(ctx.left);
+            Type result = Operators.getBinaryOperatorResult(leftType, Operator.COMPARE, unit.getEnv(), visit(ctx.right));
+            if (IntType.INSTANCE.equals(result)) {
+                return BoolType.INSTANCE;
+            }
+            if (ctx.EQUAL() != null || ctx.NOT_EQUAL() != null) {
+                return Operators.getBinaryOperatorResult(leftType, Operator.EQUALS, unit.getEnv(), visit(ctx.right));
+            }
+            return AnyType.INSTANCE;
         }
 
         @Override
@@ -488,7 +457,31 @@ public final class TypeResolver {
             return null;
         }
 
-        private Type getListForeachVariableType(Type elementType, ForeachVariableContext variable, List<ForeachVariableContext> variables) {
+        Symbol lookupSymbol(ParseTree cst, String simpleName) {
+            Scope scope = unit.lookupScope(cst);
+            Symbol symbol = null;
+            if (scope != null) {
+                symbol = scope.lookupSymbol(simpleName);
+            }
+            if (symbol == null) {
+                for (Symbol globalSymbol : unit.getEnv().getGlobalSymbols()) {
+                    if (simpleName.equals(globalSymbol.getName())) {
+                        symbol = globalSymbol;
+                    }
+                }
+            }
+            return symbol;
+        }
+
+        List<Type> toTypeList(FormalParameterListContext ctx) {
+            return ctx.formalParameter().stream().map(this::visit).toList();
+        }
+
+        List<Type> toTypeList(TypeLiteralListContext ctx) {
+            return ctx.typeLiteral().stream().map(this::visit).toList();
+        }
+
+        Type getListForeachVariableType(Type elementType, ForeachVariableContext variable, List<ForeachVariableContext> variables) {
             int total = variables.size();
             int index = variables.indexOf(variable);
             if (total == 1) {
@@ -500,7 +493,7 @@ public final class TypeResolver {
             return null;
         }
 
-        private Type getMapForeachVariableType(MapType mapType, ForeachVariableContext variable, List<ForeachVariableContext> variables) {
+        Type getMapForeachVariableType(MapType mapType, ForeachVariableContext variable, List<ForeachVariableContext> variables) {
             int total = variables.size();
             int index = variables.indexOf(variable);
             if (total == 1) {

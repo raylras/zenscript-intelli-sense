@@ -7,6 +7,7 @@ import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
+import raylras.zen.bracket.BracketHandlerEntry;
 import raylras.zen.bracket.BracketHandlerService;
 import raylras.zen.lsp.provider.data.Keywords;
 import raylras.zen.lsp.provider.data.Snippet;
@@ -17,8 +18,11 @@ import raylras.zen.model.parser.ZenScriptParser;
 import raylras.zen.model.parser.ZenScriptParser.*;
 import raylras.zen.model.resolve.TypeResolver;
 import raylras.zen.model.scope.Scope;
-import raylras.zen.model.symbol.*;
-import raylras.zen.model.type.*;
+import raylras.zen.model.symbol.Executable;
+import raylras.zen.model.symbol.Symbol;
+import raylras.zen.model.symbol.SymbolProvider;
+import raylras.zen.model.type.ClassType;
+import raylras.zen.model.type.Type;
 import raylras.zen.util.Position;
 import raylras.zen.util.Range;
 import raylras.zen.util.*;
@@ -28,7 +32,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 public final class CompletionProvider {
@@ -46,19 +49,15 @@ public final class CompletionProvider {
         }
     }
 
-    public static CompletableFuture<Either<List<CompletionItem>, CompletionList>> empty() {
-        return CompletableFuture.completedFuture(null);
-    }
-
     private static final class CompletionVisitor extends Visitor<Void> {
-        private final Position cursor;
-        private final ParseTree tailing;
-        private final TerminalNode leading;
-        private final String text;
-        private final CompilationUnit unit;
-        private final List<CompletionItem> completionList = new ArrayList<>();
+        final Position cursor;
+        final ParseTree tailing;
+        final TerminalNode leading;
+        final String text;
+        final CompilationUnit unit;
+        final List<CompletionItem> completionList = new ArrayList<>();
 
-        private CompletionVisitor(CompilationUnit unit, CompletionParams params) {
+        CompletionVisitor(CompilationUnit unit, CompletionParams params) {
             this.cursor = Position.of(params.getPosition());
             this.tailing = CSTNodes.getCstAtPosition(unit.getParseTree(), cursor);
             this.leading = CSTNodes.getPrevTerminal(unit.getTokenStream(), tailing);
@@ -119,7 +118,7 @@ public final class CompletionProvider {
             // name as text|
             //      ^^ ____
             if (containsLeading(ctx.AS())) {
-                completeTypeSymbols(text);
+                completeTypes(text);
                 return null;
             }
 
@@ -360,23 +359,25 @@ public final class CompletionProvider {
 
         @Override
         public Void visitMemberAccessExpr(MemberAccessExprContext ctx) {
-            ExpressionContext expression = ctx.expression();
+            ExpressionContext expr = ctx.expression();
 
             // expr.text|
             //     ^____
             if (containsLeading(ctx.DOT())) {
-                Type type = TypeResolver.getType(expression, unit);
-                completeMembers(text, type);
-                completeMemberAccessSnippets(type, ctx);
+                TypeResolver.getType(expr, unit).ifPresent(type -> {
+                    completeMembers(text, type);
+                    completeMemberAccessSnippets(type, ctx);
+                });
                 return null;
             }
 
             // expr.|
             // ^^^^_
-            if (containsLeading(expression)) {
-                Type type = TypeResolver.getType(expression, unit);
-                completeMembers("", type);
-                completeMemberAccessSnippets(type, ctx);
+            if (containsLeading(expr)) {
+                TypeResolver.getType(expr, unit).ifPresent(type -> {
+                    completeMembers("", type);
+                    completeMemberAccessSnippets(type, ctx);
+                });
                 return null;
             }
 
@@ -444,15 +445,15 @@ public final class CompletionProvider {
             return null;
         }
 
-        private boolean containsLeading(Token token) {
+        boolean containsLeading(Token token) {
             return Ranges.contains(token, leading);
         }
 
-        private boolean containsLeading(ParseTree cst) {
+        boolean containsLeading(ParseTree cst) {
             return Ranges.contains(cst, leading);
         }
 
-        private boolean containsLeading(List<? extends ParseTree> cstList) {
+        boolean containsLeading(List<? extends ParseTree> cstList) {
             for (ParseTree cst : cstList) {
                 if (Ranges.contains(cst, leading)) {
                     return true;
@@ -461,11 +462,11 @@ public final class CompletionProvider {
             return false;
         }
 
-        private boolean containsTailing(ParseTree cst) {
+        boolean containsTailing(ParseTree cst) {
             return Ranges.contains(cst, tailing);
         }
 
-        private boolean containsTailing(List<? extends ParseTree> cstList) {
+        boolean containsTailing(List<? extends ParseTree> cstList) {
             for (ParseTree cst : cstList) {
                 if (Ranges.contains(cst, tailing)) {
                     return true;
@@ -474,7 +475,7 @@ public final class CompletionProvider {
             return false;
         }
 
-        private String getTextUntilCursor(ParseTree cst) {
+        String getTextUntilCursor(ParseTree cst) {
             Range range = Range.of(cst);
             if (range.start().line() != cursor.line()) {
                 return "";
@@ -487,87 +488,93 @@ public final class CompletionProvider {
             return "";
         }
 
-        private void completeImports(String text) {
+        void completeImports(String text) {
             PackageTree<ClassType> tree = PackageTree.of(".", unit.getEnv().getClassTypeMap());
             tree.complete(text).forEach((key, subTree) -> {
-                CompletionItem completionItem = new CompletionItem(key);
-                completionItem.setKind(subTree.hasElement() ? CompletionItemKind.Class : CompletionItemKind.Module);
-                completionList.add(completionItem);
+                CompletionItem item = new CompletionItem(key);
+                item.setKind(subTree.hasElement() ? CompletionItemKind.Class : CompletionItemKind.Module);
+                addToCompletionList(item);
             });
         }
 
-        private void completeLocalSymbols(String text) {
+        void completeLocalSymbols(String text) {
             Scope scope = unit.lookupScope(tailing);
             while (scope != null) {
-                for (Symbol symbol : scope.getSymbols()) {
-                    if (TextSimilarity.isSubsequence(text, symbol.getName())) {
-                        addToCompletionList(symbol);
-                    }
-                }
+                scope.getSymbols().stream()
+                        .filter(symbol -> TextSimilarity.isSubsequence(text, symbol.getName()))
+                        .map(this::createCompletionItem)
+                        .forEach(this::addToCompletionList);
                 scope = scope.getParent();
             }
         }
 
-        private void completeGlobalSymbols(String text) {
+        void completeGlobalSymbols(String text) {
             unit.getEnv().getGlobalSymbols().stream()
                     .filter(symbol -> TextSimilarity.isSubsequence(text, symbol.getName()))
+                    .map(this::createCompletionItem)
                     .forEach(this::addToCompletionList);
         }
 
-        private void completeMembers(String text, Type type) {
-            if (type instanceof SymbolProvider memberProvider) {
-                memberProvider.withExpands(unit.getEnv()).stream()
+        void completeMembers(String text, Type type) {
+            if (type instanceof SymbolProvider provider) {
+                provider.withExpands(unit.getEnv()).stream()
                         .filter(symbol -> TextSimilarity.isSubsequence(text, symbol.getName()))
-                        .filter(this::shouldAddedToCompletion)
+                        .filter(this::shouldCreateCompletionItem)
+                        .map(this::createCompletionItem)
                         .forEach(this::addToCompletionList);
             }
         }
 
-        private void completeTypeSymbols(String text) {
-            unit.getTopLevelSymbols().stream()
-                    .filter(ImportSymbol.class::isInstance)
+        void completeTypes(String text) {
+            unit.getImports().stream()
                     .filter(symbol -> TextSimilarity.isSubsequence(text, symbol.getName()))
+                    .map(this::createCompletionItem)
                     .forEach(this::addToCompletionList);
         }
 
-        private void completeKeywords(String text, String... keywords) {
+        void completeKeywords(String text, String... keywords) {
             Arrays.stream(keywords)
                     .filter(keyword -> TextSimilarity.isSubsequence(text, keyword))
+                    .map(this::createCompletionItem)
                     .forEach(this::addToCompletionList);
         }
 
-        private void completeBracketHandlers(String text) {
+        void completeBracketHandlers(String text) {
             BracketHandlerService bracketService = unit.getEnv().getBracketHandlerService();
             bracketService.getEntriesLocal().stream()
                     .filter(entry -> TextSimilarity.isSubsequence(text, entry.getFirst("_id").orElse("")))
-                    .forEach(entry -> {
-                        CompletionItem item = new CompletionItem(entry.getFirst("_id").orElse(null));
-                        item.setKind(CompletionItemKind.Value);
-                        CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
-                        labelDetails.setDescription(entry.getFirst("_name").orElse(""));
-                        item.setLabelDetails(labelDetails);
-                        item.setSortText(labelDetails.getDescription());
-                        completionList.add(item);
-                    });
+                    .map(this::createCompletionItem)
+                    .forEach(this::addToCompletionList);
         }
 
-//        private void completeBracketHandler(String text, BracketHandler bracketHandler) {
-//            bracketHandler.getMembers().complete(text).forEach((key, subTree) -> {
-//                CompletionItem completionItem = new CompletionItem(key);
-//                if (subTree.hasElement()) {
-//                    completionItem.setKind(CompletionItemKind.Value);
-//                    completionItem.setDetail(bracketHandler.getMemberDetails(subTree.getElement()));
-//                } else {
-//                    completionItem.setKind(CompletionItemKind.Module);
-//                }
-//                completionList.add(completionItem);
-//            });
-//        }
+        void completeMemberAccessSnippets(Type type, MemberAccessExprContext ctx) {
+            completeSnippet(Snippet.dotFor(type, unit.getEnv(), ctx));
+            completeSnippet(Snippet.dotForI(type, unit.getEnv(), ctx));
+            completeSnippet(Snippet.dotIfNull(type, ctx));
+            completeSnippet(Snippet.dotIfNotNull(type, ctx));
+            completeSnippet(Snippet.dotVal(ctx));
+            completeSnippet(Snippet.dotVar(ctx));
+        }
 
-        private void addToCompletionList(Symbol symbol) {
+        void completeSnippet(Snippet snippet) {
+            CompletionItem item = snippet.get();
+            if (item != null) {
+                item.setKind(CompletionItemKind.Snippet);
+                addToCompletionList(item);
+            }
+        }
+
+        boolean shouldCreateCompletionItem(Symbol symbol) {
+            return switch (symbol.getKind()) {
+                case FUNCTION, VARIABLE, PARAMETER -> true;
+                default -> false;
+            };
+        }
+
+        CompletionItem createCompletionItem(Symbol symbol) {
             CompletionItem item = new CompletionItem(symbol.getName());
             item.setKind(toCompletionKind(symbol));
-            item.setLabelDetails(getLabelDetails(symbol));
+            item.setLabelDetails(createLabelDetails(symbol));
             if (symbol instanceof Executable executable) {
                 item.setInsertTextFormat(InsertTextFormat.Snippet);
                 if (executable.getParameterList().isEmpty()) {
@@ -575,58 +582,28 @@ public final class CompletionProvider {
                 } else {
                     item.setInsertText(item.getLabel() + "($1)");
                 }
-                if (executable.getReturnType() == VoidType.INSTANCE) {
-                    item.setInsertText(item.getInsertText() + ";");
-                }
             }
-            completionList.add(item);
+            return item;
         }
 
-        /**
-         * @deprecated Use {@link #addToCompletionList(Symbol)} instead.
-         */
-        @Deprecated
-        private void addToCompletionList(Symbol symbol, String detail) {
-            CompletionItem item = new CompletionItem(symbol.getName());
-            item.setKind(toCompletionKind(symbol));
-            item.setDetail(detail);
-            completionList.add(item);
-        }
-
-        private void addToCompletionList(String keyword) {
+        CompletionItem createCompletionItem(String keyword) {
             CompletionItem item = new CompletionItem(keyword);
             item.setDetail(L10N.getString("completion.keyword"));
             item.setKind(CompletionItemKind.Keyword);
-            completionList.add(item);
+            return item;
         }
 
-        private CompletionItemKind toCompletionKind(Symbol symbol) {
-            return switch (symbol.getKind()) {
-                case IMPORT, CLASS -> CompletionItemKind.Class;
-                case FUNCTION -> CompletionItemKind.Function;
-                case VARIABLE, PARAMETER -> CompletionItemKind.Variable;
-                default -> null;
-            };
+        CompletionItem createCompletionItem(BracketHandlerEntry entry) {
+            CompletionItem item = new CompletionItem(entry.getFirst("_id").orElse(null));
+            item.setKind(CompletionItemKind.Value);
+            CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
+            labelDetails.setDescription(entry.getFirst("_name").orElse(""));
+            item.setLabelDetails(labelDetails);
+            item.setSortText(labelDetails.getDescription());
+            return item;
         }
 
-        private CompletionItemKind toCompletionKind(Type type) {
-            if (type instanceof ClassType) {
-                return CompletionItemKind.Class;
-            }
-            if (type instanceof FunctionType) {
-                return CompletionItemKind.Function;
-            }
-            return CompletionItemKind.Variable;
-        }
-
-        private boolean shouldAddedToCompletion(Symbol symbol) {
-            return switch (symbol.getKind()) {
-                case FUNCTION, VARIABLE, PARAMETER -> true;
-                default -> false;
-            };
-        }
-
-        private CompletionItemLabelDetails getLabelDetails(Symbol symbol) {
+        CompletionItemLabelDetails createLabelDetails(Symbol symbol) {
             if (symbol instanceof Executable executable) {
                 CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
                 String parameterList = executable.getParameterList().stream()
@@ -644,21 +621,17 @@ public final class CompletionProvider {
             }
         }
 
-        private void completeSnippet(Snippet snippet) {
-            CompletionItem completionItem = snippet.get();
-            if (completionItem != null) {
-                completionItem.setKind(CompletionItemKind.Snippet);
-                completionList.add(completionItem);
-            }
+        CompletionItemKind toCompletionKind(Symbol symbol) {
+            return switch (symbol.getKind()) {
+                case IMPORT, CLASS -> CompletionItemKind.Class;
+                case FUNCTION -> CompletionItemKind.Function;
+                case VARIABLE, PARAMETER -> CompletionItemKind.Variable;
+                default -> null;
+            };
         }
 
-        private void completeMemberAccessSnippets(Type type, MemberAccessExprContext ctx) {
-            completeSnippet(Snippet.dotFor(type, unit.getEnv(), ctx));
-            completeSnippet(Snippet.dotForI(type, unit.getEnv(), ctx));
-            completeSnippet(Snippet.dotIfNull(type, ctx));
-            completeSnippet(Snippet.dotIfNotNull(type, ctx));
-            completeSnippet(Snippet.dotVal(ctx));
-            completeSnippet(Snippet.dotVar(ctx));
+        void addToCompletionList(CompletionItem item) {
+            completionList.add(item);
         }
     }
 
