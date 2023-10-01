@@ -1,7 +1,9 @@
 package raylras.zen.model.symbol;
 
 import org.antlr.v4.runtime.tree.ParseTree;
+import raylras.zen.model.CompilationEnvironment;
 import raylras.zen.model.CompilationUnit;
+import raylras.zen.model.Compilations;
 import raylras.zen.model.parser.ZenScriptParser.*;
 import raylras.zen.model.resolve.FormalParameterResolver;
 import raylras.zen.model.resolve.ModifierResolver;
@@ -11,8 +13,10 @@ import raylras.zen.model.scope.Scope;
 import raylras.zen.model.type.*;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Operators;
+import raylras.zen.util.PathUtil;
 import raylras.zen.util.Range;
 
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -706,6 +710,62 @@ public class SymbolFactory {
             }
         }
         return new ConstructorSymbolImpl();
+    }
+
+    public static PackageSymbol createPackageSymbol(Path path, CompilationEnvironment env) {
+        class PackageSymbolImpl implements PackageSymbol, Locatable {
+            @Override
+            public String getName() {
+                return PathUtil.getFileNameWithoutSuffix(path);
+            }
+
+            @Override
+            public Kind getKind() {
+                return Kind.PACKAGE;
+            }
+
+            @Override
+            public Type getType() {
+                return VoidType.INSTANCE;
+            }
+
+            @Override
+            public Modifier getModifier() {
+                return Modifier.NONE;
+            }
+
+            @Override
+            public String getQualifiedName() {
+                return Compilations.extractClassName(env.relativize(path));
+            }
+
+            @Override
+            public Collection<Symbol> getSymbols() {
+                // TODO: getSymbols
+                return null;
+            }
+
+            @Override
+            public Path getPath() {
+                return path;
+            }
+
+            @Override
+            public String getUri() {
+                return path.toUri().toString();
+            }
+
+            @Override
+            public Range getRange() {
+                return Range.NO_RANGE;
+            }
+
+            @Override
+            public Range getSelectionRange() {
+                return Range.NO_RANGE;
+            }
+        }
+        return new PackageSymbolImpl();
     }
 
     public static SymbolsBuilder builtinSymbols() {
