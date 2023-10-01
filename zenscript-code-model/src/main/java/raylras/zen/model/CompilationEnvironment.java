@@ -3,6 +3,7 @@ package raylras.zen.model;
 import raylras.zen.bracket.BracketHandlerService;
 import raylras.zen.model.symbol.ClassSymbol;
 import raylras.zen.model.symbol.ExpandFunctionSymbol;
+import raylras.zen.model.symbol.PackageSymbol;
 import raylras.zen.model.symbol.Symbol;
 import raylras.zen.model.type.*;
 import raylras.zen.util.PathUtil;
@@ -80,6 +81,11 @@ public class CompilationEnvironment {
                 .filter(ClassSymbol.class::isInstance)
                 .map(ClassSymbol.class::cast)
                 .collect(Collectors.toMap(ClassSymbol::getQualifiedName, Function.identity()));
+    }
+
+    public Collection<PackageSymbol> getToplevelPackageSymbol() {
+        // TODO: getToplevelPackageSymbol
+        return Collections.emptyList();
     }
 
     public Path getRoot() {

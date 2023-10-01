@@ -5,10 +5,7 @@ import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.Visitor;
 import raylras.zen.model.parser.ZenScriptParser.*;
 import raylras.zen.model.scope.Scope;
-import raylras.zen.model.symbol.ClassSymbol;
-import raylras.zen.model.symbol.ImportSymbol;
-import raylras.zen.model.symbol.Symbol;
-import raylras.zen.model.symbol.SymbolProvider;
+import raylras.zen.model.symbol.*;
 import raylras.zen.util.Ranges;
 
 import java.util.Collection;
@@ -38,7 +35,7 @@ public final class SymbolResolver {
         }
         SymbolVisitor visitor = new SymbolVisitor(unit, cst);
         visitor.visit(expr);
-        return Collections.unmodifiableCollection(visitor.result);
+        return Collections.unmodifiableCollection(visitor.result.getSymbols());
     }
 
     private static ParseTree findRootExpression(ParseTree cst) {
@@ -56,7 +53,7 @@ public final class SymbolResolver {
     private static class SymbolVisitor extends Visitor<SymbolProvider<? extends Symbol>> {
         final CompilationUnit unit;
         final ParseTree cst;
-        Collection<? extends Symbol> result = Collections.emptyList();
+        SymbolProvider<? extends Symbol> result = SymbolProvider.EMPTY;
 
         SymbolVisitor(CompilationUnit unit, ParseTree cst) {
             this.unit = unit;
@@ -69,11 +66,13 @@ public final class SymbolResolver {
             if (simpleNames.isEmpty()) {
                 return SymbolProvider.EMPTY;
             }
-            SymbolProvider<? extends Symbol> provider = lookupSymbol(ctx, simpleNames.get(0).getText());
+
+            SymbolProvider<? extends Symbol> provider = lookupToplevelPackageSymbol(simpleNames.get(0).getText());
+            updateResult(provider);
             for (int i = 1; i < simpleNames.size(); i++) {
                 provider = accessMember(provider, simpleNames.get(i).getText());
                 if (Ranges.contains(cst, simpleNames.get(i))) {
-                    result = provider.getSymbols();
+                    updateResult(provider);
                 }
             }
             return provider;
@@ -83,7 +82,7 @@ public final class SymbolResolver {
         public SymbolProvider<? extends Symbol> visitSimpleNameExpr(SimpleNameExprContext ctx) {
             SymbolProvider<? extends Symbol> provider = lookupSymbol(ctx, ctx.simpleName().getText());
             if (Ranges.contains(cst, ctx.simpleName())) {
-                result = provider.getSymbols();
+                updateResult(provider);
             }
             return provider;
         }
@@ -107,7 +106,7 @@ public final class SymbolResolver {
                 provider = SymbolProvider.EMPTY;
             }
             if (Ranges.contains(cst, ctx.simpleName())) {
-                result = provider.getSymbols();
+                updateResult(provider);
             }
             return provider;
         }
@@ -115,6 +114,10 @@ public final class SymbolResolver {
         @Override
         protected SymbolProvider<Symbol> defaultResult() {
             return SymbolProvider.EMPTY;
+        }
+
+        void updateResult(SymbolProvider<? extends Symbol> provider) {
+            result = provider;
         }
 
         SymbolProvider<? extends Symbol> lookupSymbol(ParseTree cst, String name) {
@@ -154,6 +157,11 @@ public final class SymbolResolver {
 
         SymbolProvider<Symbol> lookupGlobalSymbol(String name) {
             return SymbolProvider.of(unit.getEnv().getGlobalSymbols())
+                    .filter(isSymbolNameEquals(name));
+        }
+
+        SymbolProvider<PackageSymbol> lookupToplevelPackageSymbol(String name) {
+            return SymbolProvider.of(unit.getEnv().getToplevelPackageSymbol())
                     .filter(isSymbolNameEquals(name));
         }
 
