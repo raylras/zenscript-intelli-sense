@@ -5,7 +5,7 @@ import raylras.zen.model.symbol.ClassSymbol;
 import raylras.zen.model.symbol.ExpandFunctionSymbol;
 import raylras.zen.model.symbol.Symbol;
 import raylras.zen.model.type.*;
-import raylras.zen.util.PathUtils;
+import raylras.zen.util.PathUtil;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
@@ -129,7 +129,7 @@ public class CompilationEnvironment {
         return FileSystems.getDefault()
                 .getPath(System.getProperty("user.home"))
                 .resolve(".probezs")
-                .resolve(PathUtils.toHash(env.getRoot()))
+                .resolve(PathUtil.toHash(env.getRoot()))
                 .resolve(DEFAULT_GENERATED_DIRECTORY);
     }
 

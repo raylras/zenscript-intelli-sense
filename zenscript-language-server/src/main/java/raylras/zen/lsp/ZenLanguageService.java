@@ -11,7 +11,7 @@ import raylras.zen.lsp.provider.*;
 import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.Document;
 import raylras.zen.model.Compilations;
-import raylras.zen.util.PathUtils;
+import raylras.zen.util.PathUtil;
 import raylras.zen.util.StopWatch;
 import raylras.zen.util.Watcher;
 
@@ -35,7 +35,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public void didOpen(DidOpenTextDocumentParams params) {
         try {
-            Path path = PathUtils.toPath(params.getTextDocument().getUri());
+            Path path = PathUtil.toPath(params.getTextDocument().getUri());
             StopWatch stopWatch = StopWatch.createAndStart();
             workspaceManager.createEnvIfNotExists(path);
             stopWatch.stop();
@@ -192,7 +192,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
         StopWatch stopWatch = StopWatch.createAndStart();
         for (FileEvent event : params.getChanges()) {
             try {
-                Path documentPath = PathUtils.toPath(event.getUri());
+                Path documentPath = PathUtil.toPath(event.getUri());
                 workspaceManager.createEnvIfNotExists(documentPath);
                 workspaceManager.getEnv(documentPath).ifPresent(env -> {
                     switch (event.getType()) {
@@ -215,7 +215,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
         }
         stopWatch.stop();
         List<String> changes = params.getChanges().stream()
-                .map(fileEvent -> PathUtils.getFileName(fileEvent.getUri()))
+                .map(fileEvent -> PathUtil.getFileName(fileEvent.getUri()))
                 .toList();
         logger.info("didChangeWatchedFiles {} [{}]", changes, stopWatch.getFormattedMillis());
     }

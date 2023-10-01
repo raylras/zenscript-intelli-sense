@@ -9,7 +9,7 @@ import raylras.zen.model.scope.Scope;
 import raylras.zen.model.symbol.ImportSymbol;
 import raylras.zen.model.symbol.Symbol;
 import raylras.zen.model.symbol.SymbolProvider;
-import raylras.zen.util.PathUtils;
+import raylras.zen.util.PathUtil;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -142,7 +142,7 @@ public class CompilationUnit implements SymbolProvider<Symbol> {
     }
 
     public boolean isGenerated() {
-        return PathUtils.isSubPath(env.getGeneratedRoot(), path);
+        return PathUtil.isSubPath(path, env.getGeneratedRoot());
     }
 
     public Path getRelativePath() {

@@ -1,7 +1,5 @@
 package raylras.zen.util;
 
-import raylras.zen.model.CompilationUnit;
-
 import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URI;
@@ -12,9 +10,9 @@ import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
-public final class PathUtils {
+public final class PathUtil {
 
-    private PathUtils() {}
+    private PathUtil() {}
 
     public static Path toPath(String uri) {
         try {
@@ -24,12 +22,14 @@ public final class PathUtils {
         }
     }
 
-    public static boolean isSubPath(String parentUri, String childUri) {
-        return isSubPath(toPath(parentUri), toPath(childUri));
-    }
-
-    public static boolean isSubPath(Path parent, Path child) {
-        return child.toString().startsWith(parent.toString());
+    /**
+     * Checks if {@code s} is a sub path of {@code p}.
+     * @param s sub path
+     * @param p parent path
+     * @return {@code true} if {@code s} is a sub path of {@code t}
+     */
+    public static boolean isSubPath(Path s, Path p) {
+        return s.toString().startsWith(p.toString());
     }
 
     public static String getFileName(String uri) {
@@ -60,18 +60,6 @@ public final class PathUtils {
             current = current.getParent();
         }
         return null;
-    }
-
-    public static boolean isSourceFile(Path path) {
-        return isZsFile(path) || isDzsFile(path);
-    }
-
-    public static boolean isZsFile(Path path) {
-        return String.valueOf(path).endsWith(CompilationUnit.ZS_FILE_EXTENSION);
-    }
-
-    public static boolean isDzsFile(Path path) {
-        return String.valueOf(path).endsWith(CompilationUnit.DZS_FILE_EXTENSION);
     }
 
     public static String toHash(Path path) {

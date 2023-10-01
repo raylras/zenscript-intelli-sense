@@ -10,7 +10,7 @@ import raylras.zen.model.CompilationEnvironment;
 import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.Document;
 import raylras.zen.model.Compilations;
-import raylras.zen.util.PathUtils;
+import raylras.zen.util.PathUtil;
 import raylras.zen.util.l10n.L10N;
 
 import java.nio.file.Files;
@@ -30,7 +30,7 @@ public class WorkspaceManager {
     private final Set<Workspace> workspaceSet = new HashSet<>();
 
     public Document openAsRead(TextDocumentIdentifier textDocument) {
-        Path path = PathUtils.toPath(textDocument.getUri());
+        Path path = PathUtil.toPath(textDocument.getUri());
         Optional<CompilationUnit> compilationUnit = getUnit(path);
         Optional<ReadLock> readLock = compilationUnit.map(unit -> unit.getEnv().readLock());
         readLock.ifPresent(ReadLock::lock);
@@ -48,7 +48,7 @@ public class WorkspaceManager {
     }
 
     public Document openAsWrite(TextDocumentIdentifier textDocument) {
-        Path path = PathUtils.toPath(textDocument.getUri());
+        Path path = PathUtil.toPath(textDocument.getUri());
         Optional<CompilationUnit> compilationUnit = getUnit(path);
         Optional<WriteLock> writeLock = compilationUnit.map(unit -> unit.getEnv().writeLock());
         writeLock.ifPresent(WriteLock::lock);
@@ -66,17 +66,17 @@ public class WorkspaceManager {
     }
 
     public void addWorkspace(WorkspaceFolder folder) {
-        Path workspacePath = PathUtils.toPath(folder.getUri());
+        Path workspacePath = PathUtil.toPath(folder.getUri());
         workspaceSet.add(new Workspace(workspacePath));
     }
 
     public void removeWorkspace(WorkspaceFolder folder) {
-        Path workspacePath = PathUtils.toPath(folder.getUri());
+        Path workspacePath = PathUtil.toPath(folder.getUri());
         workspaceSet.removeIf(workspace -> workspace.path().equals(workspacePath));
     }
 
     public void createEnvIfNotExists(Path documentPath) {
-        if (PathUtils.isZsFile(documentPath)) {
+        if (Compilations.isZsFile(documentPath)) {
             if (getEnv(documentPath).isEmpty()) {
                 createEnv(documentPath);
             }
@@ -86,7 +86,7 @@ public class WorkspaceManager {
     public void createEnv(Path documentPath) {
         getWorkspace(documentPath).ifPresentOrElse(
                 workspace -> {
-                    Path compilationRoot = PathUtils.findUpwardsOrSelf(documentPath, CompilationEnvironment.DEFAULT_ROOT_DIRECTORY);
+                    Path compilationRoot = PathUtil.findUpwardsOrSelf(documentPath, CompilationEnvironment.DEFAULT_ROOT_DIRECTORY);
                     CompilationEnvironment env = new CompilationEnvironment(compilationRoot);
                     Compilations.load(env);
                     workspace.add(env);
@@ -99,7 +99,7 @@ public class WorkspaceManager {
     public Optional<CompilationEnvironment> getEnv(Path documentPath) {
         return getWorkspace(documentPath).stream()
                 .flatMap(Workspace::stream)
-                .filter(env -> PathUtils.isSubPath(env.getRoot(), documentPath))
+                .filter(env -> PathUtil.isSubPath(documentPath, env.getRoot()))
                 .findFirst();
     }
 
@@ -107,7 +107,7 @@ public class WorkspaceManager {
 
     private Optional<Workspace> getWorkspace(Path documentPath) {
         return workspaceSet.stream()
-                .filter(workspace -> PathUtils.isSubPath(workspace.path, documentPath))
+                .filter(workspace -> PathUtil.isSubPath(documentPath, workspace.path))
                 .findFirst();
     }
 

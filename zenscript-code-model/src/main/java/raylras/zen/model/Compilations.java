@@ -7,7 +7,6 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.model.parser.ZenScriptLexer;
 import raylras.zen.model.parser.ZenScriptParser;
 import raylras.zen.model.resolve.DeclarationResolver;
-import raylras.zen.util.PathUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,10 +14,25 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Stream;
 
 public class Compilations {
+
+    public static boolean isSourceFile(Path path) {
+        return isZsFile(path) || isDzsFile(path);
+    }
+
+    public static boolean isZsFile(Path path) {
+        Objects.requireNonNull(path);
+        return path.toString().endsWith(CompilationUnit.ZS_FILE_EXTENSION);
+    }
+
+    public static boolean isDzsFile(Path path) {
+        Objects.requireNonNull(path);
+        return path.toString().endsWith(CompilationUnit.DZS_FILE_EXTENSION);
+    }
 
     public static void load(CompilationEnvironment env) {
         env.clear();
@@ -81,7 +95,7 @@ public class Compilations {
                     try(Stream<Path> walk = Files.walk(path)) {
                         walk.filter(Files::isRegularFile)
                                 .filter(Files::isReadable)
-                                .filter(PathUtils::isSourceFile)
+                                .filter(Compilations::isSourceFile)
                                 .map(Path::toFile)
                                 .forEach(units::add);
                     } catch (IOException e) {
