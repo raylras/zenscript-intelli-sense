@@ -108,6 +108,16 @@ public class CompilationEnvironment {
         return expands.map(Symbol.class::cast).toList();
     }
 
+    public Path relativize(Path other) {
+        Path root;
+        if (PathUtil.isSubPath(other, generatedRoot)) {
+            root = this.generatedRoot;
+        } else {
+            root = this.root.getParent();
+        }
+        return root.relativize(other);
+    }
+
     public ReentrantReadWriteLock.ReadLock readLock() {
         return readWriteLock.readLock();
     }

@@ -34,7 +34,7 @@ public class CompilationUnit implements SymbolProvider<Symbol> {
     public CompilationUnit(Path path, CompilationEnvironment env) {
         this.path = path;
         this.env = env;
-        this.qualifiedName = extractClassName(getRelativePath());
+        this.qualifiedName = extractClassName(env.relativize(path));
     }
 
     public Scope lookupScope(ParseTree lookupCst) {
@@ -143,16 +143,6 @@ public class CompilationUnit implements SymbolProvider<Symbol> {
 
     public boolean isGenerated() {
         return PathUtil.isSubPath(path, env.getGeneratedRoot());
-    }
-
-    public Path getRelativePath() {
-        Path root;
-        if (isGenerated()) {
-            root = env.getGeneratedRoot();
-        } else {
-            root = env.getRoot().getParent();
-        }
-        return root.relativize(path);
     }
 
     public void clear() {
