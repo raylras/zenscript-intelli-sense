@@ -11,7 +11,6 @@ import raylras.zen.model.symbol.Symbol;
 import raylras.zen.model.symbol.SymbolProvider;
 import raylras.zen.util.PathUtil;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -34,7 +33,7 @@ public class CompilationUnit implements SymbolProvider<Symbol> {
     public CompilationUnit(Path path, CompilationEnvironment env) {
         this.path = path;
         this.env = env;
-        this.qualifiedName = extractClassName(env.relativize(path));
+        this.qualifiedName = Compilations.extractClassName(env.relativize(path));
     }
 
     public Scope lookupScope(ParseTree lookupCst) {
@@ -156,21 +155,6 @@ public class CompilationUnit implements SymbolProvider<Symbol> {
     @Override
     public String toString() {
         return String.valueOf(path);
-    }
-
-    private static String extractClassName(Path path) {
-        String classNameWithSlash = path.toString().replace(File.separatorChar, '/');
-
-        // trim extension
-        int lastDot = classNameWithSlash.lastIndexOf('.');
-        if (lastDot > 0) {
-            classNameWithSlash = classNameWithSlash.substring(0, lastDot);
-        }
-
-        classNameWithSlash = classNameWithSlash.replace(".", "_");
-        classNameWithSlash = classNameWithSlash.replace(" ", "_");
-
-        return classNameWithSlash.replace('/', '.');
     }
 
 }

@@ -34,6 +34,21 @@ public class Compilations {
         return path.toString().endsWith(CompilationUnit.DZS_FILE_EXTENSION);
     }
 
+    public static String extractClassName(Path path) {
+        String classNameWithSlash = path.toString().replace(File.separatorChar, '/');
+
+        // trim extension
+        int lastDot = classNameWithSlash.lastIndexOf('.');
+        if (lastDot > 0) {
+            classNameWithSlash = classNameWithSlash.substring(0, lastDot);
+        }
+
+        classNameWithSlash = classNameWithSlash.replace(".", "_");
+        classNameWithSlash = classNameWithSlash.replace(" ", "_");
+
+        return classNameWithSlash.replace('/', '.');
+    }
+
     public static void load(CompilationEnvironment env) {
         env.clear();
         for (File unitFile : collectUnitFiles(env)) {
