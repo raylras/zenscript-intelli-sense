@@ -21,7 +21,7 @@ public class MemberValidator implements Iterable<Symbol> {
         }
     }
 
-    public void addAll(Iterable<Symbol> other) {
+    public void addAll(Iterable<? extends Symbol> other) {
         other.forEach(this::add);
     }
 

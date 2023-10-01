@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 
-public class MapType extends Type implements SymbolProvider {
+public class MapType extends Type implements SymbolProvider<Symbol> {
 
     private final Type keyType;
     private final Type valueType;

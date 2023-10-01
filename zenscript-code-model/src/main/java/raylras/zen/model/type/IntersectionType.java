@@ -8,7 +8,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class IntersectionType extends Type implements SymbolProvider {
+public class IntersectionType extends Type implements SymbolProvider<Symbol> {
 
     private final List<Type> typeList;
 
@@ -20,8 +20,8 @@ public class IntersectionType extends Type implements SymbolProvider {
     public Collection<Symbol> getSymbols() {
         MemberValidator validator = new MemberValidator();
         for (Type type : typeList) {
-            if (type instanceof SymbolProvider symbolProvider) {
-                validator.addAll(symbolProvider);
+            if (type instanceof SymbolProvider<?> provider) {
+                validator.addAll(provider);
             }
         }
         return validator.getMembers();

@@ -31,14 +31,14 @@ public final class SymbolResolver {
     private SymbolResolver() {
     }
 
-    public static Collection<? extends Symbol> lookupSymbol(ParseTree cst, CompilationUnit unit) {
+    public static Collection<Symbol> lookupSymbol(ParseTree cst, CompilationUnit unit) {
         ParseTree expr = findRootExpression(cst);
         if (expr == null) {
             return Collections.emptyList();
         }
         SymbolVisitor visitor = new SymbolVisitor(unit, cst);
         visitor.visit(expr);
-        return visitor.result;
+        return Collections.unmodifiableCollection(visitor.result);
     }
 
     private static ParseTree findRootExpression(ParseTree cst) {

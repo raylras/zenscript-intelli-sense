@@ -8,7 +8,7 @@ import raylras.zen.model.symbol.SymbolFactory;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
-public class IntRangeType extends Type implements SymbolProvider {
+public class IntRangeType extends Type implements SymbolProvider<Symbol> {
 
     public static final IntRangeType INSTANCE = new IntRangeType();
 
