@@ -320,7 +320,7 @@ public final class TypeResolver {
             }
             if (ctx.simpleName() != null) {
                 String simpleName = ctx.simpleName().getText();
-                for (Symbol member : provider.withExpands(unit.getEnv())) {
+                for (Symbol member : provider.withExpands(unit.getEnv()).getSymbols()) {
                     if (Objects.equals(member.getName(), simpleName)) {
                         return member.getType();
                     }
@@ -431,16 +431,19 @@ public final class TypeResolver {
         public Type visitClassType(ClassTypeContext ctx) {
             List<ImportSymbol> imports = unit.getImports();
             String qualifiedName = ctx.qualifiedName().getText();
-            ImportSymbol symbolImport = imports.stream()
+            Collection<Symbol> symbols = imports.stream()
                     .filter(symbol -> symbol.getName().equals(qualifiedName))
                     .findFirst()
-                    .orElse(null);
-            if (symbolImport != null) {
-                if (symbolImport.size() == 1) {
-                    return symbolImport.getFirst().getType();
-                }
+                    .map(ImportSymbol::getSymbols)
+                    .orElseGet(Collections::emptyList);
+            if (symbols.size() == 1) {
+                return symbols.stream()
+                        .findFirst()
+                        .map(Symbol::getType)
+                        .orElse(AnyType.INSTANCE);
+            } else {
+                return AnyType.INSTANCE;
             }
-            return AnyType.INSTANCE;
         }
 
         @Override

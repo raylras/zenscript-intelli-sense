@@ -21,7 +21,7 @@ public class IntersectionType extends Type implements SymbolProvider {
         MemberValidator validator = new MemberValidator();
         for (Type type : typeList) {
             if (type instanceof SymbolProvider provider) {
-                validator.addAll(provider);
+                validator.addAll(provider.getSymbols());
             }
         }
         return validator.getMembers();

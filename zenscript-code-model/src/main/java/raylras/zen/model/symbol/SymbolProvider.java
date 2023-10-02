@@ -3,69 +3,30 @@ package raylras.zen.model.symbol;
 import raylras.zen.model.CompilationEnvironment;
 import raylras.zen.model.type.Type;
 
-import java.util.*;
-import java.util.function.Predicate;
-import java.util.stream.Stream;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 
-public interface SymbolProvider extends Iterable<Symbol> {
+public interface SymbolProvider {
 
     Collection<Symbol> getSymbols();
 
-    SymbolProvider EMPTY = Collections::emptyList;
-
-    static <T extends Symbol> SymbolProvider of(Collection<T> symbols) {
+    static SymbolProvider of(Collection<? extends Symbol> symbols) {
         return () -> Collections.unmodifiableCollection(symbols);
     }
 
-    default Symbol getFirst() {
-        if (isNotEmpty()) {
-            return iterator().next();
-        } else {
-            return null;
-        }
-    }
-
-    default SymbolProvider filter(Predicate<Symbol> predicate) {
-        return () -> getSymbols().stream().filter(predicate).toList();
-    }
-
-    default SymbolProvider addAll(Collection<? extends Symbol> others) {
-        Collection<Symbol> symbols = new ArrayList<>(getSymbols());
-        symbols.addAll(others);
-        return of(symbols);
-    }
-
-    default SymbolProvider orElse(Collection<Symbol> others) {
-        return isNotEmpty() ? this : of(others);
-    }
-
-    default int size() {
-        return getSymbols().size();
-    }
-
-    default boolean isEmpty() {
-        return getSymbols().isEmpty();
-    }
-
-    default boolean isNotEmpty() {
-        return !isEmpty();
-    }
-
-    default Stream<Symbol> stream() {
-        return getSymbols().stream();
+    static SymbolProvider empty() {
+        return Collections::emptyList;
     }
 
     default SymbolProvider withExpands(CompilationEnvironment env) {
-        Collection<Symbol> result = new ArrayList<>(getSymbols());
-        if (this instanceof Type type) {
-            result.addAll(env.getExpands(type));
+        if (this instanceof Type expandingType) {
+            Collection<Symbol> result = new ArrayList<>(getSymbols());
+            result.addAll(env.getExpands(expandingType));
+            return of(result);
+        } else {
+            return this;
         }
-        return of(result);
-    }
-
-    @Override
-    default Iterator<Symbol> iterator() {
-        return getSymbols().iterator();
     }
 
 }

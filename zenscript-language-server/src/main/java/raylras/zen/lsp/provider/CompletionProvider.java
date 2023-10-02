@@ -517,7 +517,7 @@ public final class CompletionProvider {
 
         void completeMembers(String text, Type type) {
             if (type instanceof SymbolProvider provider) {
-                provider.withExpands(unit.getEnv()).stream()
+                provider.withExpands(unit.getEnv()).getSymbols().stream()
                         .filter(symbol -> TextSimilarity.isSubsequence(text, symbol.getName()))
                         .filter(this::shouldCreateCompletionItem)
                         .map(this::createCompletionItem)
