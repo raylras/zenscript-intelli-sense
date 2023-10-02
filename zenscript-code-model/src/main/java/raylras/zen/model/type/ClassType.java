@@ -7,7 +7,7 @@ import raylras.zen.model.symbol.Symbol;
 import java.util.Collection;
 import java.util.Objects;
 
-public class ClassType extends Type implements SymbolProvider<Symbol> {
+public class ClassType extends Type implements SymbolProvider {
 
     private final ClassSymbol symbol;
 

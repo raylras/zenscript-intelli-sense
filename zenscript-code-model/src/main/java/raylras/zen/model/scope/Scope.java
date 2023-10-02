@@ -8,7 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class Scope implements SymbolProvider<Symbol> {
+public class Scope implements SymbolProvider {
 
     private final Scope parent;
     private final List<Symbol> symbols = new ArrayList<>();

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.function.UnaryOperator;
 
-public class ListType extends Type implements SymbolProvider<Symbol> {
+public class ListType extends Type implements SymbolProvider {
 
     private final Type elementType;
 

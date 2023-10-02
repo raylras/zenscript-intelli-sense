@@ -15,7 +15,7 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class CompilationUnit implements SymbolProvider<Symbol> {
+public class CompilationUnit implements SymbolProvider {
 
     public static final String ZS_FILE_EXTENSION = ".zs";
     public static final String DZS_FILE_EXTENSION = ".dzs";

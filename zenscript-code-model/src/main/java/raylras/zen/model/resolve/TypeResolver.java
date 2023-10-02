@@ -315,7 +315,7 @@ public final class TypeResolver {
         @Override
         public Type visitMemberAccessExpr(MemberAccessExprContext ctx) {
             Type leftType = visit(ctx.expression());
-            if (!(leftType instanceof SymbolProvider<?> provider)) {
+            if (!(leftType instanceof SymbolProvider provider)) {
                 return null;
             }
             if (ctx.simpleName() != null) {

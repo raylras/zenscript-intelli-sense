@@ -17,7 +17,7 @@ public class Symbols {
     }
 
     public static List<Executable> getExecutableMembersByName(Type type, String simpleName, CompilationEnvironment env) {
-        if (!(type instanceof SymbolProvider<?> provider)) {
+        if (!(type instanceof SymbolProvider provider)) {
             return Collections.emptyList();
         }
         return provider.withExpands(env).getSymbols().stream()
@@ -29,7 +29,7 @@ public class Symbols {
 
     public static <T extends Symbol> List<T> getMember(Type type, Class<T> clazz, CompilationEnvironment env, Predicate<T> filter) {
 
-        if (!(type instanceof SymbolProvider<?> provider)) {
+        if (!(type instanceof SymbolProvider provider)) {
             return Collections.emptyList();
         }
         return provider.withExpands(env).getSymbols().stream()

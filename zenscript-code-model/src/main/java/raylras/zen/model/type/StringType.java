@@ -8,7 +8,7 @@ import raylras.zen.model.symbol.SymbolFactory;
 
 import java.util.List;
 
-public class StringType extends Type implements SymbolProvider<Symbol> {
+public class StringType extends Type implements SymbolProvider {
 
     public static final StringType INSTANCE = new StringType();
 

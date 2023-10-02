@@ -7,7 +7,7 @@ import raylras.zen.model.symbol.SymbolFactory;
 import java.util.List;
 import java.util.Objects;
 
-public class MapEntryType extends Type implements SymbolProvider<Symbol> {
+public class MapEntryType extends Type implements SymbolProvider {
 
     private final Type keyType;
     private final Type valueType;

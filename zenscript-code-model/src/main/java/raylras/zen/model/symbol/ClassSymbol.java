@@ -4,7 +4,7 @@ import raylras.zen.model.type.ClassType;
 
 import java.util.List;
 
-public interface ClassSymbol extends Symbol, SymbolProvider<Symbol> {
+public interface ClassSymbol extends Symbol, SymbolProvider {
 
     String getQualifiedName();
 

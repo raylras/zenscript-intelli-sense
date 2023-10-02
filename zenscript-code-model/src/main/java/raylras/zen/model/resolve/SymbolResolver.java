@@ -50,10 +50,10 @@ public final class SymbolResolver {
         return null;
     }
 
-    private static class SymbolVisitor extends Visitor<SymbolProvider<? extends Symbol>> {
+    private static class SymbolVisitor extends Visitor<SymbolProvider> {
         final CompilationUnit unit;
         final ParseTree cst;
-        SymbolProvider<? extends Symbol> result = SymbolProvider.EMPTY;
+        SymbolProvider result = SymbolProvider.EMPTY;
 
         SymbolVisitor(CompilationUnit unit, ParseTree cst) {
             this.unit = unit;
@@ -61,13 +61,13 @@ public final class SymbolResolver {
         }
 
         @Override
-        public SymbolProvider<? extends Symbol> visitQualifiedName(QualifiedNameContext ctx) {
+        public SymbolProvider visitQualifiedName(QualifiedNameContext ctx) {
             List<SimpleNameContext> simpleNames = ctx.simpleName();
             if (simpleNames.isEmpty()) {
                 return SymbolProvider.EMPTY;
             }
 
-            SymbolProvider<? extends Symbol> provider = lookupToplevelPackageSymbol(simpleNames.get(0).getText());
+            SymbolProvider provider = lookupToplevelPackageSymbol(simpleNames.get(0).getText());
             updateResult(provider);
             for (int i = 1; i < simpleNames.size(); i++) {
                 provider = accessMember(provider, simpleNames.get(i).getText());
@@ -79,8 +79,8 @@ public final class SymbolResolver {
         }
 
         @Override
-        public SymbolProvider<? extends Symbol> visitSimpleNameExpr(SimpleNameExprContext ctx) {
-            SymbolProvider<? extends Symbol> provider = lookupSymbol(ctx, ctx.simpleName().getText());
+        public SymbolProvider visitSimpleNameExpr(SimpleNameExprContext ctx) {
+            SymbolProvider provider = lookupSymbol(ctx, ctx.simpleName().getText());
             if (Ranges.contains(cst, ctx.simpleName())) {
                 updateResult(provider);
             }
@@ -88,8 +88,8 @@ public final class SymbolResolver {
         }
 
         @Override
-        public SymbolProvider<? extends Symbol> visitMemberAccessExpr(MemberAccessExprContext ctx) {
-            SymbolProvider<? extends Symbol> provider = visit(ctx.expression());
+        public SymbolProvider visitMemberAccessExpr(MemberAccessExprContext ctx) {
+            SymbolProvider provider = visit(ctx.expression());
             if (provider.size() != 1) {
                 return SymbolProvider.EMPTY;
             }
@@ -99,7 +99,7 @@ public final class SymbolResolver {
                 provider = classSymbol
                         .filter(Symbol::isStatic)
                         .filter(isSymbolNameEquals(ctx.simpleName().getText()));
-            } else if (symbol.getType() instanceof SymbolProvider<?> type) {
+            } else if (symbol.getType() instanceof SymbolProvider type) {
                 provider = type.withExpands(unit.getEnv())
                         .filter(isSymbolNameEquals(ctx.simpleName().getText()));
             } else {
@@ -112,16 +112,16 @@ public final class SymbolResolver {
         }
 
         @Override
-        protected SymbolProvider<Symbol> defaultResult() {
+        protected SymbolProvider defaultResult() {
             return SymbolProvider.EMPTY;
         }
 
-        void updateResult(SymbolProvider<? extends Symbol> provider) {
+        void updateResult(SymbolProvider provider) {
             result = provider;
         }
 
-        SymbolProvider<? extends Symbol> lookupSymbol(ParseTree cst, String name) {
-            SymbolProvider<? extends Symbol> result;
+        SymbolProvider lookupSymbol(ParseTree cst, String name) {
+            SymbolProvider result;
 
             result = lookupLocalSymbol(cst, name);
             if (result.isNotEmpty()) {
@@ -141,7 +141,7 @@ public final class SymbolResolver {
             return SymbolProvider.EMPTY;
         }
 
-        SymbolProvider<Symbol> lookupLocalSymbol(ParseTree cst, String name) {
+        SymbolProvider lookupLocalSymbol(ParseTree cst, String name) {
             Scope scope = unit.lookupScope(cst);
             if (scope != null) {
                 return scope.filter(isSymbolNameEquals(name));
@@ -150,22 +150,22 @@ public final class SymbolResolver {
             }
         }
 
-        SymbolProvider<ImportSymbol> lookupImportSymbol(String name) {
+        SymbolProvider lookupImportSymbol(String name) {
             return SymbolProvider.of(unit.getImports())
                     .filter(isSymbolNameEquals(name));
         }
 
-        SymbolProvider<Symbol> lookupGlobalSymbol(String name) {
+        SymbolProvider lookupGlobalSymbol(String name) {
             return SymbolProvider.of(unit.getEnv().getGlobalSymbols())
                     .filter(isSymbolNameEquals(name));
         }
 
-        SymbolProvider<PackageSymbol> lookupToplevelPackageSymbol(String name) {
+        SymbolProvider lookupToplevelPackageSymbol(String name) {
             return SymbolProvider.of(unit.getEnv().getToplevelPackageSymbol())
                     .filter(isSymbolNameEquals(name));
         }
 
-        SymbolProvider<Symbol> accessMember(SymbolProvider<? extends Symbol> left, String memberName) {
+        SymbolProvider accessMember(SymbolProvider left, String memberName) {
             return left.withExpands(unit.getEnv())
                     .filter(isSymbolNameEquals(memberName));
         }

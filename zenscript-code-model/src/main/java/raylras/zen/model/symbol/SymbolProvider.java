@@ -7,14 +7,14 @@ import java.util.*;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
-public interface SymbolProvider<T extends Symbol> extends Iterable<T> {
+public interface SymbolProvider extends Iterable<Symbol> {
 
-    Collection<T> getSymbols();
+    Collection<Symbol> getSymbols();
 
-    SymbolProvider<Symbol> EMPTY = Collections::emptyList;
+    SymbolProvider EMPTY = Collections::emptyList;
 
-    static <T extends Symbol> SymbolProvider<T> of(Collection<T> symbols) {
-        return () -> symbols;
+    static <T extends Symbol> SymbolProvider of(Collection<T> symbols) {
+        return () -> Collections.unmodifiableCollection(symbols);
     }
 
     default Symbol getFirst() {
@@ -25,17 +25,17 @@ public interface SymbolProvider<T extends Symbol> extends Iterable<T> {
         }
     }
 
-    default SymbolProvider<T> filter(Predicate<T> predicate) {
+    default SymbolProvider filter(Predicate<Symbol> predicate) {
         return () -> getSymbols().stream().filter(predicate).toList();
     }
 
-    default SymbolProvider<Symbol> addAll(Collection<? extends Symbol> others) {
+    default SymbolProvider addAll(Collection<? extends Symbol> others) {
         Collection<Symbol> symbols = new ArrayList<>(getSymbols());
         symbols.addAll(others);
         return of(symbols);
     }
 
-    default SymbolProvider<T> orElse(Collection<T> others) {
+    default SymbolProvider orElse(Collection<Symbol> others) {
         return isNotEmpty() ? this : of(others);
     }
 
@@ -51,11 +51,11 @@ public interface SymbolProvider<T extends Symbol> extends Iterable<T> {
         return !isEmpty();
     }
 
-    default Stream<T> stream() {
+    default Stream<Symbol> stream() {
         return getSymbols().stream();
     }
 
-    default SymbolProvider<Symbol> withExpands(CompilationEnvironment env) {
+    default SymbolProvider withExpands(CompilationEnvironment env) {
         Collection<Symbol> result = new ArrayList<>(getSymbols());
         if (this instanceof Type type) {
             result.addAll(env.getExpands(type));
@@ -64,7 +64,7 @@ public interface SymbolProvider<T extends Symbol> extends Iterable<T> {
     }
 
     @Override
-    default Iterator<T> iterator() {
+    default Iterator<Symbol> iterator() {
         return getSymbols().iterator();
     }
 

@@ -9,7 +9,7 @@ import raylras.zen.model.symbol.SymbolFactory;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
-public abstract class NumberType extends Type implements SymbolProvider<Symbol> {
+public abstract class NumberType extends Type implements SymbolProvider {
 
     @Override
     public boolean isInheritedFrom(Type type) {
