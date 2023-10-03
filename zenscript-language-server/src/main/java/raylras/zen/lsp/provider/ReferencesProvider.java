@@ -162,11 +162,11 @@ public class ReferencesProvider {
             if (cst instanceof CompilationUnit) {
                 return null;
             }
-            Symbol symbol = unit.getSymbol(cst);
-            if (symbol != null) {
-                return symbol;
+            Optional<Symbol> symbol = unit.getSymbol(cst);
+            if (symbol.isPresent()) {
+                return symbol.get();
             }
-            if (unit.getScope(cst) != null) {
+            if (unit.getScope(cst).isPresent()) {
                 // if found parent scope,stop searching
                 break;
             }

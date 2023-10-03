@@ -7,15 +7,13 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.model.parser.ZenScriptLexer;
 import raylras.zen.model.parser.ZenScriptParser;
 import raylras.zen.model.resolve.DeclarationResolver;
+import raylras.zen.model.scope.Scope;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class Compilations {
@@ -47,6 +45,18 @@ public class Compilations {
         classNameWithSlash = classNameWithSlash.replace(" ", "_");
 
         return classNameWithSlash.replace('/', '.');
+    }
+
+    public static Optional<Scope> lookupScope(CompilationUnit unit, ParseTree cst) {
+        ParseTree t = cst;
+        while (t != null) {
+            Optional<Scope> scope = unit.getScope(t);
+            if (scope.isPresent()) {
+                return scope;
+            }
+            t = t.getParent();
+        }
+        return Optional.empty();
     }
 
     public static void load(CompilationEnvironment env) {
@@ -107,7 +117,7 @@ public class Compilations {
         Set<File> units = new HashSet<>();
         List.of(env.getRoot(), env.getGeneratedRoot())
                 .forEach(path -> {
-                    try(Stream<Path> walk = Files.walk(path)) {
+                    try (Stream<Path> walk = Files.walk(path)) {
                         walk.filter(Files::isRegularFile)
                                 .filter(Files::isReadable)
                                 .filter(Compilations::isSourceFile)

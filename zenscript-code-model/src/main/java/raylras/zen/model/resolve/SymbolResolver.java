@@ -2,9 +2,9 @@ package raylras.zen.model.resolve;
 
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.model.CompilationUnit;
+import raylras.zen.model.Compilations;
 import raylras.zen.model.Visitor;
 import raylras.zen.model.parser.ZenScriptParser.*;
-import raylras.zen.model.scope.Scope;
 import raylras.zen.model.symbol.*;
 import raylras.zen.util.Ranges;
 
@@ -145,14 +145,11 @@ public final class SymbolResolver {
         }
 
         Collection<Symbol> lookupLocalSymbol(ParseTree cst, String name) {
-            Scope scope = unit.lookupScope(cst);
-            if (scope != null) {
-                return scope.getSymbols().stream()
-                        .filter(isSymbolNameEquals(name))
-                        .toList();
-            } else {
-                return Collections.emptyList();
-            }
+            return Compilations.lookupScope(unit, cst)
+                    .map(scope -> scope.getSymbols().stream()
+                            .filter(isSymbolNameEquals(name))
+                            .toList())
+                    .orElseGet(Collections::emptyList);
         }
 
         Collection<ImportSymbol> lookupImportSymbol(String name) {

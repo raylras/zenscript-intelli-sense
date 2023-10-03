@@ -37,37 +37,30 @@ public class CompilationUnit implements SymbolProvider {
         this.qualifiedName = Compilations.extractClassName(env.relativize(path));
     }
 
-    public Scope lookupScope(ParseTree lookupCst) {
-        ParseTree cst = lookupCst;
-        while (cst != null) {
-            Scope scope = scopeMap.get(cst);
-            if (scope != null) {
-                return scope;
-            }
-            cst = cst.getParent();
-        }
-        return null;
+    public List<ImportSymbol> getImports() {
+        return Collections.unmodifiableList(imports);
     }
 
-    public Scope getScope(ParseTree cst) {
-        return scopeMap.get(cst);
+    public void addImport(ImportSymbol importSymbol) {
+        imports.add(importSymbol);
+    }
+
+    public Optional<Scope> getScope(ParseTree cst) {
+        return Optional.ofNullable(scopeMap.get(cst));
     }
 
     public void addScope(Scope scope) {
         scopeMap.put(scope.getCst(), scope);
     }
 
-    public Symbol getSymbol(ParseTree cst) {
-        return symbolMap.get(cst);
+    public Optional<Symbol> getSymbol(ParseTree cst) {
+        return Optional.ofNullable(symbolMap.get(cst));
     }
 
-    public <T extends Symbol> T getSymbol(ParseTree cst, Class<T> clazz) {
-        Symbol symbol = symbolMap.get(cst);
-        if (clazz.isInstance(symbol)) {
-            return clazz.cast(symbol);
-        } else {
-            return null;
-        }
+    public <T extends Symbol> Optional<T> getSymbol(ParseTree cst, Class<T> clazz) {
+        return getSymbol(cst)
+                .filter(clazz::isInstance)
+                .map(clazz::cast);
     }
 
     public void putSymbol(ParseTree cst, Symbol symbol) {
@@ -85,25 +78,22 @@ public class CompilationUnit implements SymbolProvider {
 
     public List<Symbol> getTopLevelSymbols() {
         if (isGenerated()) {
-            return getGeneratedClass().map(ClassSymbol::getSymbols).orElseGet(Collections::emptyList);
+            return getGeneratedClass()
+                    .map(ClassSymbol::getSymbols)
+                    .orElseGet(Collections::emptyList);
         } else {
-            return getScope(parseTree).getSymbols();
+            return getScope(parseTree)
+                    .map(Scope::getSymbols)
+                    .orElseGet(Collections::emptyList);
         }
     }
 
     public Optional<ClassSymbol> getGeneratedClass() {
-        return  getScope(parseTree).getSymbols().stream()
-                .filter(ClassSymbol.class::isInstance)
-                .map(ClassSymbol.class::cast)
-                .findFirst();
-    }
-
-    public List<ImportSymbol> getImports() {
-        return Collections.unmodifiableList(imports);
-    }
-
-    public void addImport(ImportSymbol importSymbol) {
-        imports.add(importSymbol);
+        return getScope(parseTree)
+                .flatMap(scope -> scope.getSymbols().stream()
+                        .filter(ClassSymbol.class::isInstance)
+                        .map(ClassSymbol.class::cast)
+                        .findFirst());
     }
 
     public List<Preprocessor> getPreprocessors() {

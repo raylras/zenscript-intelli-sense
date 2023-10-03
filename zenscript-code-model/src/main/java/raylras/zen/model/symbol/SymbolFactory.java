@@ -105,9 +105,11 @@ public class SymbolFactory {
 
             @Override
             public List<Symbol> getDeclaredMembers() {
-                return unit.getScope(cst).getSymbols().stream()
-                        .filter(ParseTreeLocatable.class::isInstance)
-                        .toList();
+                return unit.getScope(cst)
+                        .map(scope -> scope.getSymbols().stream()
+                                .filter(ParseTreeLocatable.class::isInstance)
+                                .toList())
+                        .orElseGet(Collections::emptyList);
             }
 
             @Override
@@ -116,9 +118,10 @@ public class SymbolFactory {
                     return Collections.emptyList();
                 }
                 Map<String, ClassType> classTypeMap = unit.getEnv().getClassTypeMap();
-                Scope scope = unit.lookupScope(cst);
+                Scope scope = Compilations.lookupScope(unit, cst).orElse(null);
                 return cst.qualifiedNameList().qualifiedName().stream()
                         .map(CSTNodes::getText)
+                        // FIXME: null check
                         .map(interfaceName -> scope.lookupSymbol(ImportSymbol.class, interfaceName))
                         .filter(Objects::nonNull)
                         .map(ImportSymbol::getQualifiedName)

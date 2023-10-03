@@ -4,10 +4,10 @@ import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import raylras.zen.model.CompilationUnit;
+import raylras.zen.model.Compilations;
 import raylras.zen.model.Visitor;
 import raylras.zen.model.parser.ZenScriptLexer;
 import raylras.zen.model.parser.ZenScriptParser.*;
-import raylras.zen.model.scope.Scope;
 import raylras.zen.model.symbol.*;
 import raylras.zen.model.symbol.Operator.OperatorType;
 import raylras.zen.model.type.*;
@@ -37,12 +37,9 @@ public final class TypeResolver {
 
         @Override
         public Type visitImportDeclaration(ImportDeclarationContext ctx) {
-            ImportSymbol symbol = unit.getSymbol(ctx, ImportSymbol.class);
-            if (symbol != null) {
-                return symbol.getType();
-            } else {
-                return AnyType.INSTANCE;
-            }
+            return unit.getSymbol(ctx, ImportSymbol.class)
+                    .map(Symbol::getType)
+                    .orElse(AnyType.INSTANCE);
         }
 
         @Override
@@ -99,19 +96,16 @@ public final class TypeResolver {
 
         @Override
         public Type visitClassDeclaration(ClassDeclarationContext ctx) {
-            ClassSymbol symbol = unit.getSymbol(ctx, ClassSymbol.class);
-            if (symbol != null) {
-                return symbol.getType();
-            } else {
-                return AnyType.INSTANCE;
-            }
+            return unit.getSymbol(ctx, ClassSymbol.class)
+                    .map(Symbol::getType)
+                    .orElse(AnyType.INSTANCE);
         }
 
         @Override
         public Type visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
             List<Type> paramTypes = toTypeList(ctx.formalParameterList());
             Type returnType;
-            if (unit.getSymbol(ctx) instanceof ConstructorSymbol symbol) {
+            if (unit.getSymbol(ctx).orElse(null) instanceof ConstructorSymbol symbol) {
                 returnType = symbol.getDeclaringClass().getType();
             } else {
                 returnType = AnyType.INSTANCE;
@@ -176,12 +170,9 @@ public final class TypeResolver {
 
         @Override
         public Type visitThisExpr(ThisExprContext ctx) {
-            Symbol symbol = lookupSymbol(ctx, "this");
-            if (symbol != null) {
-                return symbol.getType();
-            } else {
-                return AnyType.INSTANCE;
-            }
+            return lookupLocalSymbol(ctx, "this")
+                    .map(Symbol::getType)
+                    .orElse(AnyType.INSTANCE);
         }
 
         @Override
@@ -202,12 +193,9 @@ public final class TypeResolver {
 
         @Override
         public Type visitSimpleNameExpr(SimpleNameExprContext ctx) {
-            Symbol symbol = lookupSymbol(ctx, ctx.simpleName().getText());
-            if (symbol != null) {
-                return symbol.getType();
-            } else {
-                return AnyType.INSTANCE;
-            }
+            return lookupSymbol(ctx, ctx.getText())
+                    .map(Symbol::getType)
+                    .orElse(AnyType.INSTANCE);
         }
 
         @Override
@@ -460,20 +448,20 @@ public final class TypeResolver {
             return null;
         }
 
-        Symbol lookupSymbol(ParseTree cst, String simpleName) {
-            Scope scope = unit.lookupScope(cst);
-            Symbol symbol = null;
-            if (scope != null) {
-                symbol = scope.lookupSymbol(simpleName);
-            }
-            if (symbol == null) {
-                for (Symbol globalSymbol : unit.getEnv().getGlobalSymbols()) {
-                    if (simpleName.equals(globalSymbol.getName())) {
-                        symbol = globalSymbol;
-                    }
-                }
-            }
-            return symbol;
+        Optional<Symbol> lookupSymbol(ParseTree cst, String simpleName) {
+            return lookupLocalSymbol(cst, simpleName)
+                    .or(() -> lookupGlobalSymbol(simpleName));
+        }
+
+        Optional<Symbol> lookupLocalSymbol(ParseTree cst, String simpleName) {
+            return Compilations.lookupScope(unit, cst)
+                    .map(scope -> scope.lookupSymbol(simpleName));
+        }
+
+        Optional<Symbol> lookupGlobalSymbol(String simpleName) {
+            return unit.getEnv().getGlobalSymbols().stream()
+                    .filter(symbol -> symbol.getName().equals(simpleName))
+                    .findFirst();
         }
 
         List<Type> toTypeList(FormalParameterListContext ctx) {

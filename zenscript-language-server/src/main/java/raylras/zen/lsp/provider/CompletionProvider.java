@@ -13,6 +13,7 @@ import raylras.zen.lsp.provider.data.Keywords;
 import raylras.zen.lsp.provider.data.Snippet;
 import raylras.zen.lsp.util.TextSimilarity;
 import raylras.zen.model.CompilationUnit;
+import raylras.zen.model.Compilations;
 import raylras.zen.model.Visitor;
 import raylras.zen.model.parser.ZenScriptParser;
 import raylras.zen.model.parser.ZenScriptParser.*;
@@ -498,7 +499,7 @@ public final class CompletionProvider {
         }
 
         void completeLocalSymbols(String text) {
-            Scope scope = unit.lookupScope(tailing);
+            Scope scope = Compilations.lookupScope(unit, tailing).orElse(null);
             while (scope != null) {
                 scope.getSymbols().stream()
                         .filter(symbol -> TextSimilarity.isSubsequence(text, symbol.getName()))
