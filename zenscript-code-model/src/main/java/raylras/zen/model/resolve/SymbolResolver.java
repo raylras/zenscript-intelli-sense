@@ -11,6 +11,7 @@ import raylras.zen.util.Ranges;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.function.Predicate;
 
 public final class SymbolResolver {
@@ -36,6 +37,12 @@ public final class SymbolResolver {
         SymbolVisitor visitor = new SymbolVisitor(unit, cst);
         visitor.visit(expr);
         return Collections.unmodifiableCollection(visitor.result);
+    }
+
+    public static Optional<ClassSymbol> lookupClass(ParseTree cst, CompilationUnit unit) {
+        // TODO: lookupClass
+        // unit.getEnv().getGeneratedClasses();
+        throw new RuntimeException("TODO: lookupClass");
     }
 
     private static ParseTree findRootExpression(ParseTree cst) {

@@ -22,11 +22,11 @@ import raylras.zen.model.scope.Scope;
 import raylras.zen.model.symbol.Executable;
 import raylras.zen.model.symbol.Symbol;
 import raylras.zen.model.symbol.SymbolProvider;
-import raylras.zen.model.type.ClassType;
 import raylras.zen.model.type.Type;
+import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Position;
 import raylras.zen.util.Range;
-import raylras.zen.util.*;
+import raylras.zen.util.Ranges;
 import raylras.zen.util.l10n.L10N;
 
 import java.util.ArrayList;
@@ -490,12 +490,13 @@ public final class CompletionProvider {
         }
 
         void completeImports(String text) {
-            PackageTree<ClassType> tree = PackageTree.of(".", unit.getEnv().getClassTypeMap());
-            tree.complete(text).forEach((key, subTree) -> {
-                CompletionItem item = new CompletionItem(key);
-                item.setKind(subTree.hasElement() ? CompletionItemKind.Class : CompletionItemKind.Module);
-                addToCompletionList(item);
-            });
+            // FIXME: completeImports
+//            PackageTree<ClassType> tree = PackageTree.of(".", unit.getEnv().getClassTypeMap());
+//            tree.complete(text).forEach((key, subTree) -> {
+//                CompletionItem item = new CompletionItem(key);
+//                item.setKind(subTree.hasElement() ? CompletionItemKind.Class : CompletionItemKind.Module);
+//                addToCompletionList(item);
+//            });
         }
 
         void completeLocalSymbols(String text) {

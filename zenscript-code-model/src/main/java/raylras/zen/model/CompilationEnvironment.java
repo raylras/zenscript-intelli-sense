@@ -13,7 +13,6 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class CompilationEnvironment {
 
@@ -58,20 +57,12 @@ public class CompilationEnvironment {
                 .collect(Collectors.toList());
     }
 
-    public List<ExpandFunctionSymbol> getExpandFunctions() {
+    public Collection<ExpandFunctionSymbol> getExpandFunctions() {
         return getUnits().stream()
                 .flatMap(unit -> unit.getTopLevelSymbols().stream())
                 .filter(ExpandFunctionSymbol.class::isInstance)
                 .map(ExpandFunctionSymbol.class::cast)
                 .toList();
-    }
-
-    public Map<String, ClassType> getClassTypeMap() {
-        return getUnits().stream()
-                .flatMap(unit -> unit.getTopLevelSymbols().stream())
-                .filter(ClassSymbol.class::isInstance)
-                .map(ClassSymbol.class::cast)
-                .collect(Collectors.toMap(ClassSymbol::getQualifiedName, ClassSymbol::getType));
     }
 
     public Collection<ClassSymbol> getGeneratedClasses() {
@@ -100,18 +91,21 @@ public class CompilationEnvironment {
         return bracketHandlerService;
     }
 
-    public List<Symbol> getExpands(Type type) {
-        Stream<? extends Symbol> expands = getExpandFunctions().stream()
-                .filter(symbol -> type.isInheritedFrom(symbol.getExpandingType()));
-
+    public Collection<Symbol> getExpands(Type type) {
+        Collection<Symbol> expandFunctions = getExpandFunctions().stream()
+                .filter(symbol -> type.isInheritedFrom(symbol.getExpandingType()))
+                .map(Symbol.class::cast)
+                .toList();
         if (isPrimitive(type)) {
-            ClassType primitiveClass = getClassTypeMap().get(type.toString());
-            if (primitiveClass != null) {
-                expands = Stream.concat(expands, primitiveClass.getSymbols().stream());
-            }
+            Collection<Symbol> expands = new ArrayList<>(expandFunctions);
+            getGeneratedClasses().stream()
+                    .filter(symbol -> symbol.getQualifiedName().equals(type.toString()))
+                    .findFirst()
+                    .ifPresent(classSymbol -> expands.addAll(classSymbol.getSymbols()));
+            return expands;
+        } else {
+            return expandFunctions;
         }
-
-        return expands.map(Symbol.class::cast).toList();
     }
 
     public Path relativize(Path other) {

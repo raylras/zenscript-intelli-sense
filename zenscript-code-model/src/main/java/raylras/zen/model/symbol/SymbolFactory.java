@@ -9,7 +9,6 @@ import raylras.zen.model.resolve.FormalParameterResolver;
 import raylras.zen.model.resolve.ModifierResolver;
 import raylras.zen.model.resolve.SymbolResolver;
 import raylras.zen.model.resolve.TypeResolver;
-import raylras.zen.model.scope.Scope;
 import raylras.zen.model.symbol.Symbol.Modifier;
 import raylras.zen.model.type.*;
 import raylras.zen.util.CSTNodes;
@@ -110,17 +109,12 @@ public class SymbolFactory {
                 if (cst.qualifiedNameList() == null) {
                     return Collections.emptyList();
                 }
-                Map<String, ClassType> classTypeMap = unit.getEnv().getClassTypeMap();
-                Scope scope = Compilations.lookupScope(unit, cst).orElse(null);
                 return cst.qualifiedNameList().qualifiedName().stream()
-                        .map(CSTNodes::getText)
-                        // FIXME: null check
-                        .map(interfaceName -> scope.lookupSymbol(ImportSymbol.class, interfaceName))
-                        .filter(Objects::nonNull)
-                        .map(ImportSymbol::getQualifiedName)
-                        .map(classTypeMap::get)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toList());
+                        .map(name -> SymbolResolver.lookupClass(cst, unit))
+                        .filter(Optional::isPresent)
+                        .map(Optional::get)
+                        .map(ClassSymbol::getType)
+                        .toList();
             }
 
             @Override

@@ -23,6 +23,8 @@ public class CompilationUnit {
     private final Path path;
     private final CompilationEnvironment env;
     private final String qualifiedName;
+    private final String simpleName;
+
     private final List<ImportSymbol> imports = new ArrayList<>();
     private final Map<ParseTree, Scope> scopeMap = new IdentityHashMap<>();
     private final Map<ParseTree, Symbol> symbolMap = new IdentityHashMap<>();
@@ -34,6 +36,7 @@ public class CompilationUnit {
         this.path = path;
         this.env = env;
         this.qualifiedName = Compilations.extractClassName(env.relativize(path));
+        this.simpleName = PathUtil.getFileNameWithoutSuffix(path);
     }
 
     public List<ImportSymbol> getImports() {
@@ -75,23 +78,17 @@ public class CompilationUnit {
     }
 
     public List<Symbol> getTopLevelSymbols() {
-        if (isGenerated()) {
-            return getGeneratedClass()
-                    .map(ClassSymbol::getSymbols)
-                    .orElseGet(Collections::emptyList);
-        } else {
-            return getScope(parseTree)
-                    .map(Scope::getSymbols)
-                    .orElseGet(Collections::emptyList);
-        }
+        return getScope(parseTree)
+                .map(Scope::getSymbols)
+                .orElseGet(Collections::emptyList);
     }
 
     public Optional<ClassSymbol> getGeneratedClass() {
-        return getScope(parseTree)
-                .flatMap(scope -> scope.getSymbols().stream()
-                        .filter(ClassSymbol.class::isInstance)
-                        .map(ClassSymbol.class::cast)
-                        .findFirst());
+        return getTopLevelSymbols().stream()
+                .filter(ClassSymbol.class::isInstance)
+                .map(ClassSymbol.class::cast)
+                .filter(symbol -> symbol.getName().equals(simpleName))
+                .findFirst();
     }
 
     public List<Preprocessor> getPreprocessors() {
@@ -108,6 +105,10 @@ public class CompilationUnit {
 
     public String getQualifiedName() {
         return qualifiedName;
+    }
+
+    public String getSimpleName() {
+        return simpleName;
     }
 
     public CompilationEnvironment getEnv() {

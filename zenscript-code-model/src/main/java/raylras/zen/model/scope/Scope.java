@@ -28,10 +28,10 @@ public class Scope implements SymbolProvider {
     }
 
     public Symbol lookupSymbol(String simpleName) {
-        return lookupSymbol(Symbol.class, simpleName);
+        return lookupSymbol(simpleName, Symbol.class);
     }
 
-    public <T extends Symbol> T lookupSymbol(Class<T> clazz, String simpleName) {
+    public <T extends Symbol> T lookupSymbol(String simpleName, Class<T> clazz) {
         Scope scope = this;
         while (scope != null) {
             for (Symbol symbol : scope.getSymbols()) {
