@@ -6,6 +6,7 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.ParseTreeWalker;
 import raylras.zen.model.parser.ZenScriptLexer;
 import raylras.zen.model.scope.Scope;
+import raylras.zen.model.symbol.ClassSymbol;
 import raylras.zen.model.symbol.ImportSymbol;
 import raylras.zen.model.symbol.Symbol;
 import raylras.zen.model.symbol.SymbolProvider;
@@ -83,7 +84,18 @@ public class CompilationUnit implements SymbolProvider {
     }
 
     public List<Symbol> getTopLevelSymbols() {
-        return getScope(parseTree).getSymbols();
+        if (isGenerated()) {
+            return getGeneratedClass().map(ClassSymbol::getSymbols).orElseGet(Collections::emptyList);
+        } else {
+            return getScope(parseTree).getSymbols();
+        }
+    }
+
+    public Optional<ClassSymbol> getGeneratedClass() {
+        return  getScope(parseTree).getSymbols().stream()
+                .filter(ClassSymbol.class::isInstance)
+                .map(ClassSymbol.class::cast)
+                .findFirst();
     }
 
     public List<ImportSymbol> getImports() {

@@ -15,4 +15,7 @@ public interface ClassSymbol extends Symbol, SymbolProvider {
     @Override
     ClassType getType();
 
+    @Override
+    List<Symbol> getSymbols();
+
 }

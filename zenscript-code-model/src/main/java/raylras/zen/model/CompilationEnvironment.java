@@ -12,7 +12,6 @@ import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -75,12 +74,13 @@ public class CompilationEnvironment {
                 .collect(Collectors.toMap(ClassSymbol::getQualifiedName, ClassSymbol::getType));
     }
 
-    public Map<String, ClassSymbol> getClassSymbolMap() {
+    public Collection<ClassSymbol> getGeneratedClasses() {
         return getUnits().stream()
-                .flatMap(unit -> unit.getTopLevelSymbols().stream())
-                .filter(ClassSymbol.class::isInstance)
-                .map(ClassSymbol.class::cast)
-                .collect(Collectors.toMap(ClassSymbol::getQualifiedName, Function.identity()));
+                .filter(CompilationUnit::isGenerated)
+                .map(CompilationUnit::getGeneratedClass)
+                .filter(Optional::isPresent)
+                .map(Optional::get)
+                .toList();
     }
 
     public Collection<PackageSymbol> getToplevelPackageSymbol() {
