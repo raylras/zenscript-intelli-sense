@@ -60,12 +60,12 @@ public class Operators {
         return result.isInheritedFrom(to);
     }
 
-    public static Operator of(String literal, int params) {
-        Operator.OperatorType operatorType = switch (params) {
+    public static Operator of(String literal, int paramSize) {
+        Operator.OperatorType operatorType = switch (paramSize) {
             case 0 -> Operator.OperatorType.UNARY;
             case 1 -> Operator.OperatorType.BINARY;
             case 2 -> Operator.OperatorType.TRINARY;
-            default -> throw new IllegalArgumentException("No such operator for " + params + " parameters");
+            default -> throw new IllegalArgumentException("No such operator for " + paramSize + " parameters");
         };
         return operatorType.getOperators().getOrDefault(literal, Operator.ERROR);
     }

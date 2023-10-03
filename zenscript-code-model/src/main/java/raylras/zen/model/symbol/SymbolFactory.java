@@ -30,10 +30,6 @@ public class SymbolFactory {
 
     public static ImportSymbol createImportSymbol(ParseTree nameCst, ImportDeclarationContext cst, CompilationUnit unit) {
         class ImportSymbolImpl implements ImportSymbol, ParseTreeLocatable {
-            private final String name = CSTNodes.getText(nameCst);
-            private final Range range = Range.of(cst);
-            private final Range selectionRange = Range.of(nameCst);
-
             @Override
             public String getQualifiedName() {
                 return cst.qualifiedName().getText();
@@ -41,7 +37,7 @@ public class SymbolFactory {
 
             @Override
             public String getName() {
-                return name;
+                return CSTNodes.getText(nameCst);
             }
 
             @Override
@@ -71,12 +67,12 @@ public class SymbolFactory {
 
             @Override
             public Range getRange() {
-                return range;
+                return Range.of(cst);
             }
 
             @Override
             public Range getSelectionRange() {
-                return selectionRange;
+                return Range.of(nameCst);
             }
 
             @Override
@@ -89,18 +85,14 @@ public class SymbolFactory {
 
     public static ClassSymbol createClassSymbol(ParseTree nameCst, ClassDeclarationContext cst, CompilationUnit unit) {
         class ClassSymbolImpl implements ClassSymbol, ParseTreeLocatable {
-            private final String name = CSTNodes.getText(nameCst);
-            private final Range range = Range.of(cst);
-            private final Range selectionRange = Range.of(nameCst);
             private final ClassType classType = new ClassType(this);
 
             @Override
             public String getQualifiedName() {
-                String unitName = unit.getQualifiedName();
                 if (unit.isGenerated()) {
-                    return unitName;
+                    return unit.getQualifiedName();
                 } else {
-                    return unitName + '.' + name;
+                    return unit.getQualifiedName() + '.' + getName();
                 }
             }
 
@@ -143,7 +135,7 @@ public class SymbolFactory {
 
             @Override
             public String getName() {
-                return name;
+                return CSTNodes.getText(nameCst);
             }
 
             @Override
@@ -168,12 +160,12 @@ public class SymbolFactory {
 
             @Override
             public Range getRange() {
-                return range;
+                return Range.of(cst);
             }
 
             @Override
             public Range getSelectionRange() {
-                return selectionRange;
+                return Range.of(nameCst);
             }
         }
         return new ClassSymbolImpl();
@@ -181,14 +173,9 @@ public class SymbolFactory {
 
     public static VariableSymbol createVariableSymbol(ParseTree nameCst, ParseTree cst, CompilationUnit unit) {
         class VariableSymbolImpl implements VariableSymbol, ParseTreeLocatable {
-            private final String name = CSTNodes.getText(nameCst);
-            private final Modifier modifier = ModifierResolver.getModifier(cst);
-            private final Range range = Range.of(cst);
-            private final Range selectionRange = Range.of(nameCst);
-
             @Override
             public String getName() {
-                return name;
+                return CSTNodes.getText(nameCst);
             }
 
             @Override
@@ -203,7 +190,7 @@ public class SymbolFactory {
 
             @Override
             public Modifier getModifier() {
-                return modifier;
+                return ModifierResolver.getModifier(cst);
             }
 
             @Override
@@ -218,12 +205,12 @@ public class SymbolFactory {
 
             @Override
             public Range getRange() {
-                return range;
+                return Range.of(cst);
             }
 
             @Override
             public Range getSelectionRange() {
-                return selectionRange;
+                return Range.of(nameCst);
             }
         }
         return new VariableSymbolImpl();
@@ -256,11 +243,6 @@ public class SymbolFactory {
 
     public static FunctionSymbol createFunctionSymbol(ParseTree nameCst, ParseTree cst, CompilationUnit unit) {
         class FunctionSymbolImpl implements FunctionSymbol, ParseTreeLocatable {
-            private final String name = CSTNodes.getText(nameCst);
-            private final Modifier modifier = ModifierResolver.getModifier(cst);
-            private final Range range = Range.of(cst);
-            private final Range selectionRange = Range.of(nameCst);
-
             @Override
             public FunctionType getType() {
                 return TypeResolver.getType(cst, unit)
@@ -281,7 +263,7 @@ public class SymbolFactory {
 
             @Override
             public String getName() {
-                return name;
+                return CSTNodes.getText(nameCst);
             }
 
             @Override
@@ -291,7 +273,7 @@ public class SymbolFactory {
 
             @Override
             public Modifier getModifier() {
-                return modifier;
+                return ModifierResolver.getModifier(cst);
             }
 
             @Override
@@ -306,12 +288,12 @@ public class SymbolFactory {
 
             @Override
             public Range getRange() {
-                return range;
+                return Range.of(cst);
             }
 
             @Override
             public Range getSelectionRange() {
-                return selectionRange;
+                return Range.of(nameCst);
             }
         }
 
@@ -358,8 +340,6 @@ public class SymbolFactory {
     public static OperatorFunctionSymbol createOperatorFunctionSymbol(OperatorContext opCst, OperatorFunctionDeclarationContext cst, CompilationUnit unit) {
         class OperatorFunctionSymbolImpl implements OperatorFunctionSymbol, ParseTreeLocatable {
             private final Operator operator = Operators.of(opCst.getText(), cst.formalParameterList().formalParameter().size());
-            private final Range range = Range.of(cst);
-            private final Range selectionRange = Range.of(opCst);
 
             @Override
             public Operator getOperator() {
@@ -411,12 +391,12 @@ public class SymbolFactory {
 
             @Override
             public Range getRange() {
-                return range;
+                return Range.of(cst);
             }
 
             @Override
             public Range getSelectionRange() {
-                return selectionRange;
+                return Range.of(opCst);
             }
         }
         return new OperatorFunctionSymbolImpl();
@@ -466,10 +446,6 @@ public class SymbolFactory {
 
     public static ParameterSymbol createParameterSymbol(ParseTree nameCst, FormalParameterContext cst, CompilationUnit unit) {
         class ParameterSymbolImpl implements ParameterSymbol, ParseTreeLocatable {
-            private final String name = CSTNodes.getText(nameCst);
-            private final Range range = Range.of(cst);
-            private final Range selectionRange = Range.of(nameCst);
-
             @Override
             public boolean isOptional() {
                 return cst.defaultValue() != null;
@@ -482,7 +458,7 @@ public class SymbolFactory {
 
             @Override
             public String getName() {
-                return name;
+                return CSTNodes.getText(nameCst);
             }
 
             @Override
@@ -512,12 +488,12 @@ public class SymbolFactory {
 
             @Override
             public Range getRange() {
-                return range;
+                return Range.of(cst);
             }
 
             @Override
             public Range getSelectionRange() {
-                return selectionRange;
+                return Range.of(nameCst);
             }
         }
         return new ParameterSymbolImpl();
@@ -525,10 +501,6 @@ public class SymbolFactory {
 
     public static ExpandFunctionSymbol createExpandFunctionSymbol(ParseTree nameCst, ExpandFunctionDeclarationContext cst, CompilationUnit unit) {
         class ExpandFunctionSymbolImpl implements ExpandFunctionSymbol, ParseTreeLocatable {
-            private final String name = CSTNodes.getText(nameCst);
-            private final Range range = Range.of(cst);
-            private final Range selectionRange = Range.of(nameCst);
-
             @Override
             public List<ParameterSymbol> getParameterList() {
                 return FormalParameterResolver.getFormalParameterList(cst, unit);
@@ -546,7 +518,7 @@ public class SymbolFactory {
 
             @Override
             public String getName() {
-                return name;
+                return CSTNodes.getText(nameCst);
             }
 
             @Override
@@ -579,12 +551,12 @@ public class SymbolFactory {
 
             @Override
             public Range getRange() {
-                return range;
+                return Range.of(cst);
             }
 
             @Override
             public Range getSelectionRange() {
-                return selectionRange;
+                return Range.of(nameCst);
             }
         }
         return new ExpandFunctionSymbolImpl();
@@ -652,9 +624,6 @@ public class SymbolFactory {
 
     public static ConstructorSymbol createConstructorSymbol(ParseTree nameCst, ParseTree cst, CompilationUnit unit, ClassSymbol declaringClass) {
         class ConstructorSymbolImpl implements ConstructorSymbol, ParseTreeLocatable {
-            private final Range range = Range.of(cst);
-            private final Range selectionRange = Range.of(nameCst);
-
             @Override
             public List<ParameterSymbol> getParameterList() {
                 return FormalParameterResolver.getFormalParameterList(cst, unit);
@@ -677,12 +646,12 @@ public class SymbolFactory {
 
             @Override
             public Range getRange() {
-                return range;
+                return Range.of(cst);
             }
 
             @Override
             public Range getSelectionRange() {
-                return selectionRange;
+                return Range.of(nameCst);
             }
 
             @Override
