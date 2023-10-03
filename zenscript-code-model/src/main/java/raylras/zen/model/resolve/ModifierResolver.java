@@ -36,7 +36,6 @@ public final class ModifierResolver {
                     default -> Modifier.NONE;
                 };
             }
-
         }
 
         @Override

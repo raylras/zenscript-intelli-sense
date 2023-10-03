@@ -50,8 +50,7 @@ EXPAND:                 '$expand';
 
 EXTENDS:                'extends';  // dzs
 OPERATOR:               'operator'; // dzs
-COMPARE:                'compare';  // dzs
-ITERATOR:               'iterator'; // dzs
+FOR_IN:                 'for_in';   // dzs
 
 ORDERLY:                'orderly';  // zenutils
 

@@ -1,62 +1,52 @@
 package raylras.zen.model.type;
 
-import raylras.zen.model.symbol.SymbolProvider;
 import raylras.zen.model.symbol.ClassSymbol;
 import raylras.zen.model.symbol.Symbol;
+import raylras.zen.model.symbol.SymbolProvider;
 
+import java.util.ArrayDeque;
 import java.util.Collection;
-import java.util.Objects;
+import java.util.Deque;
 
-public class ClassType extends Type implements SymbolProvider {
+public record ClassType(ClassSymbol symbol) implements Type, SymbolProvider {
 
-    private final ClassSymbol symbol;
-
-    public ClassType(ClassSymbol symbol) {
-        this.symbol = symbol;
+    @Override
+    public String getTypeName() {
+        return symbol.getQualifiedName();
     }
 
-    public ClassSymbol getSymbol() {
-        return symbol;
+    @Override
+    public boolean isSuperclassTo(Type type) {
+        if (type instanceof ClassType that) {
+            Deque<ClassSymbol> deque = new ArrayDeque<>();
+            deque.push(that.symbol);
+            while (!deque.isEmpty()) {
+                ClassSymbol pop = deque.pop();
+                if (pop.equals(this.symbol)) {
+                    return true;
+                }
+                deque.addAll(pop.getInterfaces());
+            }
+        }
+        return false;
     }
 
     @Override
     public Collection<Symbol> getSymbols() {
         MemberValidator validator = new MemberValidator();
         validator.addAll(symbol.getDeclaredMembers());
-        for (ClassType anInterface : symbol.getInterfaces()) {
-            validator.addAll(anInterface.getSymbols());
+        Deque<ClassSymbol> interfaceDeque = new ArrayDeque<>(symbol.getInterfaces());
+        while (!interfaceDeque.isEmpty()) {
+            ClassSymbol pop = interfaceDeque.pop();
+            validator.addAll(pop.getSymbols());
+            interfaceDeque.addAll(pop.getInterfaces());
         }
         return validator.getMembers();
     }
 
     @Override
-    public boolean isInheritedFrom(Type type) {
-        if (type instanceof ClassType) {
-            boolean matchedInterface = symbol.getInterfaces().stream()
-                    .flatMap(classType -> classType.getSymbol().getInterfaces().stream())
-                    .anyMatch(classType -> classType.isInheritedFrom(type));
-            if (matchedInterface) {
-                return true;
-            }
-        }
-        return super.isInheritedFrom(type);
-    }
-
-    @Override
     public String toString() {
-        return symbol.getName();
+        return getTypeName();
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ClassType type = (ClassType) o;
-        return Objects.equals(symbol, type.symbol);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(symbol.getQualifiedName());
-    }
 }

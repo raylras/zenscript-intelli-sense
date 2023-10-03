@@ -1,25 +1,33 @@
 package raylras.zen.model.type;
 
 import raylras.zen.model.CompilationEnvironment;
-import raylras.zen.model.symbol.SymbolProvider;
 import raylras.zen.model.symbol.Operator;
 import raylras.zen.model.symbol.Symbol;
 import raylras.zen.model.symbol.SymbolFactory;
+import raylras.zen.model.symbol.SymbolProvider;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.function.UnaryOperator;
 
-public class ArrayType extends Type implements SymbolProvider {
+public record ArrayType(Type elementType) implements Type, SymbolProvider {
 
-    private final Type elementType;
-
-    public ArrayType(Type elementType) {
-        this.elementType = elementType;
+    @Override
+    public String getTypeName() {
+        return elementType + "[]";
     }
 
-    public Type getElementType() {
-        return elementType;
+    @Override
+    public boolean isCastableTo(Type type, CompilationEnvironment env) {
+        if (type instanceof ArrayType that) {
+            return this.elementType.isCastableTo(that.elementType(), env);
+        }
+        if (type instanceof ListType that) {
+            return this.elementType.isCastableTo(that.elementType(), env);
+        }
+        if (type instanceof ClassType that) {
+            return that.getTypeName().equals("crafttweaker.data.IData");
+        }
+        return Type.super.isCastableTo(type, env);
     }
 
     @Override
@@ -31,48 +39,13 @@ public class ArrayType extends Type implements SymbolProvider {
                         params.parameter("index", IntType.INSTANCE).parameter("element", elementType)
                 )
                 .operator(Operator.ADD, this, params -> params.parameter("element", elementType))
-                .operator(Operator.ITERATOR, new ListType(elementType), UnaryOperator.identity())
+                .operator(Operator.FOR_IN, new ListType(elementType), UnaryOperator.identity())
                 .build();
     }
 
     @Override
-    public boolean isInheritedFrom(Type type) {
-        if (type instanceof ArrayType that && elementType.isInheritedFrom(that.getElementType())) {
-            return true;
-        }
-        return super.isInheritedFrom(type);
-    }
-
-    @Override
-    public boolean isCastableTo(Type type, CompilationEnvironment env) {
-        if (type instanceof ArrayType that && elementType.isCastableTo(that.getElementType(), env)) {
-            return true;
-        }
-        if (type instanceof ListType that && elementType.isAssignableTo(that.getElementType(), env)) {
-            return true;
-        }
-        if (type instanceof ClassType that && that.getSymbol().getQualifiedName().equals("crafttweaker.data.IData")) {
-            return true;
-        }
-        return super.isCastableTo(type, env);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(toString());
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        ArrayType arrayType = (ArrayType) o;
-        return Objects.equals(elementType, arrayType.elementType);
-    }
-
-    @Override
     public String toString() {
-        return elementType + "[]";
+        return getTypeName();
     }
 
 }

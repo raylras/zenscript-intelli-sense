@@ -93,7 +93,7 @@ public class CompilationEnvironment {
 
     public Collection<Symbol> getExpands(Type type) {
         Collection<Symbol> expandFunctions = getExpandFunctions().stream()
-                .filter(symbol -> type.isInheritedFrom(symbol.getExpandingType()))
+                .filter(symbol -> symbol.getExpandingType().isSuperclassTo(type))
                 .map(Symbol.class::cast)
                 .toList();
         if (isPrimitive(type)) {

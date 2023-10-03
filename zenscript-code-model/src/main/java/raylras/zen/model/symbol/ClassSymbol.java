@@ -10,7 +10,7 @@ public interface ClassSymbol extends Symbol, SymbolProvider {
 
     List<Symbol> getDeclaredMembers();
 
-    List<ClassType> getInterfaces();
+    List<ClassSymbol> getInterfaces();
 
     @Override
     ClassType getType();

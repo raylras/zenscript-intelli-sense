@@ -1,19 +1,19 @@
 package raylras.zen.model.type;
 
-import raylras.zen.model.symbol.SymbolProvider;
 import raylras.zen.model.symbol.Operator;
 import raylras.zen.model.symbol.Symbol;
 import raylras.zen.model.symbol.SymbolFactory;
+import raylras.zen.model.symbol.SymbolProvider;
 
 import java.util.List;
 import java.util.function.UnaryOperator;
 
-public class IntRangeType extends Type implements SymbolProvider {
+public final class IntRangeType implements Type, SymbolProvider {
 
     public static final IntRangeType INSTANCE = new IntRangeType();
 
     @Override
-    public String toString() {
+    public String getTypeName() {
         return "stanhebben.zenscript.value.IntRange";
     }
 
@@ -22,7 +22,13 @@ public class IntRangeType extends Type implements SymbolProvider {
         return SymbolFactory.builtinSymbols()
                 .variable("from", IntType.INSTANCE, Symbol.Modifier.IMPLICIT_VAL)
                 .variable("to", IntType.INSTANCE, Symbol.Modifier.IMPLICIT_VAL)
-                .operator(Operator.ITERATOR, new ListType(IntType.INSTANCE), UnaryOperator.identity())
+                .operator(Operator.FOR_IN, new ListType(IntType.INSTANCE), UnaryOperator.identity())
                 .build();
     }
+
+    @Override
+    public String toString() {
+        return getTypeName();
+    }
+
 }

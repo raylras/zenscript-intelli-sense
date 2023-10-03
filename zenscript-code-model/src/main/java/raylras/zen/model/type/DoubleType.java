@@ -1,12 +1,17 @@
 package raylras.zen.model.type;
 
-public class DoubleType extends NumberType {
+public final class DoubleType extends NumberType {
 
     public static final DoubleType INSTANCE = new DoubleType();
 
     @Override
-    public String toString() {
+    public String getTypeName() {
         return "double";
+    }
+
+    @Override
+    public String toString() {
+        return getTypeName();
     }
 
 }

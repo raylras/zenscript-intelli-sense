@@ -105,13 +105,13 @@ public class ReferencesProvider {
                         (node) -> (node.getSymbol().getType() == ZenScriptParser.TO || node.getSymbol().getType() == ZenScriptParser.DOT_DOT) && node.getParent() instanceof ZenScriptParser.IntRangeExprContext;
                 case HAS ->
                         (node) -> (node.getSymbol().getType() == ZenScriptParser.HAS || node.getSymbol().getType() == ZenScriptParser.IN) && node.getParent() instanceof ZenScriptParser.BinaryExprContext;
-                case COMPARE, EQUALS -> (node) -> node.getParent() instanceof ZenScriptParser.CompareExprContext;
+                case EQUALS -> (node) -> node.getParent() instanceof ZenScriptParser.CompareExprContext;
                 case MEMBER_GET, MEMBER_SET ->
                         (node) -> (node.getSymbol().getType() == ZenScriptParser.DOT && node.getParent() instanceof ZenScriptParser.MemberAccessExprContext);
                 case AS ->
                         (node) -> (node.getSymbol().getType() == ZenScriptParser.AS && node.getParent() instanceof ZenScriptParser.TypeCastExprContext)
                                 || (node.getSymbol().getType() == ZenScriptParser.INSTANCEOF && node.getParent() instanceof ZenScriptParser.InstanceOfExprContext);
-                case ITERATOR ->
+                case FOR_IN ->
                         (node) -> node.getSymbol().getType() == ZenScriptParser.IN && node.getParent() instanceof ZenScriptParser.ForeachStatementContext;
                 case ERROR -> null;
                 default -> (node) -> {

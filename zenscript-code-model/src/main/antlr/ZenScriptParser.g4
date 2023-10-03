@@ -32,8 +32,7 @@ simpleName
     | 'version'
     | 'extends'  // dzs
     | 'operator' // dzs
-    | 'compare'  // dzs
-    | 'iterator' // dzs
+    | 'for_in'   // dzs
     | 'orderly'  // zenutils
     ;
 
@@ -144,12 +143,16 @@ operator // dzs
     | '['']''='
     | '..'
     | 'has'
-    | 'compare'
     | '.'
     | '.''='
-    | 'iterator'
-    | '=='
+    | 'for_in'
     | 'as'
+    | '=='
+    | '!='
+    | '<'
+    | '<='
+    | '>'
+    | '>='
     ;
 
 intersectionType //dzs

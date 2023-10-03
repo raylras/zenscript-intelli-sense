@@ -1,19 +1,23 @@
 package raylras.zen.model.type;
 
-import raylras.zen.model.CompilationEnvironment;
-import raylras.zen.model.symbol.SymbolProvider;
 import raylras.zen.model.symbol.Symbol;
+import raylras.zen.model.symbol.SymbolProvider;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class IntersectionType extends Type implements SymbolProvider {
+public record IntersectionType(List<Type> typeList) implements Type, SymbolProvider {
 
-    private final List<Type> typeList;
+    @Override
+    public String getTypeName() {
+        return typeList.stream().map(Objects::toString).collect(Collectors.joining(" & "));
+    }
 
-    public IntersectionType(List<Type> typeList) {
-        this.typeList = typeList;
+    @Override
+    public boolean isSuperclassTo(Type type) {
+        return typeList.stream().anyMatch(it -> it.isSuperclassTo(type));
     }
 
     @Override
@@ -28,22 +32,8 @@ public class IntersectionType extends Type implements SymbolProvider {
     }
 
     @Override
-    public boolean isInheritedFrom(Type type) {
-        return typeList.stream().anyMatch(it -> it.isInheritedFrom(type));
-    }
-
-    @Override
-    public boolean isCastableTo(Type type, CompilationEnvironment env) {
-        return typeList.stream().anyMatch(it -> it.isCastableTo(type, env));
-    }
-
-    public List<Type> getTypeList() {
-        return typeList;
-    }
-
-    @Override
     public String toString() {
-        return typeList.stream().map(Object::toString).collect(Collectors.joining(" & "));
+        return getTypeName();
     }
 
 }

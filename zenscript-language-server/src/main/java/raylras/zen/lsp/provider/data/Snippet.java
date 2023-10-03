@@ -15,7 +15,7 @@ public interface Snippet {
     CompletionItem get();
 
     static Snippet dotFor(Type type, CompilationEnvironment env, MemberAccessExprContext ctx) {
-        Type iteratorType = Operators.getUnaryOperatorResult(type, Operator.ITERATOR, env);
+        Type iteratorType = Operators.getUnaryResult(type, Operator.FOR_IN, env).orElse(null);
         if (iteratorType instanceof MapType) {
             return () -> createMemberAccessCompletion("for", "for key, value in map", "for ${1:key}, ${2:value} in %s {\n\t$0\n}", ctx);
         } else if (iteratorType instanceof ListType) {
@@ -26,7 +26,7 @@ public interface Snippet {
     }
 
     static Snippet dotForI(Type type, CompilationEnvironment env, MemberAccessExprContext ctx) {
-        Type iteratorType = Operators.getUnaryOperatorResult(type, Operator.ITERATOR, env);
+        Type iteratorType = Operators.getUnaryResult(type, Operator.FOR_IN, env).orElse(null);
         if (iteratorType instanceof ListType) {
             return () -> createMemberAccessCompletion("fori", "for index, element in list", "for ${1:i}, ${2:value} in %s {\n\t$0\n}", ctx);
         } else {

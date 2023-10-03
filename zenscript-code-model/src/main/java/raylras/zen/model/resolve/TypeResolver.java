@@ -9,7 +9,6 @@ import raylras.zen.model.Visitor;
 import raylras.zen.model.parser.ZenScriptLexer;
 import raylras.zen.model.parser.ZenScriptParser.*;
 import raylras.zen.model.symbol.*;
-import raylras.zen.model.symbol.Operator.OperatorType;
 import raylras.zen.model.type.*;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Executables;
@@ -72,13 +71,13 @@ public final class TypeResolver {
             }
             FormalParameterListContext parameterList = (FormalParameterListContext) ctx.getParent();
             FunctionExprContext functionExpr = ((FunctionExprContext) parameterList.getParent());
-            Type functionType = visit(functionExpr);
             int argumentIndex = parameterList.formalParameter().indexOf(ctx);
-            if (functionType instanceof FunctionType) {
-                return ((FunctionType) functionType).getParameterTypes().get(argumentIndex);
-            } else if (functionType instanceof ClassType classType) {
+            Type type = visit(functionExpr);
+            if (type instanceof FunctionType functionType) {
+                return functionType.parameterTypes().get(argumentIndex);
+            } else if (type instanceof ClassType classType) {
                 return Executables.findLambdaForm(classType, unit.getEnv())
-                        .map(it -> it.getParameterTypes().get(argumentIndex))
+                        .map(it -> it.parameterTypes().get(argumentIndex))
                         .orElse(AnyType.INSTANCE);
             }
             return AnyType.INSTANCE;
@@ -153,9 +152,9 @@ public final class TypeResolver {
             ForeachStatementContext forEachStatement = (ForeachStatementContext) ctx.getParent().getParent();
             List<ForeachVariableContext> variables = forEachStatement.foreachVariableList().foreachVariable();
             Type iterableType = visit(forEachStatement.expression());
-            Type result = Operators.getUnaryOperatorResult(iterableType, Operator.ITERATOR, unit.getEnv());
+            Type result = Operators.getUnaryResult(iterableType, Operator.FOR_IN, unit.getEnv()).orElse(null);
             if (result instanceof ListType listType) {
-                return getListForeachVariableType(listType.getElementType(), ctx, variables);
+                return getListForeachVariableType(listType.elementType(), ctx, variables);
             }
             if (result instanceof MapType mapType) {
                 return getMapForeachVariableType(mapType, ctx, variables);
@@ -188,7 +187,7 @@ public final class TypeResolver {
 
         @Override
         public Type visitIntRangeExpr(IntRangeExprContext ctx) {
-            return Operators.getBinaryOperatorResult(visit(ctx.from), Operator.RANGE, unit.getEnv(), visit(ctx.to));
+            return Operators.getBinaryResult(visit(ctx.from), Operator.RANGE, unit.getEnv(), visit(ctx.to)).orElse(AnyType.INSTANCE);
         }
 
         @Override
@@ -200,13 +199,12 @@ public final class TypeResolver {
 
         @Override
         public Type visitBinaryExpr(BinaryExprContext ctx) {
+            String literal = ctx.op.getText();
             Type leftType = visit(ctx.left);
-            Operator operator = Operators.of(ctx.op.getText(), OperatorType.BINARY);
-            if (operator != Operator.ERROR) {
-                return Operators.getBinaryOperatorResult(leftType, operator, unit.getEnv(), visit(ctx.right));
-            } else {
-                return leftType;
-            }
+            Type rightType = visit(ctx.right);
+            return Operator.of(literal, Operator.Kind.BINARY)
+                    .flatMap(op -> Operators.getBinaryResult(leftType, op, unit.getEnv(), rightType))
+                    .orElse(leftType);
         }
 
         @Override
@@ -267,13 +265,9 @@ public final class TypeResolver {
         @Override
         public Type visitUnaryExpr(UnaryExprContext ctx) {
             Type type = visit(ctx.expression());
-            if (ctx.NOT() != null) {
-                return Operators.getUnaryOperatorResult(type, Operator.NOT, unit.getEnv());
-            }
-            if (ctx.SUB() != null) {
-                return Operators.getUnaryOperatorResult(type, Operator.NEG, unit.getEnv());
-            }
-            return type;
+            return Operator.of(ctx.op.getText(), Operator.Kind.UNARY)
+                    .flatMap(op -> Operators.getUnaryResult(type, op, unit.getEnv()))
+                    .orElse(AnyType.INSTANCE);
         }
 
         @Override
@@ -304,17 +298,18 @@ public final class TypeResolver {
         public Type visitMemberAccessExpr(MemberAccessExprContext ctx) {
             Type leftType = visit(ctx.expression());
             if (!(leftType instanceof SymbolProvider provider)) {
-                return null;
+                return AnyType.INSTANCE;
             }
-            if (ctx.simpleName() != null) {
-                String simpleName = ctx.simpleName().getText();
-                for (Symbol member : provider.withExpands(unit.getEnv()).getSymbols()) {
-                    if (Objects.equals(member.getName(), simpleName)) {
-                        return member.getType();
-                    }
+            if (ctx.simpleName() == null) {
+                return AnyType.INSTANCE;
+            }
+            String simpleName = ctx.simpleName().getText();
+            for (Symbol member : provider.withExpands(unit.getEnv()).getSymbols()) {
+                if (member.getName().equals(simpleName)) {
+                    return member.getType();
                 }
             }
-            return Operators.getBinaryOperatorResult(leftType, Operator.MEMBER_GET, unit.getEnv(), StringType.INSTANCE);
+            return Operators.getBinaryResult(leftType, Operator.MEMBER_GET, unit.getEnv(), StringType.INSTANCE).orElse(AnyType.INSTANCE);
         }
 
         @Override
@@ -343,8 +338,8 @@ public final class TypeResolver {
                 return matchedFunction == null ? null : matchedFunction.getReturnType();
             } else {
                 Type leftType = visit(ctx.expression());
-                if (leftType instanceof FunctionType) {
-                    return ((FunctionType) leftType).getReturnType();
+                if (leftType instanceof FunctionType functionType) {
+                    return functionType.returnType();
                 } else if (leftType instanceof ClassType) {
                     return leftType;
                 } else {
@@ -356,20 +351,18 @@ public final class TypeResolver {
         @Override
         public Type visitMemberIndexExpr(MemberIndexExprContext ctx) {
             Type leftType = visit(ctx.left);
-            return Operators.getBinaryOperatorResult(leftType, Operator.INDEX_GET, unit.getEnv(), visit(ctx.index));
+            Type rightType = visit(ctx.index);
+            return Operators.getBinaryResult(leftType, Operator.INDEX_GET, unit.getEnv(), rightType)
+                    .orElse(AnyType.INSTANCE);
         }
 
         @Override
         public Type visitCompareExpr(CompareExprContext ctx) {
             Type leftType = visit(ctx.left);
-            Type result = Operators.getBinaryOperatorResult(leftType, Operator.COMPARE, unit.getEnv(), visit(ctx.right));
-            if (IntType.INSTANCE.equals(result)) {
-                return BoolType.INSTANCE;
-            }
-            if (ctx.EQUAL() != null || ctx.NOT_EQUAL() != null) {
-                return Operators.getBinaryOperatorResult(leftType, Operator.EQUALS, unit.getEnv(), visit(ctx.right));
-            }
-            return AnyType.INSTANCE;
+            Type rightType = visit(ctx.right);
+            return Operator.of(ctx.op.getText(), Operator.Kind.BINARY)
+                    .flatMap(op -> Operators.getBinaryResult(leftType, op, unit.getEnv(), rightType))
+                    .orElse(AnyType.INSTANCE);
         }
 
         @Override
@@ -488,10 +481,10 @@ public final class TypeResolver {
             int total = variables.size();
             int index = variables.indexOf(variable);
             if (total == 1) {
-                return mapType.getKeyType();
+                return mapType.keyType();
             }
             if (total == 2) {
-                return index == 0 ? mapType.getKeyType() : mapType.getValueType();
+                return index == 0 ? mapType.keyType() : mapType.valueType();
             }
             return null;
         }

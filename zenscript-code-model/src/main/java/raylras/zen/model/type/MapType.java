@@ -1,31 +1,31 @@
 package raylras.zen.model.type;
 
 import raylras.zen.model.CompilationEnvironment;
-import raylras.zen.model.symbol.SymbolProvider;
 import raylras.zen.model.symbol.Operator;
 import raylras.zen.model.symbol.Symbol;
 import raylras.zen.model.symbol.SymbolFactory;
+import raylras.zen.model.symbol.SymbolProvider;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.function.UnaryOperator;
 
-public class MapType extends Type implements SymbolProvider {
+public record MapType(Type keyType, Type valueType) implements Type, SymbolProvider {
 
-    private final Type keyType;
-    private final Type valueType;
-
-    public MapType(Type keyType, Type valueType) {
-        this.keyType = keyType;
-        this.valueType = valueType;
+    @Override
+    public String getTypeName() {
+        return valueType + "[" + keyType + "]";
     }
 
-    public Type getKeyType() {
-        return keyType;
-    }
-
-    public Type getValueType() {
-        return valueType;
+    @Override
+    public boolean isCastableTo(Type type, CompilationEnvironment env) {
+        if (type instanceof MapType that) {
+            return this.keyType.isCastableTo(that.keyType, env)
+                    && this.valueType.isCastableTo(that.valueType, env);
+        }
+        if (type instanceof ClassType that) {
+            return that.getTypeName().equals("crafttweaker.data.IData");
+        }
+        return Type.super.isCastableTo(type, env);
     }
 
     @Override
@@ -47,52 +47,13 @@ public class MapType extends Type implements SymbolProvider {
                         params.parameter("key", keyType)
                                 .parameter("value", valueType)
                 )
-                .operator(Operator.ITERATOR, this, UnaryOperator.identity())
+                .operator(Operator.FOR_IN, this, UnaryOperator.identity())
                 .build();
     }
 
     @Override
-    public boolean isInheritedFrom(Type type) {
-        if (type instanceof MapType that) {
-            boolean keyMatched = keyType.isInheritedFrom(that.keyType);
-            boolean valueMatched = valueType.isInheritedFrom(that.valueType);
-            if (keyMatched && valueMatched) {
-                return true;
-            }
-        }
-        return super.isInheritedFrom(type);
-    }
-
-    @Override
-    public boolean isCastableTo(Type type, CompilationEnvironment env) {
-        if (type instanceof MapType that) {
-            boolean keyMatched = keyType.isAssignableTo(that.keyType, env);
-            boolean valueMatched = valueType.isAssignableTo(that.valueType, env);
-            if (keyMatched && valueMatched) {
-                return true;
-            }
-        }
-        if (type instanceof ClassType that && that.getSymbol().getQualifiedName().equals("crafttweaker.data.IData")) {
-            return true;
-        }
-        return super.isCastableTo(type, env);
-    }
-
-    @Override
     public String toString() {
-        return valueType + "[" + keyType + "]";
+        return getTypeName();
     }
 
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        MapType symbols = (MapType) o;
-        return Objects.equals(keyType, symbols.keyType) && Objects.equals(valueType, symbols.valueType);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(toString());
-    }
 }

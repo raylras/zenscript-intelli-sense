@@ -12,7 +12,6 @@ import raylras.zen.model.resolve.TypeResolver;
 import raylras.zen.model.symbol.Symbol.Modifier;
 import raylras.zen.model.type.*;
 import raylras.zen.util.CSTNodes;
-import raylras.zen.util.Operators;
 import raylras.zen.util.PathUtil;
 import raylras.zen.util.Range;
 
@@ -105,15 +104,14 @@ public class SymbolFactory {
             }
 
             @Override
-            public List<ClassType> getInterfaces() {
+            public List<ClassSymbol> getInterfaces() {
                 if (cst.qualifiedNameList() == null) {
                     return Collections.emptyList();
                 }
                 return cst.qualifiedNameList().qualifiedName().stream()
-                        .map(name -> SymbolResolver.lookupClass(cst, unit))
+                        .map(name -> SymbolResolver.lookupClass(name, unit))
                         .filter(Optional::isPresent)
                         .map(Optional::get)
-                        .map(ClassSymbol::getType)
                         .toList();
             }
 
@@ -252,7 +250,7 @@ public class SymbolFactory {
 
             @Override
             public Type getReturnType() {
-                return getType().getReturnType();
+                return getType().returnType();
             }
 
             @Override
@@ -333,11 +331,10 @@ public class SymbolFactory {
 
     public static OperatorFunctionSymbol createOperatorFunctionSymbol(OperatorContext opCst, OperatorFunctionDeclarationContext cst, CompilationUnit unit) {
         class OperatorFunctionSymbolImpl implements OperatorFunctionSymbol, ParseTreeLocatable {
-            private final Operator operator = Operators.of(opCst.getText(), cst.formalParameterList().formalParameter().size());
-
             @Override
             public Operator getOperator() {
-                return operator;
+                int paramSize = cst.formalParameterList().formalParameter().size();
+                return Operator.of(getName(), paramSize).orElse(Operator.ERROR);
             }
 
             @Override
@@ -355,12 +352,12 @@ public class SymbolFactory {
 
             @Override
             public Type getReturnType() {
-                return getType().getReturnType();
+                return getType().returnType();
             }
 
             @Override
             public String getName() {
-                return operator.getLiteral();
+                return opCst.getText();
             }
 
             @Override
@@ -502,7 +499,7 @@ public class SymbolFactory {
 
             @Override
             public Type getReturnType() {
-                return getType().getReturnType();
+                return getType().returnType();
             }
 
             @Override
@@ -625,7 +622,7 @@ public class SymbolFactory {
 
             @Override
             public Type getReturnType() {
-                return getType().getReturnType();
+                return getType().returnType();
             }
 
             @Override

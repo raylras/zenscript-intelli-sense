@@ -39,7 +39,7 @@ public final class SymbolResolver {
         return Collections.unmodifiableCollection(visitor.result);
     }
 
-    public static Optional<ClassSymbol> lookupClass(ParseTree cst, CompilationUnit unit) {
+    public static Optional<ClassSymbol> lookupClass(QualifiedNameContext cst, CompilationUnit unit) {
         // TODO: lookupClass
         // unit.getEnv().getGeneratedClasses();
         throw new RuntimeException("TODO: lookupClass");

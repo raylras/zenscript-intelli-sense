@@ -3,34 +3,17 @@ package raylras.zen.model.type;
 import raylras.zen.model.CompilationEnvironment;
 import raylras.zen.util.Operators;
 
-public abstract class Type {
+public sealed interface Type
+        permits AnyType, ArrayType, BoolType, ClassType, FunctionType, IntRangeType, IntersectionType, ListType, MapEntryType, MapType, NumberType, StringType, VoidType {
 
-    public final boolean isAssignableTo(Type type, CompilationEnvironment env) {
-        return this.testSubtypeOf(type, env).matched();
+    String getTypeName();
+
+    default boolean isSuperclassTo(Type type) {
+        return this.getClass().isAssignableFrom(type.getClass());
     }
 
-    public final SubtypeResult testSubtypeOf(Type type, CompilationEnvironment env) {
-        if (this.equals(type)) {
-            return SubtypeResult.SELF;
-        }
-        if (this.isInheritedFrom(type)) {
-            return SubtypeResult.INHERIT;
-        }
-        if (this.isCastableTo(type, env)) {
-            return SubtypeResult.CASTER;
-        }
-        return SubtypeResult.MISMATCH;
+    default boolean isCastableTo(Type type, CompilationEnvironment env) {
+        return type.isSuperclassTo(this) || Operators.hasCaster(this, type, env);
     }
-
-    public boolean isInheritedFrom(Type type) {
-        return type == AnyType.INSTANCE || this.equals(type);
-    }
-
-    public boolean isCastableTo(Type type, CompilationEnvironment env) {
-        return Operators.hasCaster(this, type, env) || this.isInheritedFrom(type);
-    }
-
-    @Override
-    public abstract String toString();
 
 }
