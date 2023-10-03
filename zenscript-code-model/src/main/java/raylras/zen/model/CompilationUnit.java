@@ -9,14 +9,13 @@ import raylras.zen.model.scope.Scope;
 import raylras.zen.model.symbol.ClassSymbol;
 import raylras.zen.model.symbol.ImportSymbol;
 import raylras.zen.model.symbol.Symbol;
-import raylras.zen.model.symbol.SymbolProvider;
 import raylras.zen.util.PathUtil;
 
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class CompilationUnit implements SymbolProvider {
+public class CompilationUnit {
 
     public static final String ZS_FILE_EXTENSION = ".zs";
     public static final String DZS_FILE_EXTENSION = ".dzs";
@@ -71,7 +70,6 @@ public class CompilationUnit implements SymbolProvider {
         return scopeMap.values();
     }
 
-    @Override
     public Collection<Symbol> getSymbols() {
         return symbolMap.values();
     }
