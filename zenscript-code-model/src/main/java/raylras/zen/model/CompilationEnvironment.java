@@ -83,9 +83,9 @@ public class CompilationEnvironment {
                 .toList();
     }
 
-    public Collection<PackageSymbol> getToplevelPackageSymbol() {
-        // TODO: getToplevelPackageSymbol
-        return Collections.emptyList();
+    public PackageSymbol getRootPackage() {
+        // TODO: getRootPackage
+        throw new RuntimeException("TODO: getRootPackage");
     }
 
     public Path getRoot() {

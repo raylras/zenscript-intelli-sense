@@ -165,9 +165,9 @@ public final class SymbolResolver {
         }
 
         Collection<PackageSymbol> lookupToplevelPackageSymbol(String name) {
-            return unit.getEnv().getToplevelPackageSymbol().stream()
-                    .filter(isSymbolNameEquals(name))
-                    .toList();
+             // TODO: lookupToplevelPackageSymbol
+             unit.getEnv().getRootPackage().getSymbols();
+             return Collections.emptyList();
         }
 
         Collection<Symbol> accessMember(Collection<? extends Symbol> symbolSpace, String memberName) {
