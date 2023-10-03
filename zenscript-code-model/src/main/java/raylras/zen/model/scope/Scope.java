@@ -11,8 +11,8 @@ import java.util.Objects;
 public class Scope implements SymbolProvider {
 
     private final Scope parent;
-    private final List<Symbol> symbols = new ArrayList<>();
     private final ParseTree cst;
+    private final List<Symbol> symbols = new ArrayList<>();
 
     public Scope(Scope parent, ParseTree cst) {
         this.parent = parent;
@@ -29,24 +29,6 @@ public class Scope implements SymbolProvider {
 
     public Symbol lookupSymbol(String simpleName) {
         return lookupSymbol(Symbol.class, simpleName);
-    }
-    public List<Symbol> lookupSymbols(String simpleName) {
-        Scope scope = this;
-        List<Symbol> result = new ArrayList<>();
-        while (scope != null) {
-
-            for (Symbol symbol : scope.getSymbols()) {
-                if (Objects.equals(symbol.getName(), simpleName)) {
-                    result.add(symbol);
-                }
-            }
-            // assume overload only happen on same scope
-            if(!result.isEmpty()) {
-                return result;
-            }
-            scope = scope.parent;
-        }
-        return result;
     }
 
     public <T extends Symbol> T lookupSymbol(Class<T> clazz, String simpleName) {
