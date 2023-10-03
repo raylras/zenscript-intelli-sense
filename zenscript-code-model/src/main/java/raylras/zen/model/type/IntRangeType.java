@@ -20,8 +20,8 @@ public class IntRangeType extends Type implements SymbolProvider {
     @Override
     public List<Symbol> getSymbols() {
         return SymbolFactory.builtinSymbols()
-                .variable("from", IntType.INSTANCE, Symbol.Modifier.VAL)
-                .variable("to", IntType.INSTANCE, Symbol.Modifier.VAL)
+                .variable("from", IntType.INSTANCE, Symbol.Modifier.IMPLICIT_VAL)
+                .variable("to", IntType.INSTANCE, Symbol.Modifier.IMPLICIT_VAL)
                 .operator(Operator.ITERATOR, new ListType(IntType.INSTANCE), UnaryOperator.identity())
                 .build();
     }

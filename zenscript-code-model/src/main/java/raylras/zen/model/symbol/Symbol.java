@@ -12,16 +12,22 @@ public interface Symbol {
 
     Modifier getModifier();
 
-    default boolean isModifiedBy(Modifier modifier) {
-        return getModifier() == modifier;
-    }
-
     default boolean isStatic() {
-        return isModifiedBy(Modifier.STATIC);
+        return switch (getModifier()) {
+            case STATIC, GLOBAL, IMPLICIT_STATIC -> true;
+            default -> false;
+        };
     }
 
     default boolean isGlobal() {
-        return isModifiedBy(Modifier.GLOBAL);
+        return getModifier() == Modifier.GLOBAL;
+    }
+
+    default boolean isReadonly() {
+        return switch (getModifier()) {
+            case VAL, STATIC, GLOBAL, IMPLICIT_VAL, IMPLICIT_STATIC -> true;
+            default -> false;
+        };
     }
 
     enum Kind {
@@ -29,7 +35,9 @@ public interface Symbol {
     }
 
     enum Modifier {
-        VAR, VAL, STATIC, GLOBAL, EXPAND, NONE
+        VAR, VAL, STATIC, GLOBAL, EXPAND,
+        IMPLICIT_VAR, IMPLICIT_VAL, IMPLICIT_STATIC,
+        NONE
     }
 
 }

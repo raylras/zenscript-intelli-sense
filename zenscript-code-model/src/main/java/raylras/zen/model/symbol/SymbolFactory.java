@@ -10,6 +10,7 @@ import raylras.zen.model.resolve.ModifierResolver;
 import raylras.zen.model.resolve.SymbolResolver;
 import raylras.zen.model.resolve.TypeResolver;
 import raylras.zen.model.scope.Scope;
+import raylras.zen.model.symbol.Symbol.Modifier;
 import raylras.zen.model.type.*;
 import raylras.zen.util.CSTNodes;
 import raylras.zen.util.Operators;
@@ -152,7 +153,7 @@ public class SymbolFactory {
 
             @Override
             public Modifier getModifier() {
-                return Modifier.NONE;
+                return Modifier.IMPLICIT_STATIC;
             }
 
             @Override
@@ -228,7 +229,7 @@ public class SymbolFactory {
         return new VariableSymbolImpl();
     }
 
-    public static VariableSymbol createVariableSymbol(String name, Type type, Symbol.Modifier modifier) {
+    public static VariableSymbol createVariableSymbol(String name, Type type, Modifier modifier) {
         class VariableSymbolImpl implements VariableSymbol {
             @Override
             public String getName() {
@@ -284,12 +285,12 @@ public class SymbolFactory {
             }
 
             @Override
-            public Symbol.Kind getKind() {
-                return Symbol.Kind.FUNCTION;
+            public Kind getKind() {
+                return Kind.FUNCTION;
             }
 
             @Override
-            public Symbol.Modifier getModifier() {
+            public Modifier getModifier() {
                 return modifier;
             }
 
@@ -348,7 +349,7 @@ public class SymbolFactory {
 
             @Override
             public Modifier getModifier() {
-                return Symbol.Modifier.NONE;
+                return Modifier.NONE;
             }
         }
         return new FunctionSymbolImpl();
@@ -496,7 +497,7 @@ public class SymbolFactory {
 
             @Override
             public Modifier getModifier() {
-                return Symbol.Modifier.NONE;
+                return Modifier.IMPLICIT_VAR;
             }
 
             @Override
@@ -618,7 +619,7 @@ public class SymbolFactory {
 
             @Override
             public Modifier getModifier() {
-                return Modifier.NONE;
+                return Modifier.IMPLICIT_VAR;
             }
         }
         return new ParameterSymbolImpl();
@@ -643,7 +644,7 @@ public class SymbolFactory {
 
             @Override
             public Modifier getModifier() {
-                return Modifier.VAL;
+                return Modifier.IMPLICIT_VAL;
             }
         }
         return new ThisSymbolImpl();
@@ -778,7 +779,7 @@ public class SymbolFactory {
     public static class SymbolsBuilder {
         private final List<Symbol> symbols = new ArrayList<>();
 
-        public SymbolsBuilder variable(String name, Type type, Symbol.Modifier modifier) {
+        public SymbolsBuilder variable(String name, Type type, Modifier modifier) {
             symbols.add(createVariableSymbol(name, type, modifier));
             return this;
         }

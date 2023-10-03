@@ -28,8 +28,8 @@ public class MapEntryType extends Type implements SymbolProvider {
     @Override
     public List<Symbol> getSymbols() {
         return SymbolFactory.builtinSymbols()
-                .variable("key", keyType, Symbol.Modifier.VAL)
-                .variable("value", valueType, Symbol.Modifier.VAL)
+                .variable("key", keyType, Symbol.Modifier.IMPLICIT_VAL)
+                .variable("value", valueType, Symbol.Modifier.IMPLICIT_VAL)
                 .build();
     }
 

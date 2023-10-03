@@ -25,7 +25,7 @@ public class ListType extends Type implements SymbolProvider {
     @Override
     public List<Symbol> getSymbols() {
         return SymbolFactory.builtinSymbols()
-                .variable("length", IntType.INSTANCE, Symbol.Modifier.VAL)
+                .variable("length", IntType.INSTANCE, Symbol.Modifier.IMPLICIT_VAL)
                 .function("remove", VoidType.INSTANCE, params -> params.parameter("index", IntType.INSTANCE))
                 .operator(Operator.INDEX_GET, elementType, params -> params.parameter("index", IntType.INSTANCE))
                 .operator(Operator.INDEX_SET, elementType, params ->

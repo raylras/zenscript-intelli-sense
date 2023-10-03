@@ -5,7 +5,6 @@ import raylras.zen.model.Visitor;
 import raylras.zen.model.parser.ZenScriptLexer;
 import raylras.zen.model.parser.ZenScriptParser.*;
 import raylras.zen.model.symbol.Symbol.Modifier;
-import raylras.zen.model.symbol.Symbol;
 import raylras.zen.util.CSTNodes;
 
 import java.util.Objects;
@@ -20,11 +19,39 @@ public final class ModifierResolver {
     }
 
     private static final class DeclaratorVisitor extends Visitor<Modifier> {
-        private static final DeclaratorVisitor INSTANCE = new DeclaratorVisitor();
+        static final DeclaratorVisitor INSTANCE = new DeclaratorVisitor();
+
+        boolean isToplevel(ParseTree cst) {
+            return cst.getParent() instanceof TopLevelElementContext;
+        }
+
+        @Override
+        public Modifier visitFunctionDeclaration(FunctionDeclarationContext ctx) {
+            if (isToplevel(ctx)) {
+                return Modifier.IMPLICIT_STATIC;
+            } else {
+                return switch (CSTNodes.getTokenType(ctx.prefix)) {
+                    case ZenScriptLexer.STATIC -> Modifier.STATIC;
+                    case ZenScriptLexer.GLOBAL -> Modifier.GLOBAL;
+                    default -> Modifier.NONE;
+                };
+            }
+
+        }
+
+        @Override
+        public Modifier visitExpandFunctionDeclaration(ExpandFunctionDeclarationContext ctx) {
+            return Modifier.EXPAND;
+        }
 
         @Override
         public Modifier visitFormalParameter(FormalParameterContext ctx) {
-            return Symbol.Modifier.NONE;
+            return Modifier.IMPLICIT_VAR;
+        }
+
+        @Override
+        public Modifier visitClassDeclaration(ClassDeclarationContext ctx) {
+            return Modifier.IMPLICIT_STATIC;
         }
 
         @Override
@@ -40,21 +67,7 @@ public final class ModifierResolver {
 
         @Override
         public Modifier visitForeachVariable(ForeachVariableContext ctx) {
-            return Symbol.Modifier.NONE;
-        }
-
-        @Override
-        public Modifier visitFunctionDeclaration(FunctionDeclarationContext ctx) {
-            return switch (CSTNodes.getTokenType(ctx.prefix)) {
-                case ZenScriptLexer.STATIC -> Modifier.STATIC;
-                case ZenScriptLexer.GLOBAL -> Modifier.GLOBAL;
-                default -> Modifier.NONE;
-            };
-        }
-
-        @Override
-        public Modifier visitExpandFunctionDeclaration(ExpandFunctionDeclarationContext ctx) {
-            return Symbol.Modifier.EXPAND;
+            return Modifier.IMPLICIT_VAR;
         }
     }
 

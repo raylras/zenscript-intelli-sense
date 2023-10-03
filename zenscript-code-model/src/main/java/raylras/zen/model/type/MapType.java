@@ -31,12 +31,12 @@ public class MapType extends Type implements SymbolProvider {
     @Override
     public List<Symbol> getSymbols() {
         return SymbolFactory.builtinSymbols()
-                .variable("length", IntType.INSTANCE, Symbol.Modifier.VAL)
-                .variable("keys", new ArrayType(keyType), Symbol.Modifier.VAL)
-                .variable("keySet", new ArrayType(keyType), Symbol.Modifier.VAL)
-                .variable("values", new ArrayType(valueType), Symbol.Modifier.VAL)
-                .variable("valueSet", new ArrayType(valueType), Symbol.Modifier.VAL)
-                .variable("entrySet", new ArrayType(new MapEntryType(keyType, valueType)), Symbol.Modifier.VAL)
+                .variable("length", IntType.INSTANCE, Symbol.Modifier.IMPLICIT_VAL)
+                .variable("keys", new ArrayType(keyType), Symbol.Modifier.IMPLICIT_VAL)
+                .variable("keySet", new ArrayType(keyType), Symbol.Modifier.IMPLICIT_VAL)
+                .variable("values", new ArrayType(valueType), Symbol.Modifier.IMPLICIT_VAL)
+                .variable("valueSet", new ArrayType(valueType), Symbol.Modifier.IMPLICIT_VAL)
+                .variable("entrySet", new ArrayType(new MapEntryType(keyType, valueType)), Symbol.Modifier.IMPLICIT_VAL)
                 .operator(Operator.INDEX_GET, valueType, params -> params.parameter("key", keyType))
                 .operator(Operator.INDEX_SET, VoidType.INSTANCE, params ->
                         params.parameter("key", keyType)
