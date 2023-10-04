@@ -95,6 +95,11 @@ public class SymbolFactory {
             }
 
             @Override
+            public String getSimpleName() {
+                return getName();
+            }
+
+            @Override
             public List<Symbol> getDeclaredMembers() {
                 return unit.getScope(cst)
                         .map(scope -> scope.getSymbols().stream()

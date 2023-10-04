@@ -8,6 +8,8 @@ public interface ClassSymbol extends Symbol, SymbolProvider {
 
     String getQualifiedName();
 
+    String getSimpleName();
+
     List<Symbol> getDeclaredMembers();
 
     List<ClassSymbol> getInterfaces();

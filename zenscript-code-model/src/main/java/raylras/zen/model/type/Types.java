@@ -3,6 +3,7 @@ package raylras.zen.model.type;
 import raylras.zen.model.CompilationEnvironment;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Types {
 
@@ -32,6 +33,28 @@ public class Types {
 
     public static boolean isPrimitive(Type type) {
         return PRIMITIVE_TYPES.contains(type);
+    }
+
+    public static String getSimpleName(Type type) {
+        if (type instanceof ClassType classType) {
+            return classType.getSimpleName();
+        }
+        if (type instanceof ArrayType arrayType) {
+            return getSimpleName(arrayType.elementType()) + "[]";
+        }
+        if (type instanceof ListType listType) {
+            return "[" + getSimpleName(listType.elementType()) + "]";
+        }
+        if (type instanceof MapType mapType) {
+            return "Map.Entry<" + getSimpleName(mapType.keyType()) + "," + getSimpleName(mapType.valueType()) + ">";
+        }
+        if (type instanceof FunctionType functionType) {
+            return "function" + functionType.parameterTypes().stream()
+                    .map(Types::getSimpleName)
+                    .collect(Collectors.joining(",", "(", ")"))
+                    + getSimpleName(functionType.returnType());
+        }
+        return type.getTypeName();
     }
 
 }

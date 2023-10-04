@@ -10,6 +10,14 @@ import java.util.Deque;
 
 public record ClassType(ClassSymbol symbol) implements Type, SymbolProvider {
 
+    public String getQualifiedName() {
+        return symbol.getQualifiedName();
+    }
+
+    public String getSimpleName() {
+        return symbol.getSimpleName();
+    }
+
     @Override
     public String getTypeName() {
         return symbol.getQualifiedName();
