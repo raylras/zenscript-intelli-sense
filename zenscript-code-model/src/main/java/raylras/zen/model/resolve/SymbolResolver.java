@@ -41,7 +41,7 @@ public final class SymbolResolver {
 
     public static Optional<ClassSymbol> lookupClass(QualifiedNameContext cst, CompilationUnit unit) {
         // TODO: lookupClass
-        // unit.getEnv().getGeneratedClasses();
+        // unit.getEnv().getClasses();
         throw new RuntimeException("TODO: lookupClass");
     }
 
@@ -166,7 +166,7 @@ public final class SymbolResolver {
         }
 
         Collection<Symbol> lookupGlobalSymbol(String name) {
-            return unit.getEnv().getGlobalSymbols().stream()
+            return unit.getEnv().getGlobals()
                     .filter(isSymbolNameEquals(name))
                     .toList();
         }

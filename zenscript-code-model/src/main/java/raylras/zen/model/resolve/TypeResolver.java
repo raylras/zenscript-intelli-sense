@@ -452,7 +452,7 @@ public final class TypeResolver {
         }
 
         Optional<Symbol> lookupGlobalSymbol(String simpleName) {
-            return unit.getEnv().getGlobalSymbols().stream()
+            return unit.getEnv().getGlobals()
                     .filter(symbol -> symbol.getName().equals(simpleName))
                     .findFirst();
         }

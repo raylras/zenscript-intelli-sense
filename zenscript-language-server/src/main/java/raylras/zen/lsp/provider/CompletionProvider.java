@@ -511,7 +511,7 @@ public final class CompletionProvider {
         }
 
         void completeGlobalSymbols(String text) {
-            unit.getEnv().getGlobalSymbols().stream()
+            unit.getEnv().getGlobals()
                     .filter(symbol -> TextSimilarity.isSubsequence(text, symbol.getName()))
                     .map(this::createCompletionItem)
                     .forEach(this::addToCompletionList);

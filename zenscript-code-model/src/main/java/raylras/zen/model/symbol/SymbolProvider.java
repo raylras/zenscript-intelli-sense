@@ -22,7 +22,7 @@ public interface SymbolProvider {
     default SymbolProvider withExpands(CompilationEnvironment env) {
         if (this instanceof Type expandingType) {
             Collection<Symbol> result = new ArrayList<>(getSymbols());
-            result.addAll(env.getExpands(expandingType));
+            env.getExpands(expandingType).forEach(result::add);
             return of(result);
         } else {
             return this;

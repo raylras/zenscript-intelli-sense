@@ -5,14 +5,18 @@ import raylras.zen.model.symbol.ClassSymbol;
 import raylras.zen.model.symbol.ExpandFunctionSymbol;
 import raylras.zen.model.symbol.PackageSymbol;
 import raylras.zen.model.symbol.Symbol;
-import raylras.zen.model.type.*;
+import raylras.zen.model.type.Type;
+import raylras.zen.model.type.Types;
 import raylras.zen.util.PathUtil;
 
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
-import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class CompilationEnvironment {
 
@@ -50,28 +54,40 @@ public class CompilationEnvironment {
         return unitMap.values();
     }
 
-    public List<Symbol> getGlobalSymbols() {
+    public Stream<Symbol> getGlobals() {
         return getUnits().stream()
                 .flatMap(unit -> unit.getTopLevelSymbols().stream())
-                .filter(Symbol::isGlobal)
-                .collect(Collectors.toList());
+                .filter(Symbol::isGlobal);
     }
 
-    public Collection<ExpandFunctionSymbol> getExpandFunctions() {
+    public Stream<ClassSymbol> getClasses() {
+        return getUnits().stream()
+                .flatMap(unit -> unit.getTopLevelSymbols().stream())
+                .filter(ClassSymbol.class::isInstance)
+                .map(ClassSymbol.class::cast);
+    }
+
+    public Stream<ExpandFunctionSymbol> getExpandFunctions() {
         return getUnits().stream()
                 .flatMap(unit -> unit.getTopLevelSymbols().stream())
                 .filter(ExpandFunctionSymbol.class::isInstance)
-                .map(ExpandFunctionSymbol.class::cast)
-                .toList();
+                .map(ExpandFunctionSymbol.class::cast);
     }
 
-    public Collection<ClassSymbol> getGeneratedClasses() {
-        return getUnits().stream()
-                .filter(CompilationUnit::isGenerated)
-                .map(CompilationUnit::getGeneratedClass)
-                .filter(Optional::isPresent)
-                .map(Optional::get)
-                .toList();
+    public Stream<Symbol> getExpands(Type type) {
+        Stream<Symbol> expandFunctions = getExpandFunctions()
+                .filter(symbol -> symbol.getExpandingType().isSuperclassTo(type))
+                .map(Symbol.class::cast);
+        if (Types.isPrimitive(type)) {
+            Stream<Symbol> expandPrimitives = getClasses()
+                    .filter(symbol -> symbol.getQualifiedName().equals(type.getTypeName()))
+                    .findFirst()
+                    .map(primitiveClass -> primitiveClass.getSymbols().stream())
+                    .orElse(Stream.empty());
+            return Stream.concat(expandFunctions, expandPrimitives);
+        } else {
+            return expandFunctions;
+        }
     }
 
     public PackageSymbol getRootPackage() {
@@ -89,23 +105,6 @@ public class CompilationEnvironment {
 
     public BracketHandlerService getBracketHandlerService() {
         return bracketHandlerService;
-    }
-
-    public Collection<Symbol> getExpands(Type type) {
-        Collection<Symbol> expandFunctions = getExpandFunctions().stream()
-                .filter(symbol -> symbol.getExpandingType().isSuperclassTo(type))
-                .map(Symbol.class::cast)
-                .toList();
-        if (isPrimitive(type)) {
-            Collection<Symbol> expands = new ArrayList<>(expandFunctions);
-            getGeneratedClasses().stream()
-                    .filter(symbol -> symbol.getQualifiedName().equals(type.toString()))
-                    .findFirst()
-                    .ifPresent(classSymbol -> expands.addAll(classSymbol.getSymbols()));
-            return expands;
-        } else {
-            return expandFunctions;
-        }
     }
 
     public Path relativize(Path other) {
@@ -141,21 +140,6 @@ public class CompilationEnvironment {
                 .resolve(".probezs")
                 .resolve(PathUtil.toHash(env.getRoot()))
                 .resolve(DEFAULT_GENERATED_DIRECTORY);
-    }
-
-    private static final List<Type> primitives = List.of(
-            BoolType.INSTANCE,
-            ByteType.INSTANCE,
-            ShortType.INSTANCE,
-            IntType.INSTANCE,
-            LongType.INSTANCE,
-            FloatType.INSTANCE,
-            DoubleType.INSTANCE,
-            StringType.INSTANCE
-    );
-
-    private static boolean isPrimitive(Type type) {
-        return primitives.contains(type);
     }
 
 }
