@@ -1,8 +1,8 @@
 package raylras.zen.model.type;
 
-public final class ByteType extends NumberType {
+public enum ByteType implements NumberType {
 
-    public static final ByteType INSTANCE = new ByteType();
+    INSTANCE;
 
     @Override
     public String getTypeName() {

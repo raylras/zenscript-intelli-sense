@@ -1,8 +1,8 @@
 package raylras.zen.model.type;
 
-public final class DoubleType extends NumberType {
+public enum DoubleType implements NumberType {
 
-    public static final DoubleType INSTANCE = new DoubleType();
+    INSTANCE;
 
     @Override
     public String getTypeName() {

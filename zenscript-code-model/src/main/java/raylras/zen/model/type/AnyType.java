@@ -2,9 +2,9 @@ package raylras.zen.model.type;
 
 import raylras.zen.model.CompilationEnvironment;
 
-public final class AnyType implements Type {
+public enum AnyType implements Type {
 
-    public static final AnyType INSTANCE = new AnyType();
+    INSTANCE;
 
     @Override
     public String getTypeName() {

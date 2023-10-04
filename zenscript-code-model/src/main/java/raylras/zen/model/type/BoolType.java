@@ -9,9 +9,9 @@ import raylras.zen.model.symbol.SymbolProvider;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
-public final class BoolType implements Type, SymbolProvider {
+public enum BoolType implements Type, SymbolProvider {
 
-    public static final BoolType INSTANCE = new BoolType();
+    INSTANCE;
 
     @Override
     public String getTypeName() {

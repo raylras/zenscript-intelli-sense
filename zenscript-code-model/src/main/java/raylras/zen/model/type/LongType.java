@@ -1,12 +1,17 @@
 package raylras.zen.model.type;
 
-public final class LongType extends NumberType {
+public enum LongType implements NumberType {
 
-    public static final LongType INSTANCE = new LongType();
+    INSTANCE;
 
     @Override
     public String getTypeName() {
         return "long";
+    }
+
+    @Override
+    public String toString() {
+        return getTypeName();
     }
 
 }

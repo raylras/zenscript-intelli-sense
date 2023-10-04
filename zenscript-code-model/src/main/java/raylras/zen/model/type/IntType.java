@@ -6,9 +6,9 @@ import raylras.zen.model.symbol.SymbolFactory;
 
 import java.util.List;
 
-public final class IntType extends NumberType {
+public enum IntType implements NumberType {
 
-    public static final IntType INSTANCE = new IntType();
+    INSTANCE;
 
     @Override
     public String getTypeName() {
@@ -18,9 +18,14 @@ public final class IntType extends NumberType {
     @Override
     public List<Symbol> getSymbols() {
         return SymbolFactory.builtinSymbols()
-                .add(super.getSymbols())
+                .add(NumberType.super.getSymbols())
                 .operator(Operator.RANGE, IntRangeType.INSTANCE, params -> params.parameter("value", this))
                 .build();
+    }
+
+    @Override
+    public String toString() {
+        return getTypeName();
     }
 
 }

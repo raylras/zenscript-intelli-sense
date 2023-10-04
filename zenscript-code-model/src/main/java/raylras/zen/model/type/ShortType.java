@@ -1,8 +1,8 @@
 package raylras.zen.model.type;
 
-public final class ShortType extends NumberType {
+public enum ShortType implements NumberType {
 
-    public static final ShortType INSTANCE = new ShortType();
+    INSTANCE;
 
     @Override
     public String getTypeName() {

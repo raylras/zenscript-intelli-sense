@@ -1,8 +1,8 @@
 package raylras.zen.model.type;
 
-public final class FloatType extends NumberType {
+public enum FloatType implements NumberType {
 
-    public static final FloatType INSTANCE = new FloatType();
+    INSTANCE;
 
     @Override
     public String getTypeName() {
