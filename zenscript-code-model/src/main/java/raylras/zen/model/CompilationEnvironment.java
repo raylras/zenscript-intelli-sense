@@ -5,6 +5,7 @@ import raylras.zen.model.symbol.ClassSymbol;
 import raylras.zen.model.symbol.ExpandFunctionSymbol;
 import raylras.zen.model.symbol.PackageSymbol;
 import raylras.zen.model.symbol.Symbol;
+import raylras.zen.model.type.StringType;
 import raylras.zen.model.type.Type;
 import raylras.zen.model.type.Types;
 import raylras.zen.util.PathUtil;
@@ -78,7 +79,7 @@ public class CompilationEnvironment {
         Stream<Symbol> expandFunctions = getExpandFunctions()
                 .filter(symbol -> symbol.getExpandingType().isSuperclassTo(type))
                 .map(Symbol.class::cast);
-        if (Types.isPrimitive(type)) {
+        if (type instanceof StringType || Types.isPrimitive(type)) {
             Stream<Symbol> expandPrimitives = getClasses()
                     .filter(symbol -> symbol.getQualifiedName().equals(type.getTypeName()))
                     .findFirst()

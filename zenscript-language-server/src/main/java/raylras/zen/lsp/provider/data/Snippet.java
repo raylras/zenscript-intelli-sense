@@ -5,7 +5,10 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import raylras.zen.model.CompilationEnvironment;
 import raylras.zen.model.parser.ZenScriptParser.MemberAccessExprContext;
 import raylras.zen.model.symbol.Operator;
-import raylras.zen.model.type.*;
+import raylras.zen.model.type.ListType;
+import raylras.zen.model.type.MapType;
+import raylras.zen.model.type.Type;
+import raylras.zen.model.type.Types;
 import raylras.zen.util.Operators;
 import raylras.zen.util.Ranges;
 
@@ -43,7 +46,7 @@ public interface Snippet {
     }
 
     static Snippet dotIfNull(Type type, MemberAccessExprContext ctx) {
-        if (type instanceof NumberType || type == BoolType.INSTANCE || type == VoidType.INSTANCE) {
+        if (Types.isPrimitive(type)) {
             return () -> null;
         } else {
             return () -> createMemberAccessCompletion("null", "if (isNull(expr))", "if (isNull(%s)) {\n\t$0\n}", ctx);
@@ -51,7 +54,7 @@ public interface Snippet {
     }
 
     static Snippet dotIfNotNull(Type type, MemberAccessExprContext ctx) {
-        if (type instanceof NumberType || type == BoolType.INSTANCE || type == VoidType.INSTANCE) {
+        if (Types.isPrimitive(type)) {
             return () -> null;
         } else {
             return () -> createMemberAccessCompletion("nn", "if (!isNull(expr))", "if (!isNull(%s)) {\n\t$0\n}", ctx);
