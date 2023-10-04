@@ -13,7 +13,7 @@ public record ListType(Type elementType) implements Type, SymbolProvider {
 
     @Override
     public String getTypeName() {
-        return "[" + elementType + "]";
+        return "[" + elementType.getTypeName() + "]";
     }
 
     @Override

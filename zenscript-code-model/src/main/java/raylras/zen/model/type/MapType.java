@@ -13,7 +13,7 @@ public record MapType(Type keyType, Type valueType) implements Type, SymbolProvi
 
     @Override
     public String getTypeName() {
-        return valueType + "[" + keyType + "]";
+        return valueType.getTypeName() + "[" + keyType.getTypeName() + "]";
     }
 
     @Override

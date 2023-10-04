@@ -10,7 +10,7 @@ public record MapEntryType(Type keyType, Type valueType) implements Type, Symbol
 
     @Override
     public String getTypeName() {
-        return "Map.Entry<" + keyType + "," + valueType + ">";
+        return "Map.Entry<" + keyType.getTypeName() + "," + valueType.getTypeName() + ">";
     }
 
     @Override
