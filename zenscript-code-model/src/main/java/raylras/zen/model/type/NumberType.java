@@ -1,5 +1,6 @@
 package raylras.zen.model.type;
 
+import raylras.zen.model.CompilationEnvironment;
 import raylras.zen.model.symbol.Operator;
 import raylras.zen.model.symbol.Symbol;
 import raylras.zen.model.symbol.SymbolFactory;
@@ -9,6 +10,14 @@ import java.util.List;
 
 public abstract sealed class NumberType implements Type, SymbolProvider
         permits ByteType, DoubleType, FloatType, IntType, LongType, ShortType {
+
+    @Override
+    public boolean isCastableTo(Type type, CompilationEnvironment env) {
+        if (type instanceof NumberType) {
+            return true;
+        }
+        return Type.super.isCastableTo(type, env);
+    }
 
     @Override
     public List<Symbol> getSymbols() {
