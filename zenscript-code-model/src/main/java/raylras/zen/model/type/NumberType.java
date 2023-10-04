@@ -13,7 +13,7 @@ public abstract sealed class NumberType implements Type, SymbolProvider
 
     @Override
     public boolean isCastableTo(Type type, CompilationEnvironment env) {
-        if (type instanceof NumberType) {
+        if (type instanceof NumberType || type instanceof StringType) {
             return true;
         }
         return Type.super.isCastableTo(type, env);

@@ -1,5 +1,6 @@
 package raylras.zen.model.type;
 
+import raylras.zen.model.CompilationEnvironment;
 import raylras.zen.model.symbol.Operator;
 import raylras.zen.model.symbol.Symbol;
 import raylras.zen.model.symbol.SymbolFactory;
@@ -15,6 +16,14 @@ public final class BoolType implements Type, SymbolProvider {
     @Override
     public String getTypeName() {
         return "bool";
+    }
+
+    @Override
+    public boolean isCastableTo(Type type, CompilationEnvironment env) {
+        if (type instanceof StringType) {
+            return true;
+        }
+        return Type.super.isCastableTo(type, env);
     }
 
     @Override
