@@ -8,10 +8,7 @@ import raylras.zen.model.parser.ZenScriptParser.*;
 import raylras.zen.model.symbol.*;
 import raylras.zen.util.Ranges;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 
 public final class SymbolResolver {
@@ -26,16 +23,16 @@ public final class SymbolResolver {
             ReturnStatementContext.class
     );
 
-    private SymbolResolver() {
-    }
+    private SymbolResolver() {}
 
     public static Collection<Symbol> lookupSymbol(ParseTree cst, CompilationUnit unit) {
+        Objects.requireNonNull(unit);
         ParseTree expr = findRootExpression(cst);
         if (expr == null) {
             return Collections.emptyList();
         }
         SymbolVisitor visitor = new SymbolVisitor(unit, cst);
-        visitor.visit(expr);
+        expr.accept(visitor);
         return Collections.unmodifiableCollection(visitor.result);
     }
 
@@ -172,9 +169,9 @@ public final class SymbolResolver {
         }
 
         Collection<PackageSymbol> lookupToplevelPackageSymbol(String name) {
-             // TODO: lookupToplevelPackageSymbol
-             unit.getEnv().getRootPackage().getSymbols();
-             return Collections.emptyList();
+            // TODO: lookupToplevelPackageSymbol
+            unit.getEnv().getRootPackage().getSymbols();
+            return Collections.emptyList();
         }
 
         Collection<Symbol> accessMember(Collection<? extends Symbol> symbolSpace, String memberName) {

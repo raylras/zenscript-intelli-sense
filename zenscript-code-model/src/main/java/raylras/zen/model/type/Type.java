@@ -4,7 +4,7 @@ import raylras.zen.model.CompilationEnvironment;
 import raylras.zen.util.Operators;
 
 public sealed interface Type
-        permits AnyType, ArrayType, BoolType, ClassType, FunctionType, IntRangeType, IntersectionType, ListType, MapEntryType, MapType, NumberType, StringType, VoidType {
+        permits AnyType, ArrayType, BoolType, ClassType, ErrorType, FunctionType, IntRangeType, IntersectionType, ListType, MapEntryType, MapType, NumberType, StringType, VoidType {
 
     String getTypeName();
 

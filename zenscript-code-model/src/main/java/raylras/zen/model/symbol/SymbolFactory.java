@@ -11,7 +11,6 @@ import raylras.zen.model.resolve.SymbolResolver;
 import raylras.zen.model.resolve.TypeResolver;
 import raylras.zen.model.symbol.Symbol.Modifier;
 import raylras.zen.model.type.*;
-import raylras.zen.util.CSTNodes;
 import raylras.zen.util.PathUtil;
 import raylras.zen.util.Range;
 
@@ -19,14 +18,15 @@ import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
-import java.util.stream.Collectors;
 
 public class SymbolFactory {
 
-    private SymbolFactory() {
-    }
+    private SymbolFactory() {}
 
-    public static ImportSymbol createImportSymbol(ParseTree nameCst, ImportDeclarationContext cst, CompilationUnit unit) {
+    public static ImportSymbol createImportSymbol(ParseTree simpleNameCst, ImportDeclarationContext cst, CompilationUnit unit) {
+        Objects.requireNonNull(simpleNameCst);
+        Objects.requireNonNull(cst);
+        Objects.requireNonNull(unit);
         class ImportSymbolImpl implements ImportSymbol, ParseTreeLocatable {
             @Override
             public String getQualifiedName() {
@@ -35,7 +35,7 @@ public class SymbolFactory {
 
             @Override
             public String getName() {
-                return CSTNodes.getText(nameCst);
+                return simpleNameCst.getText();
             }
 
             @Override
@@ -70,7 +70,7 @@ public class SymbolFactory {
 
             @Override
             public Range getSelectionRange() {
-                return Range.of(nameCst);
+                return Range.of(simpleNameCst);
             }
 
             @Override
@@ -82,6 +82,9 @@ public class SymbolFactory {
     }
 
     public static ClassSymbol createClassSymbol(ParseTree nameCst, ClassDeclarationContext cst, CompilationUnit unit) {
+        Objects.requireNonNull(nameCst);
+        Objects.requireNonNull(cst);
+        Objects.requireNonNull(unit);
         class ClassSymbolImpl implements ClassSymbol, ParseTreeLocatable {
             private final ClassType classType = new ClassType(this);
 
@@ -90,13 +93,13 @@ public class SymbolFactory {
                 if (unit.isGenerated()) {
                     return unit.getQualifiedName();
                 } else {
-                    return unit.getQualifiedName() + '.' + getName();
+                    return unit.getQualifiedName() + '.' + getSimpleName();
                 }
             }
 
             @Override
             public String getSimpleName() {
-                return getName();
+                return nameCst.getText();
             }
 
             @Override
@@ -132,7 +135,7 @@ public class SymbolFactory {
 
             @Override
             public String getName() {
-                return CSTNodes.getText(nameCst);
+                return getSimpleName();
             }
 
             @Override
@@ -169,10 +172,13 @@ public class SymbolFactory {
     }
 
     public static VariableSymbol createVariableSymbol(ParseTree nameCst, ParseTree cst, CompilationUnit unit) {
+        Objects.requireNonNull(nameCst);
+        Objects.requireNonNull(cst);
+        Objects.requireNonNull(unit);
         class VariableSymbolImpl implements VariableSymbol, ParseTreeLocatable {
             @Override
             public String getName() {
-                return CSTNodes.getText(nameCst);
+                return nameCst.getText();
             }
 
             @Override
@@ -182,12 +188,14 @@ public class SymbolFactory {
 
             @Override
             public Type getType() {
-                return TypeResolver.getType(cst, unit).orElse(AnyType.INSTANCE);
+                return TypeResolver.getType(cst, unit)
+                        .orElse(AnyType.INSTANCE);
             }
 
             @Override
             public Modifier getModifier() {
-                return ModifierResolver.getModifier(cst);
+                return ModifierResolver.getModifier(cst)
+                        .orElse(Modifier.NONE);
             }
 
             @Override
@@ -214,6 +222,9 @@ public class SymbolFactory {
     }
 
     public static VariableSymbol createVariableSymbol(String name, Type type, Modifier modifier) {
+        Objects.requireNonNull(name);
+        Objects.requireNonNull(type);
+        Objects.requireNonNull(modifier);
         class VariableSymbolImpl implements VariableSymbol {
             @Override
             public String getName() {
@@ -239,18 +250,22 @@ public class SymbolFactory {
     }
 
     public static FunctionSymbol createFunctionSymbol(ParseTree nameCst, ParseTree cst, CompilationUnit unit) {
+        Objects.requireNonNull(nameCst);
+        Objects.requireNonNull(cst);
+        Objects.requireNonNull(unit);
         class FunctionSymbolImpl implements FunctionSymbol, ParseTreeLocatable {
             @Override
             public FunctionType getType() {
                 return TypeResolver.getType(cst, unit)
                         .filter(FunctionType.class::isInstance)
                         .map(FunctionType.class::cast)
-                        .orElse(new FunctionType(AnyType.INSTANCE));
+                        .orElseGet(() -> new FunctionType(AnyType.INSTANCE));
             }
 
             @Override
             public List<ParameterSymbol> getParameterList() {
-                return FormalParameterResolver.getFormalParameterList(cst, unit);
+                return FormalParameterResolver.getParameterList(cst, unit)
+                        .orElseGet(Collections::emptyList);
             }
 
             @Override
@@ -260,7 +275,7 @@ public class SymbolFactory {
 
             @Override
             public String getName() {
-                return CSTNodes.getText(nameCst);
+                return nameCst.getText();
             }
 
             @Override
@@ -270,7 +285,8 @@ public class SymbolFactory {
 
             @Override
             public Modifier getModifier() {
-                return ModifierResolver.getModifier(cst);
+                return ModifierResolver.getModifier(cst)
+                        .orElse(Modifier.NONE);
             }
 
             @Override
@@ -298,12 +314,13 @@ public class SymbolFactory {
     }
 
     public static FunctionSymbol createFunctionSymbol(String name, Type returnType, List<ParameterSymbol> params) {
+        Objects.requireNonNull(name);
+        Objects.requireNonNull(returnType);
+        Objects.requireNonNull(params);
         class FunctionSymbolImpl implements FunctionSymbol {
-            private final FunctionType functionType = new FunctionType(returnType, params.stream().map(Symbol::getType).collect(Collectors.toList()));
-
             @Override
             public FunctionType getType() {
-                return functionType;
+                return new FunctionType(returnType, params.stream().map(Symbol::getType).toList());
             }
 
             @Override
@@ -335,11 +352,15 @@ public class SymbolFactory {
     }
 
     public static OperatorFunctionSymbol createOperatorFunctionSymbol(OperatorContext opCst, OperatorFunctionDeclarationContext cst, CompilationUnit unit) {
+        Objects.requireNonNull(opCst);
+        Objects.requireNonNull(cst);
+        Objects.requireNonNull(unit);
         class OperatorFunctionSymbolImpl implements OperatorFunctionSymbol, ParseTreeLocatable {
             @Override
             public Operator getOperator() {
                 int paramSize = cst.formalParameterList().formalParameter().size();
-                return Operator.of(getName(), paramSize).orElse(Operator.ERROR);
+                return Operator.of(getName(), paramSize)
+                        .orElse(Operator.ERROR);
             }
 
             @Override
@@ -352,7 +373,8 @@ public class SymbolFactory {
 
             @Override
             public List<ParameterSymbol> getParameterList() {
-                return FormalParameterResolver.getFormalParameterList(cst, unit);
+                return FormalParameterResolver.getParameterList(cst, unit)
+                        .orElseGet(Collections::emptyList);
             }
 
             @Override
@@ -398,18 +420,19 @@ public class SymbolFactory {
         return new OperatorFunctionSymbolImpl();
     }
 
-    public static OperatorFunctionSymbol createOperatorFunctionSymbol(Operator operator, Type returnType, List<ParameterSymbol> params) {
+    public static OperatorFunctionSymbol createOperatorFunctionSymbol(Operator op, Type returnType, List<ParameterSymbol> params) {
+        Objects.requireNonNull(op);
+        Objects.requireNonNull(returnType);
+        Objects.requireNonNull(params);
         class OperatorFunctionSymbolImpl implements OperatorFunctionSymbol {
-            private final FunctionType functionType = new FunctionType(returnType, params.stream().map(Symbol::getType).collect(Collectors.toList()));
-
             @Override
             public Operator getOperator() {
-                return operator;
+                return op;
             }
 
             @Override
             public FunctionType getType() {
-                return functionType;
+                return new FunctionType(returnType, params.stream().map(Symbol::getType).toList());
             }
 
             @Override
@@ -424,7 +447,7 @@ public class SymbolFactory {
 
             @Override
             public String getName() {
-                return operator.getLiteral();
+                return op.getLiteral();
             }
 
             @Override
@@ -454,7 +477,7 @@ public class SymbolFactory {
 
             @Override
             public String getName() {
-                return CSTNodes.getText(nameCst);
+                return nameCst.getText();
             }
 
             @Override
@@ -464,7 +487,8 @@ public class SymbolFactory {
 
             @Override
             public Type getType() {
-                return TypeResolver.getType(cst, unit).orElse(AnyType.INSTANCE);
+                return TypeResolver.getType(cst, unit)
+                        .orElse(AnyType.INSTANCE);
             }
 
             @Override
@@ -496,10 +520,14 @@ public class SymbolFactory {
     }
 
     public static ExpandFunctionSymbol createExpandFunctionSymbol(ParseTree nameCst, ExpandFunctionDeclarationContext cst, CompilationUnit unit) {
+        Objects.requireNonNull(nameCst);
+        Objects.requireNonNull(cst);
+        Objects.requireNonNull(unit);
         class ExpandFunctionSymbolImpl implements ExpandFunctionSymbol, ParseTreeLocatable {
             @Override
             public List<ParameterSymbol> getParameterList() {
-                return FormalParameterResolver.getFormalParameterList(cst, unit);
+                return FormalParameterResolver.getParameterList(cst, unit)
+                        .orElseGet(Collections::emptyList);
             }
 
             @Override
@@ -509,12 +537,13 @@ public class SymbolFactory {
 
             @Override
             public Type getExpandingType() {
-                return TypeResolver.getType(cst.typeLiteral(), unit).orElse(null);
+                return TypeResolver.getType(cst.typeLiteral(), unit)
+                        .orElse(ErrorType.INSTANCE);
             }
 
             @Override
             public String getName() {
-                return CSTNodes.getText(nameCst);
+                return nameCst.getText();
             }
 
             @Override
@@ -523,16 +552,16 @@ public class SymbolFactory {
             }
 
             @Override
-            public Modifier getModifier() {
-                return Modifier.EXPAND;
-            }
-
-            @Override
             public FunctionType getType() {
                 return TypeResolver.getType(cst, unit)
                         .filter(FunctionType.class::isInstance)
                         .map(FunctionType.class::cast)
                         .orElse(new FunctionType(AnyType.INSTANCE));
+            }
+
+            @Override
+            public Modifier getModifier() {
+                return Modifier.EXPAND;
             }
 
             @Override
@@ -559,6 +588,8 @@ public class SymbolFactory {
     }
 
     public static ParameterSymbol createParameterSymbol(String name, Type type, boolean optional, boolean vararg) {
+        Objects.requireNonNull(name);
+        Objects.requireNonNull(type);
         class ParameterSymbolImpl implements ParameterSymbol {
             @Override
             public boolean isOptional() {
@@ -594,6 +625,7 @@ public class SymbolFactory {
     }
 
     public static ThisSymbol createThisSymbol(Supplier<Type> typeSupplier) {
+        Objects.requireNonNull(typeSupplier);
         class ThisSymbolImpl implements ThisSymbol {
             @Override
             public String getName() {
@@ -619,10 +651,15 @@ public class SymbolFactory {
     }
 
     public static ConstructorSymbol createConstructorSymbol(ParseTree nameCst, ParseTree cst, CompilationUnit unit, ClassSymbol declaringClass) {
+        Objects.requireNonNull(nameCst);
+        Objects.requireNonNull(cst);
+        Objects.requireNonNull(unit);
+        Objects.requireNonNull(declaringClass);
         class ConstructorSymbolImpl implements ConstructorSymbol, ParseTreeLocatable {
             @Override
             public List<ParameterSymbol> getParameterList() {
-                return FormalParameterResolver.getFormalParameterList(cst, unit);
+                return FormalParameterResolver.getParameterList(cst, unit)
+                        .orElseGet(Collections::emptyList);
             }
 
             @Override
@@ -652,7 +689,7 @@ public class SymbolFactory {
 
             @Override
             public String getName() {
-                return getReturnType().toString();
+                return nameCst.getText();
             }
 
             @Override
@@ -682,6 +719,8 @@ public class SymbolFactory {
     }
 
     public static PackageSymbol createPackageSymbol(Path path, CompilationEnvironment env) {
+        Objects.requireNonNull(path);
+        Objects.requireNonNull(env);
         class PackageSymbolImpl implements PackageSymbol, Locatable {
             @Override
             public String getName() {

@@ -8,14 +8,15 @@ import raylras.zen.model.symbol.Symbol.Modifier;
 import raylras.zen.util.CSTNodes;
 
 import java.util.Objects;
+import java.util.Optional;
 
 public final class ModifierResolver {
 
     private ModifierResolver() {}
 
-    public static Modifier getModifier(ParseTree cst) {
+    public static Optional<Modifier> getModifier(ParseTree cst) {
         Objects.requireNonNull(cst);
-        return cst.accept(DeclaratorVisitor.INSTANCE);
+        return Optional.ofNullable(cst.accept(DeclaratorVisitor.INSTANCE));
     }
 
     private static final class DeclaratorVisitor extends Visitor<Modifier> {

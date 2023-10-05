@@ -21,41 +21,41 @@ public final class DeclarationResolver {
         unit.accept(new DeclarationListener(unit));
     }
 
-    private static final class DeclarationListener extends Listener {
-        private final CompilationUnit unit;
-        private final Stack<Scope> scopeStack = new ArrayStack<>();
-        private final Stack<ClassSymbol> classStack = new ArrayStack<>();
+    private static class DeclarationListener extends Listener {
+        final CompilationUnit unit;
+        final Stack<Scope> scopeStack = new ArrayStack<>();
+        final Stack<ClassSymbol> classStack = new ArrayStack<>();
 
-        public DeclarationListener(CompilationUnit unit) {
+        DeclarationListener(CompilationUnit unit) {
             this.unit = unit;
         }
 
-        private void enterScope(Scope scope) {
+        void enterScope(Scope scope) {
             unit.addScope(scope);
             scopeStack.push(scope);
         }
 
-        private void exitScope() {
+        void exitScope() {
             scopeStack.pop();
         }
 
-        private Scope currentScope() {
+        Scope currentScope() {
             return scopeStack.peek();
         }
 
-        private void enterClass(ClassSymbol symbol) {
+        void enterClass(ClassSymbol symbol) {
             classStack.push(symbol);
         }
 
-        private void exitClass() {
+        void exitClass() {
             classStack.pop();
         }
 
-        private ClassSymbol currentClass() {
+        ClassSymbol currentClass() {
             return classStack.peek();
         }
 
-        private void enterSymbol(ParseTree cst, Symbol symbol) {
+        void enterSymbol(ParseTree cst, Symbol symbol) {
             unit.putSymbol(cst, symbol);
             currentScope().addSymbol(symbol);
         }

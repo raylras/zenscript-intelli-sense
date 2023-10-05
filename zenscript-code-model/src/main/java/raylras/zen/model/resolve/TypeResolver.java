@@ -20,11 +20,12 @@ import java.util.stream.Collectors;
 
 public final class TypeResolver {
 
-    private TypeResolver() {
-    }
+    private TypeResolver() {}
 
     public static Optional<Type> getType(ParseTree cst, CompilationUnit unit) {
-        return Optional.ofNullable(cst).map(it -> it.accept(new TypeVisitor(unit)));
+        Objects.requireNonNull(unit);
+        return Optional.ofNullable(cst)
+                .map(it -> it.accept(new TypeVisitor(unit)));
     }
 
     private static final class TypeVisitor extends Visitor<Type> {
