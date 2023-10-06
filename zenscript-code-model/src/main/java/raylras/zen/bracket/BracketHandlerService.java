@@ -5,7 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import raylras.zen.model.CompilationEnvironment;
-import raylras.zen.util.StopWatch;
+import raylras.zen.util.Watcher;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -13,6 +13,7 @@ import java.net.ConnectException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.concurrent.ExecutionException;
 
 public class BracketHandlerService {
 
@@ -39,20 +40,22 @@ public class BracketHandlerService {
     }
 
     public BracketHandlerEntry queryEntryRemote(String validExpr) {
-        Map<String, List<String>> properties;
-        try {
-            StopWatch sw = StopWatch.createAndStart();
-            properties = RpcClient.queryEntryProperties(validExpr);
-            sw.stop();
-            logger.info("Query remote <{}> [{}]", validExpr, sw.getFormattedMillis());
-        } catch (ConnectException e) {
-            logger.warn("Failed to query remote <{}>, make sure your Minecraft instance is running", validExpr);
-            properties = Collections.emptyMap();
-        } catch (Exception e) {
-            logger.error("Failed to query remote <{}>: {}", validExpr, e.getMessage());
-            properties = Collections.emptyMap();
+        var watcher = Watcher.watch(() -> {
+            try {
+                return RpcClient.queryEntryProperties(validExpr);
+            } catch (ConnectException e) {
+                logger.warn("Failed to query remote <{}>, make sure your Minecraft instance is running", validExpr);
+            } catch (IOException | ExecutionException | InterruptedException e) {
+                logger.error("Failed to query remote <{}>, {}", validExpr, e.getMessage());
+            }
+            return null;
+        });
+        if (watcher.isResultPresent()) {
+            logger.info("Query remote <{}> [{}]", validExpr, watcher.getElapsedMillis());
+            return new BracketHandlerEntry(watcher.getResult());
+        } else {
+            return new BracketHandlerEntry(Collections.emptyMap());
         }
-        return new BracketHandlerEntry(properties);
     }
 
     private static final Gson GSON = createGson();
@@ -67,7 +70,7 @@ public class BracketHandlerService {
         };
         JsonDeserializer<BracketHandlerEntry> entryDeserializer = (json, typeOfT, context) -> {
             Map<String, List<String>> properties = new HashMap<>();
-            json.getAsJsonObject().asMap().forEach((key, value)-> {
+            json.getAsJsonObject().asMap().forEach((key, value) -> {
                 if (value instanceof JsonArray array) {
                     properties.put(key, context.deserialize(array, new TypeToken<List<String>>() {}.getType()));
                 } else if (value instanceof JsonPrimitive primitive) {
@@ -86,13 +89,17 @@ public class BracketHandlerService {
 
     private void loadMirrorsFromJson() {
         Path jsonPath = env.getGeneratedRoot().resolve("brackets.json");
-        try (Reader reader = Files.newBufferedReader(jsonPath)) {
-            StopWatch sw = StopWatch.createAndStart();
-            mirrors = GSON.fromJson(reader, new TypeToken<>() {});
-            sw.stop();
-            logger.info("Load bracket handler mirrors from {} [{}]", jsonPath.getFileName(), sw.getFormattedMillis());
-        } catch (IOException e) {
-            logger.error("Failed to load bracket handler mirrors from {}", jsonPath.getFileName(), e);
+        Watcher<List<BracketHandlerMirror>> watcher = Watcher.watch(() -> {
+            try (Reader reader = Files.newBufferedReader(jsonPath)) {
+                return GSON.fromJson(reader, new TypeToken<>() {});
+            } catch (IOException e) {
+                logger.error("Failed to load bracket handler mirrors from {}", jsonPath.getFileName(), e);
+                return null;
+            }
+        });
+        if (watcher.isResultPresent()) {
+            mirrors = watcher.getResult();
+            logger.info("Load bracket handler mirrors from {} [{}]", jsonPath.getFileName(), watcher.getElapsedMillis());
         }
     }
 

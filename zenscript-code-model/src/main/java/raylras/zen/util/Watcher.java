@@ -1,7 +1,6 @@
 package raylras.zen.util;
 
 import java.text.DecimalFormat;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 
@@ -9,12 +8,13 @@ public class Watcher<T> {
 
     private long start;
     private long stop;
-    @SuppressWarnings("OptionalUsedAsFieldOrParameterType")
-    private Optional<T> result;
+    private T result;
 
+    // Don't change to static.
+    // See http://jonamiller.com/2015/12/21/decimalformat-is-not-thread-safe/
     private final DecimalFormat fmt = new DecimalFormat("0.000");
 
-    public static <T> Watcher<T> watch(Supplier<Optional<T>> supplier) {
+    public static <T> Watcher<T> watch(Supplier<T> supplier) {
         Watcher<T> watcher = new Watcher<>();
         watcher.start = System.nanoTime();
         watcher.result = supplier.get();
@@ -24,7 +24,6 @@ public class Watcher<T> {
 
     public static Watcher<Void> watch(Runnable runnable) {
         Watcher<Void> watcher = new Watcher<>();
-        watcher.result = Optional.empty();
         watcher.start = System.nanoTime();
         runnable.run();
         watcher.stop = System.nanoTime();
@@ -32,10 +31,10 @@ public class Watcher<T> {
     }
 
     public boolean isResultPresent() {
-        return result.isPresent();
+        return result != null;
     }
 
-    public Optional<T> getResult() {
+    public T getResult() {
         return result;
     }
 

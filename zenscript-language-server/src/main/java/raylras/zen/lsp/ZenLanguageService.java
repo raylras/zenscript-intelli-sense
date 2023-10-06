@@ -9,10 +9,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import raylras.zen.lsp.provider.*;
 import raylras.zen.model.CompilationUnit;
-import raylras.zen.model.Document;
 import raylras.zen.model.Compilations;
+import raylras.zen.model.Document;
 import raylras.zen.util.PathUtil;
-import raylras.zen.util.StopWatch;
 import raylras.zen.util.Watcher;
 
 import java.nio.file.Path;
@@ -36,10 +35,8 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     public void didOpen(DidOpenTextDocumentParams params) {
         try {
             Path path = PathUtil.toPath(params.getTextDocument().getUri());
-            StopWatch stopWatch = StopWatch.createAndStart();
-            workspaceManager.createEnvIfNotExists(path);
-            stopWatch.stop();
-            logger.info("didOpen {} [{}]", path.getFileName(), stopWatch.getFormattedMillis());
+            var watcher = Watcher.watch(() -> workspaceManager.createEnvIfNotExists(path));
+            logger.info("didOpen {} [{}]", path.getFileName(), watcher.getElapsedMillis());
         } catch (Exception e) {
             logger.error("didOpen {}", params, e);
         }
@@ -47,13 +44,13 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public void didChange(DidChangeTextDocumentParams params) {
-        try (Document doc = workspaceManager.openAsWrite(params.getTextDocument())){
+        try (Document doc = workspaceManager.openAsWrite(params.getTextDocument())) {
             doc.getUnit().ifPresent(unit -> {
-                StopWatch stopWatch = StopWatch.createAndStart();
-                String source = params.getContentChanges().get(0).getText();
-                Compilations.load(unit, source);
-                stopWatch.stop();
-                logger.trace("didChange {} [{}]", unit.getPath().getFileName(), stopWatch.getFormattedMillis());
+                var watcher = Watcher.watch(() -> {
+                    String source = params.getContentChanges().get(0).getText();
+                    Compilations.load(unit, source);
+                });
+                logger.trace("didChange {} [{}]", unit.getPath().getFileName(), watcher.getElapsedMillis());
             });
         } catch (Exception e) {
             logger.error("didChange {}", params, e);
@@ -72,14 +69,12 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
         try (Document doc = workspaceManager.openAsRead(params.getTextDocument())) {
             return CompletableFuture.supplyAsync(() -> doc.getUnit().flatMap(unit -> {
-                        StopWatch stopWatch = StopWatch.createAndStart();
-                        var optional = SemanticTokensProvider.semanticTokensFull(unit, params);
-                        stopWatch.stop();
-                        if (optional.isPresent()) {
-                            logger.info("semanticTokensFull {} [{}]", unit.getPath().getFileName(), stopWatch.getFormattedMillis());
-                        }
-                        return optional;
-                    }).orElse(null));
+                var watcher = Watcher.watch(() -> SemanticTokensProvider.semanticTokensFull(unit, params));
+                if (watcher.isResultPresent()) {
+                    logger.info("semanticTokensFull {} [{}]", unit.getPath().getFileName(), watcher.getElapsedMillis());
+                }
+                return watcher.getResult();
+            }).orElse(null));
         } catch (Exception e) {
             logger.error("semanticTokensFull {}", params, e);
             return emptyFuture();
@@ -124,7 +119,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public CompletableFuture<List<? extends Location>> references(ReferenceParams params) {
-        try (Document doc = workspaceManager.openAsRead(params.getTextDocument())){
+        try (Document doc = workspaceManager.openAsRead(params.getTextDocument())) {
             return CompletableFuture.supplyAsync(() -> doc.getUnit().flatMap(unit -> {
                 var watcher = Watcher.watch(() -> ReferencesProvider.references(unit, params));
                 if (watcher.isResultPresent()) {
@@ -189,35 +184,32 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
-        StopWatch stopWatch = StopWatch.createAndStart();
-        for (FileEvent event : params.getChanges()) {
-            try {
-                Path documentPath = PathUtil.toPath(event.getUri());
-                workspaceManager.createEnvIfNotExists(documentPath);
-                workspaceManager.getEnv(documentPath).ifPresent(env -> {
-                    switch (event.getType()) {
-                        case Created -> {
-                            CompilationUnit unit = env.createUnit(documentPath);
-                            Compilations.load(unit);
+        var watcher = Watcher.watch(() -> {
+            for (FileEvent event : params.getChanges()) {
+                try {
+                    Path documentPath = PathUtil.toPath(event.getUri());
+                    workspaceManager.createEnvIfNotExists(documentPath);
+                    workspaceManager.getEnv(documentPath).ifPresent(env -> {
+                        switch (event.getType()) {
+                            case Created -> {
+                                CompilationUnit unit = env.createUnit(documentPath);
+                                Compilations.load(unit);
+                            }
+                            case Changed -> {
+                                CompilationUnit unit = env.getUnit(documentPath);
+                                Compilations.load(unit);
+                            }
+                            case Deleted -> {
+                                env.removeUnit(documentPath);
+                            }
                         }
-                        case Changed -> {
-                            CompilationUnit unit = env.getUnit(documentPath);
-                            Compilations.load(unit);
-                        }
-                        case Deleted -> {
-                            env.removeUnit(documentPath);
-                        }
-                    }
-                });
-            } catch (Exception e) {
-                logger.error("didChangeWatchedFiles {}", event, e);
+                    });
+                } catch (Exception e) {
+                    logger.error("didChangeWatchedFiles {}", event, e);
+                }
             }
-        }
-        stopWatch.stop();
-        List<String> changes = params.getChanges().stream()
-                .map(fileEvent -> PathUtil.getFileName(fileEvent.getUri()))
-                .toList();
-        logger.info("didChangeWatchedFiles {} [{}]", changes, stopWatch.getFormattedMillis());
+        });
+        logger.info("didChangeWatchedFiles [{}]", watcher.getElapsedMillis());
     }
 
     @Override
