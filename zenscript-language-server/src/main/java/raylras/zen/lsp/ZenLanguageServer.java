@@ -15,26 +15,28 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 
     private static final Logger logger = LoggerFactory.getLogger(ZenLanguageServer.class);
 
-    private final ExecutorService executorService = Executors.newCachedThreadPool();
-    private final ZenLanguageService languageService = new ZenLanguageService();
+    private final ExecutorService pool;
+    private final ZenLanguageService service;
+    private LanguageClient client;
 
-    public ExecutorService getExecutorService() {
-        return executorService;
+    public ZenLanguageServer(ExecutorService pool, ZenLanguageService service) {
+        this.pool = pool;
+        this.service = service;
     }
 
-    @Override
-    public void setTrace(SetTraceParams params) {
+    public void connect(LanguageClient client) {
+        this.client = client;
+        this.service.manager.connect(client);
     }
 
     @Override
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
-        languageService.initializeWorkspaces(params.getWorkspaceFolders());
+        service.initializeWorkspaces(params.getWorkspaceFolders());
         L10N.setLocale(params.getLocale());
 
         ServerCapabilities capabilities = new ServerCapabilities();
@@ -63,21 +65,11 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
     }
 
     @Override
-    public TextDocumentService getTextDocumentService() {
-        return languageService;
-    }
-
-    @Override
-    public WorkspaceService getWorkspaceService() {
-        return languageService;
-    }
-
-    @Override
     public CompletableFuture<Object> shutdown() {
         return CompletableFuture.supplyAsync(() -> {
             logger.info("Language server shutting down");
             RpcClient.shutdown();
-            executorService.shutdown();
+            pool.shutdown();
             return null;
         });
     }
@@ -89,8 +81,17 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
     }
 
     @Override
-    public void connect(LanguageClient client) {
-        ZenLanguageService.setClient(client);
+    public TextDocumentService getTextDocumentService() {
+        return service;
+    }
+
+    @Override
+    public WorkspaceService getWorkspaceService() {
+        return service;
+    }
+
+    @Override
+    public void setTrace(SetTraceParams params) {
     }
 
     private void startListeningFileChanges() {
@@ -98,7 +99,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
         watchers.add(new FileSystemWatcher(Either.forLeft("**/*" + CompilationUnit.ZS_FILE_EXTENSION), WatchKind.Create + WatchKind.Change + WatchKind.Delete));
         Object options = new DidChangeWatchedFilesRegistrationOptions(watchers);
         Registration registration = new Registration(UUID.randomUUID().toString(), "workspace/didChangeWatchedFiles", options);
-        ZenLanguageService.getClient().registerCapability(new RegistrationParams(Collections.singletonList(registration)));
+        client.registerCapability(new RegistrationParams(Collections.singletonList(registration)));
     }
 
 }

@@ -4,12 +4,14 @@ import org.eclipse.lsp4j.MessageParams;
 import org.eclipse.lsp4j.MessageType;
 import org.eclipse.lsp4j.TextDocumentIdentifier;
 import org.eclipse.lsp4j.WorkspaceFolder;
+import org.eclipse.lsp4j.services.LanguageClient;
+import org.eclipse.lsp4j.services.LanguageClientAware;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import raylras.zen.model.CompilationEnvironment;
 import raylras.zen.model.CompilationUnit;
-import raylras.zen.model.Document;
 import raylras.zen.model.Compilations;
+import raylras.zen.model.Document;
 import raylras.zen.util.PathUtil;
 import raylras.zen.util.l10n.L10N;
 
@@ -23,11 +25,17 @@ import java.util.concurrent.locks.ReentrantReadWriteLock.ReadLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock.WriteLock;
 import java.util.stream.Stream;
 
-public class WorkspaceManager {
+public class WorkspaceManager implements LanguageClientAware {
 
     private static final Logger logger = LoggerFactory.getLogger(WorkspaceManager.class);
 
     private final Set<Workspace> workspaceSet = new HashSet<>();
+    private LanguageClient client;
+
+    @Override
+    public void connect(LanguageClient client) {
+        this.client = client;
+    }
 
     public Document openAsRead(TextDocumentIdentifier textDocument) {
         Path path = PathUtil.toPath(textDocument.getUri());
@@ -103,8 +111,6 @@ public class WorkspaceManager {
                 .findFirst();
     }
 
-    /* Private Methods */
-
     private Optional<Workspace> getWorkspace(Path documentPath) {
         return workspaceSet.stream()
                 .filter(workspace -> PathUtil.isSubPath(documentPath, workspace.path))
@@ -124,12 +130,10 @@ public class WorkspaceManager {
                 return;
             } else {
                 logger.info("Cannot find .dzs file directory of environment: {}", env);
-                ZenLanguageService.showMessage(new MessageParams(MessageType.Info, L10N.getString("environment.dzs_not_found")));
+                client.showMessage(new MessageParams(MessageType.Info, L10N.getString("environment.dzs_not_found")));
             }
         }
     }
-
-    /* End Private Methods */
 
     public record Workspace(Path path, Set<CompilationEnvironment> envSet) implements Iterable<CompilationEnvironment> {
         public Workspace(Path path) {

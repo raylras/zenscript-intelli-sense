@@ -2,7 +2,6 @@ package raylras.zen.lsp;
 
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
-import org.eclipse.lsp4j.services.LanguageClient;
 import org.eclipse.lsp4j.services.TextDocumentService;
 import org.eclipse.lsp4j.services.WorkspaceService;
 import org.slf4j.Logger;
@@ -22,11 +21,23 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     private static final Logger logger = LoggerFactory.getLogger(ZenLanguageService.class);
 
-    private static LanguageClient client;
-    private final WorkspaceManager workspaceManager;
+    final WorkspaceManager manager;
 
-    public ZenLanguageService() {
-        this.workspaceManager = new WorkspaceManager();
+    public ZenLanguageService(WorkspaceManager manager) {
+        this.manager = manager;
+    }
+
+    public void initializeWorkspaces(List<WorkspaceFolder> workspaces) {
+        if (workspaces != null) {
+            workspaces.forEach(workspace -> {
+                manager.addWorkspace(workspace);
+                logger.info("{}", workspace);
+            });
+        }
+    }
+
+    private <T> CompletableFuture<T> emptyFuture() {
+        return CompletableFuture.completedFuture(null);
     }
 
     /* Text Document Service */
@@ -35,7 +46,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     public void didOpen(DidOpenTextDocumentParams params) {
         try {
             Path path = PathUtil.toPath(params.getTextDocument().getUri());
-            var watcher = Watcher.watch(() -> workspaceManager.createEnvIfNotExists(path));
+            var watcher = Watcher.watch(() -> manager.createEnvIfNotExists(path));
             logger.info("didOpen {} [{}]", path.getFileName(), watcher.getElapsedMillis());
         } catch (Exception e) {
             logger.error("didOpen {}", params, e);
@@ -44,7 +55,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public void didChange(DidChangeTextDocumentParams params) {
-        try (Document doc = workspaceManager.openAsWrite(params.getTextDocument())) {
+        try (Document doc = manager.openAsWrite(params.getTextDocument())) {
             doc.getUnit().ifPresent(unit -> {
                 var watcher = Watcher.watch(() -> {
                     String source = params.getContentChanges().get(0).getText();
@@ -66,94 +77,8 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     }
 
     @Override
-    public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
-        try (Document doc = workspaceManager.openAsRead(params.getTextDocument())) {
-            return CompletableFuture.supplyAsync(() -> doc.getUnit().flatMap(unit -> {
-                var watcher = Watcher.watch(() -> SemanticTokensProvider.semanticTokensFull(unit, params));
-                if (watcher.isResultPresent()) {
-                    logger.info("semanticTokensFull {} [{}]", unit.getPath().getFileName(), watcher.getElapsedMillis());
-                }
-                return watcher.getResult();
-            }).orElse(null));
-        } catch (Exception e) {
-            logger.error("semanticTokensFull {}", params, e);
-            return emptyFuture();
-        }
-    }
-
-    @Override
-    public CompletableFuture<Hover> hover(HoverParams params) {
-        try (Document doc = workspaceManager.openAsRead(params.getTextDocument())) {
-            return CompletableFuture.supplyAsync(() -> doc.getUnit().flatMap(unit -> {
-                var watcher = Watcher.watch(() -> HoverProvider.hover(unit, params));
-                if (watcher.isResultPresent()) {
-                    int line = params.getPosition().getLine() + 1;
-                    int column = params.getPosition().getCharacter();
-                    logger.info("hover {} at ({},{}) [{}]", unit.getPath().getFileName(), line, column, watcher.getElapsedMillis());
-                }
-                return watcher.getResult();
-            }).orElse(null));
-        } catch (Exception e) {
-            logger.error("hover {}", params, e);
-            return emptyFuture();
-        }
-    }
-
-    @Override
-    public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> definition(DefinitionParams params) {
-        try (Document doc = workspaceManager.openAsRead(params.getTextDocument())) {
-            return CompletableFuture.supplyAsync(() -> doc.getUnit().flatMap(unit -> {
-                var watcher = Watcher.watch(() -> DefinitionProvider.definition(unit, params));
-                if (watcher.isResultPresent()) {
-                    int line = params.getPosition().getLine() + 1;
-                    int column = params.getPosition().getCharacter();
-                    logger.info("definition {} at ({},{}) [{}]", unit.getPath().getFileName(), line, column, watcher.getElapsedMillis());
-                }
-                return watcher.getResult();
-            }).orElse(null));
-        } catch (Exception e) {
-            logger.error("definition {}", params, e);
-            return emptyFuture();
-        }
-    }
-
-    @Override
-    public CompletableFuture<List<? extends Location>> references(ReferenceParams params) {
-        try (Document doc = workspaceManager.openAsRead(params.getTextDocument())) {
-            return CompletableFuture.supplyAsync(() -> doc.getUnit().flatMap(unit -> {
-                var watcher = Watcher.watch(() -> ReferencesProvider.references(unit, params));
-                if (watcher.isResultPresent()) {
-                    int line = params.getPosition().getLine() + 1;
-                    int column = params.getPosition().getCharacter();
-                    logger.info("references {} at ({},{}) [{}]", unit.getPath().getFileName(), line, column, watcher.getElapsedMillis());
-                }
-                return watcher.getResult();
-            }).orElse(null));
-        } catch (Exception e) {
-            logger.error("references {}", params, e);
-            return emptyFuture();
-        }
-    }
-
-    @Override
-    public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(DocumentSymbolParams params) {
-        try (Document doc = workspaceManager.openAsRead(params.getTextDocument())) {
-            return CompletableFuture.supplyAsync(() -> doc.getUnit().flatMap(unit -> {
-                var watcher = Watcher.watch(() -> DocumentSymbolProvider.documentSymbol(unit, params));
-                if (watcher.isResultPresent()) {
-                    logger.info("documentSymbol {} [{}]", unit.getPath().getFileName(), watcher.getElapsedMillis());
-                }
-                return watcher.getResult();
-            }).orElse(null));
-        } catch (Exception e) {
-            logger.error("documentSymbol {}", params, e);
-            return emptyFuture();
-        }
-    }
-
-    @Override
     public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
-        try (Document doc = workspaceManager.openAsRead(params.getTextDocument())) {
+        try (Document doc = manager.openAsRead(params.getTextDocument())) {
             return CompletableFuture.supplyAsync(() -> doc.getUnit().flatMap(unit -> {
                 var watcher = Watcher.watch(() -> CompletionProvider.completion(unit, params));
                 if (watcher.isResultPresent()) {
@@ -174,6 +99,92 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
         return emptyFuture();
     }
 
+    @Override
+    public CompletableFuture<Hover> hover(HoverParams params) {
+        try (Document doc = manager.openAsRead(params.getTextDocument())) {
+            return CompletableFuture.supplyAsync(() -> doc.getUnit().flatMap(unit -> {
+                var watcher = Watcher.watch(() -> HoverProvider.hover(unit, params));
+                if (watcher.isResultPresent()) {
+                    int line = params.getPosition().getLine() + 1;
+                    int column = params.getPosition().getCharacter();
+                    logger.info("hover {} at ({},{}) [{}]", unit.getPath().getFileName(), line, column, watcher.getElapsedMillis());
+                }
+                return watcher.getResult();
+            }).orElse(null));
+        } catch (Exception e) {
+            logger.error("hover {}", params, e);
+            return emptyFuture();
+        }
+    }
+
+    @Override
+    public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> definition(DefinitionParams params) {
+        try (Document doc = manager.openAsRead(params.getTextDocument())) {
+            return CompletableFuture.supplyAsync(() -> doc.getUnit().flatMap(unit -> {
+                var watcher = Watcher.watch(() -> DefinitionProvider.definition(unit, params));
+                if (watcher.isResultPresent()) {
+                    int line = params.getPosition().getLine() + 1;
+                    int column = params.getPosition().getCharacter();
+                    logger.info("definition {} at ({},{}) [{}]", unit.getPath().getFileName(), line, column, watcher.getElapsedMillis());
+                }
+                return watcher.getResult();
+            }).orElse(null));
+        } catch (Exception e) {
+            logger.error("definition {}", params, e);
+            return emptyFuture();
+        }
+    }
+
+    @Override
+    public CompletableFuture<List<? extends Location>> references(ReferenceParams params) {
+        try (Document doc = manager.openAsRead(params.getTextDocument())) {
+            return CompletableFuture.supplyAsync(() -> doc.getUnit().flatMap(unit -> {
+                var watcher = Watcher.watch(() -> ReferencesProvider.references(unit, params));
+                if (watcher.isResultPresent()) {
+                    int line = params.getPosition().getLine() + 1;
+                    int column = params.getPosition().getCharacter();
+                    logger.info("references {} at ({},{}) [{}]", unit.getPath().getFileName(), line, column, watcher.getElapsedMillis());
+                }
+                return watcher.getResult();
+            }).orElse(null));
+        } catch (Exception e) {
+            logger.error("references {}", params, e);
+            return emptyFuture();
+        }
+    }
+
+    @Override
+    public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(DocumentSymbolParams params) {
+        try (Document doc = manager.openAsRead(params.getTextDocument())) {
+            return CompletableFuture.supplyAsync(() -> doc.getUnit().flatMap(unit -> {
+                var watcher = Watcher.watch(() -> DocumentSymbolProvider.documentSymbol(unit, params));
+                if (watcher.isResultPresent()) {
+                    logger.info("documentSymbol {} [{}]", unit.getPath().getFileName(), watcher.getElapsedMillis());
+                }
+                return watcher.getResult();
+            }).orElse(null));
+        } catch (Exception e) {
+            logger.error("documentSymbol {}", params, e);
+            return emptyFuture();
+        }
+    }
+
+    @Override
+    public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
+        try (Document doc = manager.openAsRead(params.getTextDocument())) {
+            return CompletableFuture.supplyAsync(() -> doc.getUnit().flatMap(unit -> {
+                var watcher = Watcher.watch(() -> SemanticTokensProvider.semanticTokensFull(unit, params));
+                if (watcher.isResultPresent()) {
+                    logger.info("semanticTokensFull {} [{}]", unit.getPath().getFileName(), watcher.getElapsedMillis());
+                }
+                return watcher.getResult();
+            }).orElse(null));
+        } catch (Exception e) {
+            logger.error("semanticTokensFull {}", params, e);
+            return emptyFuture();
+        }
+    }
+
     /* End Text Document Service */
 
     /* Workspace Service */
@@ -188,8 +199,8 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
             for (FileEvent event : params.getChanges()) {
                 try {
                     Path documentPath = PathUtil.toPath(event.getUri());
-                    workspaceManager.createEnvIfNotExists(documentPath);
-                    workspaceManager.getEnv(documentPath).ifPresent(env -> {
+                    manager.createEnvIfNotExists(documentPath);
+                    manager.getEnv(documentPath).ifPresent(env -> {
                         switch (event.getType()) {
                             case Created -> {
                                 CompilationUnit unit = env.createUnit(documentPath);
@@ -215,42 +226,15 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public void didChangeWorkspaceFolders(DidChangeWorkspaceFoldersParams params) {
         params.getEvent().getRemoved().forEach(workspace -> {
-            workspaceManager.removeWorkspace(workspace);
+            manager.removeWorkspace(workspace);
             logger.info("Removed Workspace folder: {}", workspace);
         });
         params.getEvent().getAdded().forEach(workspace -> {
-            workspaceManager.addWorkspace(workspace);
+            manager.addWorkspace(workspace);
             logger.info("Added Workspace folder: {}", workspace);
         });
     }
 
     /* End Workspace Service */
-
-    public static LanguageClient getClient() {
-        return client;
-    }
-
-    public static void setClient(LanguageClient client) {
-        ZenLanguageService.client = client;
-    }
-
-    public static void showMessage(MessageParams messageParams) {
-        if (client != null) {
-            client.showMessage(messageParams);
-        }
-    }
-
-    public void initializeWorkspaces(List<WorkspaceFolder> workspaces) {
-        if (workspaces != null) {
-            workspaces.forEach(workspace -> {
-                workspaceManager.addWorkspace(workspace);
-                logger.info("{}", workspace);
-            });
-        }
-    }
-
-    private <T> CompletableFuture<T> emptyFuture() {
-        return CompletableFuture.completedFuture(null);
-    }
 
 }
