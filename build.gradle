@@ -20,7 +20,7 @@ subprojects {
 
     dependencies {
         implementation 'org.slf4j:slf4j-api:2.0.9'
-        implementation 'org.slf4j:slf4j-simple:2.0.9'
+        implementation 'ch.qos.logback:logback-classic:1.4.11'
 
         testImplementation platform('org.junit:junit-bom:5.10.0')
         testImplementation 'org.junit.jupiter:junit-jupiter'
@@ -37,7 +37,8 @@ subprojects {
         group 'distribution'
         from (configurations.runtimeClasspath) {
             include 'slf4j-api-*.jar'
-            include 'slf4j-simple-*.jar'
+            include 'logback-classic-*.jar'
+            include 'logback-core-*.jar'
         }
         into '../vscode-extension/server'
     }
