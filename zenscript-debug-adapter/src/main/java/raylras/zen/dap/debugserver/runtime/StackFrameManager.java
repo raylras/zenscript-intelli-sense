@@ -1,6 +1,9 @@
 package raylras.zen.dap.debugserver.runtime;
 
-import com.sun.jdi.*;
+import com.sun.jdi.AbsentInformationException;
+import com.sun.jdi.Location;
+import com.sun.jdi.Method;
+import com.sun.jdi.StackFrame;
 import com.sun.jdi.request.BreakpointRequest;
 import org.eclipse.lsp4j.debug.Source;
 import org.eclipse.lsp4j.debug.SourcePresentationHint;
@@ -14,8 +17,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class StackFrameManager {
-    private record IndexRange(int start, int end) {
-    }
 
     private final ObjectIdMap<StackFrame> stackFrameIds = new ObjectIdMap<>();
     private final Map<Long, Set<Integer>> stackFramesByThread = new ConcurrentHashMap<>();
@@ -49,6 +50,10 @@ public class StackFrameManager {
         }
 
         return id;
+    }
+
+    public StackFrame getById(int id) {
+        return stackFrameIds.getById(id);
     }
 
 

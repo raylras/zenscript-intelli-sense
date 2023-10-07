@@ -1,11 +1,14 @@
 package raylras.zen.dap.debugserver.handler;
 
-import com.sun.jdi.*;
+import com.sun.jdi.IncompatibleThreadStateException;
+import com.sun.jdi.Location;
 import com.sun.jdi.StackFrame;
+import com.sun.jdi.ThreadReference;
 import org.eclipse.lsp4j.debug.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import raylras.zen.dap.debugserver.DebugAdapterContext;
+import raylras.zen.dap.debugserver.runtime.DebugObjectManager;
 import raylras.zen.dap.debugserver.runtime.StackFrameManager;
 import raylras.zen.dap.debugserver.runtime.StepState;
 import raylras.zen.dap.debugserver.runtime.ThreadManager;
@@ -34,6 +37,7 @@ public final class DebugJumpHandler {
     private static boolean doResume(boolean singleThread, Integer threadId, DebugAdapterContext context) {
         ThreadManager threadManager = context.getThreadManager();
         StackFrameManager stackFrameManager = context.getStackFrameManager();
+        DebugObjectManager debugObjectManager = context.getDebugObjectManager();
         if (singleThread) {
             ThreadReference threadReference = context.getThreadManager().getById(threadId);
             if (threadReference == null) {
@@ -41,6 +45,8 @@ public final class DebugJumpHandler {
                 return false;
             }
             stackFrameManager.removeByThread(threadReference.uniqueID());
+            debugObjectManager.removeByThread(threadReference.uniqueID());
+
             boolean resumed = threadManager.resumeThread(threadReference);
             if (!resumed) {
                 logger.warn("Failed to resume thread: {}", threadReference.name());
@@ -49,6 +55,7 @@ public final class DebugJumpHandler {
         }
         boolean allResumed = true;
         stackFrameManager.reset();
+        debugObjectManager.reset();
         for (ThreadReference threadReference : context.getThreadManager().pausedThreads()) {
 
             boolean resumed = threadManager.resumeThread(threadReference);

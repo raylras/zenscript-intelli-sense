@@ -1,10 +1,10 @@
 package raylras.zen.dap.debugserver;
 
-import com.sun.jdi.*;
+import com.sun.jdi.IncompatibleThreadStateException;
+import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.request.EventRequest;
 import com.sun.jdi.request.VMDeathRequest;
 import org.eclipse.lsp4j.debug.*;
-import org.eclipse.lsp4j.debug.Thread;
 import org.eclipse.lsp4j.debug.services.IDebugProtocolServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,14 +12,10 @@ import raylras.zen.dap.DAPException;
 import raylras.zen.dap.debugserver.handler.*;
 import raylras.zen.dap.jdi.JDILauncher;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.CancellationException;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionException;
 
 public class ZenDebugAdapter implements IDebugProtocolServer {
     private final DebugAdapterContext context = new DebugAdapterContext();
@@ -172,20 +168,24 @@ public class ZenDebugAdapter implements IDebugProtocolServer {
 
     @Override
     public CompletableFuture<ScopesResponse> scopes(ScopesArguments args) {
-        // TODO: scopes
         ScopesResponse response = new ScopesResponse();
-        response.setScopes(new Scope[0]);
+        List<Scope> scopes = ScopeHandler.scopes(args.getFrameId(), context);
+        response.setScopes(scopes.toArray(new Scope[0]));
         return CompletableFuture.completedFuture(response);
     }
 
     @Override
     public CompletableFuture<VariablesResponse> variables(VariablesArguments args) {
-        // TODO variables
         VariablesResponse response = new VariablesResponse();
-        response.setVariables(new Variable[0]);
+        List<Variable> variables = VariablesHandler.variables(args, context);
+        response.setVariables(variables.toArray(new Variable[0]));
         return CompletableFuture.completedFuture(response);
     }
 
+    @Override
+    public CompletableFuture<EvaluateResponse> evaluate(EvaluateArguments args) {
+        return IDebugProtocolServer.super.evaluate(args);
+    }
 
     @Override
     public CompletableFuture<ContinueResponse> continue_(ContinueArguments args) {

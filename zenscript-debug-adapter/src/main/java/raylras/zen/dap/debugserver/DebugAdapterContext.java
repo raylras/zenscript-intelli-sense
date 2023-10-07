@@ -1,6 +1,7 @@
 package raylras.zen.dap.debugserver;
 
 import raylras.zen.dap.debugserver.breakpoint.BreakpointManager;
+import raylras.zen.dap.debugserver.runtime.DebugObjectManager;
 import raylras.zen.dap.debugserver.runtime.StackFrameManager;
 import raylras.zen.dap.debugserver.runtime.StepState;
 import raylras.zen.dap.debugserver.runtime.ThreadManager;
@@ -18,6 +19,12 @@ public class DebugAdapterContext{
     private final BreakpointManager breakpointManager = new BreakpointManager();
     private final StackFrameManager stackFrameManager = new StackFrameManager();
     private final ThreadManager threadManager = new ThreadManager();
+
+    public DebugObjectManager getDebugObjectManager() {
+        return debugObjectManager;
+    }
+
+    private final DebugObjectManager debugObjectManager = new DebugObjectManager(threadManager);
     private StepState pendingStep = null;
 
     private Path scriptRootPath;

@@ -1,7 +1,6 @@
 package raylras.zen.dap.debugserver.runtime;
 
 import com.sun.jdi.ObjectReference;
-import com.sun.jdi.ReferenceType;
 import com.sun.jdi.ThreadReference;
 import com.sun.jdi.VirtualMachine;
 
@@ -78,6 +77,9 @@ public class ThreadManager {
         return cachedThreads.get(id);
     }
 
+    public ThreadReference getByUniqueId(long uniqueId) {
+        return cachedThreads.get(uniqueId);
+    }
 
     public void reloadThreads(VirtualMachine vm) {
         List<ThreadReference> threadReferences = vm.allThreads();

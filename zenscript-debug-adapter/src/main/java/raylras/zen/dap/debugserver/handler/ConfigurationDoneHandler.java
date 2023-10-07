@@ -1,13 +1,10 @@
 package raylras.zen.dap.debugserver.handler;
 
-import com.sun.jdi.AbsentInformationException;
-import com.sun.jdi.ReferenceType;
 import com.sun.jdi.event.*;
 import io.reactivex.rxjava3.disposables.Disposable;
 import org.eclipse.lsp4j.debug.TerminatedEventArguments;
 import org.eclipse.lsp4j.debug.ThreadEventArguments;
 import org.eclipse.lsp4j.debug.ThreadEventArgumentsReason;
-import org.eclipse.lsp4j.debug.services.IDebugProtocolClient;
 import raylras.zen.dap.debugserver.DebugAdapterContext;
 import raylras.zen.dap.debugserver.DebugSession;
 
@@ -51,6 +48,7 @@ public class ConfigurationDoneHandler {
 
     private static void handleThreadDeath(ThreadDeathEvent threadDeathEvent, DebugAdapterContext context) {
         context.getStackFrameManager().removeByThread(threadDeathEvent.thread().uniqueID());
+        context.getDebugObjectManager().removeByThread(threadDeathEvent.thread().uniqueID());
         int id = context.getThreadManager().threadStopped(threadDeathEvent.thread());
         ThreadEventArguments threadEventArguments = new ThreadEventArguments();
         threadEventArguments.setThreadId(id);
