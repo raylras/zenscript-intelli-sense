@@ -23,7 +23,7 @@ public final class StackTraceHandler {
             start = args.getStartFrame();
         }
 
-        if (start < 0) {
+        if (start < 0 || runningThread == null) {
             stackTraceResponse.setTotalFrames(0);
             stackTraceResponse.setStackFrames(new org.eclipse.lsp4j.debug.StackFrame[0]);
             return stackTraceResponse;

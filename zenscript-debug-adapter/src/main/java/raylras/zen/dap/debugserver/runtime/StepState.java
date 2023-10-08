@@ -111,6 +111,8 @@ public class StepState {
 
                     if (!isOutOfStep(stepEvent.thread())) {
                         this.configure(context, stepEvent.thread());
+                    } else {
+                        close(context);
                     }
                     event.setResume(true);
 

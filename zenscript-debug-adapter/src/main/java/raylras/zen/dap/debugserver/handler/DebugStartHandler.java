@@ -18,6 +18,9 @@ import raylras.zen.dap.debugserver.DebugSession;
 import raylras.zen.dap.jdi.JDILauncher;
 import raylras.zen.util.PathUtil;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -62,7 +65,7 @@ public class DebugStartHandler {
         String javaExecutable = (String) args.get("javaExecutable");
         Path scriptRootPath = Path.of(scriptRoot);
         Object terminal = args.get("launchInTerminal");
-        boolean inTerminal = !(terminal instanceof Boolean && ((boolean) terminal));
+        boolean inTerminal = !(terminal instanceof Boolean && !((boolean) terminal));
         if (javaExecutable == null) {
             return new LaunchArgument(scriptRootPath, null, inTerminal);
         }
@@ -98,8 +101,6 @@ public class DebugStartHandler {
     private static final int ATTACH_TERMINAL_TIMEOUT = 20 * 1000;
 
 
-
-
     public static CompletableFuture<Boolean> handleLaunch(LaunchArgument launchArgument, DebugAdapterContext context) {
 
         ListeningConnector connector = JDILauncher.getListeningConnector();
@@ -116,8 +117,12 @@ public class DebugStartHandler {
         CompletableFuture<Boolean> future = new CompletableFuture<>();
 
         if (launchArgument.launchInTerminal) {
+            String[] scriptCommands = generateStartupScript(commands);
+            if (scriptCommands == null) {
+                return CompletableFuture.completedFuture(false);
+            }
             RunInTerminalRequestArguments runArgs = new RunInTerminalRequestArguments();
-            runArgs.setArgs(commands);
+            runArgs.setArgs(scriptCommands);
             runArgs.setKind(RunInTerminalRequestArgumentsKind.INTEGRATED);
             runArgs.setTitle("Minecraft");
             runArgs.setArgsCanBeInterpretedByShell(false);
@@ -144,7 +149,7 @@ public class DebugStartHandler {
 
             });
         } else {
-            CompletableFuture.runAsync(()-> {
+            CompletableFuture.runAsync(() -> {
                 try {
                     Runtime.getRuntime().exec(commands, new String[0], launchArgument.scriptRoot.resolve("..").toFile());
                     try {
@@ -166,6 +171,45 @@ public class DebugStartHandler {
         return future;
     }
 
+
+    public static String[] generateStartupScript(String[] args) {
+        try {
+
+            List<String> outCommand = new ArrayList<>();
+            boolean isWindows = System.getProperty("os.name").startsWith("Windows");
+
+            File scriptFile = File.createTempFile("ZenScriptDAPLaunchMinecraft", isWindows ? ".bat" : ".sh");
+            scriptFile.deleteOnExit();
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(scriptFile))) {
+                if (isWindows) {
+                    writer.write("@echo off");
+
+                } else {
+                    writer.write("#!/bin/bash");
+                }
+                writer.newLine();
+                for (int i = 0; i < args.length; i++) {
+                    if (i != 0) {
+                        writer.write(" ");
+                    }
+                    writer.write(args[i]);
+                }
+            }
+
+            if (isWindows) {
+                // Windows
+                outCommand.add("cmd.exe");
+                outCommand.add("/c");
+            } else {
+                outCommand.add("bash");
+            }
+            outCommand.add(scriptFile.getAbsolutePath());
+            return outCommand.toArray(new String[0]);
+        } catch (IOException e) {
+            logger.error("Failed to generate launch script", e);
+            return null;
+        }
+    }
 
     private static final Gson GSON = new GsonBuilder()
             .create();

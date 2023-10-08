@@ -98,7 +98,11 @@ public class ZenDebugAdapter implements IDebugProtocolServer {
     public CompletableFuture<Void> terminate(TerminateArguments args) {
         DebugSession debugSession = context.getDebugSession();
         if (debugSession != null) {
-            debugSession.getVM().exit(0);
+            try {
+                debugSession.getVM().exit(0);
+            } catch (VMDisconnectedException ignored) {
+
+            }
         }
         return CompletableFuture.completedFuture(null);
     }

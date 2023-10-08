@@ -2,13 +2,12 @@ package raylras.zen.dap.debugserver.handler;
 
 import com.sun.jdi.ObjectCollectedException;
 import com.sun.jdi.ThreadReference;
+import com.sun.jdi.VMDisconnectedException;
 import org.eclipse.lsp4j.debug.Thread;
 import org.eclipse.lsp4j.debug.ThreadsResponse;
 import raylras.zen.dap.debugserver.DebugAdapterContext;
 
 import java.util.ArrayList;
-import java.util.concurrent.CancellationException;
-import java.util.concurrent.CompletionException;
 
 public final class ThreadListHandler {
 
@@ -28,7 +27,7 @@ public final class ThreadListHandler {
                 thread.setName("Thread [" + name + "]");
                 threads.add(thread);
             }
-        } catch (ObjectCollectedException | CancellationException | CompletionException ex) {
+        } catch (ObjectCollectedException | VMDisconnectedException ex) {
             // allThreads may throw VMDisconnectedException when VM terminates and thread.name() may throw ObjectCollectedException
             // when the thread is exiting.
         }

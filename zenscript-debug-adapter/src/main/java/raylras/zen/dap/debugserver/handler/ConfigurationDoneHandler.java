@@ -2,6 +2,7 @@ package raylras.zen.dap.debugserver.handler;
 
 import com.sun.jdi.event.*;
 import io.reactivex.rxjava3.disposables.Disposable;
+import org.eclipse.lsp4j.debug.ExitedEventArguments;
 import org.eclipse.lsp4j.debug.TerminatedEventArguments;
 import org.eclipse.lsp4j.debug.ThreadEventArguments;
 import org.eclipse.lsp4j.debug.ThreadEventArgumentsReason;
@@ -72,9 +73,13 @@ public class ConfigurationDoneHandler {
     }
 
     private static void handleVMDeath(VMDeathEvent vmDeathEvent, DebugAdapterContext context) {
-        TerminatedEventArguments terminatedEventArguments = new TerminatedEventArguments();
-        terminatedEventArguments.setRestart(false);
-        context.getClient().terminated(terminatedEventArguments);
+        ExitedEventArguments exitedEventArguments = new ExitedEventArguments();
+        try {
+            exitedEventArguments.setExitCode(vmDeathEvent.virtualMachine().process().exitValue());
+        } catch (Exception ignored) {
+
+        }
+        context.getClient().exited(exitedEventArguments);
     }
 
     private static void handleVMStart(VMStartEvent vmStartEvent) {

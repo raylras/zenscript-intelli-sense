@@ -29,7 +29,12 @@ public final class DebugJumpHandler {
             return;
         }
         boolean succeed = context.getThreadManager().pauseThread(threadReference);
-        if (!succeed) {
+        if (succeed) {;
+            StoppedEventArguments arguments = new StoppedEventArguments();
+            arguments.setReason(StoppedEventArgumentsReason.PAUSE);
+            arguments.setThreadId(threadId);
+            context.getClient().stopped(arguments);
+        } else {
             logger.warn("Failed to pause thread: {}, is is already paused!", threadReference.name());
         }
     }

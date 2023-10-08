@@ -84,12 +84,12 @@ public class VariableProxyFactory {
                 return "null";
             }
         };
-        return manager.put(variableProxy, ownerThread);
+        return variableProxy;
     }
 
     public VariableProxy createPrimitiveProxy(String name, Value primitiveValue, ThreadReference ownerThread) {
 
-        return manager.put(new PrimitiveValueProxy(name, primitiveValue), ownerThread);
+        return new PrimitiveValueProxy(name, primitiveValue);
     }
 
     public JavaFieldView createFieldView(String name, ObjectReference data, ThreadReference ownerThread) {
@@ -123,7 +123,7 @@ public class VariableProxyFactory {
 
     public VariableProxy createError(String name, String reason, ThreadReference ownerThread) {
 
-        return manager.put(new ErrorVariableProxy(name, reason), ownerThread);
+        return new ErrorVariableProxy(name, reason);
     }
 
 }

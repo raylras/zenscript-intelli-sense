@@ -12,6 +12,7 @@ import raylras.zen.dap.debugserver.variable.VariableProxy;
 import raylras.zen.dap.debugserver.variable.VariableProxyFactory;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class ScopeHandler {
@@ -21,6 +22,10 @@ public class ScopeHandler {
         DebugObjectManager debugObjectManager = context.getDebugObjectManager();
         StackFrameManager stackFrameManager = context.getStackFrameManager();
         StackFrame stackFrame = stackFrameManager.getById(frameId);
+        if (stackFrame == null) {
+            logger.warn("trying to fetch scope of invalid stack frame {}", frameId);
+            return Collections.emptyList();
+        }
         ThreadReference thread = stackFrame.thread();
 
         VariableProxyFactory factory = debugObjectManager.getVariableFactory();
@@ -43,7 +48,7 @@ public class ScopeHandler {
         try {
             for (LocalVariable visibleVariable : stackFrame.visibleVariables()) {
                 Value value = stackFrame.getValue(visibleVariable);
-                if(value == null) {
+                if (value == null) {
                     logger.error("failed to get local variables of " + visibleVariable.name());
                     continue;
                 }
@@ -54,20 +59,11 @@ public class ScopeHandler {
                     localVariables.add(proxy);
                 }
             }
+        } catch (AbsentInformationException ignored) {
+            logger.warn("the stack frame '{}' does not have local variable info.", frameId);
         } catch (Exception e) {
             logger.error("failed to get local variables of " + frameId, e);
         }
-
-        // arguments
-        Scope arguments = new Scope();
-        arguments.setName("Arguments");
-        arguments.setPresentationHint(ScopePresentationHint.ARGUMENTS);
-
-
-        VariableProxy argumentScope = factory.createScope("Arguments", argumentVariables, thread);
-        arguments.setVariablesReference(debugObjectManager.getId(argumentScope));
-        scopes.add(arguments);
-
 
         // locals
         Scope locals = new Scope();
@@ -77,6 +73,17 @@ public class ScopeHandler {
         VariableProxy localScope = factory.createScope("Locals", localVariables, thread);
         locals.setVariablesReference(debugObjectManager.getId(localScope));
         scopes.add(locals);
+
+        // arguments
+        Scope arguments = new Scope();
+        arguments.setName("Arguments");
+        arguments.setPresentationHint(ScopePresentationHint.ARGUMENTS);
+
+        VariableProxy argumentScope = factory.createScope("Arguments", argumentVariables, thread);
+        arguments.setVariablesReference(debugObjectManager.getId(argumentScope));
+        scopes.add(arguments);
+
+
 
 
         return scopes;

@@ -18,10 +18,10 @@ public class EventHub {
     private boolean isClosed = false;
 
 
-
     public Observable<JDIEvent> allEvents() {
         return subject;
     }
+
     public Observable<JDIEvent> classPrepareEvents() {
         return subject.filter(it -> it.getEvent() instanceof ClassPrepareEvent);
     }
@@ -48,26 +48,24 @@ public class EventHub {
 
                     boolean shouldResume = true;
                     for (Event event : set) {
-                        try {
-                            logger.info("\nJDI Event: {}", event);
-                        } catch (VMDisconnectedException e) {
-                            // do nothing
-                        }
                         JDIEvent dbgEvent = new JDIEvent(event, set);
                         subject.onNext(dbgEvent);
+                        if (!dbgEvent.shouldResume()) {
+                            try {
+                                logger.info("Paused at JDI Event: {}", event);
+                            } catch (VMDisconnectedException e) {
+                                // do nothing
+                            }
+                        }
                         shouldResume &= dbgEvent.shouldResume();
                     }
 
                     if (shouldResume) {
                         set.resume();
                     }
-                } catch (InterruptedException e) {
+                } catch (InterruptedException | VMDisconnectedException e) {
                     isClosed = true;
                     subject.onComplete();
-                    return;
-                } catch (VMDisconnectedException e) {
-                    isClosed = true;
-                    subject.onError(e);
                     return;
                 }
             }

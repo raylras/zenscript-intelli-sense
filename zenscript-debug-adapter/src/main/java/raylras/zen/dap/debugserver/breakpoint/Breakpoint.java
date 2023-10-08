@@ -1,18 +1,16 @@
 package raylras.zen.dap.debugserver.breakpoint;
 
-import com.sun.jdi.AbsentInformationException;
-import com.sun.jdi.ReferenceType;
 import com.sun.jdi.VMDisconnectedException;
 import com.sun.jdi.VirtualMachine;
 import com.sun.jdi.event.ClassPrepareEvent;
 import com.sun.jdi.request.BreakpointRequest;
-import com.sun.jdi.request.ClassPrepareRequest;
 import com.sun.jdi.request.EventRequest;
 import io.reactivex.rxjava3.core.Observable;
 import io.reactivex.rxjava3.disposables.Disposable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import raylras.zen.dap.DAPPositions;
 import raylras.zen.dap.event.EventHub;
-import raylras.zen.dap.jdi.ObservableUtils;
 import raylras.zen.util.Position;
 
 import java.util.ArrayList;
@@ -24,8 +22,10 @@ import java.util.concurrent.CompletableFuture;
 import static raylras.zen.dap.jdi.ObservableUtils.safeFilter;
 
 public class Breakpoint {
-    private final Position position;
+    private static final Logger logger = LoggerFactory.getLogger(Breakpoint.class);
     private final String sourcePath;
+
+    private Position position;
     private boolean isVerified = false;
     private final VirtualMachine vm;
     private final EventHub eventHub;
@@ -75,16 +75,27 @@ public class Breakpoint {
     }
 
     public CompletableFuture<Breakpoint> install() {
+        logger.info("Start install breakpoint at {}({}:{})", this.sourcePath, this.position.line(), this.position.column());
         CompletableFuture<Breakpoint> future = new CompletableFuture<>();
-        Disposable subscribe = Observable.concat(
+        int jdiLineNumber = DAPPositions.toJDILine(position);
+        Disposable subscribe = Observable.merge(
                         Observable.fromIterable(vm.allClasses()),
                         eventHub.classPrepareEvents()
                                 .map(it -> (ClassPrepareEvent) it.getEvent())
                                 .map(ClassPrepareEvent::referenceType)
                 )
-                .filter(safeFilter(it -> it.sourceName().endsWith(".zs")))
-                .flatMapMaybe(referenceType -> Observable.fromIterable(referenceType.locationsOfLine(DAPPositions.toJDILine(position)))
-                        .filter(safeFilter(it -> Objects.equals(sourcePath, it.sourcePath())))
+                .filter(safeFilter(it -> Objects.equals(sourcePath, it.sourceName())))
+                .doOnComplete(() -> {
+                    logger.warn("Stopped observing breakpoint at {}({}:{})", this.sourcePath, this.position.line(), this.position.column());
+                })
+                .doOnNext(it -> {
+                    logger.info("Loading breakpoints for {}({}) ...", it.name(), sourcePath);
+                })
+                .flatMapMaybe(referenceType -> Observable.fromIterable(referenceType.methods())
+                        .flatMap(method -> Observable.fromSupplier(() -> method.locationsOfLine(jdiLineNumber))
+                                .flatMap(Observable::fromIterable)
+                                .onErrorComplete()
+                        )
                         .filter(location -> requests.stream().filter(it -> it instanceof BreakpointRequest)
                                 .map(it -> (BreakpointRequest) it)
                                 .map(BreakpointRequest::location)
@@ -95,19 +106,22 @@ public class Breakpoint {
                             breakpointRequest.setSuspendPolicy(EventRequest.SUSPEND_EVENT_THREAD);
                             return breakpointRequest;
                         })
-                        .doOnEach(it -> {
-                            if (it.isOnNext()) {
-                                it.getValue().enable();
-                                requests.add(it.getValue());
-                            }
+                        .doOnNext(it -> {
+                            it.enable();
+                            requests.add(it);
                         })
                         .count()
                         .filter(it -> it > 0)
                         .doOnSuccess(it -> {
+                            logger.info("Added {} breakpoints at {}({})", it, this.sourcePath, this.position.line());
                             this.isVerified = true;
                             future.complete(this);
                         })
-                ).subscribe();
+                )
+                .doOnError(e -> {
+                    logger.error("Exception occurred when installing breakpoint  at {}({}:{})", this.sourcePath, this.position.line(), this.position.column(), e);
+                })
+                .subscribe();
         subscriptions.add(subscribe);
 
         return future;

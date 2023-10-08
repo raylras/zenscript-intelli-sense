@@ -105,6 +105,9 @@ public class StackFrameManager {
                     source.setPresentationHint(SourcePresentationHint.DEEMPHASIZE);
                 }
             } catch (AbsentInformationException ignored) {
+                source.setName("[Unknown Source]");
+                stackFrame.setPresentationHint(StackFramePresentationHint.SUBTLE);
+                source.setPresentationHint(SourcePresentationHint.DEEMPHASIZE);
             }
             stackFrame.setSource(source);
 
