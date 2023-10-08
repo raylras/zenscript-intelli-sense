@@ -5,6 +5,7 @@ import com.sun.jdi.VirtualMachineManager;
 import com.sun.jdi.connect.AttachingConnector;
 import com.sun.jdi.connect.Connector;
 import com.sun.jdi.connect.IllegalConnectorArgumentsException;
+import com.sun.jdi.connect.ListeningConnector;
 import raylras.zen.dap.debugserver.DebugSession;
 
 import java.io.IOException;
@@ -26,8 +27,8 @@ public final class JDILauncher {
     public static final String TIMEOUT = "timeout";
 
 
-
     private static final VirtualMachineManager vmManager = Bootstrap.virtualMachineManager();
+
     /**
      * Attach to an existing debuggee VM.
      *
@@ -55,6 +56,18 @@ public final class JDILauncher {
         arguments.get(PORT).setValue(String.valueOf(port));
         arguments.get(TIMEOUT).setValue(String.valueOf(attachTimeout));
         return new DebugSession(connector.attach(arguments));
+    }
+
+
+    public static ListeningConnector getListeningConnector() {
+        List<ListeningConnector> connectors = vmManager.listeningConnectors();
+        return connectors.get(0);
+    }
+    public static Map<String, Connector.Argument> getListenArguments(ListeningConnector connector, int listenTimeout) {
+        Map<String, Connector.Argument> arguments = connector.defaultArguments();
+        arguments.get(TIMEOUT).setValue(String.valueOf(listenTimeout));
+        return arguments;
+
     }
 
 

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.net.URI;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -12,6 +13,7 @@ import java.security.NoSuchAlgorithmException;
 
 public final class PathUtil {
 
+    public static final String DEFAULT_GENERATED_DIRECTORY = "generated";
     private PathUtil() {}
 
     public static Path toPath(String uri) {
@@ -73,6 +75,15 @@ public final class PathUtil {
             // Should never happen
             return "0".repeat(40);
         }
+    }
+
+
+    public static Path resolveGeneratedRoot(Path envRoot) {
+        return FileSystems.getDefault()
+                .getPath(System.getProperty("user.home"))
+                .resolve(".probezs")
+                .resolve(PathUtil.toHash(envRoot))
+                .resolve(DEFAULT_GENERATED_DIRECTORY);
     }
 
 }

@@ -42,24 +42,6 @@ export async function activateDebugAdapter(javaBin, context) {
     }));
 
 
-    context.subscriptions.push(debug.registerDebugConfigurationProvider('zenscript', {
-        resolveDebugConfiguration(folder, config, token) {
-            // if launch.json is missing or empty
-            if (!config.type && !config.request && !config.name) {
-                const editor = window.activeTextEditor;
-                if (editor && editor.document.languageId === 'zenscript') {
-                    config.type = 'zenscript';
-                    config.name = 'Attach';
-                    config.request = 'attach';
-                    config.hostName = 'localhost';
-                    config.port = 8000;
-                    config.timeout = 1000;
-                }
-            }
-            return config;
-        }
-    }));
-
     debug.onDidReceiveDebugSessionCustomEvent((e) => {
         if(e.event === "outputLog") {
             logChannel.appendLine(e.body);

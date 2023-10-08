@@ -1,18 +1,14 @@
 package raylras.zen.dap.debugserver;
 
 import com.sun.jdi.IncompatibleThreadStateException;
+import com.sun.jdi.VMDisconnectedException;
 import com.sun.jdi.VirtualMachine;
-import com.sun.jdi.request.EventRequest;
-import com.sun.jdi.request.VMDeathRequest;
 import org.eclipse.lsp4j.debug.*;
 import org.eclipse.lsp4j.debug.services.IDebugProtocolServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import raylras.zen.dap.DAPException;
 import raylras.zen.dap.debugserver.handler.*;
-import raylras.zen.dap.jdi.JDILauncher;
 
-import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -28,6 +24,7 @@ public class ZenDebugAdapter implements IDebugProtocolServer {
         capabilities.setSupportsSingleThreadExecutionRequests(true);
         capabilities.setSupportsSteppingGranularity(true);
         capabilities.setSupportsDelayedStackTraceLoading(true);
+        capabilities.setSupportsTerminateRequest(true);
 
         capabilities.setSupportsStepBack(false);
         capabilities.setSupportsInstructionBreakpoints(false);
@@ -50,34 +47,30 @@ public class ZenDebugAdapter implements IDebugProtocolServer {
 
     @Override
     public CompletableFuture<Void> launch(Map<String, Object> args) {
-        return IDebugProtocolServer.super.launch(args);
+        DebugStartHandler.LaunchArgument attachArgument = DebugStartHandler.parseLaunchArgs(args);
+        DebugStartHandler.handleLaunch(attachArgument, context).thenAccept(succeed -> {
+            if (succeed) {
+                // notify client that we have started jvm and wait for breakpoints
+                context.getClient().initialized();
+            } else {
+                context.getClient().terminated(new TerminatedEventArguments());
+            }
+        });
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override
     public CompletableFuture<Void> attach(Map<String, Object> args) {
 
-        try {
-            String hostName = (String) args.get("hostName");
-            int port = (int) ((double) args.get("port"));
-            String projectRoot = (String) args.get("projectRoot");
-            logger.info("trying to attach to vm {}:{}", hostName, port);
-            DebugSession debugSession = JDILauncher.attach(hostName, port, 100);
-
-            VMDeathRequest vmDeathRequest = debugSession.getVM().eventRequestManager().createVMDeathRequest();
-            vmDeathRequest.setSuspendPolicy(EventRequest.SUSPEND_NONE);
-            vmDeathRequest.setEnabled(true);
-
-            context.setScriptRootPath(Path.of(projectRoot));
-            context.setDebugSession(debugSession);
-
-            debugSession.start();
-            SetBreakpointsHandler.registerBreakpointHandler(context);
-        } catch (Exception e) {
-            logger.error("failed to attach to vm", e);
-            throw new DAPException(e);
+        DebugStartHandler.AttachArgument attachArgument = DebugStartHandler.parseAttachArgs(args);
+        boolean succeed = DebugStartHandler.handleAttach(attachArgument, context);
+        if (succeed) {
+            // notify client that we have started jvm and wait for breakpoints
+            context.getClient().initialized();
+        } else {
+            context.getClient().terminated(new TerminatedEventArguments());
         }
-        // notify client that we have started jvm and wait for breakpoints
-        context.getClient().initialized();
+
         return CompletableFuture.completedFuture(null);
     }
 
@@ -88,10 +81,14 @@ public class ZenDebugAdapter implements IDebugProtocolServer {
             return CompletableFuture.completedFuture(null);
         }
         VirtualMachine vm = debugSession.getVM();
-        if (args.getTerminateDebuggee() != null && args.getTerminateDebuggee()) {
-            vm.exit(0);
-        } else {
-            vm.dispose();
+        try {
+            if (args.getTerminateDebuggee() != null && args.getTerminateDebuggee()) {
+                vm.exit(0);
+            } else {
+                vm.dispose();
+            }
+        } catch (VMDisconnectedException ignored) {
+
         }
 
         return CompletableFuture.completedFuture(null);

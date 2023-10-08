@@ -21,9 +21,7 @@
 	},
 	"activationEvents": [
 		"onLanguage:zenscript",
-		"onDebugInitialConfigurations",
-		"onDebugResolve:zenscript",
-		"onDebugDynamicConfigurations:zenscript"
+		"onDebugResolve:zenscript"
 	],
 	"icon": "./icon/zs.webp",
 	"main": "./client/out/extension.js",
@@ -95,16 +93,15 @@
 				"configurationAttributes": {
 					"attach": {
 						"required": [
-							"projectRoot",
+							"scriptRoot",
 							"hostName",
-							"port",
-							"timeout"
+							"port"
 						],
 						"properties": {
-							"projectRoot": {
+							"scriptRoot": {
 								"type": "string",
-								"description": "Absolute path to your project's root folder. If you want to debug a subproject, specify the root/top-level directory here and the relative path in the 'subproject' attribute.",
-								"default": "${workspaceFolder}"
+								"description": "The path of 'scripts' folder",
+								"default": "${workspaceFolder}/scripts"
 							},
 							"hostName": {
 								"type": "string",
@@ -115,21 +112,43 @@
 								"type": "number",
 								"description": "The port number of your running JVM.",
 								"default": 8000
-							},
-							"timeout": {
-								"type": "number",
-								"description": "The connection timeout.",
-								"default": 30000
-							},
-							"scriptsPath": {
+							}
+						}
+					},
+					"launch": {
+						"required": [
+							"scriptRoot"
+						],
+						"properties": {
+							"scriptRoot": {
 								"type": "string",
-								"description": "The path relative to 'scripts' folder",
-								"default": false
+								"description": "The path of 'scripts' folder",
+								"default": "${workspaceFolder}/scripts"
+							},
+							"javaExecutable": {
+								"type": "string",
+								"description": "The java to launch minecraft, if not specified, try to resolve from probezs environment"
+							},
+							"launchInTerminal": {
+								"type": "boolean",
+								"description": "Is process launch in vscode integrated terminal, false to launch it as subprocess",
+								"default": true
 							}
 						}
 					}
 				},
 				"configurationSnippets": [
+					
+					{
+						"label": "ZenScript: Launch Minecraft",
+						"description": "Launch a new minecraft instance and start debug",
+						"body": {
+							"type": "zenscript",
+							"request": "launch",
+							"name": "ZenScript Launch",
+							"scriptRoot": "^\"\\${workspaceFolder}/scripts\""
+						}
+					},
 					{
 						"label": "ZenScript: Attach VM",
 						"description": "Attaches a debugger to a running JVM",
@@ -137,22 +156,18 @@
 							"type": "zenscript",
 							"request": "attach",
 							"name": "ZenScript Attach",
-							"projectRoot": "^\"\\${workspaceFolder}\"",
+							"scriptRoot": "^\"\\${workspaceFolder}/scripts\"",
 							"hostName": "localhost",
-							"port": 8000,
-							"timeout": 30000
+							"port": 8000
 						}
 					}
 				],
 				"initialConfigurations": [
 					{
 						"type": "zenscript",
-						"request": "attach",
-						"name": "ZenScript Attach",
-						"projectRoot": "${workspaceFolder}",
-						"hostName": "localhost",
-						"port": 8000,
-						"timeout": 30000
+						"request": "launch",
+						"name": "ZenScript Launch",
+						"scriptRoot": "${workspaceFolder}/scripts"
 					}
 				]
 			}
