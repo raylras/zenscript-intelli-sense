@@ -38,7 +38,6 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
         service.initializeWorkspaces(params.getWorkspaceFolders());
         L10N.setLocale(params.getLocale());
-
         ServerCapabilities capabilities = new ServerCapabilities();
         capabilities.setTextDocumentSync(TextDocumentSyncKind.Full);
         capabilities.setCompletionProvider(new CompletionOptions(true, List.of(".", ":")));

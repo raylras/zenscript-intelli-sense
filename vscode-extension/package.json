@@ -20,7 +20,8 @@
 		"vscode": "^1.81.0"
 	},
 	"activationEvents": [
-		"onLanguage:zenscript"
+		"onLanguage:zenscript",
+		"onDebugResolve:zenscript"
 	],
 	"icon": "./icon/zs.webp",
 	"main": "./client/out/extension.js",
@@ -45,6 +46,11 @@
 				"path": "./language/ZenScript.tmLanguage.json"
 			}
 		],
+		"breakpoints": [
+			{
+				"language": "zenscript"
+			}
+		],
 		"configuration": {
 			"title": "ZenScript Language Server",
 			"properties": {
@@ -58,16 +64,114 @@
 					"order": 1,
 					"type": "boolean",
 					"default": false,
-					"description": "Suspend to wait for the debugger to attach"
+					"description": "Suspend to wait for the debugger to attach for language server"
+				},
+				"zenscript.debugAdapter.debug": {
+					"order": 2,
+					"type": "boolean",
+					"default": false,
+					"description": "Enable/disable debug mode for debug adapter"
+				},
+				"zenscript.debugAdapter.suspend": {
+					"order": 3,
+					"type": "boolean",
+					"default": false,
+					"description": "Suspend to wait for the debugger to attach for debug adapter"
 				},
 				"zenscript.languageServer.javaHome": {
-					"order": 2,
+					"order": 4,
 					"type": "string",
 					"default": null,
 					"description": "Path of java home"
 				}
 			}
-		}
+		},
+		"debuggers": [
+			{
+				"type": "zenscript",
+				"label": "ZenScript",
+				"configurationAttributes": {
+					"attach": {
+						"required": [
+							"scriptRoot",
+							"hostName",
+							"port"
+						],
+						"properties": {
+							"scriptRoot": {
+								"type": "string",
+								"description": "The path of 'scripts' folder",
+								"default": "${workspaceFolder}/scripts"
+							},
+							"hostName": {
+								"type": "string",
+								"description": "The host name of your running JVM.",
+								"default": "localhost"
+							},
+							"port": {
+								"type": "number",
+								"description": "The port number of your running JVM.",
+								"default": 8000
+							}
+						}
+					},
+					"launch": {
+						"required": [
+							"scriptRoot"
+						],
+						"properties": {
+							"scriptRoot": {
+								"type": "string",
+								"description": "The path of 'scripts' folder",
+								"default": "${workspaceFolder}/scripts"
+							},
+							"javaExecutable": {
+								"type": "string",
+								"description": "The java to launch minecraft, if not specified, try to resolve from probezs environment"
+							},
+							"launchInTerminal": {
+								"type": "boolean",
+								"description": "Is process launch in vscode integrated terminal, false to launch it as subprocess",
+								"default": true
+							}
+						}
+					}
+				},
+				"configurationSnippets": [
+					
+					{
+						"label": "ZenScript: Launch Minecraft",
+						"description": "Launch a new minecraft instance and start debug",
+						"body": {
+							"type": "zenscript",
+							"request": "launch",
+							"name": "ZenScript Launch",
+							"scriptRoot": "^\"\\${workspaceFolder}/scripts\""
+						}
+					},
+					{
+						"label": "ZenScript: Attach VM",
+						"description": "Attaches a debugger to a running JVM",
+						"body": {
+							"type": "zenscript",
+							"request": "attach",
+							"name": "ZenScript Attach",
+							"scriptRoot": "^\"\\${workspaceFolder}/scripts\"",
+							"hostName": "localhost",
+							"port": 8000
+						}
+					}
+				],
+				"initialConfigurations": [
+					{
+						"type": "zenscript",
+						"request": "launch",
+						"name": "ZenScript Launch",
+						"scriptRoot": "${workspaceFolder}/scripts"
+					}
+				]
+			}
+		]
 	},
 	"scripts": {
 		"package": "vsce package",
@@ -78,6 +182,7 @@
 	},
 	"dependencies": {
 		"@viperproject/locate-java-home": "^1.1.13",
+		"@vscode/debugadapter": "^1.63.0",
 		"dayjs": "^1.11.9",
 		"vscode-languageclient": "^9.0.0"
 	},

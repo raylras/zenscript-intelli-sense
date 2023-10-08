@@ -10,7 +10,6 @@ import raylras.zen.model.type.Type;
 import raylras.zen.model.type.Types;
 import raylras.zen.util.PathUtil;
 
-import java.nio.file.FileSystems;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
@@ -22,7 +21,6 @@ import java.util.stream.Stream;
 public class CompilationEnvironment {
 
     public static final String DEFAULT_ROOT_DIRECTORY = "scripts";
-    public static final String DEFAULT_GENERATED_DIRECTORY = "generated";
 
     private final Path root;
     private final Path generatedRoot;
@@ -136,11 +134,7 @@ public class CompilationEnvironment {
     }
 
     private static Path resolveGeneratedRoot(CompilationEnvironment env) {
-        return FileSystems.getDefault()
-                .getPath(System.getProperty("user.home"))
-                .resolve(".probezs")
-                .resolve(PathUtil.toHash(env.getRoot()))
-                .resolve(DEFAULT_GENERATED_DIRECTORY);
+        return PathUtil.resolveGeneratedRoot(env.getRoot());
     }
 
 }
