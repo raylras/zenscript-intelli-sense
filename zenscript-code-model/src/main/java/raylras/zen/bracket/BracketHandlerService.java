@@ -11,7 +11,6 @@ import java.io.IOException;
 import java.io.Reader;
 import java.net.ConnectException;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
@@ -88,19 +87,23 @@ public class BracketHandlerService {
     }
 
     private void loadMirrorsFromJson() {
-        Path jsonPath = env.getGeneratedRoot().resolve("brackets.json");
-        Watcher<List<BracketHandlerMirror>> watcher = Watcher.watch(() -> {
-            try (Reader reader = Files.newBufferedReader(jsonPath)) {
-                return GSON.fromJson(reader, new TypeToken<>() {});
-            } catch (IOException e) {
-                logger.error("Failed to load bracket handler mirrors from {}", jsonPath.getFileName(), e);
-                return null;
-            }
-        });
-        if (watcher.isResultPresent()) {
-            mirrors = watcher.getResult();
-            logger.info("Load bracket handler mirrors from {} [{}]", jsonPath.getFileName(), watcher.getElapsedMillis());
-        }
+        env.getGeneratedRoot()
+                .map(root -> root.resolve("brackets.json"))
+                .filter(Files::exists)
+                .ifPresent(jsonPath -> {
+                    Watcher<List<BracketHandlerMirror>> watcher = Watcher.watch(() -> {
+                        try (Reader reader = Files.newBufferedReader(jsonPath)) {
+                            return GSON.fromJson(reader, new TypeToken<>() {});
+                        } catch (IOException e) {
+                            logger.error("Failed to load bracket handler mirrors from {}", jsonPath.getFileName(), e);
+                            return null;
+                        }
+                    });
+                    if (watcher.isResultPresent()) {
+                        mirrors = watcher.getResult();
+                        logger.info("Load bracket handler mirrors from {} [{}]", jsonPath.getFileName(), watcher.getElapsedMillis());
+                    }
+                });
     }
 
 }

@@ -133,7 +133,7 @@ public class CompilationUnit {
     }
 
     public boolean isGenerated() {
-        return PathUtil.isSubPath(path, env.getGeneratedRoot());
+        return Compilations.isDzsFile(path);
     }
 
     public void clear() {

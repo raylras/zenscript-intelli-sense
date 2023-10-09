@@ -13,7 +13,10 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.HashSet;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Stream;
 
 public class Compilations {
@@ -115,19 +118,21 @@ public class Compilations {
 
     private static Set<File> collectUnitFiles(CompilationEnvironment env) {
         Set<File> units = new HashSet<>();
-        List.of(env.getRoot(), env.getGeneratedRoot())
-                .forEach(path -> {
-                    try (Stream<Path> walk = Files.walk(path)) {
-                        walk.filter(Files::isRegularFile)
-                                .filter(Files::isReadable)
-                                .filter(Compilations::isSourceFile)
-                                .map(Path::toFile)
-                                .forEach(units::add);
-                    } catch (IOException e) {
-                        throw new RuntimeException("Failed to collect unit files of env: " + env, e);
-                    }
-                });
+        collect(units, env.getRoot());
+        env.getGeneratedRoot().ifPresent(root -> collect(units, root));
         return units;
+    }
+
+    private static void collect(Set<File> units, Path root) {
+        try (Stream<Path> walk = Files.walk(root)) {
+            walk.filter(Files::isRegularFile)
+                    .filter(Files::isReadable)
+                    .filter(Compilations::isSourceFile)
+                    .map(Path::toFile)
+                    .forEach(units::add);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to collect unit files of root: " + root, e);
+        }
     }
 
     /* End Private Methods */

@@ -15,7 +15,6 @@ import raylras.zen.model.Document;
 import raylras.zen.util.PathUtil;
 import raylras.zen.util.l10n.L10N;
 
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -98,7 +97,7 @@ public class WorkspaceManager implements LanguageClientAware {
                     CompilationEnvironment env = new CompilationEnvironment(compilationRoot);
                     Compilations.load(env);
                     workspace.add(env);
-                    checkDzs(workspace);
+                    checkDzs(env);
                 },
                 () -> logger.warn("Could not find workspace for document: {}", documentPath)
         );
@@ -121,17 +120,10 @@ public class WorkspaceManager implements LanguageClientAware {
         return getEnv(documentPath).map(env -> env.getUnit(documentPath));
     }
 
-    private void checkDzs(Workspace workspace) {
-        for (CompilationEnvironment env : workspace) {
-            Path generatedRoot = env.getGeneratedRoot();
-            if (Files.exists(generatedRoot)
-                    && Files.isDirectory(generatedRoot)
-                    && Files.isReadable(generatedRoot)) {
-                return;
-            } else {
-                logger.info("Cannot find .dzs file directory of environment: {}", env);
-                client.showMessage(new MessageParams(MessageType.Info, L10N.getString("environment.dzs_not_found")));
-            }
+    private void checkDzs(CompilationEnvironment env) {
+        if (env.getGeneratedRoot().isEmpty()) {
+            logger.info("Cannot find .dzs file directory of environment: {}", env);
+            client.showMessage(new MessageParams(MessageType.Info, L10N.getString("environment.dzs_not_found")));
         }
     }
 

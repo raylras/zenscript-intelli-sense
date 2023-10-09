@@ -11,11 +11,9 @@ import raylras.zen.model.type.Types;
 import raylras.zen.util.PathUtil;
 
 import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
 
@@ -100,8 +98,8 @@ public class CompilationEnvironment {
         return root;
     }
 
-    public Path getGeneratedRoot() {
-        return generatedRoot;
+    public Optional<Path> getGeneratedRoot() {
+        return Optional.of(generatedRoot).filter(Files::exists);
     }
 
     public BracketHandlerService getBracketHandlerService() {
@@ -110,7 +108,7 @@ public class CompilationEnvironment {
 
     public Path relativize(Path other) {
         Path root;
-        if (PathUtil.isSubPath(other, generatedRoot)) {
+        if (Files.exists(generatedRoot) && PathUtil.isSubPath(other, generatedRoot)) {
             root = this.generatedRoot;
         } else {
             root = this.root.getParent();
