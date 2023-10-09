@@ -250,7 +250,6 @@ public class SymbolFactory {
     }
 
     public static FunctionSymbol createFunctionSymbol(ParseTree nameCst, ParseTree cst, CompilationUnit unit) {
-        Objects.requireNonNull(nameCst);
         Objects.requireNonNull(cst);
         Objects.requireNonNull(unit);
         class FunctionSymbolImpl implements FunctionSymbol, ParseTreeLocatable {
@@ -275,7 +274,7 @@ public class SymbolFactory {
 
             @Override
             public String getName() {
-                return nameCst.getText();
+                return (nameCst != null) ? nameCst.getText() : "";
             }
 
             @Override
@@ -306,10 +305,9 @@ public class SymbolFactory {
 
             @Override
             public Range getSelectionRange() {
-                return Range.of(nameCst);
+                return (nameCst != null) ? Range.of(nameCst) : Range.of(cst);
             }
         }
-
         return new FunctionSymbolImpl();
     }
 
