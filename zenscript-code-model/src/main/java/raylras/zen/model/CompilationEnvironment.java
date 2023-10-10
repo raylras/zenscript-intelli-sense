@@ -1,10 +1,7 @@
 package raylras.zen.model;
 
 import raylras.zen.bracket.BracketHandlerService;
-import raylras.zen.model.symbol.ClassSymbol;
-import raylras.zen.model.symbol.ExpandFunctionSymbol;
-import raylras.zen.model.symbol.PackageSymbol;
-import raylras.zen.model.symbol.Symbol;
+import raylras.zen.model.symbol.*;
 import raylras.zen.model.type.StringType;
 import raylras.zen.model.type.Type;
 import raylras.zen.model.type.Types;
@@ -90,8 +87,7 @@ public class CompilationEnvironment {
     }
 
     public PackageSymbol getRootPackage() {
-        // TODO: getRootPackage
-        throw new RuntimeException("TODO: getRootPackage");
+        return SymbolFactory.createRootPackageSymbol(this);
     }
 
     public Path getRoot() {

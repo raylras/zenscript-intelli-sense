@@ -3,7 +3,6 @@ package raylras.zen.model.symbol;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.model.CompilationEnvironment;
 import raylras.zen.model.CompilationUnit;
-import raylras.zen.model.Compilations;
 import raylras.zen.model.parser.ZenScriptParser.*;
 import raylras.zen.model.resolve.FormalParameterResolver;
 import raylras.zen.model.resolve.ModifierResolver;
@@ -11,10 +10,8 @@ import raylras.zen.model.resolve.SymbolResolver;
 import raylras.zen.model.resolve.TypeResolver;
 import raylras.zen.model.symbol.Symbol.Modifier;
 import raylras.zen.model.type.*;
-import raylras.zen.util.PathUtil;
 import raylras.zen.util.Range;
 
-import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Supplier;
 import java.util.function.UnaryOperator;
@@ -716,13 +713,35 @@ public class SymbolFactory {
         return new ConstructorSymbolImpl();
     }
 
-    public static PackageSymbol createPackageSymbol(Path path, CompilationEnvironment env) {
-        Objects.requireNonNull(path);
+    public static PackageSymbol createRootPackageSymbol(CompilationEnvironment env) {
         Objects.requireNonNull(env);
-        class PackageSymbolImpl implements PackageSymbol, Locatable {
+        class PackageSymbolImpl implements PackageSymbol {
+            final String name;
+            final Map<String, PackageSymbol> subpackages = new HashMap<>();
+            final Map<String, ClassSymbol> classes = new HashMap<>();
+
+            public PackageSymbolImpl(String name) {
+                this.name = name;
+            }
+
+            @Override
+            public String getQualifiedName() {
+                throw new RuntimeException("Not implemented");
+            }
+
+            @Override
+            public Collection<PackageSymbol> getSubpackages() {
+                return subpackages.values();
+            }
+
+            @Override
+            public Collection<ClassSymbol> getClasses() {
+                return classes.values();
+            }
+
             @Override
             public String getName() {
-                return PathUtil.getFileNameWithoutSuffix(path);
+                return name;
             }
 
             @Override
@@ -741,37 +760,35 @@ public class SymbolFactory {
             }
 
             @Override
-            public String getQualifiedName() {
-                return Compilations.extractClassName(env.relativize(path));
-            }
-
-            @Override
             public Collection<Symbol> getSymbols() {
-                // TODO: getSymbols
-                return null;
+                Collection<Symbol> symbols = new ArrayList<>(subpackages.size() + classes.size());
+                symbols.addAll(subpackages.values());
+                symbols.addAll(classes.values());
+                return symbols;
             }
 
-            @Override
-            public Path getPath() {
-                return path;
-            }
-
-            @Override
-            public String getUri() {
-                return path.toUri().toString();
-            }
-
-            @Override
-            public Range getRange() {
-                return Range.NO_RANGE;
-            }
-
-            @Override
-            public Range getSelectionRange() {
-                return Range.NO_RANGE;
+            private PackageSymbol getOrCreateSubpackage(String name) {
+                PackageSymbol child = subpackages.get(name);
+                if (child == null) {
+                    child = new PackageSymbolImpl(name);
+                    subpackages.put(name, child);
+                }
+                return child;
             }
         }
-        return new PackageSymbolImpl();
+        PackageSymbolImpl root = new PackageSymbolImpl("<ROOT>");
+        env.getClasses()
+                .filter(symbol -> symbol.getQualifiedName().contains("."))
+                .forEach(symbol -> {
+                    String[] components = symbol.getQualifiedName().split("\\.");
+                    PackageSymbolImpl node = root;
+                    for (int i = 0; i < components.length - 1; i++) {
+                        String component = components[i];
+                        node = (PackageSymbolImpl) node.getOrCreateSubpackage(component);
+                    }
+                    node.classes.put(symbol.getSimpleName(), symbol);
+                });
+        return root;
     }
 
     public static SymbolsBuilder builtinSymbols() {

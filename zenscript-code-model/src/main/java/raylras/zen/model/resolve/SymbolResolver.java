@@ -169,15 +169,20 @@ public final class SymbolResolver {
         }
 
         Collection<PackageSymbol> lookupToplevelPackageSymbol(String name) {
-            // TODO: lookupToplevelPackageSymbol
-            unit.getEnv().getRootPackage().getSymbols();
-            return Collections.emptyList();
+            return unit.getEnv().getRootPackage().getSubpackages().stream()
+                    .filter(isSymbolNameEquals(name))
+                    .toList();
         }
 
         Collection<Symbol> accessMember(Collection<? extends Symbol> symbolSpace, String memberName) {
+            if (symbolSpace.size() != 1) {
+                return Collections.emptyList();
+            }
             return symbolSpace.stream()
+                    .filter(SymbolProvider.class::isInstance)
+                    .map(SymbolProvider.class::cast)
+                    .flatMap(provider -> provider.getSymbols().stream())
                     .filter(isSymbolNameEquals(memberName))
-                    .map(Symbol.class::cast)
                     .toList();
         }
 
