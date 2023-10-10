@@ -51,9 +51,10 @@ public final class FormalParameterResolver {
 
         @Override
         public List<ParameterSymbol> visitFormalParameterList(ZenScriptParser.FormalParameterListContext ctx) {
+            //noinspection OptionalGetWithoutIsPresent
             return ctx.formalParameter().stream()
-                    .map(unit::getSymbol)
-                    .map(ParameterSymbol.class::cast)
+                    .map(cst -> unit.getSymbol(cst, ParameterSymbol.class))
+                    .map(Optional::get)
                     .toList();
         }
     }
