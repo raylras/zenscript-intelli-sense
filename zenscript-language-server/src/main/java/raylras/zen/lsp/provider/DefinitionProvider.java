@@ -40,7 +40,7 @@ public class DefinitionProvider {
 
     private static LocationLink toLocationLink(Symbol symbol, org.eclipse.lsp4j.Range originSelectionRange) {
         ParseTreeLocatable locatable = ((ParseTreeLocatable) symbol);
-        String uri = locatable.getUri();
+        String uri = locatable.getPath().toUri().toString();
         org.eclipse.lsp4j.Range range = locatable.getRange().toLspRange();
         org.eclipse.lsp4j.Range selectionRange = locatable.getSelectionRange().toLspRange();
         return new LocationLink(uri, range, selectionRange, originSelectionRange);

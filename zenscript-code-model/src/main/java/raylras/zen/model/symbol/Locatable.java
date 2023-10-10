@@ -8,8 +8,6 @@ public interface Locatable {
 
     Path getPath();
 
-    String getUri();
-
     Range getRange();
 
     Range getSelectionRange();
