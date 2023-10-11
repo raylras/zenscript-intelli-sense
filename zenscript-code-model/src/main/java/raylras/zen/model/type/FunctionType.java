@@ -2,7 +2,6 @@ package raylras.zen.model.type;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public record FunctionType(Type returnType, List<Type> parameterTypes) implements Type {
@@ -14,9 +13,9 @@ public record FunctionType(Type returnType, List<Type> parameterTypes) implement
     @Override
     public String getTypeName() {
         return "function" + parameterTypes.stream()
-                .map(Objects::toString)
+                .map(Type::getTypeName)
                 .collect(Collectors.joining(",", "(", ")"))
-                + returnType;
+                + returnType.getTypeName();
     }
 
     @Override
