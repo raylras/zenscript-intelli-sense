@@ -7,9 +7,9 @@ import raylras.zen.model.symbol.SymbolProvider;
 
 import java.util.List;
 
-public final class StringType implements Type, SymbolProvider {
+public enum StringType implements Type, SymbolProvider {
 
-    public static final StringType INSTANCE = new StringType();
+    INSTANCE;
 
     @Override
     public String getTypeName() {

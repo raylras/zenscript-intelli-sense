@@ -36,13 +36,21 @@ public class Types {
             return "[" + getSimpleName(listType.elementType()) + "]";
         }
         if (type instanceof MapType mapType) {
-            return "Map.Entry<" + getSimpleName(mapType.keyType()) + "," + getSimpleName(mapType.valueType()) + ">";
+            return getSimpleName(mapType.valueType()) + "[" + getSimpleName(mapType.keyType()) + "]";
+        }
+        if (type instanceof MapEntryType mapEntryType) {
+            return "Map.Entry<" + getSimpleName(mapEntryType.keyType()) + "," + getSimpleName(mapEntryType.valueType()) + ">";
         }
         if (type instanceof FunctionType functionType) {
             return "function" + functionType.parameterTypes().stream()
                     .map(Types::getSimpleName)
                     .collect(Collectors.joining(",", "(", ")"))
                     + getSimpleName(functionType.returnType());
+        }
+        if (type instanceof IntersectionType intersectionType) {
+            return intersectionType.typeList().stream()
+                    .map(Types::getSimpleName)
+                    .collect(Collectors.joining(" & "));
         }
         return type.getTypeName();
     }

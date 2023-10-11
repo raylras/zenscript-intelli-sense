@@ -1,8 +1,8 @@
 package raylras.zen.model.type;
 
-public final class VoidType implements Type {
+public enum VoidType implements Type {
 
-    public static final VoidType INSTANCE = new VoidType();
+    INSTANCE;
 
     @Override
     public String getTypeName() {
