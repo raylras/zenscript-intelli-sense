@@ -8,6 +8,6 @@ public interface PackageSymbol extends Symbol, SymbolProvider {
 
     Collection<PackageSymbol> getSubpackages();
 
-    Collection<ClassSymbol> getClasses();
+    Collection<Symbol> getMembers();
 
 }

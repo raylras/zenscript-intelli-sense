@@ -713,12 +713,12 @@ public class SymbolFactory {
         return new ConstructorSymbolImpl();
     }
 
-    public static PackageSymbol createRootPackageSymbol(CompilationEnvironment env) {
+    public static PackageSymbol createPackageSymbol(CompilationEnvironment env) {
         Objects.requireNonNull(env);
         class PackageSymbolImpl implements PackageSymbol {
             final String name;
             final Map<String, PackageSymbol> subpackages = new HashMap<>();
-            final Map<String, ClassSymbol> classes = new HashMap<>();
+            final Map<String, Symbol> members = new HashMap<>();
 
             public PackageSymbolImpl(String name) {
                 this.name = name;
@@ -735,8 +735,8 @@ public class SymbolFactory {
             }
 
             @Override
-            public Collection<ClassSymbol> getClasses() {
-                return classes.values();
+            public Collection<Symbol> getMembers() {
+                return members.values();
             }
 
             @Override
@@ -761,34 +761,91 @@ public class SymbolFactory {
 
             @Override
             public Collection<Symbol> getSymbols() {
-                Collection<Symbol> symbols = new ArrayList<>(subpackages.size() + classes.size());
+                Collection<Symbol> symbols = new ArrayList<>(subpackages.size() + members.size());
                 symbols.addAll(subpackages.values());
-                symbols.addAll(classes.values());
+                symbols.addAll(members.values());
                 return symbols;
             }
 
-            private PackageSymbol getOrCreateSubpackage(String name) {
-                PackageSymbol child = subpackages.get(name);
-                if (child == null) {
-                    child = new PackageSymbolImpl(name);
-                    subpackages.put(name, child);
+            private PackageSymbolImpl getOrCreatePackage(String qualifiedName) {
+                String[] components = qualifiedName.split("\\.");
+                PackageSymbolImpl node = this;
+                for (int i = 0; i < components.length - 1; i++) {
+                    String component = components[i];
+                    node = node.getOrCreateSubpackage(component);
                 }
-                return child;
+                return node;
+            }
+
+            private PackageSymbolImpl getOrCreateSubpackage(String simpleName) {
+                PackageSymbol child = subpackages.get(simpleName);
+                if (child == null) {
+                    child = new PackageSymbolImpl(simpleName);
+                    subpackages.put(simpleName, child);
+                }
+                return (PackageSymbolImpl) child;
             }
         }
         PackageSymbolImpl root = new PackageSymbolImpl("<ROOT>");
         env.getClasses()
                 .filter(symbol -> symbol.getQualifiedName().contains("."))
-                .forEach(symbol -> {
-                    String[] components = symbol.getQualifiedName().split("\\.");
-                    PackageSymbolImpl node = root;
-                    for (int i = 0; i < components.length - 1; i++) {
-                        String component = components[i];
-                        node = (PackageSymbolImpl) node.getOrCreateSubpackage(component);
-                    }
-                    node.classes.put(symbol.getSimpleName(), symbol);
+                .forEach(classSymbol -> {
+                    PackageSymbolImpl node = root.getOrCreatePackage(classSymbol.getQualifiedName());
+                    node.members.put(classSymbol.getSimpleName(), classSymbol);
+                });
+        env.getUnits().stream()
+                .filter(unit -> !unit.isGenerated())
+                .forEach(unit -> {
+                    PackageSymbolImpl node = root.getOrCreatePackage(unit.getQualifiedName());
+                    node.members.put(unit.getSimpleName(), createPackageSymbol(unit));
                 });
         return root;
+    }
+
+    public static PackageSymbol createPackageSymbol(CompilationUnit unit) {
+        Objects.requireNonNull(unit);
+        class PackageSymbolImpl implements PackageSymbol {
+            @Override
+            public String getQualifiedName() {
+                throw new RuntimeException("Not implemented");
+            }
+
+            @Override
+            public Collection<PackageSymbol> getSubpackages() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public Collection<Symbol> getMembers() {
+                return unit.getTopLevelSymbols();
+            }
+
+            @Override
+            public String getName() {
+                return unit.getSimpleName();
+            }
+
+            @Override
+            public Kind getKind() {
+                return Kind.PACKAGE;
+            }
+
+            @Override
+            public Type getType() {
+                return VoidType.INSTANCE;
+            }
+
+            @Override
+            public Modifier getModifier() {
+                return Modifier.NONE;
+            }
+
+            @Override
+            public Collection<Symbol> getSymbols() {
+                return getMembers();
+            }
+        }
+        return new PackageSymbolImpl();
     }
 
     public static SymbolsBuilder builtinSymbols() {

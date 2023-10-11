@@ -87,7 +87,7 @@ public class CompilationEnvironment {
     }
 
     public PackageSymbol getRootPackage() {
-        return SymbolFactory.createRootPackageSymbol(this);
+        return SymbolFactory.createPackageSymbol(this);
     }
 
     public Path getRoot() {
