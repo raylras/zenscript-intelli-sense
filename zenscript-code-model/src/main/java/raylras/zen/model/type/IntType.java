@@ -18,7 +18,7 @@ public enum IntType implements NumberType {
     @Override
     public List<Symbol> getSymbols() {
         return SymbolFactory.builtinSymbols()
-                .add(NumberType.super.getSymbols())
+                .addAll(NumberType.super.getSymbols())
                 .operator(Operator.RANGE, IntRangeType.INSTANCE, params -> params.parameter("value", this))
                 .build();
     }

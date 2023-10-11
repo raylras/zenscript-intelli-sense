@@ -870,7 +870,7 @@ public class SymbolFactory {
             return this;
         }
 
-        public SymbolsBuilder add(List<Symbol> members) {
+        public SymbolsBuilder addAll(List<Symbol> members) {
             this.symbols.addAll(members);
             return this;
         }
