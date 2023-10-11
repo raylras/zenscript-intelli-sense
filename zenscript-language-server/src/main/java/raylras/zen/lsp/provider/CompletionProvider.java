@@ -52,7 +52,6 @@ public final class CompletionProvider {
     }
 
     private static final class CompletionVisitor extends Visitor<Void> {
-        private static final PinIn PIN_IN = new PinIn();
         private static final Map<BracketHandlerService, Searcher<BracketHandlerEntry>> BRACKET_HANDLER_SEARCHERS = new WeakHashMap<>();
 
         final Position cursor;
@@ -557,7 +556,7 @@ public final class CompletionProvider {
 
         Stream<BracketHandlerEntry> completePinInBracketHandlers(BracketHandlerService service, String text) {
             return BRACKET_HANDLER_SEARCHERS.computeIfAbsent(service, it -> {
-                Searcher<BracketHandlerEntry> searcher = new TreeSearcher<>(Searcher.Logic.CONTAIN, PIN_IN);
+                Searcher<BracketHandlerEntry> searcher = new TreeSearcher<>(Searcher.Logic.CONTAIN, new PinIn());
                 for (BracketHandlerEntry entry : it.getEntriesLocal()) {
                     entry.getFirst("_id").ifPresent(id -> searcher.put(id, entry));
                     entry.getFirst("_name").ifPresent(name -> searcher.put(name, entry));
