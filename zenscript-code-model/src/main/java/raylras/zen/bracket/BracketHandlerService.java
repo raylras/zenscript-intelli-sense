@@ -57,6 +57,10 @@ public class BracketHandlerService {
         }
     }
 
+    public CompilationEnvironment getEnv() {
+        return env;
+    }
+
     private static final Gson GSON = createGson();
 
     private static Gson createGson() {

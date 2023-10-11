@@ -1,5 +1,8 @@
 package raylras.zen.lsp.provider;
 
+import me.towdium.pinin.PinIn;
+import me.towdium.pinin.searchers.Searcher;
+import me.towdium.pinin.searchers.TreeSearcher;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ErrorNode;
 import org.antlr.v4.runtime.tree.ParseTree;
@@ -29,11 +32,9 @@ import raylras.zen.util.Range;
 import raylras.zen.util.Ranges;
 import raylras.zen.util.l10n.L10N;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public final class CompletionProvider {
 
@@ -51,6 +52,9 @@ public final class CompletionProvider {
     }
 
     private static final class CompletionVisitor extends Visitor<Void> {
+        private static final PinIn PIN_IN = new PinIn();
+        private static final Map<BracketHandlerService, Searcher<BracketHandlerEntry>> BRACKET_HANDLER_SEARCHERS = new WeakHashMap<>();
+
         final Position cursor;
         final ParseTree tailing;
         final TerminalNode leading;
@@ -542,11 +546,29 @@ public final class CompletionProvider {
         }
 
         void completeBracketHandlers(String text) {
-            BracketHandlerService bracketService = unit.getEnv().getBracketHandlerService();
-            bracketService.getEntriesLocal().stream()
-                    .filter(entry -> TextSimilarity.isSubsequence(text, entry.getFirst("_id").orElse("")))
-                    .map(this::createCompletionItem)
-                    .forEach(this::addToCompletionList);
+            Stream<BracketHandlerEntry> entries;
+            if (Locale.getDefault().getLanguage().equals("zh")) {
+                entries = completePinInBracketHandlers(unit.getEnv().getBracketHandlerService(), text);
+            } else {
+                entries = completeEnglishBracketHandlers(unit.getEnv().getBracketHandlerService(), text);
+            }
+            entries.map(this::createCompletionItem).forEach(this::addToCompletionList);
+        }
+
+        Stream<BracketHandlerEntry> completePinInBracketHandlers(BracketHandlerService service, String text) {
+            return BRACKET_HANDLER_SEARCHERS.computeIfAbsent(service, it -> {
+                Searcher<BracketHandlerEntry> searcher = new TreeSearcher<>(Searcher.Logic.CONTAIN, PIN_IN);
+                for (BracketHandlerEntry entry : it.getEntriesLocal()) {
+                    entry.getFirst("_id").ifPresent(id -> searcher.put(id, entry));
+                    entry.getFirst("_name").ifPresent(name -> searcher.put(name, entry));
+                }
+                return searcher;
+            }).search(text).stream();
+        }
+
+        Stream<BracketHandlerEntry> completeEnglishBracketHandlers(BracketHandlerService service, String text) {
+            return service.getEntriesLocal().stream()
+                    .filter(entry -> TextSimilarity.isSubsequence(text, entry.getFirst("_id").orElse("")));
         }
 
         void completeMemberAccessSnippets(Type type, MemberAccessExprContext ctx) {
@@ -601,7 +623,8 @@ public final class CompletionProvider {
             CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
             labelDetails.setDescription(entry.getFirst("_name").orElse(""));
             item.setLabelDetails(labelDetails);
-            item.setSortText(labelDetails.getDescription());
+            // ensure all completion items are displayed
+            item.setFilterText(text);
             return item;
         }
 

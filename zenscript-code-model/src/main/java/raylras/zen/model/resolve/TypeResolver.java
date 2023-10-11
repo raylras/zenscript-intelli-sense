@@ -3,6 +3,9 @@ package raylras.zen.model.resolve;
 import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
+import raylras.zen.bracket.BracketHandlerMirror;
+import raylras.zen.bracket.BracketHandlerService;
+import raylras.zen.model.CompilationEnvironment;
 import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.Compilations;
 import raylras.zen.model.Visitor;
@@ -16,6 +19,7 @@ import raylras.zen.util.Operators;
 import raylras.zen.util.Symbols;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public final class TypeResolver {
@@ -259,8 +263,7 @@ public final class TypeResolver {
 
         @Override
         public Type visitBracketHandlerExpr(BracketHandlerExprContext ctx) {
-            // FIXME
-            return AnyType.INSTANCE;
+            return queryBracketHandlerType(unit.getEnv().getBracketHandlerService(), ctx.raw().getText());
         }
 
         @Override
@@ -488,6 +491,43 @@ public final class TypeResolver {
                 return index == 0 ? mapType.keyType() : mapType.valueType();
             }
             return null;
+        }
+
+        boolean hasBracketEntry(BracketHandlerMirror mirror, String id) {
+            return mirror.entries().stream()
+                    .anyMatch(it -> id.equals(it.getFirst("_id").orElse("")));
+        }
+
+        Type getTypeFromBracketMirrorType(CompilationEnvironment env, String typeName) {
+            if (typeName.contains("&")) {
+                List<Type> typeList = Arrays.stream(typeName.split("&"))
+                        .map(String::trim)
+                        .map(it -> this.getTypeFromBracketMirrorType(env, it))
+                        .toList();
+                return new IntersectionType(typeList);
+            } else {
+                return env.getClasses().filter(it -> typeName.equals(it.getQualifiedName())).findFirst()
+                        .map((Function<ClassSymbol, Type>) ClassType::new)
+                        .orElse(ErrorType.INSTANCE);
+            }
+        }
+
+        Type queryBracketHandlerType(BracketHandlerService service, String text) {
+            String queryText;
+            if (text.startsWith("item:")) {
+                queryText = text.substring(5);
+            } else {
+                queryText = text;
+            }
+            // TODO: use a cached tree to speed up its performance
+            for (BracketHandlerMirror mirror : service.getMirrorsLocal()) {
+                if (queryText.matches(mirror.regex()) && hasBracketEntry(mirror, queryText)) {
+                    return getTypeFromBracketMirrorType(service.getEnv(), mirror.type());
+                }
+            }
+            return service.queryEntryRemote(queryText).getFirst("type")
+                    .map(it -> this.getTypeFromBracketMirrorType(service.getEnv(), it))
+                    .orElse(ErrorType.INSTANCE);
         }
     }
 
