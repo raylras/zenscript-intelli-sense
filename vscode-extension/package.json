@@ -85,7 +85,7 @@
 		"@odiak/yaml-to-json": "^0.0.1",
 		"@rollup/plugin-commonjs": "^25.0.4",
 		"@rollup/plugin-node-resolve": "^15.2.1",
-		"@rollup/plugin-terser": "^0.4.3",
+		"@rollup/plugin-terser": "^0.4.4",
 		"@types/node": "^20.5.1",
 		"@types/vscode": "^1.81.0",
 		"@vscode/vsce": "^2.21.1",
