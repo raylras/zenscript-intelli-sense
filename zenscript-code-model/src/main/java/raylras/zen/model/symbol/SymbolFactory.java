@@ -29,6 +29,16 @@ public class SymbolFactory {
             }
 
             @Override
+            public Collection<Symbol> getTargets() {
+                return SymbolResolver.lookupSymbol(cst.qualifiedName(), unit);
+            }
+
+            @Override
+            public Collection<Symbol> getSymbols() {
+                return getTargets();
+            }
+
+            @Override
             public String getName() {
                 return name.getText();
             }
@@ -66,11 +76,6 @@ public class SymbolFactory {
             @Override
             public Range getSelectionRange() {
                 return Range.of(name);
-            }
-
-            @Override
-            public Collection<Symbol> getSymbols() {
-                return SymbolResolver.lookupSymbol(cst.qualifiedName(), unit);
             }
         }
         return new ImportSymbolImpl();
@@ -110,8 +115,8 @@ public class SymbolFactory {
                 }
                 return cst.qualifiedNameList().qualifiedName().stream()
                         .map(name -> SymbolResolver.lookupClass(name, unit))
-                        .filter(Optional::isPresent)
-                        .map(Optional::get)
+                        .filter(symbols -> symbols.size() == 1)
+                        .flatMap(Collection::stream)
                         .toList();
             }
 

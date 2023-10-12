@@ -15,7 +15,10 @@ import raylras.zen.util.Executables;
 import raylras.zen.util.Operators;
 import raylras.zen.util.Symbols;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 public final class TypeResolver {
 
@@ -405,21 +408,10 @@ public final class TypeResolver {
 
         @Override
         public Type visitClassType(ClassTypeContext ctx) {
-            List<ImportSymbol> imports = unit.getImports();
-            String qualifiedName = ctx.qualifiedName().getText();
-            Collection<Symbol> symbols = imports.stream()
-                    .filter(symbol -> symbol.getName().equals(qualifiedName))
+            return SymbolResolver.lookupClass(ctx.qualifiedName(), unit).stream()
                     .findFirst()
-                    .map(ImportSymbol::getSymbols)
-                    .orElseGet(Collections::emptyList);
-            if (symbols.size() == 1) {
-                return symbols.stream()
-                        .findFirst()
-                        .map(Symbol::getType)
-                        .orElse(AnyType.INSTANCE);
-            } else {
-                return AnyType.INSTANCE;
-            }
+                    .map(Symbol::getType)
+                    .orElse(AnyType.INSTANCE);
         }
 
         @Override

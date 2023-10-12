@@ -8,7 +8,10 @@ import raylras.zen.model.parser.ZenScriptParser.*;
 import raylras.zen.model.symbol.*;
 import raylras.zen.util.Ranges;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 import java.util.function.Predicate;
 
 public final class SymbolResolver {
@@ -26,7 +29,6 @@ public final class SymbolResolver {
     private SymbolResolver() {}
 
     public static Collection<Symbol> lookupSymbol(ParseTree cst, CompilationUnit unit) {
-        Objects.requireNonNull(unit);
         ParseTree expr = findRootExpression(cst);
         if (expr == null) {
             return Collections.emptyList();
@@ -36,10 +38,21 @@ public final class SymbolResolver {
         return Collections.unmodifiableCollection(visitor.result);
     }
 
-    public static Optional<ClassSymbol> lookupClass(QualifiedNameContext cst, CompilationUnit unit) {
-        // TODO: lookupClass
-        // unit.getEnv().getClasses();
-        throw new RuntimeException("TODO: lookupClass");
+    public static Collection<ClassSymbol> lookupClass(QualifiedNameContext cst, CompilationUnit unit) {
+        SymbolVisitor visitor = new SymbolVisitor(unit, cst);
+        cst.accept(visitor);
+        Collection<ClassSymbol> classes = new ArrayList<>();
+        for (Symbol symbol : visitor.result) {
+            if (symbol instanceof ClassSymbol classSymbol) {
+                classes.add(classSymbol);
+            } else if (symbol instanceof ImportSymbol importSymbol) {
+                importSymbol.getTargets().stream()
+                        .filter(ClassSymbol.class::isInstance)
+                        .map(ClassSymbol.class::cast)
+                        .forEach(classes::add);
+            }
+        }
+        return classes;
     }
 
     private static ParseTree findRootExpression(ParseTree cst) {
@@ -71,7 +84,8 @@ public final class SymbolResolver {
                 return SymbolProvider.empty();
             }
 
-            Collection<? extends Symbol> symbols = lookupToplevelPackageSymbol(simpleNames.get(0).getText());
+            SimpleNameContext start = simpleNames.get(0);
+            Collection<? extends Symbol> symbols = lookupSymbol(start, start.getText());
             updateResult(symbols);
             for (int i = 1; i < simpleNames.size(); i++) {
                 symbols = accessMember(symbols, simpleNames.get(i).getText());
@@ -135,12 +149,22 @@ public final class SymbolResolver {
                 return Collections.unmodifiableCollection(result);
             }
 
+            result = lookupToplevelSymbol(name);
+            if (!result.isEmpty()) {
+                return Collections.unmodifiableCollection(result);
+            }
+
             result = lookupImportSymbol(name);
             if (!result.isEmpty()) {
                 return Collections.unmodifiableCollection(result);
             }
 
             result = lookupGlobalSymbol(name);
+            if (!result.isEmpty()) {
+                return Collections.unmodifiableCollection(result);
+            }
+
+            result = lookupPackageSymbol(name);
             if (!result.isEmpty()) {
                 return Collections.unmodifiableCollection(result);
             }
@@ -156,6 +180,12 @@ public final class SymbolResolver {
                     .orElseGet(Collections::emptyList);
         }
 
+        Collection<Symbol> lookupToplevelSymbol(String name) {
+            return unit.getTopLevelSymbols().stream()
+                    .filter(isSymbolNameEquals(name))
+                    .toList();
+        }
+
         Collection<ImportSymbol> lookupImportSymbol(String name) {
             return unit.getImports().stream()
                     .filter(isSymbolNameEquals(name))
@@ -168,7 +198,7 @@ public final class SymbolResolver {
                     .toList();
         }
 
-        Collection<PackageSymbol> lookupToplevelPackageSymbol(String name) {
+        Collection<PackageSymbol> lookupPackageSymbol(String name) {
             return unit.getEnv().getRootPackage().getSubpackages().stream()
                     .filter(isSymbolNameEquals(name))
                     .toList();
