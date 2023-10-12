@@ -601,15 +601,15 @@ public final class CompletionProvider {
             if (symbol instanceof Executable executable) {
                 CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
                 String parameterList = executable.getParameterList().stream()
-                        .map(param -> param.getName() + " as " + param.getType())
+                        .map(param -> param.getName() + " as " + param.getType().getSimpleTypeName())
                         .collect(Collectors.joining(", ", "(", ")"));
-                String returnType = executable.getReturnType().toString();
+                String returnType = executable.getReturnType().getSimpleTypeName();
                 labelDetails.setDetail(parameterList);
                 labelDetails.setDescription(returnType);
                 return labelDetails;
             } else {
                 CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
-                String type = symbol.getType().toString();
+                String type = symbol.getType().getSimpleTypeName();
                 labelDetails.setDescription(type);
                 return labelDetails;
             }

@@ -8,6 +8,10 @@ public sealed interface Type
 
     String getTypeName();
 
+    default String getSimpleTypeName() {
+        return getTypeName();
+    }
+
     default boolean isSuperclassTo(Type type) {
         return this.getClass().isAssignableFrom(type.getClass());
     }

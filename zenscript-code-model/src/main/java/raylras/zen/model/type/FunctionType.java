@@ -19,6 +19,14 @@ public record FunctionType(Type returnType, List<Type> parameterTypes) implement
     }
 
     @Override
+    public String getSimpleTypeName() {
+        return "function" + parameterTypes.stream()
+                .map(Type::getSimpleTypeName)
+                .collect(Collectors.joining(",", "(", ")"))
+                + returnType.getSimpleTypeName();
+    }
+
+    @Override
     public String toString() {
         return getTypeName();
     }

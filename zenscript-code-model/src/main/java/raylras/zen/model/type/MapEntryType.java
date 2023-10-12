@@ -14,6 +14,11 @@ public record MapEntryType(Type keyType, Type valueType) implements Type, Symbol
     }
 
     @Override
+    public String getSimpleTypeName() {
+        return "Map.Entry<" + keyType.getSimpleTypeName() + "," + valueType.getSimpleTypeName() + ">";
+    }
+
+    @Override
     public List<Symbol> getSymbols() {
         return SymbolFactory.builtinSymbols()
                 .variable("key", keyType, Symbol.Modifier.IMPLICIT_VAL)

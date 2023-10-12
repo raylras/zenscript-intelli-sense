@@ -17,6 +17,11 @@ public record ListType(Type elementType) implements Type, SymbolProvider {
     }
 
     @Override
+    public String getSimpleTypeName() {
+        return "[" + elementType.getSimpleTypeName() + "]";
+    }
+
+    @Override
     public boolean isCastableTo(Type type, CompilationEnvironment env) {
         if (type instanceof ListType that) {
             return this.elementType.isCastableTo(that.elementType(), env);

@@ -17,6 +17,11 @@ public record MapType(Type keyType, Type valueType) implements Type, SymbolProvi
     }
 
     @Override
+    public String getSimpleTypeName() {
+        return valueType.getSimpleTypeName() + "[" + keyType.getSimpleTypeName() + "]";
+    }
+
+    @Override
     public boolean isCastableTo(Type type, CompilationEnvironment env) {
         if (type instanceof MapType that) {
             return this.keyType.isCastableTo(that.keyType, env)

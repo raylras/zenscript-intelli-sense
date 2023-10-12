@@ -15,6 +15,11 @@ public record IntersectionType(List<Type> typeList) implements Type, SymbolProvi
     }
 
     @Override
+    public String getSimpleTypeName() {
+        return typeList.stream().map(Type::getSimpleTypeName).collect(Collectors.joining(" & "));
+    }
+
+    @Override
     public boolean isSuperclassTo(Type type) {
         return typeList.stream().anyMatch(it -> it.isSuperclassTo(type));
     }
