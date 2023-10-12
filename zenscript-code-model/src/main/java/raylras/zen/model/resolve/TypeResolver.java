@@ -16,7 +16,6 @@ import raylras.zen.util.Operators;
 import raylras.zen.util.Symbols;
 
 import java.util.*;
-import java.util.stream.Collectors;
 
 public final class TypeResolver {
 
@@ -91,7 +90,7 @@ public final class TypeResolver {
 
         @Override
         public Type visitReturnType(ReturnTypeContext ctx) {
-            return visit(ctx.intersectionType() != null ? ctx.intersectionType() : ctx.typeLiteral());
+            return visit(ctx.typeLiteral());
         }
 
         @Override
@@ -115,9 +114,6 @@ public final class TypeResolver {
 
         @Override
         public Type visitVariableDeclaration(VariableDeclarationContext ctx) {
-            if (ctx.intersectionType() != null) {
-                return visit(ctx.intersectionType());
-            }
             if (ctx.typeLiteral() != null) {
                 return visit(ctx.typeLiteral());
             } else {
@@ -133,18 +129,16 @@ public final class TypeResolver {
         @Override
         public Type visitOperatorFunctionDeclaration(OperatorFunctionDeclarationContext ctx) {
             List<Type> paramTypes = toTypeList(ctx.formalParameterList());
-            Type returnType = visit(ctx.intersectionType());
+            Type returnType = visit(ctx.returnType());
             return new FunctionType(returnType, paramTypes);
         }
 
         @Override
         public Type visitIntersectionType(IntersectionTypeContext ctx) {
-            List<TypeLiteralContext> types = ctx.typeLiteral();
-            if (types.size() == 1) {
-                return visit(types.get(0));
-            } else {
-                return new IntersectionType(types.stream().map(this::visit).collect(Collectors.toList()));
-            }
+            List<Type> types = ctx.typeLiteral().stream()
+                    .map(this::visit)
+                    .toList();
+            return new IntersectionType(types);
         }
 
         @Override

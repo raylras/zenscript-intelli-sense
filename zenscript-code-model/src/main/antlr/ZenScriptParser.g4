@@ -65,7 +65,6 @@ defaultValue
 
 returnType
     : typeLiteral
-    | intersectionType //dzs
     ;
 
 functionBody
@@ -117,7 +116,7 @@ constructorBody
 
 variableDeclaration
     : prefix=('var' | 'val' | 'static' | 'global') simpleName ('as' typeLiteral)? ('=' initializer)? ';'
-    | prefix=('var' | 'val' | 'static' | 'global') simpleName 'as' intersectionType ';' //dzs
+    | prefix=('var' | 'val' | 'static' | 'global') simpleName 'as' typeLiteral ';' //dzs
     ;
 
 initializer
@@ -125,7 +124,7 @@ initializer
     ;
 
 operatorFunctionDeclaration // dzs
-    : 'operator' operator '(' formalParameterList ')' 'as' intersectionType ';'
+    : 'operator' operator '(' formalParameterList ')' 'as' returnType ';'
     ;
 
 operator // dzs
@@ -153,10 +152,6 @@ operator // dzs
     | '<='
     | '>'
     | '>='
-    ;
-
-intersectionType //dzs
-    : typeLiteral ('&' typeLiteral)*
     ;
 
 statement
@@ -289,11 +284,13 @@ mapEntry
     ;
 
 typeLiteral
-    : qualifiedName                                                   #classType
-    | 'function' '(' typeLiteralList ')' returnType                   #functionType
-    | '[' typeLiteral ']'                                             #listType
-    | typeLiteral '['']'                                              #arrayType
-    | value=typeLiteral '[' key=typeLiteral ']' ('$' 'orderly')?      #mapType
+    : qualifiedName                                               #classType
+    | 'function' '(' typeLiteralList ')' returnType               #functionType
+    | '[' typeLiteral ']'                                         #listType
+    | typeLiteral '['']'                                          #arrayType
+    | value=typeLiteral '[' key=typeLiteral ']' ('$' 'orderly')?  #mapType
+    | typeLiteral ('&' typeLiteral)+                              #intersectionType // dzs
+    | typeLiteral ('|' typeLiteral)+                              #unionType        // dzs
     | ANY     #primitiveType
     | BYTE    #primitiveType
     | SHORT   #primitiveType
