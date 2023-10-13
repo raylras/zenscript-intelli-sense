@@ -823,29 +823,39 @@ public class SymbolFactory {
         return new PackageSymbolImpl();
     }
 
-    public static SymbolsBuilder builtinSymbols() {
-        return new SymbolsBuilder();
+    public static SymbolBuilder builtinSymbols() {
+        return new SymbolBuilder();
     }
 
-    public static class SymbolsBuilder {
+    public static class SymbolBuilder {
         private final List<Symbol> symbols = new ArrayList<>();
 
-        public SymbolsBuilder variable(String name, Type type, Modifier modifier) {
+        public SymbolBuilder variable(String name, Type type, Modifier modifier) {
             symbols.add(createVariableSymbol(name, type, modifier));
             return this;
         }
 
-        public SymbolsBuilder function(String name, Type returnType, UnaryOperator<ParameterBuilder> paramsSupplier) {
+        public SymbolBuilder function(String name, Type returnType) {
+            symbols.add(createFunctionSymbol(name, returnType, Collections.emptyList()));
+            return this;
+        }
+
+        public SymbolBuilder function(String name, Type returnType, UnaryOperator<ParameterBuilder> paramsSupplier) {
             symbols.add(createFunctionSymbol(name, returnType, paramsSupplier.apply(new ParameterBuilder()).build()));
             return this;
         }
 
-        public SymbolsBuilder operator(Operator operator, Type returnType, UnaryOperator<ParameterBuilder> paramsSupplier) {
+        public SymbolBuilder operator(Operator operator, Type returnType) {
+            symbols.add(createOperatorFunctionSymbol(operator, returnType, Collections.emptyList()));
+            return this;
+        }
+
+        public SymbolBuilder operator(Operator operator, Type returnType, UnaryOperator<ParameterBuilder> paramsSupplier) {
             symbols.add(createOperatorFunctionSymbol(operator, returnType, paramsSupplier.apply(new ParameterBuilder()).build()));
             return this;
         }
 
-        public SymbolsBuilder addAll(List<Symbol> members) {
+        public SymbolBuilder addAll(List<Symbol> members) {
             this.symbols.addAll(members);
             return this;
         }

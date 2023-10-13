@@ -6,7 +6,6 @@ import raylras.zen.model.symbol.SymbolFactory;
 import raylras.zen.model.symbol.SymbolProvider;
 
 import java.util.List;
-import java.util.function.UnaryOperator;
 
 public enum IntRangeType implements Type, SymbolProvider {
 
@@ -22,7 +21,7 @@ public enum IntRangeType implements Type, SymbolProvider {
         return SymbolFactory.builtinSymbols()
                 .variable("from", IntType.INSTANCE, Symbol.Modifier.IMPLICIT_VAL)
                 .variable("to", IntType.INSTANCE, Symbol.Modifier.IMPLICIT_VAL)
-                .operator(Operator.FOR_IN, new ListType(IntType.INSTANCE), UnaryOperator.identity())
+                .operator(Operator.FOR_IN, new ListType(IntType.INSTANCE))
                 .build();
     }
 

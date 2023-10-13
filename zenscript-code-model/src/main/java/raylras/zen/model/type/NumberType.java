@@ -22,12 +22,12 @@ public sealed interface NumberType extends Type, SymbolProvider
     @Override
     default List<Symbol> getSymbols() {
         return SymbolFactory.builtinSymbols()
+                .operator(Operator.NEG, this)
                 .operator(Operator.ADD, this, params -> params.parameter("value", this))
                 .operator(Operator.SUB, this, params -> params.parameter("value", this))
                 .operator(Operator.MUL, this, params -> params.parameter("value", this))
                 .operator(Operator.DIV, this, params -> params.parameter("value", this))
                 .operator(Operator.MOD, this, params -> params.parameter("value", this))
-                .operator(Operator.NEG, this, params -> params.parameter("value", this))
                 .operator(Operator.CONCAT, StringType.INSTANCE, params -> params.parameter("str", StringType.INSTANCE))
                 .operator(Operator.EQUALS, BoolType.INSTANCE, params -> params.parameter("value", this))
                 .operator(Operator.NOT_EQUALS, BoolType.INSTANCE, params -> params.parameter("value", this))

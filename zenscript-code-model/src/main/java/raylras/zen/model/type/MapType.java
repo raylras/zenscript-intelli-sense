@@ -7,7 +7,6 @@ import raylras.zen.model.symbol.SymbolFactory;
 import raylras.zen.model.symbol.SymbolProvider;
 
 import java.util.List;
-import java.util.function.UnaryOperator;
 
 public record MapType(Type keyType, Type valueType) implements Type, SymbolProvider {
 
@@ -43,16 +42,10 @@ public record MapType(Type keyType, Type valueType) implements Type, SymbolProvi
                 .variable("valueSet", new ArrayType(valueType), Symbol.Modifier.IMPLICIT_VAL)
                 .variable("entrySet", new ArrayType(new MapEntryType(keyType, valueType)), Symbol.Modifier.IMPLICIT_VAL)
                 .operator(Operator.INDEX_GET, valueType, params -> params.parameter("key", keyType))
-                .operator(Operator.INDEX_SET, VoidType.INSTANCE, params ->
-                        params.parameter("key", keyType)
-                                .parameter("value", valueType)
-                )
+                .operator(Operator.INDEX_SET, VoidType.INSTANCE, params -> params.parameter("key", keyType).parameter("value", valueType))
                 .operator(Operator.MEMBER_GET, valueType, params -> params.parameter("key", keyType))
-                .operator(Operator.MEMBER_SET, VoidType.INSTANCE, params ->
-                        params.parameter("key", keyType)
-                                .parameter("value", valueType)
-                )
-                .operator(Operator.FOR_IN, this, UnaryOperator.identity())
+                .operator(Operator.MEMBER_SET, VoidType.INSTANCE, params -> params.parameter("key", keyType).parameter("value", valueType))
+                .operator(Operator.FOR_IN, this)
                 .build();
     }
 

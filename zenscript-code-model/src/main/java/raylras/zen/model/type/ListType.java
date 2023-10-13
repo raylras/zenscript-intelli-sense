@@ -7,7 +7,6 @@ import raylras.zen.model.symbol.SymbolFactory;
 import raylras.zen.model.symbol.SymbolProvider;
 
 import java.util.List;
-import java.util.function.UnaryOperator;
 
 public record ListType(Type elementType) implements Type, SymbolProvider {
 
@@ -38,11 +37,9 @@ public record ListType(Type elementType) implements Type, SymbolProvider {
                 .variable("length", IntType.INSTANCE, Symbol.Modifier.IMPLICIT_VAL)
                 .function("remove", VoidType.INSTANCE, params -> params.parameter("index", IntType.INSTANCE))
                 .operator(Operator.INDEX_GET, elementType, params -> params.parameter("index", IntType.INSTANCE))
-                .operator(Operator.INDEX_SET, elementType, params ->
-                        params.parameter("index", IntType.INSTANCE).parameter("element", elementType)
-                )
+                .operator(Operator.INDEX_SET, elementType, params -> params.parameter("index", IntType.INSTANCE).parameter("element", elementType))
                 .operator(Operator.ADD, this, params -> params.parameter("element", elementType))
-                .operator(Operator.FOR_IN, this, UnaryOperator.identity())
+                .operator(Operator.FOR_IN, this)
                 .build();
     }
 

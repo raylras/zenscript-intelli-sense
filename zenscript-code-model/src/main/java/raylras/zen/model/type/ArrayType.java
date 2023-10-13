@@ -7,7 +7,6 @@ import raylras.zen.model.symbol.SymbolFactory;
 import raylras.zen.model.symbol.SymbolProvider;
 
 import java.util.List;
-import java.util.function.UnaryOperator;
 
 public record ArrayType(Type elementType) implements Type, SymbolProvider {
 
@@ -40,11 +39,9 @@ public record ArrayType(Type elementType) implements Type, SymbolProvider {
         return SymbolFactory.builtinSymbols()
                 .variable("length", IntType.INSTANCE, Symbol.Modifier.IMPLICIT_VAL)
                 .operator(Operator.INDEX_GET, elementType, params -> params.parameter("index", IntType.INSTANCE))
-                .operator(Operator.INDEX_SET, elementType, params ->
-                        params.parameter("index", IntType.INSTANCE).parameter("element", elementType)
-                )
+                .operator(Operator.INDEX_SET, elementType, params -> params.parameter("index", IntType.INSTANCE).parameter("element", elementType))
                 .operator(Operator.ADD, this, params -> params.parameter("element", elementType))
-                .operator(Operator.FOR_IN, new ListType(elementType), UnaryOperator.identity())
+                .operator(Operator.FOR_IN, new ListType(elementType))
                 .build();
     }
 

@@ -7,7 +7,6 @@ import raylras.zen.model.symbol.SymbolFactory;
 import raylras.zen.model.symbol.SymbolProvider;
 
 import java.util.List;
-import java.util.function.UnaryOperator;
 
 public enum BoolType implements Type, SymbolProvider {
 
@@ -29,10 +28,10 @@ public enum BoolType implements Type, SymbolProvider {
     @Override
     public List<Symbol> getSymbols() {
         return SymbolFactory.builtinSymbols()
+                .operator(Operator.NOT, this)
                 .operator(Operator.AND, this, params -> params.parameter("value", this))
                 .operator(Operator.OR, this, params -> params.parameter("value", this))
                 .operator(Operator.XOR, this, params -> params.parameter("value", this))
-                .operator(Operator.NOT, this, UnaryOperator.identity())
                 .operator(Operator.CONCAT, StringType.INSTANCE, params -> params.parameter("str", StringType.INSTANCE))
                 .operator(Operator.EQUALS, BoolType.INSTANCE, params -> params.parameter("value", this))
                 .operator(Operator.NOT_EQUALS, BoolType.INSTANCE, params -> params.parameter("value", this))
