@@ -103,6 +103,11 @@ classMemberDeclaration
     | constructorDeclaration
     | functionDeclaration
     | operatorFunctionDeclaration // dzs
+    | invaildStatementInClassBody
+    ;
+
+invaildStatementInClassBody
+    : expression ';'?
     ;
 
 constructorDeclaration

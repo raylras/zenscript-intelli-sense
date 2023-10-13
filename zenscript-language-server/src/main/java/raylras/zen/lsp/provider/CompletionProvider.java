@@ -146,7 +146,27 @@ public final class CompletionProvider {
             if (containsLeading(ctx.BRACE_CLOSE())) {
                 completeLocalSymbols();
                 completeGlobalSymbols();
-                completeKeywords(Keywords.STATEMENT);
+                completeKeywords(Keywords.CLASS_BODY);
+                return null;
+            }
+
+            // { text| }
+            // ^ ____
+            if (containsLeading(ctx.BRACE_OPEN())) {
+                completeKeywords(Keywords.CLASS_BODY);
+                return null;
+            }
+
+            visitChildren(ctx);
+            return null;
+        }
+
+        @Override
+        public Void visitClassMemberDeclaration(ClassMemberDeclarationContext ctx) {
+            // } text|    ; test|    expr text|
+            // ^ ____     ^ ____     ^^^^ ____
+            if (containsLeading(ctx.stop)) {
+                completeKeywords(Keywords.CLASS_BODY);
                 return null;
             }
 
