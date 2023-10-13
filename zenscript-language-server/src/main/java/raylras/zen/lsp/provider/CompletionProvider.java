@@ -140,6 +140,21 @@ public final class CompletionProvider {
         }
 
         @Override
+        public Void visitClassBody(ClassBodyContext ctx) {
+            // { } text|
+            //   ^ ____
+            if (containsLeading(ctx.BRACE_CLOSE())) {
+                completeLocalSymbols();
+                completeGlobalSymbols();
+                completeKeywords(Keywords.STATEMENT);
+                return null;
+            }
+
+            visitChildren(ctx);
+            return null;
+        }
+
+        @Override
         public Void visitVariableDeclaration(VariableDeclarationContext ctx) {
             // var name text|
             //     ^^^^ ____
@@ -489,12 +504,12 @@ public final class CompletionProvider {
 
         void completeImports() {
             // FIXME: completeImports
-//            PackageTree<ClassType> tree = PackageTree.of(".", unit.getEnv().getClassTypeMap());
-//            tree.complete(text).forEach((key, subTree) -> {
-//                CompletionItem item = new CompletionItem(key);
-//                item.setKind(subTree.hasElement() ? CompletionItemKind.Class : CompletionItemKind.Module);
-//                addToCompletionList(item);
-//            });
+            //            PackageTree<ClassType> tree = PackageTree.of(".", unit.getEnv().getClassTypeMap());
+            //            tree.complete(text).forEach((key, subTree) -> {
+            //                CompletionItem item = new CompletionItem(key);
+            //                item.setKind(subTree.hasElement() ? CompletionItemKind.Class : CompletionItemKind.Module);
+            //                addToCompletionList(item);
+            //            });
         }
 
         void completeLocalSymbols() {
