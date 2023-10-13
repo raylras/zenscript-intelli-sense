@@ -563,8 +563,6 @@ public class SymbolFactory {
     }
 
     public static ParameterSymbol createParameterSymbol(String name, Type type, boolean optional, boolean vararg) {
-        Objects.requireNonNull(name);
-        Objects.requireNonNull(type);
         class ParameterSymbolImpl implements ParameterSymbol {
             @Override
             public boolean isOptional() {
@@ -689,7 +687,6 @@ public class SymbolFactory {
     }
 
     public static PackageSymbol createPackageSymbol(CompilationEnvironment env) {
-        Objects.requireNonNull(env);
         class PackageSymbolImpl implements PackageSymbol {
             final String name;
             final Map<String, PackageSymbol> subpackages = new HashMap<>();
@@ -778,7 +775,6 @@ public class SymbolFactory {
     }
 
     public static PackageSymbol createPackageSymbol(CompilationUnit unit) {
-        Objects.requireNonNull(unit);
         class PackageSymbolImpl implements PackageSymbol {
             @Override
             public String getQualifiedName() {

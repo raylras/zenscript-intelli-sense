@@ -123,12 +123,10 @@ public class CompilationUnit {
     }
 
     public void accept(Visitor<?> visitor) {
-        Objects.requireNonNull(visitor);
-        parseTree.accept(visitor);
+        visitor.visit(parseTree);
     }
 
     public void accept(Listener listener) {
-        Objects.requireNonNull(listener);
         ParseTreeWalker.DEFAULT.walk(listener, parseTree);
     }
 

@@ -14,7 +14,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -26,12 +25,10 @@ public class Compilations {
     }
 
     public static boolean isZsFile(Path path) {
-        Objects.requireNonNull(path);
         return path.toString().endsWith(CompilationUnit.ZS_FILE_EXTENSION);
     }
 
     public static boolean isDzsFile(Path path) {
-        Objects.requireNonNull(path);
         return path.toString().endsWith(CompilationUnit.DZS_FILE_EXTENSION);
     }
 

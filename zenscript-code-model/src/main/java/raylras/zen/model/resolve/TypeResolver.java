@@ -17,7 +17,6 @@ import raylras.zen.util.Symbols;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 public final class TypeResolver {
@@ -25,7 +24,6 @@ public final class TypeResolver {
     private TypeResolver() {}
 
     public static Optional<Type> getType(ParseTree cst, CompilationUnit unit) {
-        Objects.requireNonNull(unit);
         return Optional.ofNullable(cst)
                 .map(it -> it.accept(new TypeVisitor(unit)));
     }
@@ -313,7 +311,10 @@ public final class TypeResolver {
         @Override
         public Type visitArrayLiteralExpr(ArrayLiteralExprContext ctx) {
             Type firstElementType = visit(ctx.expressionList().expression(0));
-            return new ArrayType(Objects.requireNonNullElse(firstElementType, AnyType.INSTANCE));
+            if (firstElementType == null) {
+                firstElementType = AnyType.INSTANCE;
+            }
+            return new ArrayType(firstElementType);
         }
 
         @Override

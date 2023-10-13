@@ -10,7 +10,10 @@ import raylras.zen.util.PathUtil;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
 
@@ -27,7 +30,6 @@ public class CompilationEnvironment {
     private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
     public CompilationEnvironment(Path root) {
-        Objects.requireNonNull(root);
         this.root = root;
         this.generatedRoot = resolveGeneratedRoot(this);
     }
