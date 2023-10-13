@@ -71,10 +71,17 @@ public final class CompletionProvider {
          */
 
         @Override
-        public Void visitImportDeclaration(ZenScriptParser.ImportDeclarationContext ctx) {
+        public Void visitImportDeclaration(ImportDeclarationContext ctx) {
             // import text|
             // ^^^^^^ ____
             if (containsLeading(ctx.IMPORT())) {
+                completeImports();
+                return null;
+            }
+
+            // import foo.|
+            //        ^^^_
+            if (tailing instanceof ErrorNode && ".".equals(text)) {
                 completeImports();
                 return null;
             }
@@ -97,8 +104,17 @@ public final class CompletionProvider {
 
             // import foo.bar text|
             //            ^^^ ____
-            if (!containsTailing(ctx.qualifiedName())) {
+            if (containsLeading(ctx.qualifiedName()) && !containsTailing(ctx.qualifiedName())) {
                 completeKeywords(Keywords.AS);
+                return null;
+            }
+
+            // import foo.bar; text|
+            //               ^ ____
+            if (containsLeading(ctx.SEMICOLON())) {
+                completeLocalSymbols();
+                completeGlobalSymbols();
+                completeKeywords(Keywords.TOPLEVEL_STATEMENT);
                 return null;
             }
 
