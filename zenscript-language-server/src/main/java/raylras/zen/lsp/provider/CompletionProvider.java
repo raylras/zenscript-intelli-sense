@@ -183,6 +183,21 @@ public final class CompletionProvider {
                 return null;
             }
 
+            // var name as text|
+            //          ^^ ____
+            if (containsLeading(ctx.AS())) {
+                completeTypes();
+                return null;
+            }
+
+            // var name as type = text|
+            //                  ^ ____
+            if (containsLeading(ctx.ASSIGN())) {
+                completeLocalSymbols();
+                completeGlobalSymbols();
+                return null;
+            }
+
             // var name; text|
             //         ^ ____
             if (containsLeading(ctx.SEMICOLON())) {
