@@ -8,9 +8,9 @@ import raylras.zen.model.symbol.SymbolProvider;
 import java.util.List;
 import java.util.function.UnaryOperator;
 
-public final class IntRangeType implements Type, SymbolProvider {
+public enum IntRangeType implements Type, SymbolProvider {
 
-    public static final IntRangeType INSTANCE = new IntRangeType();
+    INSTANCE;
 
     @Override
     public String getTypeName() {

@@ -5,14 +5,18 @@ import raylras.zen.model.symbol.SymbolProvider;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 public record IntersectionType(List<Type> typeList) implements Type, SymbolProvider {
 
     @Override
     public String getTypeName() {
-        return typeList.stream().map(Objects::toString).collect(Collectors.joining(" & "));
+        return typeList.stream().map(Type::getTypeName).collect(Collectors.joining(" & "));
+    }
+
+    @Override
+    public String getSimpleTypeName() {
+        return typeList.stream().map(Type::getSimpleTypeName).collect(Collectors.joining(" & "));
     }
 
     @Override

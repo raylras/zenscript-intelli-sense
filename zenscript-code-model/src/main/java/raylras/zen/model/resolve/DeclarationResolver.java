@@ -1,8 +1,9 @@
 package raylras.zen.model.resolve;
 
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.RuleNode;
 import raylras.zen.model.CompilationUnit;
-import raylras.zen.model.Listener;
+import raylras.zen.model.Visitor;
 import raylras.zen.model.parser.ZenScriptParser.*;
 import raylras.zen.model.scope.Scope;
 import raylras.zen.model.symbol.*;
@@ -10,45 +11,48 @@ import raylras.zen.util.ArrayStack;
 import raylras.zen.util.Stack;
 
 import java.util.List;
-import java.util.Objects;
+import java.util.function.Consumer;
 
 public final class DeclarationResolver {
 
     private DeclarationResolver() {}
 
     public static void resolveDeclarations(CompilationUnit unit) {
-        Objects.requireNonNull(unit);
-        unit.accept(new DeclarationListener(unit));
+        unit.accept(new DeclarationVisitor(unit));
     }
 
-    private static class DeclarationListener extends Listener {
+    private static class DeclarationVisitor extends Visitor<Void> {
         final CompilationUnit unit;
         final Stack<Scope> scopeStack = new ArrayStack<>();
         final Stack<ClassSymbol> classStack = new ArrayStack<>();
 
-        DeclarationListener(CompilationUnit unit) {
+        DeclarationVisitor(CompilationUnit unit) {
             this.unit = unit;
         }
 
-        void enterScope(Scope scope) {
+        void enterScope(RuleNode cst) {
+            enterScopeThen(cst, scope -> {/* do nothing */});
+        }
+
+        void enterScopeThen(RuleNode cst, Consumer<Scope> then) {
+            Scope scope = new Scope(scopeStack.peek(), cst);
             unit.addScope(scope);
             scopeStack.push(scope);
+            try {
+                then.accept(scope);
+                visitChildren(cst);
+            } finally {
+                scopeStack.pop();
+            }
         }
 
-        void exitScope() {
-            scopeStack.pop();
-        }
-
-        Scope currentScope() {
-            return scopeStack.peek();
-        }
-
-        void enterClass(ClassSymbol symbol) {
+        void enterClassThen(ClassSymbol symbol, Runnable then) {
             classStack.push(symbol);
-        }
-
-        void exitClass() {
-            classStack.pop();
+            try {
+                then.run();
+            } finally {
+                classStack.pop();
+            }
         }
 
         ClassSymbol currentClass() {
@@ -57,76 +61,69 @@ public final class DeclarationResolver {
 
         void enterSymbol(ParseTree cst, Symbol symbol) {
             unit.putSymbol(cst, symbol);
-            currentScope().addSymbol(symbol);
+            scopeStack.peek().addSymbol(symbol);
         }
 
         @Override
-        public void enterCompilationUnit(CompilationUnitContext ctx) {
-            enterScope(new Scope(null, ctx));
+        public Void visitCompilationUnit(CompilationUnitContext ctx) {
+            enterScope(ctx);
+            return null;
         }
 
         @Override
-        public void exitCompilationUnit(CompilationUnitContext ctx) {
-            exitScope();
-        }
-
-        @Override
-        public void enterImportDeclaration(ImportDeclarationContext ctx) {
-            ParseTree name;
+        public Void visitImportDeclaration(ImportDeclarationContext ctx) {
+            SimpleNameContext name;
             if (ctx.alias() != null) {
-                name = ctx.alias();
-            } else {
+                name = ctx.alias().simpleName();
+            } else if (ctx.qualifiedName() != null) {
                 List<SimpleNameContext> simpleNameList = ctx.qualifiedName().simpleName();
                 name = simpleNameList.get(simpleNameList.size() - 1);
+            } else {
+                name = null;
             }
-            ImportSymbol symbol = SymbolFactory.createImportSymbol(name, ctx, unit);
-            unit.addImport(symbol);
+
+            if (name != null) {
+                ImportSymbol symbol = SymbolFactory.createImportSymbol(name, ctx, unit);
+                unit.addImport(symbol);
+            }
+            return null;
         }
 
         @Override
-        public void enterFunctionDeclaration(FunctionDeclarationContext ctx) {
+        public Void visitFunctionDeclaration(FunctionDeclarationContext ctx) {
             FunctionSymbol symbol = SymbolFactory.createFunctionSymbol(ctx.simpleName(), ctx, unit);
             enterSymbol(ctx, symbol);
-            enterScope(new Scope(currentScope(), ctx));
+            enterScope(ctx);
+            return null;
         }
 
         @Override
-        public void exitFunctionDeclaration(FunctionDeclarationContext ctx) {
-            exitScope();
+        public Void visitExpandFunctionDeclaration(ExpandFunctionDeclarationContext ctx) {
+            if (ctx.simpleName() != null) {
+                ExpandFunctionSymbol symbol = SymbolFactory.createExpandFunctionSymbol(ctx, unit);
+                enterSymbol(ctx, symbol);
+                enterScopeThen(ctx, scope -> scope.addSymbol(SymbolFactory.createThisSymbol(symbol::getExpandingType)));
+            }
+            return null;
         }
 
         @Override
-        public void enterExpandFunctionDeclaration(ExpandFunctionDeclarationContext ctx) {
-            ExpandFunctionSymbol symbol = SymbolFactory.createExpandFunctionSymbol(ctx.simpleName(), ctx, unit);
-            enterSymbol(ctx, symbol);
-            Scope scope = new Scope(currentScope(), ctx);
-            enterScope(scope);
-            scope.addSymbol(SymbolFactory.createThisSymbol(symbol::getExpandingType));
+        public Void visitFormalParameter(FormalParameterContext ctx) {
+            if (ctx.simpleName() != null) {
+                ParameterSymbol symbol = SymbolFactory.createParameterSymbol(ctx, unit);
+                enterSymbol(ctx, symbol);
+            }
+            return null;
         }
 
         @Override
-        public void exitExpandFunctionDeclaration(ExpandFunctionDeclarationContext ctx) {
-            exitScope();
+        public Void visitFunctionBody(FunctionBodyContext ctx) {
+            enterScope(ctx);
+            return null;
         }
 
         @Override
-        public void enterFormalParameter(FormalParameterContext ctx) {
-            ParameterSymbol symbol = SymbolFactory.createParameterSymbol(ctx.simpleName(), ctx, unit);
-            enterSymbol(ctx, symbol);
-        }
-
-        @Override
-        public void enterFunctionBody(FunctionBodyContext ctx) {
-            enterScope(new Scope(currentScope(), ctx));
-        }
-
-        @Override
-        public void exitFunctionBody(FunctionBodyContext ctx) {
-            exitScope();
-        }
-
-        @Override
-        public void enterClassDeclaration(ClassDeclarationContext ctx) {
+        public Void visitClassDeclaration(ClassDeclarationContext ctx) {
             ParseTree name;
             if (ctx.simpleName() != null) {
                 name = ctx.simpleName();
@@ -134,105 +131,82 @@ public final class DeclarationResolver {
                 name = ctx.simpleNameOrPrimitiveType();
             }
 
-            ClassSymbol symbol = SymbolFactory.createClassSymbol(name, ctx, unit);
+            if (name != null) {
+                ClassSymbol symbol = SymbolFactory.createClassSymbol(name, ctx, unit);
+                enterSymbol(ctx, symbol);
+                enterClassThen(symbol, () -> {
+                    enterScopeThen(ctx, scope -> {
+                        scope.addSymbol(SymbolFactory.createThisSymbol(symbol::getType));
+                    });
+                });
+            }
+            return null;
+        }
+
+        @Override
+        public Void visitConstructorDeclaration(ConstructorDeclarationContext ctx) {
+            ConstructorSymbol symbol = SymbolFactory.createConstructorSymbol(ctx, unit, currentClass());
             enterSymbol(ctx, symbol);
-            enterClass(symbol);
-
-            Scope scope = new Scope(currentScope(), ctx);
-            enterScope(scope);
-            scope.addSymbol(SymbolFactory.createThisSymbol(symbol::getType));
+            enterScope(ctx);
+            return null;
         }
 
         @Override
-        public void exitClassDeclaration(ClassDeclarationContext ctx) {
-            exitScope();
-            exitClass();
+        public Void visitVariableDeclaration(VariableDeclarationContext ctx) {
+            if (ctx.simpleName() != null) {
+                VariableSymbol symbol = SymbolFactory.createVariableSymbol(ctx.simpleName(), ctx, unit);
+                enterSymbol(ctx, symbol);
+            }
+            return null;
         }
 
         @Override
-        public void enterConstructorDeclaration(ConstructorDeclarationContext ctx) {
-            ConstructorSymbol symbol = SymbolFactory.createConstructorSymbol(ctx.ZEN_CONSTRUCTOR(), ctx, unit, currentClass());
-            enterSymbol(ctx, symbol);
-            enterScope(new Scope(currentScope(), ctx));
+        public Void visitOperatorFunctionDeclaration(OperatorFunctionDeclarationContext ctx) {
+            if (ctx.operator() != null) {
+                OperatorFunctionSymbol symbol = SymbolFactory.createOperatorFunctionSymbol(ctx, unit);
+                enterSymbol(ctx, symbol);
+                enterScope(ctx);
+            }
+            return null;
         }
 
         @Override
-        public void exitConstructorDeclaration(ConstructorDeclarationContext ctx) {
-            exitScope();
+        public Void visitThenPart(ThenPartContext ctx) {
+            enterScope(ctx);
+            return null;
         }
 
         @Override
-        public void enterVariableDeclaration(VariableDeclarationContext ctx) {
-            VariableSymbol symbol = SymbolFactory.createVariableSymbol(ctx.simpleName(), ctx, unit);
-            enterSymbol(ctx, symbol);
+        public Void visitElsePart(ElsePartContext ctx) {
+            enterScope(ctx);
+            return null;
         }
 
         @Override
-        public void enterOperatorFunctionDeclaration(OperatorFunctionDeclarationContext ctx) {
-            OperatorFunctionSymbol symbol = SymbolFactory.createOperatorFunctionSymbol(ctx.operator(), ctx, unit);
-            enterSymbol(ctx, symbol);
-            enterScope(new Scope(currentScope(), ctx));
+        public Void visitForeachStatement(ForeachStatementContext ctx) {
+            enterScope(ctx);
+            return null;
         }
 
         @Override
-        public void exitOperatorFunctionDeclaration(OperatorFunctionDeclarationContext ctx) {
-            exitScope();
+        public Void visitForeachVariable(ForeachVariableContext ctx) {
+            if (ctx.simpleName() != null) {
+                VariableSymbol symbol = SymbolFactory.createVariableSymbol(ctx.simpleName(), ctx, unit);
+                enterSymbol(ctx, symbol);
+            }
+            return null;
         }
 
         @Override
-        public void enterThenPart(ThenPartContext ctx) {
-            enterScope(new Scope(currentScope(), ctx));
+        public Void visitWhileStatement(WhileStatementContext ctx) {
+            enterScope(ctx);
+            return null;
         }
 
         @Override
-        public void exitThenPart(ThenPartContext ctx) {
-            exitScope();
-        }
-
-        @Override
-        public void enterElsePart(ElsePartContext ctx) {
-            enterScope(new Scope(currentScope(), ctx));
-        }
-
-        @Override
-        public void exitElsePart(ElsePartContext ctx) {
-            exitScope();
-        }
-
-        @Override
-        public void enterForeachStatement(ForeachStatementContext ctx) {
-            enterScope(new Scope(currentScope(), ctx));
-        }
-
-        @Override
-        public void exitForeachStatement(ForeachStatementContext ctx) {
-            exitScope();
-        }
-
-        @Override
-        public void enterForeachVariable(ForeachVariableContext ctx) {
-            VariableSymbol symbol = SymbolFactory.createVariableSymbol(ctx.simpleName(), ctx, unit);
-            enterSymbol(ctx, symbol);
-        }
-
-        @Override
-        public void enterWhileStatement(WhileStatementContext ctx) {
-            enterScope(new Scope(currentScope(), ctx));
-        }
-
-        @Override
-        public void exitWhileStatement(WhileStatementContext ctx) {
-            exitScope();
-        }
-
-        @Override
-        public void enterFunctionExpr(FunctionExprContext ctx) {
-            enterScope(new Scope(currentScope(), ctx));
-        }
-
-        @Override
-        public void exitFunctionExpr(FunctionExprContext ctx) {
-            exitScope();
+        public Void visitFunctionExpr(FunctionExprContext ctx) {
+            enterScope(ctx);
+            return null;
         }
     }
 

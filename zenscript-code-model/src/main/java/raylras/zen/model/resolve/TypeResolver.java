@@ -95,7 +95,7 @@ public final class TypeResolver {
 
         @Override
         public Type visitReturnType(ReturnTypeContext ctx) {
-            return visit(ctx.intersectionType() != null ? ctx.intersectionType() : ctx.typeLiteral());
+            return visit(ctx.typeLiteral());
         }
 
         @Override
@@ -119,9 +119,6 @@ public final class TypeResolver {
 
         @Override
         public Type visitVariableDeclaration(VariableDeclarationContext ctx) {
-            if (ctx.intersectionType() != null) {
-                return visit(ctx.intersectionType());
-            }
             if (ctx.typeLiteral() != null) {
                 return visit(ctx.typeLiteral());
             } else {
@@ -137,18 +134,16 @@ public final class TypeResolver {
         @Override
         public Type visitOperatorFunctionDeclaration(OperatorFunctionDeclarationContext ctx) {
             List<Type> paramTypes = toTypeList(ctx.formalParameterList());
-            Type returnType = visit(ctx.intersectionType());
+            Type returnType = visit(ctx.returnType());
             return new FunctionType(returnType, paramTypes);
         }
 
         @Override
         public Type visitIntersectionType(IntersectionTypeContext ctx) {
-            List<TypeLiteralContext> types = ctx.typeLiteral();
-            if (types.size() == 1) {
-                return visit(types.get(0));
-            } else {
-                return new IntersectionType(types.stream().map(this::visit).collect(Collectors.toList()));
-            }
+            List<Type> types = ctx.typeLiteral().stream()
+                    .map(this::visit)
+                    .toList();
+            return new IntersectionType(types);
         }
 
         @Override
@@ -414,21 +409,10 @@ public final class TypeResolver {
 
         @Override
         public Type visitClassType(ClassTypeContext ctx) {
-            List<ImportSymbol> imports = unit.getImports();
-            String qualifiedName = ctx.qualifiedName().getText();
-            Collection<Symbol> symbols = imports.stream()
-                    .filter(symbol -> symbol.getName().equals(qualifiedName))
+            return SymbolResolver.lookupClass(ctx.qualifiedName(), unit).stream()
                     .findFirst()
-                    .map(ImportSymbol::getSymbols)
-                    .orElseGet(Collections::emptyList);
-            if (symbols.size() == 1) {
-                return symbols.stream()
-                        .findFirst()
-                        .map(Symbol::getType)
-                        .orElse(AnyType.INSTANCE);
-            } else {
-                return AnyType.INSTANCE;
-            }
+                    .map(Symbol::getType)
+                    .orElse(AnyType.INSTANCE);
         }
 
         @Override

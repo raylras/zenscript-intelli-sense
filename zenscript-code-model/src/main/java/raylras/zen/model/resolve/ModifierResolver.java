@@ -1,5 +1,6 @@
 package raylras.zen.model.resolve;
 
+import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.model.Visitor;
 import raylras.zen.model.parser.ZenScriptLexer;
@@ -19,6 +20,17 @@ public final class ModifierResolver {
         return Optional.ofNullable(cst.accept(DeclaratorVisitor.INSTANCE));
     }
 
+    private static Modifier toModifier(Token token) {
+        return switch (CSTNodes.getTokenType(token)) {
+            case ZenScriptLexer.VAR -> Modifier.VAR;
+            case ZenScriptLexer.VAL -> Modifier.VAL;
+            case ZenScriptLexer.STATIC -> Modifier.STATIC;
+            case ZenScriptLexer.GLOBAL -> Modifier.GLOBAL;
+            case ZenScriptLexer.EXPAND -> Modifier.EXPAND;
+            default -> Modifier.NONE;
+        };
+    }
+
     private static final class DeclaratorVisitor extends Visitor<Modifier> {
         static final DeclaratorVisitor INSTANCE = new DeclaratorVisitor();
 
@@ -28,15 +40,13 @@ public final class ModifierResolver {
 
         @Override
         public Modifier visitFunctionDeclaration(FunctionDeclarationContext ctx) {
+            if (ctx.prefix != null) {
+                return toModifier(ctx.prefix);
+            }
             if (isToplevel(ctx)) {
                 return Modifier.IMPLICIT_STATIC;
-            } else {
-                return switch (CSTNodes.getTokenType(ctx.prefix)) {
-                    case ZenScriptLexer.STATIC -> Modifier.STATIC;
-                    case ZenScriptLexer.GLOBAL -> Modifier.GLOBAL;
-                    default -> Modifier.NONE;
-                };
             }
+            return Modifier.NONE;
         }
 
         @Override
@@ -56,13 +66,7 @@ public final class ModifierResolver {
 
         @Override
         public Modifier visitVariableDeclaration(VariableDeclarationContext ctx) {
-            return switch (CSTNodes.getTokenType(ctx.prefix)) {
-                case ZenScriptLexer.VAR -> Modifier.VAR;
-                case ZenScriptLexer.VAL -> Modifier.VAL;
-                case ZenScriptLexer.STATIC -> Modifier.STATIC;
-                case ZenScriptLexer.GLOBAL -> Modifier.GLOBAL;
-                default -> Modifier.NONE;
-            };
+            return toModifier(ctx.prefix);
         }
 
         @Override

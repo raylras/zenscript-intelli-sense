@@ -20,7 +20,12 @@ public record ClassType(ClassSymbol symbol) implements Type, SymbolProvider {
 
     @Override
     public String getTypeName() {
-        return symbol.getQualifiedName();
+        return getQualifiedName();
+    }
+
+    @Override
+    public String getSimpleTypeName() {
+        return getSimpleName();
     }
 
     @Override

@@ -41,10 +41,26 @@ public record Range(Position start, Position end) {
         if (cst == null) {
             return NO_RANGE;
         }
-        int startLine = cst.start.getLine() - ANTLR_FIRST_LINE;
-        int startColumn = cst.start.getCharPositionInLine();
-        int endLine = cst.stop.getLine() - ANTLR_FIRST_LINE;
-        int endColumn = cst.stop.getCharPositionInLine() + cst.stop.getText().length();
+
+        int startLine;
+        int startColumn;
+        if (cst.start != null) {
+            startLine = cst.start.getLine() - ANTLR_FIRST_LINE;
+            startColumn = cst.start.getCharPositionInLine();
+        } else {
+            startLine = Range.NO_LINE;
+            startColumn = Range.NO_COLUMN;
+        }
+
+        int endLine;
+        int endColumn;
+        if (cst.stop != null) {
+            endLine = cst.stop.getLine() - ANTLR_FIRST_LINE;
+            endColumn = cst.stop.getCharPositionInLine() + cst.stop.getText().length();
+        } else {
+            endLine = Range.NO_LINE;
+            endColumn = Range.NO_COLUMN;
+        }
         return Range.of(startLine, startColumn, endLine, endColumn);
     }
 

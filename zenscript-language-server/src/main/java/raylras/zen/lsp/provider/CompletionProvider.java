@@ -14,7 +14,6 @@ import raylras.zen.bracket.BracketHandlerEntry;
 import raylras.zen.bracket.BracketHandlerService;
 import raylras.zen.lsp.provider.data.Keywords;
 import raylras.zen.lsp.provider.data.Snippet;
-import raylras.zen.lsp.util.TextSimilarity;
 import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.Compilations;
 import raylras.zen.model.Visitor;
@@ -34,7 +33,6 @@ import raylras.zen.util.l10n.L10N;
 
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public final class CompletionProvider {
 
@@ -80,15 +78,15 @@ public final class CompletionProvider {
             // import text|
             // ^^^^^^ ____
             if (containsLeading(ctx.IMPORT())) {
-                completeImports(text);
+                completeImports();
                 return null;
             }
 
             // import foo.text|
-            //           ^___
+            //           ^____
             if (containsLeading(ctx.qualifiedName().DOT())) {
                 String text = getTextUntilCursor(ctx.qualifiedName());
-                completeImports(text);
+                completeImports();
                 return null;
             }
 
@@ -96,14 +94,14 @@ public final class CompletionProvider {
             //        ^^^_
             if (containsTailing(ctx.qualifiedName().DOT())) {
                 String text = getTextUntilCursor(ctx.qualifiedName());
-                completeImports(text);
+                completeImports();
                 return null;
             }
 
             // import foo.bar text|
             //            ^^^ ____
             if (!containsTailing(ctx.qualifiedName())) {
-                completeKeywords(text, Keywords.AS);
+                completeKeywords(Keywords.AS);
                 return null;
             }
 
@@ -115,14 +113,14 @@ public final class CompletionProvider {
             // name text|
             // ^^^^ ____
             if (containsLeading(ctx.simpleName())) {
-                completeKeywords(text, Keywords.AS);
+                completeKeywords(Keywords.AS);
                 return null;
             }
 
             // name as text|
             //      ^^ ____
             if (containsLeading(ctx.AS())) {
-                completeTypes(text);
+                completeTypes();
                 return null;
             }
 
@@ -134,9 +132,44 @@ public final class CompletionProvider {
             // { text| }
             // ^ ____
             if (containsLeading(ctx.BRACE_OPEN())) {
-                completeLocalSymbols(text);
-                completeGlobalSymbols(text);
-                completeKeywords(text, Keywords.STATEMENT);
+                completeLocalSymbols();
+                completeGlobalSymbols();
+                completeKeywords(Keywords.STATEMENT);
+                return null;
+            }
+
+            visitChildren(ctx);
+            return null;
+        }
+
+        @Override
+        public Void visitClassBody(ClassBodyContext ctx) {
+            // { } text|
+            //   ^ ____
+            if (containsLeading(ctx.BRACE_CLOSE())) {
+                completeLocalSymbols();
+                completeGlobalSymbols();
+                completeKeywords(Keywords.CLASS_BODY);
+                return null;
+            }
+
+            // { text| }
+            // ^ ____
+            if (containsLeading(ctx.BRACE_OPEN())) {
+                completeKeywords(Keywords.CLASS_BODY);
+                return null;
+            }
+
+            visitChildren(ctx);
+            return null;
+        }
+
+        @Override
+        public Void visitClassMemberDeclaration(ClassMemberDeclarationContext ctx) {
+            // } text|    ; test|    expr text|
+            // ^ ____     ^ ____     ^^^^ ____
+            if (containsLeading(ctx.stop)) {
+                completeKeywords(Keywords.CLASS_BODY);
                 return null;
             }
 
@@ -149,16 +182,16 @@ public final class CompletionProvider {
             // var name text|
             //     ^^^^ ____
             if (containsLeading(ctx.simpleName())) {
-                completeKeywords(text, Keywords.AS);
+                completeKeywords(Keywords.AS);
                 return null;
             }
 
             // var name; text|
             //         ^ ____
             if (containsLeading(ctx.SEMICOLON())) {
-                completeLocalSymbols(text);
-                completeGlobalSymbols(text);
-                completeKeywords(text, Keywords.STATEMENT);
+                completeLocalSymbols();
+                completeGlobalSymbols();
+                completeKeywords(Keywords.STATEMENT);
                 return null;
             }
 
@@ -171,18 +204,18 @@ public final class CompletionProvider {
             // { text| }
             // ^ ____
             if (containsLeading(ctx.BRACE_OPEN())) {
-                completeLocalSymbols(text);
-                completeGlobalSymbols(text);
-                completeKeywords(text, Keywords.STATEMENT);
+                completeLocalSymbols();
+                completeGlobalSymbols();
+                completeKeywords(Keywords.STATEMENT);
                 return null;
             }
 
             // { } text|
             //   ^ ____
             if (containsLeading(ctx.BRACE_CLOSE())) {
-                completeLocalSymbols(text);
-                completeGlobalSymbols(text);
-                completeKeywords(text, Keywords.STATEMENT);
+                completeLocalSymbols();
+                completeGlobalSymbols();
+                completeKeywords(Keywords.STATEMENT);
                 return null;
             }
 
@@ -195,17 +228,17 @@ public final class CompletionProvider {
             // return text|
             // ^^^^^^ ____
             if (containsLeading(ctx.RETURN())) {
-                completeLocalSymbols(text);
-                completeGlobalSymbols(text);
+                completeLocalSymbols();
+                completeGlobalSymbols();
                 return null;
             }
 
             // return; text|
             //       ^ ____
             if (containsLeading(ctx.SEMICOLON())) {
-                completeLocalSymbols(text);
-                completeGlobalSymbols(text);
-                completeKeywords(text, Keywords.STATEMENT);
+                completeLocalSymbols();
+                completeGlobalSymbols();
+                completeKeywords(Keywords.STATEMENT);
                 return null;
             }
 
@@ -218,8 +251,8 @@ public final class CompletionProvider {
             // if text|
             // ^^ ____
             if (containsLeading(ctx.IF())) {
-                completeLocalSymbols(text);
-                completeGlobalSymbols(text);
+                completeLocalSymbols();
+                completeGlobalSymbols();
                 return null;
             }
 
@@ -232,18 +265,18 @@ public final class CompletionProvider {
             // { text| }
             // ^ ____
             if (containsLeading(ctx.BRACE_OPEN())) {
-                completeLocalSymbols(text);
-                completeGlobalSymbols(text);
-                completeKeywords(text, Keywords.STATEMENT);
+                completeLocalSymbols();
+                completeGlobalSymbols();
+                completeKeywords(Keywords.STATEMENT);
                 return null;
             }
 
             // { } text|
             //   ^ ____
             if (containsLeading(ctx.BRACE_CLOSE())) {
-                completeLocalSymbols(text);
-                completeGlobalSymbols(text);
-                completeKeywords(text, Keywords.STATEMENT);
+                completeLocalSymbols();
+                completeGlobalSymbols();
+                completeKeywords(Keywords.STATEMENT);
                 return null;
             }
 
@@ -256,16 +289,16 @@ public final class CompletionProvider {
             // while (|)
             // ^^^^^ _
             if (containsLeading(ctx.WHILE())) {
-                completeLocalSymbols("");
-                completeLocalSymbols("");
+                completeLocalSymbols();
+                completeGlobalSymbols();
                 return null;
             }
 
             // while (text|)
             //       ^____
             if (containsLeading(ctx.PAREN_OPEN())) {
-                completeLocalSymbols(text);
-                completeLocalSymbols(text);
+                completeLocalSymbols();
+                completeGlobalSymbols();
                 return null;
             }
 
@@ -278,18 +311,18 @@ public final class CompletionProvider {
             // text|
             // ____
             if (ctx.expression() instanceof SimpleNameExprContext && containsTailing(ctx.expression())) {
-                completeLocalSymbols(text);
-                completeGlobalSymbols(text);
-                completeKeywords(text, Keywords.STATEMENT);
+                completeLocalSymbols();
+                completeGlobalSymbols();
+                completeKeywords(Keywords.STATEMENT);
                 return null;
             }
 
             // expr; text|
             //     ^ ____
             if (containsLeading(ctx.SEMICOLON())) {
-                completeLocalSymbols(text);
-                completeGlobalSymbols(text);
-                completeKeywords(text, Keywords.STATEMENT);
+                completeLocalSymbols();
+                completeGlobalSymbols();
+                completeKeywords(Keywords.STATEMENT);
                 return null;
             }
 
@@ -302,15 +335,15 @@ public final class CompletionProvider {
             // expr = text|
             //      ^ ____
             if (containsLeading(ctx.op)) {
-                completeLocalSymbols(text);
-                completeGlobalSymbols(text);
+                completeLocalSymbols();
+                completeGlobalSymbols();
             }
 
             // expr =|
             // ^^^^ _
             if (!(ctx.left instanceof MemberAccessExprContext) && containsLeading(ctx.left)) {
-                completeLocalSymbols("");
-                completeGlobalSymbols("");
+                completeLocalSymbols();
+                completeGlobalSymbols();
             }
 
             visitChildren(ctx);
@@ -322,8 +355,8 @@ public final class CompletionProvider {
             // expr + text|
             //      ^ ____
             if (containsLeading(ctx.op)) {
-                completeLocalSymbols(text);
-                completeGlobalSymbols(text);
+                completeLocalSymbols();
+                completeGlobalSymbols();
             }
             return null;
         }
@@ -333,8 +366,8 @@ public final class CompletionProvider {
             // (text|)
             // ^____
             if (containsLeading(ctx.PAREN_OPEN())) {
-                completeLocalSymbols(text);
-                completeGlobalSymbols(text);
+                completeLocalSymbols();
+                completeGlobalSymbols();
                 return null;
             }
 
@@ -353,8 +386,8 @@ public final class CompletionProvider {
             // !text|
             // ^____
             if (containsLeading(ctx.op)) {
-                completeLocalSymbols(text);
-                completeGlobalSymbols(text);
+                completeLocalSymbols();
+                completeGlobalSymbols();
                 return null;
             }
 
@@ -369,7 +402,7 @@ public final class CompletionProvider {
             //     ^____
             if (containsLeading(ctx.DOT())) {
                 TypeResolver.getType(expr, unit).ifPresent(type -> {
-                    completeMembers(text, type);
+                    completeMembers(type);
                     completeMemberAccessSnippets(type, ctx);
                 });
                 return null;
@@ -379,7 +412,7 @@ public final class CompletionProvider {
             // ^^^^_
             if (containsLeading(expr)) {
                 TypeResolver.getType(expr, unit).ifPresent(type -> {
-                    completeMembers("", type);
+                    completeMembers(type);
                     completeMemberAccessSnippets(type, ctx);
                 });
                 return null;
@@ -394,16 +427,16 @@ public final class CompletionProvider {
             // expr(text|)
             //     ^____
             if (containsLeading(ctx.PAREN_OPEN())) {
-                completeLocalSymbols(text);
-                completeGlobalSymbols(text);
+                completeLocalSymbols();
+                completeGlobalSymbols();
                 return null;
             }
 
             // expr(expr,|)
             //          ^
             if (leading instanceof ErrorNode) {
-                completeLocalSymbols("");
-                completeGlobalSymbols("");
+                completeLocalSymbols();
+                completeGlobalSymbols();
                 return null;
             }
 
@@ -416,16 +449,16 @@ public final class CompletionProvider {
             // expr, text|
             //     ^ ____
             if (containsLeading(ctx.COMMA())) {
-                completeLocalSymbols(text);
-                completeGlobalSymbols(text);
+                completeLocalSymbols();
+                completeGlobalSymbols();
                 return null;
             }
 
             // expr,|
             // ^^^^_
             if (containsTailing(ctx.COMMA())) {
-                completeLocalSymbols("");
-                completeGlobalSymbols("");
+                completeLocalSymbols();
+                completeGlobalSymbols();
                 return null;
             }
 
@@ -492,82 +525,62 @@ public final class CompletionProvider {
             return "";
         }
 
-        void completeImports(String text) {
+        void completeImports() {
             // FIXME: completeImports
-//            PackageTree<ClassType> tree = PackageTree.of(".", unit.getEnv().getClassTypeMap());
-//            tree.complete(text).forEach((key, subTree) -> {
-//                CompletionItem item = new CompletionItem(key);
-//                item.setKind(subTree.hasElement() ? CompletionItemKind.Class : CompletionItemKind.Module);
-//                addToCompletionList(item);
-//            });
+            //            PackageTree<ClassType> tree = PackageTree.of(".", unit.getEnv().getClassTypeMap());
+            //            tree.complete(text).forEach((key, subTree) -> {
+            //                CompletionItem item = new CompletionItem(key);
+            //                item.setKind(subTree.hasElement() ? CompletionItemKind.Class : CompletionItemKind.Module);
+            //                addToCompletionList(item);
+            //            });
         }
 
-        void completeLocalSymbols(String text) {
+        void completeLocalSymbols() {
             Scope scope = Compilations.lookupScope(unit, tailing).orElse(null);
             while (scope != null) {
                 scope.getSymbols().stream()
-                        .filter(symbol -> TextSimilarity.isSubsequence(text, symbol.getName()))
                         .map(this::createCompletionItem)
                         .forEach(this::addToCompletionList);
                 scope = scope.getParent();
             }
         }
 
-        void completeGlobalSymbols(String text) {
+        void completeGlobalSymbols() {
             unit.getEnv().getGlobals()
-                    .filter(symbol -> TextSimilarity.isSubsequence(text, symbol.getName()))
                     .map(this::createCompletionItem)
                     .forEach(this::addToCompletionList);
         }
 
-        void completeMembers(String text, Type type) {
+        void completeMembers(Type type) {
             if (type instanceof SymbolProvider provider) {
                 provider.withExpands(unit.getEnv()).getSymbols().stream()
-                        .filter(symbol -> TextSimilarity.isSubsequence(text, symbol.getName()))
                         .filter(this::shouldCreateCompletionItem)
                         .map(this::createCompletionItem)
                         .forEach(this::addToCompletionList);
             }
         }
 
-        void completeTypes(String text) {
+        void completeTypes() {
             unit.getImports().stream()
-                    .filter(symbol -> TextSimilarity.isSubsequence(text, symbol.getName()))
                     .map(this::createCompletionItem)
                     .forEach(this::addToCompletionList);
         }
 
-        void completeKeywords(String text, String... keywords) {
-            Arrays.stream(keywords)
-                    .filter(keyword -> TextSimilarity.isSubsequence(text, keyword))
-                    .map(this::createCompletionItem)
-                    .forEach(this::addToCompletionList);
+        void completeKeywords(String... keywords) {
+            for (String keyword : keywords) {
+                addToCompletionList(createCompletionItem(keyword));
+            }
         }
 
         void completeBracketHandlers(String text) {
-            Stream<BracketHandlerEntry> entries;
-            if (Locale.getDefault().getLanguage().equals("zh")) {
-                entries = completePinInBracketHandlers(unit.getEnv().getBracketHandlerService(), text);
-            } else {
-                entries = completeEnglishBracketHandlers(unit.getEnv().getBracketHandlerService(), text);
-            }
-            entries.map(this::createCompletionItem).forEach(this::addToCompletionList);
-        }
-
-        Stream<BracketHandlerEntry> completePinInBracketHandlers(BracketHandlerService service, String text) {
-            return BRACKET_HANDLER_SEARCHERS.computeIfAbsent(service, it -> {
+            BRACKET_HANDLER_SEARCHERS.computeIfAbsent(unit.getEnv().getBracketHandlerService(), it -> {
                 Searcher<BracketHandlerEntry> searcher = new TreeSearcher<>(Searcher.Logic.CONTAIN, new PinIn());
                 for (BracketHandlerEntry entry : it.getEntriesLocal()) {
                     entry.getFirst("_id").ifPresent(id -> searcher.put(id, entry));
                     entry.getFirst("_name").ifPresent(name -> searcher.put(name, entry));
                 }
                 return searcher;
-            }).search(text).stream();
-        }
-
-        Stream<BracketHandlerEntry> completeEnglishBracketHandlers(BracketHandlerService service, String text) {
-            return service.getEntriesLocal().stream()
-                    .filter(entry -> TextSimilarity.isSubsequence(text, entry.getFirst("_id").orElse("")));
+            }).search(text).stream().map(this::createCompletionItem).forEach(this::addToCompletionList);
         }
 
         void completeMemberAccessSnippets(Type type, MemberAccessExprContext ctx) {
@@ -631,15 +644,15 @@ public final class CompletionProvider {
             if (symbol instanceof Executable executable) {
                 CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
                 String parameterList = executable.getParameterList().stream()
-                        .map(param -> param.getName() + " as " + param.getType())
+                        .map(param -> param.getName() + " as " + param.getType().getSimpleTypeName())
                         .collect(Collectors.joining(", ", "(", ")"));
-                String returnType = executable.getReturnType().toString();
+                String returnType = executable.getReturnType().getSimpleTypeName();
                 labelDetails.setDetail(parameterList);
                 labelDetails.setDescription(returnType);
                 return labelDetails;
             } else {
                 CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
-                String type = symbol.getType().toString();
+                String type = symbol.getType().getSimpleTypeName();
                 labelDetails.setDescription(type);
                 return labelDetails;
             }
