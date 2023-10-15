@@ -14,7 +14,6 @@ import raylras.zen.lsp.provider.data.Snippet;
 import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.Compilations;
 import raylras.zen.model.Visitor;
-import raylras.zen.model.parser.ZenScriptParser;
 import raylras.zen.model.parser.ZenScriptParser.*;
 import raylras.zen.model.resolve.TypeResolver;
 import raylras.zen.model.scope.Scope;
@@ -75,46 +74,44 @@ public final class CompletionProvider {
             // import text|
             // ^^^^^^ ____
             if (containsLeading(ctx.IMPORT())) {
-                completeImports();
+                appendImports();
                 return null;
             }
 
             // import foo.|
             //        ^^^_
             if (tailing instanceof ErrorNode && ".".equals(text)) {
-                completeImports();
+                appendImports();
                 return null;
             }
 
             // import foo.text|
             //           ^____
             if (containsLeading(ctx.qualifiedName().DOT())) {
-                String text = getTextUntilCursor(ctx.qualifiedName());
-                completeImports();
+                appendImports();
                 return null;
             }
 
             // import foo.|bar
             //        ^^^_
             if (containsTailing(ctx.qualifiedName().DOT())) {
-                String text = getTextUntilCursor(ctx.qualifiedName());
-                completeImports();
+                appendImports();
                 return null;
             }
 
             // import foo.bar text|
             //            ^^^ ____
             if (containsLeading(ctx.qualifiedName()) && !containsTailing(ctx.qualifiedName())) {
-                completeKeywords(Keywords.AS);
+                appendKeywords(Keywords.AS);
                 return null;
             }
 
             // import foo.bar; text|
             //               ^ ____
             if (containsLeading(ctx.SEMICOLON())) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
-                completeKeywords(Keywords.TOPLEVEL_STATEMENT);
+                appendLocalSymbols();
+                appendGlobalSymbols();
+                appendKeywords(Keywords.TOPLEVEL_STATEMENT);
                 return null;
             }
 
@@ -126,14 +123,14 @@ public final class CompletionProvider {
             // name text|
             // ^^^^ ____
             if (containsLeading(ctx.simpleName())) {
-                completeKeywords(Keywords.AS);
+                appendKeywords(Keywords.AS);
                 return null;
             }
 
             // name as text|
             //      ^^ ____
             if (containsLeading(ctx.AS())) {
-                completeTypes();
+                appendTypeNames();
                 return null;
             }
 
@@ -145,9 +142,9 @@ public final class CompletionProvider {
             // { text| }
             // ^ ____
             if (containsLeading(ctx.BRACE_OPEN())) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
-                completeKeywords(Keywords.STATEMENT);
+                appendLocalSymbols();
+                appendGlobalSymbols();
+                appendKeywords(Keywords.STATEMENT);
                 return null;
             }
 
@@ -160,16 +157,16 @@ public final class CompletionProvider {
             // { } text|
             //   ^ ____
             if (containsLeading(ctx.BRACE_CLOSE())) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
-                completeKeywords(Keywords.CLASS_BODY);
+                appendLocalSymbols();
+                appendGlobalSymbols();
+                appendKeywords(Keywords.CLASS_BODY);
                 return null;
             }
 
             // { text| }
             // ^ ____
             if (containsLeading(ctx.BRACE_OPEN())) {
-                completeKeywords(Keywords.CLASS_BODY);
+                appendKeywords(Keywords.CLASS_BODY);
                 return null;
             }
 
@@ -182,7 +179,7 @@ public final class CompletionProvider {
             // } text|    ; test|    expr text|
             // ^ ____     ^ ____     ^^^^ ____
             if (containsLeading(ctx.stop)) {
-                completeKeywords(Keywords.CLASS_BODY);
+                appendKeywords(Keywords.CLASS_BODY);
                 return null;
             }
 
@@ -195,31 +192,31 @@ public final class CompletionProvider {
             // var name text|
             //     ^^^^ ____
             if (containsLeading(ctx.simpleName())) {
-                completeKeywords(Keywords.AS);
+                appendKeywords(Keywords.AS);
                 return null;
             }
 
             // var name as text|
             //          ^^ ____
             if (containsLeading(ctx.AS())) {
-                completeTypes();
+                appendTypeNames();
                 return null;
             }
 
             // var name as type = text|
             //                  ^ ____
             if (containsLeading(ctx.ASSIGN())) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
+                appendLocalSymbols();
+                appendGlobalSymbols();
                 return null;
             }
 
             // var name; text|
             //         ^ ____
             if (containsLeading(ctx.SEMICOLON())) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
-                completeKeywords(Keywords.STATEMENT);
+                appendLocalSymbols();
+                appendGlobalSymbols();
+                appendKeywords(Keywords.STATEMENT);
                 return null;
             }
 
@@ -232,18 +229,18 @@ public final class CompletionProvider {
             // { text| }
             // ^ ____
             if (containsLeading(ctx.BRACE_OPEN())) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
-                completeKeywords(Keywords.STATEMENT);
+                appendLocalSymbols();
+                appendGlobalSymbols();
+                appendKeywords(Keywords.STATEMENT);
                 return null;
             }
 
             // { } text|
             //   ^ ____
             if (containsLeading(ctx.BRACE_CLOSE())) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
-                completeKeywords(Keywords.STATEMENT);
+                appendLocalSymbols();
+                appendGlobalSymbols();
+                appendKeywords(Keywords.STATEMENT);
                 return null;
             }
 
@@ -256,17 +253,17 @@ public final class CompletionProvider {
             // return text|
             // ^^^^^^ ____
             if (containsLeading(ctx.RETURN())) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
+                appendLocalSymbols();
+                appendGlobalSymbols();
                 return null;
             }
 
             // return; text|
             //       ^ ____
             if (containsLeading(ctx.SEMICOLON())) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
-                completeKeywords(Keywords.STATEMENT);
+                appendLocalSymbols();
+                appendGlobalSymbols();
+                appendKeywords(Keywords.STATEMENT);
                 return null;
             }
 
@@ -279,8 +276,8 @@ public final class CompletionProvider {
             // if text|
             // ^^ ____
             if (containsLeading(ctx.IF())) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
+                appendLocalSymbols();
+                appendGlobalSymbols();
                 return null;
             }
 
@@ -293,18 +290,18 @@ public final class CompletionProvider {
             // { text| }
             // ^ ____
             if (containsLeading(ctx.BRACE_OPEN())) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
-                completeKeywords(Keywords.STATEMENT);
+                appendLocalSymbols();
+                appendGlobalSymbols();
+                appendKeywords(Keywords.STATEMENT);
                 return null;
             }
 
             // { } text|
             //   ^ ____
             if (containsLeading(ctx.BRACE_CLOSE())) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
-                completeKeywords(Keywords.STATEMENT);
+                appendLocalSymbols();
+                appendGlobalSymbols();
+                appendKeywords(Keywords.STATEMENT);
                 return null;
             }
 
@@ -317,16 +314,16 @@ public final class CompletionProvider {
             // while (|)
             // ^^^^^ _
             if (containsLeading(ctx.WHILE())) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
+                appendLocalSymbols();
+                appendGlobalSymbols();
                 return null;
             }
 
             // while (text|)
             //       ^____
             if (containsLeading(ctx.PAREN_OPEN())) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
+                appendLocalSymbols();
+                appendGlobalSymbols();
                 return null;
             }
 
@@ -339,18 +336,18 @@ public final class CompletionProvider {
             // text|
             // ____
             if (ctx.expression() instanceof SimpleNameExprContext && containsTailing(ctx.expression())) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
-                completeKeywords(Keywords.STATEMENT);
+                appendLocalSymbols();
+                appendGlobalSymbols();
+                appendKeywords(Keywords.STATEMENT);
                 return null;
             }
 
             // expr; text|
             //     ^ ____
             if (containsLeading(ctx.SEMICOLON())) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
-                completeKeywords(Keywords.STATEMENT);
+                appendLocalSymbols();
+                appendGlobalSymbols();
+                appendKeywords(Keywords.STATEMENT);
                 return null;
             }
 
@@ -363,15 +360,15 @@ public final class CompletionProvider {
             // expr = text|
             //      ^ ____
             if (containsLeading(ctx.op)) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
+                appendLocalSymbols();
+                appendGlobalSymbols();
             }
 
             // expr =|
             // ^^^^ _
             if (!(ctx.left instanceof MemberAccessExprContext) && containsLeading(ctx.left)) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
+                appendLocalSymbols();
+                appendGlobalSymbols();
             }
 
             visitChildren(ctx);
@@ -383,8 +380,8 @@ public final class CompletionProvider {
             // expr + text|
             //      ^ ____
             if (containsLeading(ctx.op)) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
+                appendLocalSymbols();
+                appendGlobalSymbols();
             }
             return null;
         }
@@ -394,8 +391,8 @@ public final class CompletionProvider {
             // (text|)
             // ^____
             if (containsLeading(ctx.PAREN_OPEN())) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
+                appendLocalSymbols();
+                appendGlobalSymbols();
                 return null;
             }
 
@@ -405,7 +402,7 @@ public final class CompletionProvider {
 
         @Override
         public Void visitBracketHandlerExpr(BracketHandlerExprContext ctx) {
-            completeBracketHandlers();
+            appendBracketHandlers();
             return null;
         }
 
@@ -414,8 +411,8 @@ public final class CompletionProvider {
             // !text|
             // ^____
             if (containsLeading(ctx.op)) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
+                appendLocalSymbols();
+                appendGlobalSymbols();
                 return null;
             }
 
@@ -430,8 +427,8 @@ public final class CompletionProvider {
             //     ^____
             if (containsLeading(ctx.DOT())) {
                 TypeResolver.getType(expr, unit).ifPresent(type -> {
-                    completeMembers(type);
-                    completeMemberAccessSnippets(type, ctx);
+                    appendMembers(type);
+                    appendMemberAccessSnippets(type, ctx);
                 });
                 return null;
             }
@@ -440,8 +437,8 @@ public final class CompletionProvider {
             // ^^^^_
             if (containsLeading(expr)) {
                 TypeResolver.getType(expr, unit).ifPresent(type -> {
-                    completeMembers(type);
-                    completeMemberAccessSnippets(type, ctx);
+                    appendMembers(type);
+                    appendMemberAccessSnippets(type, ctx);
                 });
                 return null;
             }
@@ -455,16 +452,16 @@ public final class CompletionProvider {
             // expr(text|)
             //     ^____
             if (containsLeading(ctx.PAREN_OPEN())) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
+                appendLocalSymbols();
+                appendGlobalSymbols();
                 return null;
             }
 
             // expr(expr,|)
             //          ^
             if (leading instanceof ErrorNode) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
+                appendLocalSymbols();
+                appendGlobalSymbols();
                 return null;
             }
 
@@ -473,20 +470,20 @@ public final class CompletionProvider {
         }
 
         @Override
-        public Void visitExpressionList(ZenScriptParser.ExpressionListContext ctx) {
+        public Void visitExpressionList(ExpressionListContext ctx) {
             // expr, text|
             //     ^ ____
             if (containsLeading(ctx.COMMA())) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
+                appendLocalSymbols();
+                appendGlobalSymbols();
                 return null;
             }
 
             // expr,|
             // ^^^^_
             if (containsTailing(ctx.COMMA())) {
-                completeLocalSymbols();
-                completeGlobalSymbols();
+                appendLocalSymbols();
+                appendGlobalSymbols();
                 return null;
             }
 
@@ -553,17 +550,11 @@ public final class CompletionProvider {
             return "";
         }
 
-        void completeImports() {
-            // FIXME: completeImports
-            //            PackageTree<ClassType> tree = PackageTree.of(".", unit.getEnv().getClassTypeMap());
-            //            tree.complete(text).forEach((key, subTree) -> {
-            //                CompletionItem item = new CompletionItem(key);
-            //                item.setKind(subTree.hasElement() ? CompletionItemKind.Class : CompletionItemKind.Module);
-            //                addToCompletionList(item);
-            //            });
+        void appendImports() {
+            // FIXME: appendImports
         }
 
-        void completeLocalSymbols() {
+        void appendLocalSymbols() {
             Scope scope = Compilations.lookupScope(unit, tailing).orElse(null);
             while (scope != null) {
                 scope.getSymbols().stream()
@@ -573,13 +564,13 @@ public final class CompletionProvider {
             }
         }
 
-        void completeGlobalSymbols() {
+        void appendGlobalSymbols() {
             unit.getEnv().getGlobals()
                     .map(this::createCompletionItem)
                     .forEach(this::addToCompletionList);
         }
 
-        void completeMembers(Type type) {
+        void appendMembers(Type type) {
             if (type instanceof SymbolProvider provider) {
                 provider.withExpands(unit.getEnv()).getSymbols().stream()
                         .filter(this::shouldCreateCompletionItem)
@@ -588,35 +579,35 @@ public final class CompletionProvider {
             }
         }
 
-        void completeTypes() {
+        void appendTypeNames() {
             unit.getImports().stream()
                     .map(this::createCompletionItem)
                     .forEach(this::addToCompletionList);
         }
 
-        void completeKeywords(String... keywords) {
+        void appendKeywords(String... keywords) {
             for (String keyword : keywords) {
                 addToCompletionList(createCompletionItem(keyword));
             }
         }
 
-        void completeBracketHandlers() {
+        void appendBracketHandlers() {
             BracketHandlerService bracketService = unit.getEnv().getBracketHandlerService();
             bracketService.getEntriesLocal().stream()
                     .map(this::createCompletionItem)
                     .forEach(this::addToCompletionList);
         }
 
-        void completeMemberAccessSnippets(Type type, MemberAccessExprContext ctx) {
-            completeSnippet(Snippet.dotFor(type, unit.getEnv(), ctx));
-            completeSnippet(Snippet.dotForI(type, unit.getEnv(), ctx));
-            completeSnippet(Snippet.dotIfNull(type, ctx));
-            completeSnippet(Snippet.dotIfNotNull(type, ctx));
-            completeSnippet(Snippet.dotVal(ctx));
-            completeSnippet(Snippet.dotVar(ctx));
+        void appendMemberAccessSnippets(Type type, MemberAccessExprContext ctx) {
+            appendSnippet(Snippet.dotFor(type, unit.getEnv(), ctx));
+            appendSnippet(Snippet.dotForI(type, unit.getEnv(), ctx));
+            appendSnippet(Snippet.dotIfNull(type, ctx));
+            appendSnippet(Snippet.dotIfNotNull(type, ctx));
+            appendSnippet(Snippet.dotVal(ctx));
+            appendSnippet(Snippet.dotVar(ctx));
         }
 
-        void completeSnippet(Snippet snippet) {
+        void appendSnippet(Snippet snippet) {
             CompletionItem item = snippet.get();
             if (item != null) {
                 item.setKind(CompletionItemKind.Snippet);
