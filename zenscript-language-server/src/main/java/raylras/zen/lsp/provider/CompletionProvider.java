@@ -8,7 +8,6 @@ import org.antlr.v4.runtime.tree.TerminalNode;
 import org.eclipse.lsp4j.*;
 import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import raylras.zen.bracket.BracketHandlerEntry;
-import raylras.zen.bracket.BracketHandlerService;
 import raylras.zen.lsp.provider.data.Keywords;
 import raylras.zen.lsp.provider.data.Snippet;
 import raylras.zen.model.CompilationUnit;
@@ -28,6 +27,7 @@ import raylras.zen.util.Ranges;
 import raylras.zen.util.l10n.L10N;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -203,11 +203,18 @@ public final class CompletionProvider {
                 return null;
             }
 
-            // var name as type = text|
-            //                  ^ ____
-            if (containsLeading(ctx.ASSIGN())) {
+            // var name as type =|
+            //                  ^
+            if (containsLeading(ctx.ASSIGN()) && !containsTailing(ctx.initializer())) {
                 appendLocalSymbols();
                 appendGlobalSymbols();
+                return null;
+            }
+
+            // var name as type = text|
+            //                  ^ ____
+            if (containsLeading(ctx.ASSIGN()) && containsTailing(ctx.initializer())) {
+                visit(ctx.initializer());
                 return null;
             }
 
@@ -376,6 +383,13 @@ public final class CompletionProvider {
         }
 
         @Override
+        public Void visitSimpleNameExpr(SimpleNameExprContext ctx) {
+            appendLocalSymbols();
+            appendGlobalSymbols();
+            return null;
+        }
+
+        @Override
         public Void visitBinaryExpr(BinaryExprContext ctx) {
             // expr + text|
             //      ^ ____
@@ -402,7 +416,20 @@ public final class CompletionProvider {
 
         @Override
         public Void visitBracketHandlerExpr(BracketHandlerExprContext ctx) {
-            appendBracketHandlers();
+            // <|
+            // _
+            if (containsTailing(ctx.LESS())) {
+                appendBracketHandlers();
+                return null;
+            }
+
+            // <text|
+            // ^____
+            if (containsLeading(ctx.LESS()) && containsTailing(ctx.raw())) {
+                appendBracketHandlers();
+                return null;
+            }
+
             return null;
         }
 
@@ -416,6 +443,26 @@ public final class CompletionProvider {
                 return null;
             }
 
+            return null;
+        }
+
+        @Override
+        public Void visitTernaryExpr(TernaryExprContext ctx) {
+            // expr ? text|
+            //      ^ ____
+            if (containsLeading(ctx.QUEST())) {
+                visit(ctx.truePart);
+                return null;
+            }
+
+            // expr ? expr : text|
+            //             ^ ____
+            if (containsLeading(ctx.COLON())) {
+                visit(ctx.falsePart);
+                return null;
+            }
+
+            visitChildren(ctx);
             return null;
         }
 
@@ -592,10 +639,31 @@ public final class CompletionProvider {
         }
 
         void appendBracketHandlers() {
-            BracketHandlerService bracketService = unit.getEnv().getBracketHandlerService();
-            bracketService.getEntriesLocal().stream()
-                    .map(this::createCompletionItem)
-                    .forEach(this::addToCompletionList);
+            Collection<BracketHandlerEntry> entries = unit.getEnv().getBracketHandlerService().getEntriesLocal();
+            entries.forEach(entry -> entry.getFirst("_id").ifPresent(id -> {
+                CompletionItem item = new CompletionItem();
+                item.setLabel(id);
+                item.setKind(CompletionItemKind.Value);
+                item.setInsertText(id + '>');
+                entry.getFirst("_name").ifPresent(name -> {
+                    CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
+                    labelDetails.setDescription(name);
+                    item.setLabelDetails(labelDetails);
+                });
+                addToCompletionList(item);
+            }));
+            entries.forEach(entry -> entry.getFirst("_name").ifPresent(name -> {
+                CompletionItem item = new CompletionItem();
+                item.setLabel(name);
+                item.setKind(CompletionItemKind.Value);
+                entry.getFirst("_id").ifPresent(id -> {
+                    item.setInsertText(id + '>');
+                    CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
+                    labelDetails.setDescription(id);
+                    item.setLabelDetails(labelDetails);
+                    addToCompletionList(item);
+                });
+            }));
         }
 
         void appendMemberAccessSnippets(Type type, MemberAccessExprContext ctx) {
@@ -641,16 +709,6 @@ public final class CompletionProvider {
             CompletionItem item = new CompletionItem(keyword);
             item.setDetail(L10N.getString("completion.keyword"));
             item.setKind(CompletionItemKind.Keyword);
-            return item;
-        }
-
-        CompletionItem createCompletionItem(BracketHandlerEntry entry) {
-            CompletionItem item = new CompletionItem(entry.getFirst("_id").orElse(null));
-            item.setKind(CompletionItemKind.Value);
-            CompletionItemLabelDetails labelDetails = new CompletionItemLabelDetails();
-            labelDetails.setDescription(entry.getFirst("_name").orElse(""));
-            item.setLabelDetails(labelDetails);
-            item.setSortText(labelDetails.getDescription());
             return item;
         }
 
