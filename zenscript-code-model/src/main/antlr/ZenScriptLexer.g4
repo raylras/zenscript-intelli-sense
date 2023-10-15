@@ -162,4 +162,4 @@ fragment HexDigit: [0-9a-fA-F];
 
 fragment LetterOrDigit: Letter | [0-9];
 
-fragment Letter: [a-zA-Z_];
+fragment Letter: [a-zA-Z_\u4E00-\u9FFF];
