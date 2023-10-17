@@ -40,7 +40,7 @@ public class Executables {
 
     public static Executable findBestMatch(List<Executable> functions, List<Type> argumentTypeList, CompilationEnvironment env) {
         return functions.stream()
-                .min(Comparator.comparing(it -> matchArguments(it, argumentTypeList, env), SubtypeResult.PRIORITY_COMPARATOR))
+                .max(Comparator.comparing(it -> matchArguments(it, argumentTypeList, env), SubtypeResult.PRIORITY_COMPARATOR))
                 .orElse(null);
     }
 
@@ -58,7 +58,7 @@ public class Executables {
                 Type paramType = parameterList.get(i).getType();
                 functionMatchingResult = SubtypeResult.higher(functionMatchingResult, Types.test(argType, paramType, env));
             }
-            if (functionMatchingResult.getPriority() < foundMatchingResult.getPriority()) {
+            if (functionMatchingResult.getPriority() > foundMatchingResult.getPriority()) {
                 found = parameterList.get(argumentTypes.size()).getType();
                 foundMatchingResult = functionMatchingResult;
             }

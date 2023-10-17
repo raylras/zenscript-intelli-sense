@@ -33,13 +33,13 @@ public class Operators {
 
     public static Optional<Type> getBinaryResult(Type type, Operator operator, CompilationEnvironment env, Type rightType) {
         return find(type, env, operator).stream()
-                .min(Comparator.comparing(it -> Types.test(rightType, it.getParameterList().get(0).getType(), env), SubtypeResult.PRIORITY_COMPARATOR))
+                .max(Comparator.comparing(it -> Types.test(rightType, it.getParameterList().get(0).getType(), env), SubtypeResult.PRIORITY_COMPARATOR))
                 .map(OperatorFunctionSymbol::getReturnType);
     }
 
     public static Optional<Type> getTrinaryResult(Type type, Operator operator, CompilationEnvironment env, Type rightType1, Type rightType2) {
         return find(type, env, operator).stream()
-                .min(Comparator.comparing(it -> {
+                .max(Comparator.comparing(it -> {
                     List<ParameterSymbol> parameterList = it.getParameterList();
                     return SubtypeResult.higher(Types.test(rightType1, parameterList.get(0).getType(), env), Types.test(rightType2, parameterList.get(1).getType(), env));
                 }, SubtypeResult.PRIORITY_COMPARATOR))
@@ -50,7 +50,7 @@ public class Operators {
         return symbols.stream()
                 .filter(it -> it instanceof OperatorFunctionSymbol)
                 .map(it -> (OperatorFunctionSymbol) it)
-                .min(Comparator.comparing(it -> Types.test(rightType, it.getParameterList().get(0).getType(), env), SubtypeResult.PRIORITY_COMPARATOR));
+                .max(Comparator.comparing(it -> Types.test(rightType, it.getParameterList().get(0).getType(), env), SubtypeResult.PRIORITY_COMPARATOR));
     }
 
     public static boolean hasCaster(Type source, Type target, CompilationEnvironment env) {
