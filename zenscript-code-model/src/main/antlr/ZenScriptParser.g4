@@ -29,7 +29,6 @@ alias
 simpleName
     : IDENTIFIER
     | 'to'
-    | 'version'
     | 'extends'  // dzs
     | 'operator' // dzs
     | 'for_in'   // dzs
@@ -169,7 +168,6 @@ statement
     | whileStatement
     | variableDeclaration
     | expressionStatement
-    | versionStatement
     ;
 
 blockStatement
@@ -204,10 +202,6 @@ foreachStatement
     : 'for' foreachVariableList 'in' expression foreachBody
     ;
 
-versionStatement
-    : 'version' INT_LITERAL ';'
-    ;
-
 foreachVariableList
     : foreachVariable (',' foreachVariable)*
     ;
@@ -234,7 +228,7 @@ expression
     : 'this'  #thisExpr
 
     // ParsedExpression.java: L308-L453
-    | literal     #literalExpr
+    | literal=(TRUE | FALSE | NULL | DECIMAL_LITERAL | HEX_LITERAL | FLOAT_LITERAL | STRING_LITERAL)  #literalExpr
     | simpleName  #simpleNameExpr
     | 'function' '(' formalParameterList ')' ('as' typeLiteral)? functionBody  #functionExpr
     | '<' raw '>'                  #bracketHandlerExpr
@@ -257,17 +251,6 @@ expression
     | left=expression op=('||' | '&&') right=expression                      #logicExpr
     | condition=expression '?' truePart=expression ':' falsePart=expression  #ternaryExpr
     | <assoc=right> left=expression op=('=' | '+=' | '-=' | '~=' | '*=' | '/=' | '%=' | '|=' | '&=' | '^=') right=expression  #assignmentExpr
-    ;
-
-literal
-    : INT_LITERAL
-    | LONG_LITERAL
-    | FLOAT_LITERAL
-    | DOUBLE_LITERAL
-    | STRING_LITERAL
-    | TRUE_LITERAL
-    | FALSE_LITERAL
-    | NULL_LITERAL
     ;
 
 raw

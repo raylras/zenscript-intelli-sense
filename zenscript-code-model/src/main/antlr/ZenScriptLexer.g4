@@ -6,8 +6,6 @@ channels {
     PREPROCESSOR_CHANNEL
 }
 
-// Keywords
-
 VAR:                    'var';
 VAL:                    'val';
 GLOBAL:                 'global';
@@ -20,7 +18,17 @@ IN:                     'in';
 HAS:                    'has';
 INSTANCEOF:             'instanceof';
 THIS:                   'this';
-VERSION:                'version';
+ZEN_CLASS:              'zenClass';
+ZEN_CONSTRUCTOR:        'zenConstructor';
+EXPAND:                 '$expand';
+
+IF:                     'if';
+ELSE:                   'else';
+FOR:                    'for';
+WHILE:                  'while';
+BREAK:                  'break';
+CONTINUE:               'continue';
+RETURN:                 'return';
 
 ANY:                    'any';
 BYTE:                   'byte';
@@ -33,28 +41,14 @@ BOOL:                   'bool';
 VOID:                   'void';
 STRING:                 'string';
 
-IF:                     'if';
-ELSE:                   'else';
-FOR:                    'for';
-DO:                     'do';
-WHILE:                  'while';
-BREAK:                  'break';
-CONTINUE:               'continue';
-RETURN:                 'return';
-
-FRIGGIN_CLASS:          'frigginClass';
-FRIGGIN_CONSTRUCTOR:    'frigginConstructor';
-ZEN_CLASS:              'zenClass';
-ZEN_CONSTRUCTOR:        'zenConstructor';
-EXPAND:                 '$expand';
+TRUE:                   'true';
+FALSE:                  'false';
+NULL:                   'null';
 
 EXTENDS:                'extends';  // dzs
 OPERATOR:               'operator'; // dzs
 FOR_IN:                 'for_in';   // dzs
-
 ORDERLY:                'orderly';  // zenutils
-
-// Separators
 
 PAREN_OPEN:             '(';
 PAREN_CLOSE:            ')';
@@ -66,21 +60,18 @@ COMMA:                  ',';
 DOT:                    '.';
 SEMICOLON:              ';';
 
-// Operators
-
 ADD:                    '+';
 SUB:                    '-';
 MUL:                    '*';
 DIV:                    '/';
 MOD:                    '%';
-CAT:                    '~';
+CONCAT:                 '~';
 NOT:                    '!';
-LESS:                   '<';
-GREATER:                '>';
+LESS_THEN:              '<';
+GREATER_THEN:           '>';
 XOR:                    '^';
 COLON:                  ':';
-QUEST:                  '?';
-BACKTICK:               '`';
+QUESTION:               '?';
 DOLLAR:                 '$';
 AND:                    '&';
 OR:                     '|';
@@ -100,57 +91,35 @@ MOD_ASSIGN:             '%=';
 XOR_ASSIGN:             '^=';
 AND_ASSIGN:             '&=';
 OR_ASSIGN:              '|=';
-CAT_ASSIGN:             '~=';
+CONCAT_ASSIGN:          '~=';
 DOT_DOT:                '..';
 DOT_DOT_DOT:            '...'; // dzs
 
-// Literal
+DECIMAL_LITERAL: ('0' | [1-9] Digits?) [lL]?;
 
-INT_LITERAL: ('0' | [1-9] [0-9]* ) | ('0' [xX] HexDigits);
+// Not the usual design, just the way the source code is
+HEX_LITERAL: '0x' HexDigits?; // potential issue
+// Usual design
+// HEX_LITERAL: '0' [xX] HexDigits [lL]?
 
-LONG_LITERAL: ('0' | [1-9] [0-9]*) | ('0' [xX] HexDigits) [lL];
-
-FLOAT_LITERAL
-    : Digits '.' Digits ([eE] Digits)? [fF]
-    ;
-
-DOUBLE_LITERAL
-    : Digits '.' Digits ([eE] Digits)? [dD]?
-    ;
-
-TRUE_LITERAL
-    : 'true'
-    ;
-
-FALSE_LITERAL
-    : 'false'
-    ;
-
+FLOAT_LITERAL: Digits '.' Digits ExponentPart? [fFdD]?;
 STRING_LITERAL
-    : '"' (~["\\\r\n] | EscapeSequence)* '"'
-    | '\'' (~["\\\r\n] | EscapeSequence)* '\'';
-
-NULL_LITERAL: 'null';
-
-// Identifier
+    : '"' (~["\\] | EscapeSequence)* '"'
+    | '\'' (~["\\] | EscapeSequence)* '\'';
 
 IDENTIFIER: Letter LetterOrDigit*;
-
-// Whitespace and comments
 
 WHITE_SPACE: [ \t\r\n]+ -> channel(WHITE_SPACE_CHANNEL);
 BLOCK_COMMENT: '/*' .*? '*/' -> channel(COMMENTS_CHANNEL);
 LINE_COMMENT: '//' ~[\r\n]* -> channel(COMMENTS_CHANNEL);
-Preprocessor: '#' ~[\r\n]* -> channel(PREPROCESSOR_CHANNEL);
-
-// Fragments
+PREPROCESSOR: '#' ~[\r\n]* -> channel(PREPROCESSOR_CHANNEL);
 
 fragment EscapeSequence
     : '\\' [btnfr"'\\]
-    | UnicodeCharacter
+    | '\\' [uU] HexDigit HexDigit HexDigit HexDigit
     ;
 
-fragment UnicodeCharacter: '\\'[uU] HexDigit HexDigit HexDigit HexDigit;
+fragment ExponentPart: [eE] [+-]? Digits;
 
 fragment Digits: Digit+;
 

@@ -3,12 +3,12 @@ package raylras.zen.model.resolve;
 import org.antlr.v4.runtime.Token;
 import org.antlr.v4.runtime.tree.ParseTree;
 import raylras.zen.model.Visitor;
-import raylras.zen.model.parser.ZenScriptLexer;
-import raylras.zen.model.parser.ZenScriptParser.*;
 import raylras.zen.model.symbol.Symbol.Modifier;
 import raylras.zen.util.CSTNodes;
 
 import java.util.Optional;
+
+import static raylras.zen.model.parser.ZenScriptParser.*;
 
 public final class ModifierResolver {
 
@@ -21,11 +21,11 @@ public final class ModifierResolver {
 
     private static Modifier toModifier(Token token) {
         return switch (CSTNodes.getTokenType(token)) {
-            case ZenScriptLexer.VAR -> Modifier.VAR;
-            case ZenScriptLexer.VAL -> Modifier.VAL;
-            case ZenScriptLexer.STATIC -> Modifier.STATIC;
-            case ZenScriptLexer.GLOBAL -> Modifier.GLOBAL;
-            case ZenScriptLexer.EXPAND -> Modifier.EXPAND;
+            case VAR -> Modifier.VAR;
+            case VAL -> Modifier.VAL;
+            case STATIC -> Modifier.STATIC;
+            case GLOBAL -> Modifier.GLOBAL;
+            case EXPAND -> Modifier.EXPAND;
             default -> Modifier.NONE;
         };
     }

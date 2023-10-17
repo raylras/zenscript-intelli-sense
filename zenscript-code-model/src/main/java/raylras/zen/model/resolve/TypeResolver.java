@@ -6,8 +6,6 @@ import org.antlr.v4.runtime.tree.RuleNode;
 import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.Compilations;
 import raylras.zen.model.Visitor;
-import raylras.zen.model.parser.ZenScriptLexer;
-import raylras.zen.model.parser.ZenScriptParser.*;
 import raylras.zen.model.symbol.*;
 import raylras.zen.model.type.*;
 import raylras.zen.util.CSTNodes;
@@ -18,6 +16,8 @@ import raylras.zen.util.Symbols;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static raylras.zen.model.parser.ZenScriptParser.*;
 
 public final class TypeResolver {
 
@@ -132,14 +132,6 @@ public final class TypeResolver {
             List<Type> paramTypes = toTypeList(ctx.formalParameterList());
             Type returnType = visit(ctx.returnType());
             return new FunctionType(returnType, paramTypes);
-        }
-
-        @Override
-        public Type visitIntersectionType(IntersectionTypeContext ctx) {
-            List<Type> types = ctx.typeLiteral().stream()
-                    .map(this::visit)
-                    .toList();
-            return new IntersectionType(types);
         }
 
         @Override
@@ -273,14 +265,27 @@ public final class TypeResolver {
 
         @Override
         public Type visitLiteralExpr(LiteralExprContext ctx) {
-            return switch (CSTNodes.getTokenType(ctx.start)) {
-                case ZenScriptLexer.INT_LITERAL -> IntType.INSTANCE;
-                case ZenScriptLexer.LONG_LITERAL -> LongType.INSTANCE;
-                case ZenScriptLexer.FLOAT_LITERAL -> FloatType.INSTANCE;
-                case ZenScriptLexer.DOUBLE_LITERAL -> DoubleType.INSTANCE;
-                case ZenScriptLexer.STRING_LITERAL -> StringType.INSTANCE;
-                case ZenScriptLexer.TRUE_LITERAL, ZenScriptLexer.FALSE_LITERAL -> BoolType.INSTANCE;
-                case ZenScriptLexer.NULL_LITERAL -> AnyType.INSTANCE;
+            return switch (CSTNodes.getTokenType(ctx.literal)) {
+                case DECIMAL_LITERAL -> {
+                    String literal = ctx.literal.getText();
+                    char last = literal.charAt(literal.length() - 1);
+                    yield switch (last) {
+                        case 'l', 'L' -> LongType.INSTANCE;
+                        default -> IntType.INSTANCE;
+                    };
+                }
+                case FLOAT_LITERAL -> {
+                    String literal = ctx.literal.getText();
+                    char last = literal.charAt(literal.length() - 1);
+                    yield switch (last) {
+                        case 'f', 'F' -> FloatType.INSTANCE;
+                        default -> DoubleType.INSTANCE;
+                    };
+                }
+                case HEX_LITERAL -> IntType.INSTANCE;
+                case STRING_LITERAL -> StringType.INSTANCE;
+                case TRUE, FALSE -> BoolType.INSTANCE;
+                case NULL -> AnyType.INSTANCE;
                 default -> null;
             };
         }
@@ -371,6 +376,14 @@ public final class TypeResolver {
         }
 
         @Override
+        public Type visitIntersectionType(IntersectionTypeContext ctx) {
+            List<Type> types = ctx.typeLiteral().stream()
+                    .map(this::visit)
+                    .toList();
+            return new IntersectionType(types);
+        }
+
+        @Override
         public Type visitMapType(MapTypeContext ctx) {
             Type keyType = visit(ctx.key);
             Type valueType = visit(ctx.value);
@@ -393,16 +406,16 @@ public final class TypeResolver {
         @Override
         public Type visitPrimitiveType(PrimitiveTypeContext ctx) {
             return switch (CSTNodes.getTokenType(ctx.start)) {
-                case ZenScriptLexer.ANY -> AnyType.INSTANCE;
-                case ZenScriptLexer.BYTE -> ByteType.INSTANCE;
-                case ZenScriptLexer.SHORT -> ShortType.INSTANCE;
-                case ZenScriptLexer.INT -> IntType.INSTANCE;
-                case ZenScriptLexer.LONG -> LongType.INSTANCE;
-                case ZenScriptLexer.FLOAT -> FloatType.INSTANCE;
-                case ZenScriptLexer.DOUBLE -> DoubleType.INSTANCE;
-                case ZenScriptLexer.BOOL -> BoolType.INSTANCE;
-                case ZenScriptLexer.VOID -> VoidType.INSTANCE;
-                case ZenScriptLexer.STRING -> StringType.INSTANCE;
+                case ANY -> AnyType.INSTANCE;
+                case BYTE -> ByteType.INSTANCE;
+                case SHORT -> ShortType.INSTANCE;
+                case INT -> IntType.INSTANCE;
+                case LONG -> LongType.INSTANCE;
+                case FLOAT -> FloatType.INSTANCE;
+                case DOUBLE -> DoubleType.INSTANCE;
+                case BOOL -> BoolType.INSTANCE;
+                case VOID -> VoidType.INSTANCE;
+                case STRING -> StringType.INSTANCE;
                 default -> null;
             };
         }

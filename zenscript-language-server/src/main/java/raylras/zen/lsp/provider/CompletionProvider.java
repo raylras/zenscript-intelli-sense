@@ -418,14 +418,14 @@ public final class CompletionProvider {
         public Void visitBracketHandlerExpr(BracketHandlerExprContext ctx) {
             // <|
             // _
-            if (containsTailing(ctx.LESS())) {
+            if (containsTailing(ctx.LESS_THEN())) {
                 appendBracketHandlers();
                 return null;
             }
 
             // <text|
             // ^____
-            if (containsLeading(ctx.LESS()) && containsTailing(ctx.raw())) {
+            if (containsLeading(ctx.LESS_THEN()) && containsTailing(ctx.raw())) {
                 appendBracketHandlers();
                 return null;
             }
@@ -450,7 +450,7 @@ public final class CompletionProvider {
         public Void visitTernaryExpr(TernaryExprContext ctx) {
             // expr ? text|
             //      ^ ____
-            if (containsLeading(ctx.QUEST())) {
+            if (containsLeading(ctx.QUESTION())) {
                 visit(ctx.truePart);
                 return null;
             }
