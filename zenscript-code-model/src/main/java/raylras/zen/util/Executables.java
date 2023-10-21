@@ -23,13 +23,13 @@ public class Executables {
         int argSize = argumentTypeList.size();
         for (int i = 0; i < Math.max(paramSize, argSize); i++) {
             if (i < paramSize && i < argSize) {
-                functionMatchingResult = SubtypeResult.higher(functionMatchingResult, Types.test(argumentTypeList.get(i), parameterList.get(i).getType(), env));
+                functionMatchingResult = SubtypeResult.lower(functionMatchingResult, Types.test(argumentTypeList.get(i), parameterList.get(i).getType(), env));
             } else if (i > argSize) {
-                functionMatchingResult = SubtypeResult.higher(functionMatchingResult, parameterList.get(i).isOptional() ? SubtypeResult.SELF : SubtypeResult.MISMATCH);
+                functionMatchingResult = SubtypeResult.lower(functionMatchingResult, parameterList.get(i).isOptional() ? SubtypeResult.SELF : SubtypeResult.MISMATCH);
             } else if (i > paramSize) {
                 ParameterSymbol lastParameter = parameterList.get(parameterList.size() - 1);
                 if (lastParameter.isVararg()) {
-                    functionMatchingResult = SubtypeResult.higher(functionMatchingResult, Types.test(argumentTypeList.get(i), lastParameter.getType(), env));
+                    functionMatchingResult = SubtypeResult.lower(functionMatchingResult, Types.test(argumentTypeList.get(i), lastParameter.getType(), env));
                 } else {
                     functionMatchingResult = SubtypeResult.MISMATCH;
                 }
@@ -56,7 +56,7 @@ public class Executables {
             for (int i = 0; i < argumentTypes.size(); i++) {
                 Type argType = argumentTypes.get(i);
                 Type paramType = parameterList.get(i).getType();
-                functionMatchingResult = SubtypeResult.higher(functionMatchingResult, Types.test(argType, paramType, env));
+                functionMatchingResult = SubtypeResult.lower(functionMatchingResult, Types.test(argType, paramType, env));
             }
             if (functionMatchingResult.getPriority() > foundMatchingResult.getPriority()) {
                 found = parameterList.get(argumentTypes.size()).getType();

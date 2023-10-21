@@ -41,7 +41,7 @@ public class Operators {
         return find(type, env, operator).stream()
                 .max(Comparator.comparing(it -> {
                     List<ParameterSymbol> parameterList = it.getParameterList();
-                    return SubtypeResult.higher(Types.test(rightType1, parameterList.get(0).getType(), env), Types.test(rightType2, parameterList.get(1).getType(), env));
+                    return SubtypeResult.lower(Types.test(rightType1, parameterList.get(0).getType(), env), Types.test(rightType2, parameterList.get(1).getType(), env));
                 }, SubtypeResult.PRIORITY_COMPARATOR))
                 .map(OperatorFunctionSymbol::getReturnType);
     }
