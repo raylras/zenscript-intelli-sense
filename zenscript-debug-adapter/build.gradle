@@ -3,10 +3,3 @@ group 'raylras.zen.dap'
 dependencies {
     implementation project(':zenscript-code-model')
 }
-
-distDeps {
-    from (configurations.runtimeClasspath) {
-        include 'org.eclipse.lsp4j-*.jar'
-    }
-    into '../vscode-extension/server'
-}

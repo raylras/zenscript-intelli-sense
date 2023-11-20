@@ -13,23 +13,25 @@ dependencies {
 }
 
 sourceSets {
-    main {
-        java.srcDirs += 'build/generated-src/antlr/main'
-    }
+    main.java.srcDirs += 'src/main/gen/java'
 }
 
 generateGrammarSource {
     maxHeapSize = '64m'
     arguments += ['-visitor', '-listener', '-long-messages', '-package', 'raylras.zen.model.parser']
-    outputDirectory = file('build/generated-src/antlr/main/raylras/zen/model/parser')
+    outputDirectory = file('src/main/gen/java/raylras/zen/model/parser')
 }
 
 distDeps {
-    from (configurations.runtimeClasspath) {
-        include 'antlr4-runtime-*.jar'
-        include 'org.eclipse.lsp4j-*.jar'
-        include 'org.eclipse.lsp4j.jsonrpc-*.jar'
-        include 'gson-*.jar'
-    }
-    into '../vscode-extension/server'
+    include 'antlr4-runtime-*.jar'
+    include 'org.eclipse.lsp4j-*.jar'
+    include 'org.eclipse.lsp4j.jsonrpc-*.jar'
+    include 'gson-*.jar'
 }
+
+tasks.register('cleanGen', Delete) {
+    group 'build'
+    delete 'src/main/gen'
+}
+
+tasks.clean.finalizedBy cleanGen

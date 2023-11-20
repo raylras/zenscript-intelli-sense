@@ -1,21 +1,18 @@
-plugins {
-    id 'idea'
-}
-
-subprojects {
+allprojects {
     apply plugin: 'java'
+    apply plugin: 'idea'
 
-    version = rootProject.version
-
-    sourceCompatibility = '17'
-    targetCompatibility = '17'
-
-    repositories {
-        mavenCentral()
+    java {
+        sourceCompatibility = '17'
+        targetCompatibility = '17'
     }
 
     test {
         useJUnitPlatform()
+    }
+
+    repositories {
+        mavenCentral()
     }
 
     dependencies {
@@ -27,36 +24,26 @@ subprojects {
     }
 
     tasks.register('dist', Copy) {
-        group 'distribution'
-        dependsOn 'build'
-        from tasks.jar.archiveFile
+        group 'dist'
+        finalizedBy 'distDeps'
+        from tasks.jar
         into '../vscode-extension/server'
     }
 
     tasks.register('distDeps', Copy) {
-        group 'distribution'
-        from (configurations.runtimeClasspath) {
-            include 'slf4j-api-*.jar'
-            include 'slf4j-simple-*.jar'
-        }
+        group 'dist'
+        from configurations.runtimeClasspath
         into '../vscode-extension/server'
+
+        include 'slf4j-api-*.jar'
+        include 'slf4j-simple-*.jar'
     }
 }
 
-task dist(type: Copy) {
-    group 'distribution'
-    dependsOn ':zenscript-code-model:dist'
-    dependsOn ':zenscript-language-server:dist'
-    dependsOn ':zenscript-debug-adapter:dist'
-
-    dependsOn ':zenscript-code-model:distDeps'
-    dependsOn ':zenscript-language-server:distDeps'
-    dependsOn ':zenscript-debug-adapter:distDeps'
+// root project
+tasks.register('cleanDist', Delete) {
+    group 'dist'
+    delete 'vscode-extension/server'
 }
-
-task clear(type: Delete) {
-    group 'distribution'
-    delete fileTree('vscode-extension/server') {
-        include '**/*.jar'
-    }
-}
+tasks.clean.finalizedBy cleanDist
+tasks.jar.enabled = false
