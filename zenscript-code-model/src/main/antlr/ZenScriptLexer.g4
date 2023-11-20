@@ -97,9 +97,9 @@ DOT_DOT_DOT:            '...'; // dzs
 
 DECIMAL_LITERAL: ('0' | [1-9] Digits?) [lL]?;
 
-// Not the usual design, just the way the source code is
-HEX_LITERAL: '0x' HexDigits?; // potential issue
-// Usual design
+// compatable with ZenScript's integer anyway, even though it has issues
+HEX_LITERAL: '0x' HexDigits?;
+// standard design
 // HEX_LITERAL: '0' [xX] HexDigits [lL]?
 
 FLOAT_LITERAL: Digits '.' Digits ExponentPart? [fFdD]?;

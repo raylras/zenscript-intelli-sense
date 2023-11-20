@@ -47,6 +47,8 @@ expandFunctionDeclaration
 formalParameterList
     : formalParameter (',' formalParameter)*
     |
+    // compatable with ZenScript's zenConstructor?
+    // (formalParameter ','?)*
     ;
 
 formalParameter
