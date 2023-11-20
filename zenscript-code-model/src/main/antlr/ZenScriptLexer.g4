@@ -105,7 +105,7 @@ HEX_LITERAL: '0x' HexDigits?; // potential issue
 FLOAT_LITERAL: Digits '.' Digits ExponentPart? [fFdD]?;
 STRING_LITERAL
     : '"' (~["\\] | EscapeSequence)* '"'
-    | '\'' (~["\\] | EscapeSequence)* '\'';
+    | '\'' (~['\\] | EscapeSequence)* '\'';
 
 IDENTIFIER: Letter LetterOrDigit*;
 
