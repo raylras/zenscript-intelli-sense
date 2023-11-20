@@ -215,7 +215,7 @@ foreachBody
     ;
 
 whileStatement
-    : 'while' '(' expression ')' statement
+    : 'while' expression statement
     ;
 
 expressionStatement

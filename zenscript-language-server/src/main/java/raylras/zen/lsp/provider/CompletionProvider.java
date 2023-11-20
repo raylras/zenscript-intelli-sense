@@ -318,19 +318,10 @@ public final class CompletionProvider {
 
         @Override
         public Void visitWhileStatement(WhileStatementContext ctx) {
-            // while (|)
-            // ^^^^^ _
+            // while expr|
+            // ^^^^^
             if (containsLeading(ctx.WHILE())) {
-                appendLocalSymbols();
-                appendGlobalSymbols();
-                return null;
-            }
-
-            // while (text|)
-            //       ^____
-            if (containsLeading(ctx.PAREN_OPEN())) {
-                appendLocalSymbols();
-                appendGlobalSymbols();
+                visit(ctx.expression());
                 return null;
             }
 
