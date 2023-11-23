@@ -20,7 +20,6 @@ import raylras.zen.util.Position;
 import raylras.zen.util.Ranges;
 
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 
 public class ReferencesProvider {
     private static final Logger logger = LoggerFactory.getLogger(ReferencesProvider.class);
@@ -33,17 +32,17 @@ public class ReferencesProvider {
      * 3. search the terminal node at all documents
      * 4. get the cst at every searched node, and resolve its symbol, filtering those containing the current symbol.
      */
-    public static Optional<List<? extends Location>> references(CompilationUnit unit, ReferenceParams params) {
+    public static List<Location> references(CompilationUnit unit, ReferenceParams params) {
         Position cursor = Position.of(params.getPosition());
 
         Symbol symbol = getSymbolOnCursor(unit, cursor);
         if (symbol == null) {
-            return Optional.empty();
+            return null;
         }
 
         Predicate<TerminalNode> searchRule = getSymbolSearchRule(symbol);
         if (searchRule == null) {
-            return Optional.empty();
+            return null;
         }
 
         List<Location> list = getSearchingScope(symbol, unit).stream().parallel()
@@ -55,15 +54,7 @@ public class ReferencesProvider {
                             }).map(it -> toLocation(uri, it));
                         }
                 ).toList();
-        if (list.isEmpty()) {
-            return Optional.empty();
-        } else {
-            return Optional.of(list);
-        }
-    }
-
-    public static CompletableFuture<List<? extends Location>> empty() {
-        return CompletableFuture.completedFuture(null);
+        return list;
     }
 
     private static Location toLocation(String uri, ParseTree cst) {

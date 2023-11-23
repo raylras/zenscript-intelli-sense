@@ -15,23 +15,22 @@ import raylras.zen.util.Position;
 import raylras.zen.util.Ranges;
 
 import java.util.Deque;
-import java.util.Optional;
 
 public class HoverProvider {
 
     private HoverProvider() {}
 
-    public static Optional<Hover> hover(CompilationUnit unit, HoverParams params) {
+    public static Hover hover(CompilationUnit unit, HoverParams params) {
         Position cursor = Position.of(params.getPosition());
         Deque<ParseTree> cstStack = CSTNodes.getCstStackAtPosition(unit.getParseTree(), cursor);
         HoverVisitor visitor = new HoverVisitor(unit.getEnv().getBracketHandlerService());
         for (ParseTree cst : cstStack) {
             Hover hover = cst.accept(visitor);
             if (hover != null) {
-                return Optional.of(hover);
+                return hover;
             }
         }
-        return Optional.empty();
+        return null;
     }
 
     private static final class HoverVisitor extends Visitor<Hover> {

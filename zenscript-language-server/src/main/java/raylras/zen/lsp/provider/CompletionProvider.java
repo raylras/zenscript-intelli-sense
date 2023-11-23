@@ -6,7 +6,6 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.eclipse.lsp4j.*;
-import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import raylras.zen.bracket.BracketHandlerEntry;
 import raylras.zen.lsp.provider.data.Keywords;
 import raylras.zen.lsp.provider.data.Snippet;
@@ -26,10 +25,8 @@ import raylras.zen.util.Range;
 import raylras.zen.util.Ranges;
 import raylras.zen.util.l10n.L10N;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 public final class CompletionProvider {
@@ -37,14 +34,11 @@ public final class CompletionProvider {
     private CompletionProvider() {
     }
 
-    public static Optional<Either<List<CompletionItem>, CompletionList>> completion(CompilationUnit unit, CompletionParams params) {
-        CompletionVisitor visitor = new CompletionVisitor(unit, params);
+    public static CompletionList completion(CompilationUnit unit, CompletionParams params) {
+        CompletionList list = new CompletionList();
+        CompletionVisitor visitor = new CompletionVisitor(unit, params, list);
         unit.accept(visitor);
-        if (visitor.completionList.isEmpty()) {
-            return Optional.empty();
-        } else {
-            return Optional.of(Either.forLeft(visitor.completionList));
-        }
+        return list;
     }
 
     private static final class CompletionVisitor extends Visitor<Void> {
@@ -53,14 +47,15 @@ public final class CompletionProvider {
         final TerminalNode leading;
         final String text;
         final CompilationUnit unit;
-        final List<CompletionItem> completionList = new ArrayList<>();
+        final CompletionList list;
 
-        CompletionVisitor(CompilationUnit unit, CompletionParams params) {
+        CompletionVisitor(CompilationUnit unit, CompletionParams params, CompletionList list) {
             this.cursor = Position.of(params.getPosition());
             this.tailing = CSTNodes.getCstAtPosition(unit.getParseTree(), cursor);
             this.leading = CSTNodes.getPrevTerminal(unit.getTokenStream(), tailing);
             this.text = tailing.getText();
             this.unit = unit;
+            this.list = list;
         }
 
         /*
@@ -698,7 +693,7 @@ public final class CompletionProvider {
 
         CompletionItem createCompletionItem(String keyword) {
             CompletionItem item = new CompletionItem(keyword);
-            item.setDetail(L10N.getString("completion.keyword"));
+            item.setDetail(L10N.getString("completion_keyword"));
             item.setKind(CompletionItemKind.Keyword);
             return item;
         }
@@ -731,7 +726,7 @@ public final class CompletionProvider {
         }
 
         void addToCompletionList(CompletionItem item) {
-            completionList.add(item);
+            list.getItems().add(item);
         }
     }
 

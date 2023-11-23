@@ -22,7 +22,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 
     private final ExecutorService pool;
     private final ZenLanguageService service;
-    private LanguageClient client;
+    private static LanguageClient client;
 
     public ZenLanguageServer(ExecutorService pool, ZenLanguageService service) {
         this.pool = pool;
@@ -30,13 +30,15 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
     }
 
     public void connect(LanguageClient client) {
-        this.client = client;
-        this.service.manager.connect(client);
+        ZenLanguageServer.client = client;
+    }
+
+    public static LanguageClient getClient() {
+        return client;
     }
 
     @Override
     public CompletableFuture<InitializeResult> initialize(InitializeParams params) {
-        service.initializeWorkspaces(params.getWorkspaceFolders());
         L10N.setLocale(params.getLocale());
 
         ServerCapabilities capabilities = new ServerCapabilities();

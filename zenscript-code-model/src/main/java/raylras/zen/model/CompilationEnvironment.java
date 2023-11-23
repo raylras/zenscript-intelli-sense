@@ -14,7 +14,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 import java.util.stream.Stream;
 
 public class CompilationEnvironment {
@@ -26,8 +25,6 @@ public class CompilationEnvironment {
     private final Path generatedRoot;
     private final Map<Path, CompilationUnit> unitMap = new HashMap<>();
     private final BracketHandlerService bracketHandlerService = new BracketHandlerService(this);
-
-    private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
 
     public CompilationEnvironment(Path root) {
         this.root = root;
@@ -112,14 +109,6 @@ public class CompilationEnvironment {
             root = this.root.getParent();
         }
         return root.relativize(other);
-    }
-
-    public ReentrantReadWriteLock.ReadLock readLock() {
-        return readWriteLock.readLock();
-    }
-
-    public ReentrantReadWriteLock.WriteLock writeLock() {
-        return readWriteLock.writeLock();
     }
 
     public void clear() {

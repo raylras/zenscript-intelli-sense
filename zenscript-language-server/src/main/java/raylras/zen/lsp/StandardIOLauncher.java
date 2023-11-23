@@ -21,7 +21,7 @@ public class StandardIOLauncher {
     public static void start() {
         try {
             ExecutorService pool = Executors.newCachedThreadPool();
-            ZenLanguageServer server = new ZenLanguageServer(pool, new ZenLanguageService(new WorkspaceManager()));
+            ZenLanguageServer server = new ZenLanguageServer(pool, new ZenLanguageService());
             Launcher<LanguageClient> launcher = LSPLauncher.createServerLauncher(server, System.in, System.out, pool, Function.identity());
             LanguageClient client = launcher.getRemoteProxy();
             server.connect(client);

@@ -8,17 +8,12 @@ import raylras.zen.util.Range;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public class SemanticTokensProvider extends Listener {
 
-    public static Optional<SemanticTokens> semanticTokensFull(CompilationUnit unit, SemanticTokensParams params) {
+    public static SemanticTokens semanticTokensFull(CompilationUnit unit, SemanticTokensParams params) {
         SemanticTokensProvider provider = new SemanticTokensProvider(unit);
-        if (provider.data.isEmpty()) {
-            return Optional.empty();
-        } else {
-            return Optional.of(new SemanticTokens(provider.data));
-        }
+        return new SemanticTokens(provider.data);
     }
 
     private final CompilationUnit unit;
