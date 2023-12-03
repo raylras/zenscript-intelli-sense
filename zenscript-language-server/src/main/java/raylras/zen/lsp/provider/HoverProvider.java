@@ -1,6 +1,7 @@
 package raylras.zen.lsp.provider;
 
 import org.antlr.v4.runtime.tree.ParseTree;
+import org.antlr.v4.runtime.tree.RuleNode;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.MarkupContent;
@@ -60,6 +61,11 @@ public class HoverProvider {
                         return hover;
                     })
                     .orElse(null);
+        }
+
+        @Override
+        public Hover visitChildren(RuleNode node) {
+            return null;
         }
 
         private static Hover toHover(String text) {
