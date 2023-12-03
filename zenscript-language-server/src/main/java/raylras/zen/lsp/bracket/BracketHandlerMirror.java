@@ -1,4 +1,4 @@
-package raylras.zen.bracket;
+package raylras.zen.lsp.bracket;
 
 import java.util.List;
 

@@ -1,9 +1,10 @@
-package raylras.zen.bracket;
+package raylras.zen.lsp.bracket;
 
 import org.eclipse.lsp4j.jsonrpc.Launcher;
 import org.eclipse.lsp4j.jsonrpc.services.JsonRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import raylras.zen.lsp.StandardIOLauncher;
 
 import java.io.IOException;
 import java.net.Socket;
@@ -11,8 +12,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -20,7 +19,7 @@ public class RpcClient {
 
     private static final Logger logger = LoggerFactory.getLogger(RpcClient.class);
 
-    static Map<String, List<String>> queryEntryProperties(String validExpr)
+    static Map<String, List<String>> getEntryPropertiesRemote(String validExpr)
             throws IOException, ExecutionException, InterruptedException {
         Map<String, Object> properties = getRemoteService().query(validExpr, true)
                 .exceptionally(e -> {
@@ -39,12 +38,6 @@ public class RpcClient {
                 }));
     }
 
-    public static void shutdown() {
-        invalidateRemoteService();
-        executorService.shutdown();
-    }
-
-    private static final ExecutorService executorService = Executors.newCachedThreadPool();
     private static Socket socket;
     private static RemoteService remoteService;
 
@@ -58,7 +51,7 @@ public class RpcClient {
 
     private static RemoteService createRemoteService() throws IOException {
         socket = new Socket("127.0.0.1", 6489);
-        Launcher<RemoteService> launcher = Launcher.createLauncher(new Object(), RemoteService.class, socket.getInputStream(), socket.getOutputStream(), executorService, Function.identity());
+        Launcher<RemoteService> launcher = Launcher.createLauncher(new Object(), RemoteService.class, socket.getInputStream(), socket.getOutputStream(), StandardIOLauncher.POOL, Function.identity());
         launcher.startListening();
         remoteService = launcher.getRemoteProxy();
         return remoteService;

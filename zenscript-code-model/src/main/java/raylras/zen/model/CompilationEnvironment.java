@@ -1,6 +1,5 @@
 package raylras.zen.model;
 
-import raylras.zen.bracket.BracketHandlerService;
 import raylras.zen.model.symbol.*;
 import raylras.zen.model.type.StringType;
 import raylras.zen.model.type.Type;
@@ -24,7 +23,6 @@ public class CompilationEnvironment {
     private final Path root;
     private final Path generatedRoot;
     private final Map<Path, CompilationUnit> unitMap = new HashMap<>();
-    private final BracketHandlerService bracketHandlerService = new BracketHandlerService(this);
 
     public CompilationEnvironment(Path root) {
         this.root = root;
@@ -95,10 +93,6 @@ public class CompilationEnvironment {
 
     public Optional<Path> getGeneratedRoot() {
         return Optional.of(generatedRoot).filter(Files::exists);
-    }
-
-    public BracketHandlerService getBracketHandlerService() {
-        return bracketHandlerService;
     }
 
     public Path relativize(Path other) {

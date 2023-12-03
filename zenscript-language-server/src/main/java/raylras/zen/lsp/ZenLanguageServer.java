@@ -5,7 +5,6 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either;
 import org.eclipse.lsp4j.services.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import raylras.zen.bracket.RpcClient;
 import raylras.zen.model.CompilationUnit;
 import raylras.zen.util.l10n.L10N;
 
@@ -14,18 +13,15 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
 
 public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
 
     private static final Logger logger = LoggerFactory.getLogger(ZenLanguageServer.class);
 
-    private final ExecutorService pool;
     private final ZenLanguageService service;
     private static LanguageClient client;
 
-    public ZenLanguageServer(ExecutorService pool, ZenLanguageService service) {
-        this.pool = pool;
+    public ZenLanguageServer(ZenLanguageService service) {
         this.service = service;
     }
 
@@ -70,8 +66,7 @@ public class ZenLanguageServer implements LanguageServer, LanguageClientAware {
     public CompletableFuture<Object> shutdown() {
         return CompletableFuture.supplyAsync(() -> {
             logger.info("Language server shutting down");
-            RpcClient.shutdown();
-            pool.shutdown();
+            StandardIOLauncher.shutdown();
             return null;
         });
     }

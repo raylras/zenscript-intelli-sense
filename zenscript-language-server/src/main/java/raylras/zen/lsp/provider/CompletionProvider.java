@@ -6,7 +6,8 @@ import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.RuleNode;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.eclipse.lsp4j.*;
-import raylras.zen.bracket.BracketHandlerEntry;
+import raylras.zen.lsp.bracket.BracketHandlerEntry;
+import raylras.zen.lsp.bracket.BracketHandlerService;
 import raylras.zen.lsp.provider.data.Keywords;
 import raylras.zen.lsp.provider.data.Snippet;
 import raylras.zen.model.CompilationUnit;
@@ -625,7 +626,8 @@ public final class CompletionProvider {
         }
 
         void appendBracketHandlers() {
-            Collection<BracketHandlerEntry> entries = unit.getEnv().getBracketHandlerService().getEntriesLocal();
+            BracketHandlerService service = BracketHandlerService.getInstance(unit.getEnv());
+            Collection<BracketHandlerEntry> entries = service.getEntriesLocal();
             entries.forEach(entry -> entry.getFirst("_id").ifPresent(id -> {
                 CompletionItem item = new CompletionItem();
                 item.setLabel(id);

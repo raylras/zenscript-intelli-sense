@@ -1,16 +1,16 @@
-package raylras.zen.bracket;
+package raylras.zen.lsp.bracket;
 
 import com.google.gson.*;
 import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import raylras.zen.model.CompilationEnvironment;
-import raylras.zen.util.Watcher;
 
 import java.io.IOException;
 import java.io.Reader;
 import java.net.ConnectException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
 
@@ -18,17 +18,13 @@ public class BracketHandlerService {
 
     private static final Logger logger = LoggerFactory.getLogger(BracketHandlerService.class);
 
-    private final CompilationEnvironment env;
     private List<BracketHandlerMirror> mirrors;
 
-    public BracketHandlerService(CompilationEnvironment env) {
-        this.env = env;
+    public static BracketHandlerService getInstance(CompilationEnvironment env) {
+        return BRACKET_SERVICES.computeIfAbsent(env, e -> new BracketHandlerService(env));
     }
 
     public List<BracketHandlerMirror> getMirrorsLocal() {
-        if (mirrors == null) {
-            loadMirrorsFromJson();
-        }
         return mirrors;
     }
 
@@ -38,26 +34,39 @@ public class BracketHandlerService {
                 .toList();
     }
 
-    public BracketHandlerEntry queryEntryRemote(String validExpr) {
-        var watcher = Watcher.watch(() -> {
-            try {
-                return RpcClient.queryEntryProperties(validExpr);
-            } catch (ConnectException e) {
-                logger.warn("Failed to query remote <{}>, make sure your Minecraft instance is running", validExpr);
-            } catch (IOException | ExecutionException | InterruptedException e) {
-                logger.error("Failed to query remote <{}>, {}", validExpr, e.getMessage());
-            }
-            return null;
-        });
-        if (watcher.isResultPresent()) {
-            logger.info("Query remote <{}> [{}]", validExpr, watcher.getElapsedMillis());
-            return new BracketHandlerEntry(watcher.getResult());
-        } else {
-            return new BracketHandlerEntry(Collections.emptyMap());
+    public Optional<BracketHandlerEntry> getEntryRemote(String validExpr) {
+        try {
+            Map<String, List<String>> properties = RpcClient.getEntryPropertiesRemote(validExpr);
+            return Optional.of(new BracketHandlerEntry(properties));
+        } catch (ConnectException e) {
+            logger.warn("Failed to query remote <{}>, make sure your Minecraft instance is running", validExpr);
+        } catch (IOException | ExecutionException | InterruptedException e) {
+            logger.error("Failed to query remote <{}>, {}", validExpr, e.getMessage());
         }
+        return Optional.empty();
     }
 
+
+    /* Internals */
+
+    private static final WeakHashMap<CompilationEnvironment, BracketHandlerService> BRACKET_SERVICES = new WeakHashMap<>(1);
     private static final Gson GSON = createGson();
+
+    private BracketHandlerService(CompilationEnvironment env) {
+        env.getGeneratedRoot()
+                .map(p -> p.resolve("brackets.json"))
+                .filter(Files::exists)
+                .ifPresentOrElse(this::loadMirrorsFromJson, () -> logger.error("brackets.json not found for env: {}", env));
+    }
+
+    private void loadMirrorsFromJson(Path jsonPath) {
+        try (Reader reader = Files.newBufferedReader(jsonPath)) {
+            mirrors = GSON.fromJson(reader, new TypeToken<>() {});
+        } catch (IOException e) {
+            logger.error("Failed to load bracket handler mirrors from {}", jsonPath, e);
+            mirrors = List.of();
+        }
+    }
 
     private static Gson createGson() {
         JsonDeserializer<BracketHandlerMirror> mirrorDeserializer = (json, typeOfT, context) -> {
@@ -84,26 +93,6 @@ public class BracketHandlerService {
                 .registerTypeAdapter(BracketHandlerMirror.class, mirrorDeserializer)
                 .registerTypeAdapter(BracketHandlerEntry.class, entryDeserializer)
                 .create();
-    }
-
-    private void loadMirrorsFromJson() {
-        env.getGeneratedRoot()
-                .map(root -> root.resolve("brackets.json"))
-                .filter(Files::exists)
-                .ifPresent(jsonPath -> {
-                    Watcher<List<BracketHandlerMirror>> watcher = Watcher.watch(() -> {
-                        try (Reader reader = Files.newBufferedReader(jsonPath)) {
-                            return GSON.fromJson(reader, new TypeToken<>() {});
-                        } catch (IOException e) {
-                            logger.error("Failed to load bracket handler mirrors from {}", jsonPath.getFileName(), e);
-                            return null;
-                        }
-                    });
-                    if (watcher.isResultPresent()) {
-                        mirrors = watcher.getResult();
-                        logger.info("Load bracket handler mirrors from {} [{}]", jsonPath.getFileName(), watcher.getElapsedMillis());
-                    }
-                });
     }
 
 }
