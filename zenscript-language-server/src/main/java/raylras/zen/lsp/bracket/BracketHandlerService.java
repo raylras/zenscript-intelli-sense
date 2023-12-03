@@ -5,6 +5,7 @@ import com.google.gson.reflect.TypeToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import raylras.zen.model.CompilationEnvironment;
+import raylras.zen.util.l10n.L10N;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -34,16 +35,19 @@ public class BracketHandlerService {
                 .toList();
     }
 
-    public Optional<BracketHandlerEntry> getEntryRemote(String validExpr) {
+    public BracketHandlerEntry getEntryRemote(String expr) {
         try {
-            Map<String, List<String>> properties = RpcClient.getEntryPropertiesRemote(validExpr);
-            return Optional.of(new BracketHandlerEntry(properties));
+            Map<String, List<String>> properties = RpcClient.getEntryPropertiesRemote(expr);
+            return new BracketHandlerEntry(properties);
         } catch (ConnectException e) {
-            logger.warn("Failed to query remote <{}>, make sure your Minecraft instance is running", validExpr);
+            logger.warn("Failed to query <{}>: {}", expr, e.getMessage());
+            String message = L10N.format("minecraft_instance_not_running", expr);
+            return new BracketHandlerEntry(Map.of("_errorMessage", List.of(message)));
         } catch (IOException | ExecutionException | InterruptedException e) {
-            logger.error("Failed to query remote <{}>, {}", validExpr, e.getMessage());
+            logger.error("Failed to query <{}>: {}", expr, e.getMessage());
+            String message = L10N.format("query_bracket_handler_failed", expr, e.getMessage());
+            return new BracketHandlerEntry(Map.of("_errorMessage", List.of(message)));
         }
-        return Optional.empty();
     }
 
 

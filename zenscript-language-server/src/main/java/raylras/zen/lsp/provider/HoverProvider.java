@@ -6,6 +6,7 @@ import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.HoverParams;
 import org.eclipse.lsp4j.MarkupContent;
 import org.eclipse.lsp4j.MarkupKind;
+import raylras.zen.lsp.bracket.BracketHandlerEntry;
 import raylras.zen.lsp.bracket.BracketHandlerService;
 import raylras.zen.model.CompilationUnit;
 import raylras.zen.model.Visitor;
@@ -43,24 +44,27 @@ public class HoverProvider {
 
         @Override
         public Hover visitBracketHandlerExpr(BracketHandlerExprContext ctx) {
-            return service.getEntryRemote(ctx.raw().getText())
-                    .map(entry -> {
-                        StringBuilder builder = new StringBuilder();
-                        entry.getFirst("_name").ifPresent(name -> {
-                            builder.append("#### ");
-                            builder.append(name);
-                            builder.append("\n\n");
-                        });
-                        entry.getFirst("_icon").ifPresent(icon -> {
-                            String img = "![img](data:image/png;base64," + icon + ")";
-                            builder.append(img);
-                            builder.append("\n\n");
-                        });
-                        Hover hover = toHover(builder.toString());
-                        hover.setRange(Ranges.toLspRange(ctx));
-                        return hover;
-                    })
-                    .orElse(null);
+            BracketHandlerEntry entry = service.getEntryRemote(ctx.raw().getText());
+            StringBuilder builder = new StringBuilder();
+            entry.getFirst("_errorMessage").ifPresentOrElse(message -> {
+                builder.append("*");
+                builder.append(message);
+                builder.append("*");
+            }, () -> {
+                entry.getFirst("_name").ifPresent(name -> {
+                    builder.append("#### ");
+                    builder.append(name);
+                    builder.append("\n\n");
+                });
+                entry.getFirst("_icon").ifPresent(icon -> {
+                    String img = "![img](data:image/png;base64," + icon + ")";
+                    builder.append(img);
+                    builder.append("\n\n");
+                });
+            });
+            Hover hover = toHover(builder.toString());
+            hover.setRange(Ranges.toLspRange(ctx));
+            return hover;
         }
 
         @Override

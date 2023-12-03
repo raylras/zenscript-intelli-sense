@@ -3,6 +3,7 @@ package raylras.zen.util.l10n;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.ResourceBundle;
 
@@ -19,6 +20,10 @@ public class L10N {
             logger.error("Failed to retrieve localized string for key: {}", key, e);
             return "";
         }
+    }
+
+    public static String format(String key, Object... args) {
+        return MessageFormat.format(getString(key), args);
     }
 
     public static void setLocale(String locale) {
