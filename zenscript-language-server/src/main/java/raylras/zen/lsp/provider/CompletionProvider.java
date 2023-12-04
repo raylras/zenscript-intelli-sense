@@ -469,7 +469,7 @@ public final class CompletionProvider {
 
             // expr.|
             // ^^^^_
-            if (containsLeading(expr)) {
+            if (containsLeading(expr) && containsTailing(ctx.DOT())) {
                 TypeResolver.getType(expr, unit).ifPresent(type -> {
                     appendMembers(type);
                     appendMemberAccessSnippets(type, ctx);
