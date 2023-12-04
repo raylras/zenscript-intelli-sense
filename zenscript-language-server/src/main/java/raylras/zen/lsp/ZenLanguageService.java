@@ -30,55 +30,20 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     private final Set<CompilationEnvironment> environments = new HashSet<>();
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    public void createEnv(Path documentPath) {
-        lockForWrite();
-        try {
-            Path compilationRoot = PathUtil.findUpwardsOrSelf(documentPath, CompilationEnvironment.DEFAULT_ROOT_DIRECTORY);
-            CompilationEnvironment env = new CompilationEnvironment(compilationRoot);
-            Compilations.load(env);
-            environments.add(env);
-            checkDzs(env);
-        } finally {
-            unlockForWrite();
-        }
-    }
-
-    public Optional<CompilationEnvironment> getEnv(Path documentPath) {
-        lockForRead();
-        try {
-            return environments.stream()
-                    .filter(env -> PathUtil.isSubPath(documentPath, env.getRoot()))
-                    .findFirst();
-        } finally {
-            unlockForRead();
-        }
-    }
-
-    public Optional<CompilationUnit> getUnit(Path documentPath) {
-        lockForRead();
-        try {
-            return getEnv(documentPath).map(env -> env.getUnit(documentPath));
-        } finally {
-            unlockForRead();
-        }
-    }
-
-    private void checkDzs(CompilationEnvironment env) {
-        if (env.getGeneratedRoot().isEmpty()) {
-            logger.info("Cannot find .dzs file directory of environment: {}", env);
-            LogMessages.info(L10N.getString("dzs_not_found"), ZenLanguageServer.getClient());
-        }
-    }
-
     /* Text Document Service */
 
     @Override
     public void didOpen(DidOpenTextDocumentParams params) {
         CompletableFuture.runAsync(() -> {
-            Path path = PathUtil.toPath(params.getTextDocument().getUri());
-            LogMessages.request("didOpen", path, logger);
-            if (getEnv(path).isEmpty()) {
-                createEnv(path);
+            lockForWrite();
+            try {
+                Path path = PathUtil.toPath(params.getTextDocument().getUri());
+                LogMessages.request("didOpen", path, logger);
+                if (getEnv(path).isEmpty()) {
+                    createEnv(path);
+                }
+            } finally {
+                unlockForWrite();
             }
         }).exceptionally(e -> {
             LogMessages.error("didOpen", params, e, logger);
@@ -89,11 +54,11 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public void didChange(DidChangeTextDocumentParams params) {
         CompletableFuture.runAsync(() -> {
-            Path path = PathUtil.toPath(params.getTextDocument().getUri());
-            LogMessages.request("didChange", path, logger);
-            CompilationUnit unit = getUnit(path).orElseThrow();
             lockForWrite();
             try {
+                Path path = PathUtil.toPath(params.getTextDocument().getUri());
+                LogMessages.request("didChange", path, logger);
+                CompilationUnit unit = getUnit(path).orElseThrow();
                 String source = params.getContentChanges().get(0).getText();
                 Compilations.load(unit, source);
             } finally {
@@ -116,11 +81,11 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
         return CompletableFuture.supplyAsync(() -> {
-            Path path = PathUtil.toPath(params.getTextDocument().getUri());
-            LogMessages.request("completion", path, params.getPosition(), logger);
-            CompilationUnit unit = getUnit(path).orElseThrow();
             lockForRead();
             try {
+                Path path = PathUtil.toPath(params.getTextDocument().getUri());
+                LogMessages.request("completion", path, params.getPosition(), logger);
+                CompilationUnit unit = getUnit(path).orElseThrow();
                 CompletionList result = CompletionProvider.completion(unit, params);
                 LogMessages.response("completion", path, params.getPosition(), logger);
                 return Either.<List<CompletionItem>, CompletionList>forRight(result);
@@ -149,11 +114,11 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public CompletableFuture<Hover> hover(HoverParams params) {
         return CompletableFuture.supplyAsync(() -> {
-            Path path = PathUtil.toPath(params.getTextDocument().getUri());
-            LogMessages.request("hover", path, params.getPosition(), logger);
-            CompilationUnit unit = getUnit(path).orElseThrow();
             lockForRead();
             try {
+                Path path = PathUtil.toPath(params.getTextDocument().getUri());
+                LogMessages.request("hover", path, params.getPosition(), logger);
+                CompilationUnit unit = getUnit(path).orElseThrow();
                 Hover result = HoverProvider.hover(unit, params);
                 LogMessages.response("hover", path, params.getPosition(), logger);
                 return result;
@@ -169,11 +134,11 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> definition(DefinitionParams params) {
         return CompletableFuture.supplyAsync(() -> {
-            Path path = PathUtil.toPath(params.getTextDocument().getUri());
-            LogMessages.request("definition", path, params.getPosition(), logger);
-            CompilationUnit unit = getUnit(path).orElseThrow();
             lockForRead();
             try {
+                Path path = PathUtil.toPath(params.getTextDocument().getUri());
+                LogMessages.request("definition", path, params.getPosition(), logger);
+                CompilationUnit unit = getUnit(path).orElseThrow();
                 List<LocationLink> result = DefinitionProvider.definition(unit, params);
                 LogMessages.response("definition", path, params.getPosition(), logger);
                 return Either.<List<? extends Location>, List<? extends LocationLink>>forRight(result);
@@ -189,11 +154,11 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public CompletableFuture<List<? extends Location>> references(ReferenceParams params) {
         return CompletableFuture.supplyAsync(() -> {
-            Path path = PathUtil.toPath(params.getTextDocument().getUri());
-            LogMessages.request("references", path, params.getPosition(), logger);
-            CompilationUnit unit = getUnit(path).orElseThrow();
             lockForRead();
             try {
+                Path path = PathUtil.toPath(params.getTextDocument().getUri());
+                LogMessages.request("references", path, params.getPosition(), logger);
+                CompilationUnit unit = getUnit(path).orElseThrow();
                 List<Location> result = ReferencesProvider.references(unit, params);
                 LogMessages.response("references", path, params.getPosition(), logger);
                 return result;
@@ -211,11 +176,11 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(DocumentSymbolParams params) {
         return CompletableFuture.supplyAsync(() -> {
-            Path path = PathUtil.toPath(params.getTextDocument().getUri());
-            LogMessages.request("documentSymbol", path, logger);
-            CompilationUnit unit = getUnit(path).orElseThrow();
             lockForRead();
             try {
+                Path path = PathUtil.toPath(params.getTextDocument().getUri());
+                LogMessages.request("documentSymbol", path, logger);
+                CompilationUnit unit = getUnit(path).orElseThrow();
                 List<DocumentSymbol> result = DocumentSymbolProvider.documentSymbol(unit, params);
                 LogMessages.response("documentSymbol", path, logger);
                 return result.stream()
@@ -233,11 +198,11 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
         return CompletableFuture.supplyAsync(() -> {
-            Path path = PathUtil.toPath(params.getTextDocument().getUri());
-            LogMessages.request("semanticTokensFull", path, logger);
-            CompilationUnit unit = getUnit(path).orElseThrow();
             lockForRead();
             try {
+                Path path = PathUtil.toPath(params.getTextDocument().getUri());
+                LogMessages.request("semanticTokensFull", path, logger);
+                CompilationUnit unit = getUnit(path).orElseThrow();
                 SemanticTokens result = SemanticTokensProvider.semanticTokensFull(unit, params);
                 LogMessages.response("semanticTokensFull", path, logger);
                 return result;
@@ -261,9 +226,9 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public void didChangeWatchedFiles(DidChangeWatchedFilesParams params) {
         CompletableFuture.runAsync(() -> {
-            LogMessages.request("didChangeWatchedFiles", logger);
             lockForWrite();
             try {
+                LogMessages.request("didChangeWatchedFiles", logger);
                 for (FileEvent event : params.getChanges()) {
                     Path path = PathUtil.toPath(event.getUri());
                     getEnv(path).ifPresent(env -> {
@@ -293,6 +258,31 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     }
 
     /* End Workspace Service */
+
+    private void createEnv(Path documentPath) {
+        Path compilationRoot = PathUtil.findUpwardsOrSelf(documentPath, CompilationEnvironment.DEFAULT_ROOT_DIRECTORY);
+        CompilationEnvironment env = new CompilationEnvironment(compilationRoot);
+        Compilations.load(env);
+        environments.add(env);
+        checkDzs(env);
+    }
+
+    private Optional<CompilationEnvironment> getEnv(Path documentPath) {
+        return environments.stream()
+                .filter(env -> PathUtil.isSubPath(documentPath, env.getRoot()))
+                .findFirst();
+    }
+
+    private Optional<CompilationUnit> getUnit(Path documentPath) {
+        return getEnv(documentPath).map(env -> env.getUnit(documentPath));
+    }
+
+    private void checkDzs(CompilationEnvironment env) {
+        if (env.getGeneratedRoot().isEmpty()) {
+            logger.info("Cannot find .dzs file directory of environment: {}", env);
+            LogMessages.info(L10N.getString("dzs_not_found"), ZenLanguageServer.getClient());
+        }
+    }
 
     private void lockForRead() {
         lock.readLock().lock();
