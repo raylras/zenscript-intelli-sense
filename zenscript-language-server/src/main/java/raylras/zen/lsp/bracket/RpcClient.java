@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -20,12 +22,12 @@ public class RpcClient {
     private static final Logger logger = LoggerFactory.getLogger(RpcClient.class);
 
     static Map<String, List<String>> getEntryPropertiesRemote(String validExpr)
-            throws IOException, ExecutionException, InterruptedException {
+            throws IOException, ExecutionException, InterruptedException, TimeoutException {
         Map<String, Object> properties = getRemoteService().query(validExpr, true)
                 .exceptionally(e -> {
                     invalidateRemoteService();
                     throw new RuntimeException(e);
-                }).get();
+                }).get(1, TimeUnit.SECONDS);
         return properties.entrySet().stream()
                 .collect(Collectors.toMap(Map.Entry::getKey, entry -> {
                     if (entry.getValue() instanceof String str) {

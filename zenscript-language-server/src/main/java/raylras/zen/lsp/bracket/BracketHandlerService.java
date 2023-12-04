@@ -14,6 +14,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeoutException;
 
 public class BracketHandlerService {
 
@@ -43,7 +44,7 @@ public class BracketHandlerService {
             logger.warn("Failed to query <{}>: {}", expr, e.getMessage());
             String message = L10N.format("minecraft_instance_not_running", expr);
             return new BracketHandlerEntry(Map.of("_errorMessage", List.of(message)));
-        } catch (IOException | ExecutionException | InterruptedException e) {
+        } catch (IOException | ExecutionException | InterruptedException | TimeoutException e) {
             logger.error("Failed to query <{}>: {}", expr, e.getMessage());
             String message = L10N.format("query_bracket_handler_failed", expr, e.getMessage());
             return new BracketHandlerEntry(Map.of("_errorMessage", List.of(message)));
