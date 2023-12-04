@@ -74,35 +74,35 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public void didOpen(DidOpenTextDocumentParams params) {
-        CompletableFuture.supplyAsync(() -> PathUtil.toPath(params.getTextDocument().getUri()))
-                .thenAccept(path -> {
-                    LogMessages.request("didOpen", path, logger);
-                    if (getEnv(path).isEmpty()) {
-                        createEnv(path);
-                    }
-                }).exceptionally(e -> {
-                    LogMessages.error("didOpen", params, e, logger);
-                    return null;
-                });
+        CompletableFuture.runAsync(() -> {
+            Path path = PathUtil.toPath(params.getTextDocument().getUri());
+            LogMessages.request("didOpen", path, logger);
+            if (getEnv(path).isEmpty()) {
+                createEnv(path);
+            }
+        }).exceptionally(e -> {
+            LogMessages.error("didOpen", params, e, logger);
+            return null;
+        });
     }
 
     @Override
     public void didChange(DidChangeTextDocumentParams params) {
-        CompletableFuture.supplyAsync(() -> PathUtil.toPath(params.getTextDocument().getUri()))
-                .thenAccept(path -> {
-                    LogMessages.request("didChange", path, logger);
-                    CompilationUnit unit = getUnit(path).orElseThrow();
-                    lockForWrite();
-                    try {
-                        String source = params.getContentChanges().get(0).getText();
-                        Compilations.load(unit, source);
-                    } finally {
-                        unlockForWrite();
-                    }
-                }).exceptionally(e -> {
-                    LogMessages.error("didChange", params, e, logger);
-                    return null;
-                });
+        CompletableFuture.runAsync(() -> {
+            Path path = PathUtil.toPath(params.getTextDocument().getUri());
+            LogMessages.request("didChange", path, logger);
+            CompilationUnit unit = getUnit(path).orElseThrow();
+            lockForWrite();
+            try {
+                String source = params.getContentChanges().get(0).getText();
+                Compilations.load(unit, source);
+            } finally {
+                unlockForWrite();
+            }
+        }).exceptionally(e -> {
+            LogMessages.error("didChange", params, e, logger);
+            return null;
+        });
     }
 
     @Override
@@ -115,22 +115,22 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public CompletableFuture<Either<List<CompletionItem>, CompletionList>> completion(CompletionParams params) {
-        return CompletableFuture.supplyAsync(() -> PathUtil.toPath(params.getTextDocument().getUri()))
-                .thenApply(path -> {
-                    LogMessages.request("completion", path, params.getPosition(), logger);
-                    CompilationUnit unit = getUnit(path).orElseThrow();
-                    lockForRead();
-                    try {
-                        CompletionList result = CompletionProvider.completion(unit, params);
-                        LogMessages.response("completion", path, params.getPosition(), logger);
-                        return Either.<List<CompletionItem>, CompletionList>forRight(result);
-                    } finally {
-                        unlockForRead();
-                    }
-                }).exceptionally(e -> {
-                    LogMessages.error("completion", params, e, logger);
-                    return null;
-                });
+        return CompletableFuture.supplyAsync(() -> {
+            Path path = PathUtil.toPath(params.getTextDocument().getUri());
+            LogMessages.request("completion", path, params.getPosition(), logger);
+            CompilationUnit unit = getUnit(path).orElseThrow();
+            lockForRead();
+            try {
+                CompletionList result = CompletionProvider.completion(unit, params);
+                LogMessages.response("completion", path, params.getPosition(), logger);
+                return Either.<List<CompletionItem>, CompletionList>forRight(result);
+            } finally {
+                unlockForRead();
+            }
+        }).exceptionally(e -> {
+            LogMessages.error("completion", params, e, logger);
+            return null;
+        });
     }
 
     @Override
@@ -148,103 +148,106 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     @Override
     public CompletableFuture<Hover> hover(HoverParams params) {
-        return CompletableFuture.supplyAsync(() -> PathUtil.toPath(params.getTextDocument().getUri()))
-                .thenApply(path -> {
-                    LogMessages.request("hover", path, params.getPosition(), logger);
-                    CompilationUnit unit = getUnit(path).orElseThrow();
-                    lockForRead();
-                    try {
-                        Hover result = HoverProvider.hover(unit, params);
-                        LogMessages.response("hover", path, params.getPosition(), logger);
-                        return result;
-                    } finally {
-                        unlockForRead();
-                    }
-                }).exceptionally(e -> {
-                    LogMessages.error("hover", params, e, logger);
-                    return null;
-                });
+        return CompletableFuture.supplyAsync(() -> {
+            Path path = PathUtil.toPath(params.getTextDocument().getUri());
+            LogMessages.request("hover", path, params.getPosition(), logger);
+            CompilationUnit unit = getUnit(path).orElseThrow();
+            lockForRead();
+            try {
+                Hover result = HoverProvider.hover(unit, params);
+                LogMessages.response("hover", path, params.getPosition(), logger);
+                return result;
+            } finally {
+                unlockForRead();
+            }
+        }).exceptionally(e -> {
+            LogMessages.error("hover", params, e, logger);
+            return null;
+        });
     }
 
     @Override
     public CompletableFuture<Either<List<? extends Location>, List<? extends LocationLink>>> definition(DefinitionParams params) {
-        return CompletableFuture.supplyAsync(() -> PathUtil.toPath(params.getTextDocument().getUri()))
-                .thenApply(path -> {
-                    LogMessages.request("definition", path, params.getPosition(), logger);
-                    CompilationUnit unit = getUnit(path).orElseThrow();
-                    lockForRead();
-                    try {
-                        List<LocationLink> result = DefinitionProvider.definition(unit, params);
-                        LogMessages.response("definition", path, params.getPosition(), logger);
-                        return Either.<List<? extends Location>, List<? extends LocationLink>>forRight(result);
-                    } finally {
-                        unlockForRead();
-                    }
-                }).exceptionally(e -> {
-                    LogMessages.error("definition", params, e, logger);
-                    return null;
-                });
+        return CompletableFuture.supplyAsync(() -> {
+            Path path = PathUtil.toPath(params.getTextDocument().getUri());
+            LogMessages.request("definition", path, params.getPosition(), logger);
+            CompilationUnit unit = getUnit(path).orElseThrow();
+            lockForRead();
+            try {
+                List<LocationLink> result = DefinitionProvider.definition(unit, params);
+                LogMessages.response("definition", path, params.getPosition(), logger);
+                return Either.<List<? extends Location>, List<? extends LocationLink>>forRight(result);
+            } finally {
+                unlockForRead();
+            }
+        }).exceptionally(e -> {
+            LogMessages.error("definition", params, e, logger);
+            return null;
+        });
     }
 
     @Override
     public CompletableFuture<List<? extends Location>> references(ReferenceParams params) {
-        return CompletableFuture.supplyAsync(() -> PathUtil.toPath(params.getTextDocument().getUri()))
-                .thenApply(path -> {
-                    LogMessages.request("references", path, params.getPosition(), logger);
-                    CompilationUnit unit = getUnit(path).orElseThrow();
-                    lockForRead();
-                    try {
-                        List<Location> result = ReferencesProvider.references(unit, params);
-                        LogMessages.response("references", path, params.getPosition(), logger);
-                        return result;
-                    } finally {
-                        unlockForRead();
-                    }
-                }).handle((result, throwable) -> {
-                    if (throwable != null) {
-                        LogMessages.error("references", params, throwable, logger);
-                    }
-                    return result;
-                });
+        return CompletableFuture.supplyAsync(() -> {
+            Path path = PathUtil.toPath(params.getTextDocument().getUri());
+            LogMessages.request("references", path, params.getPosition(), logger);
+            CompilationUnit unit = getUnit(path).orElseThrow();
+            lockForRead();
+            try {
+                List<Location> result = ReferencesProvider.references(unit, params);
+                LogMessages.response("references", path, params.getPosition(), logger);
+                return result;
+            } finally {
+                unlockForRead();
+            }
+        }).handle((result, throwable) -> {
+            if (throwable != null) {
+                LogMessages.error("references", params, throwable, logger);
+            }
+            return result;
+        });
     }
 
     @Override
     public CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> documentSymbol(DocumentSymbolParams params) {
-        return CompletableFuture.supplyAsync(() -> PathUtil.toPath(params.getTextDocument().getUri()))
-                .thenApply(path -> {
-                    LogMessages.request("documentSymbol", path, logger);
-                    CompilationUnit unit = getUnit(path).orElseThrow();
-                    lockForRead();
-                    try {
-                        List<DocumentSymbol> result = DocumentSymbolProvider.documentSymbol(unit, params);
-                        LogMessages.response("documentSymbol", path, logger);
-                        return result.stream()
-                                .map(Either::<SymbolInformation, DocumentSymbol>forRight)
-                                .toList();
-                    } finally {
-                        unlockForRead();
-                    }
-                });
+        return CompletableFuture.supplyAsync(() -> {
+            Path path = PathUtil.toPath(params.getTextDocument().getUri());
+            LogMessages.request("documentSymbol", path, logger);
+            CompilationUnit unit = getUnit(path).orElseThrow();
+            lockForRead();
+            try {
+                List<DocumentSymbol> result = DocumentSymbolProvider.documentSymbol(unit, params);
+                LogMessages.response("documentSymbol", path, logger);
+                return result.stream()
+                        .map(Either::<SymbolInformation, DocumentSymbol>forRight)
+                        .toList();
+            } finally {
+                unlockForRead();
+            }
+        }).exceptionally(e -> {
+            LogMessages.error("documentSymbol", params, e, logger);
+            return null;
+        });
     }
 
     @Override
     public CompletableFuture<SemanticTokens> semanticTokensFull(SemanticTokensParams params) {
-        return CompletableFuture.supplyAsync(() -> PathUtil.toPath(params.getTextDocument().getUri()))
-                .thenApply(path -> {
-                    LogMessages.request("semanticTokensFull", path, logger);
-                    CompilationUnit unit = getUnit(path).orElseThrow();
-                    lockForRead();
-                    try {
-                        SemanticTokens result = SemanticTokensProvider.semanticTokensFull(unit, params);
-                        LogMessages.response("semanticTokensFull", path, logger);
-                        return result;
-                    } finally {
-                        unlockForRead();
-                    }
-                }).exceptionally(e -> {
-                    LogMessages.error("semanticTokensFull", params, e, logger);
-                    return null;
-                });
+        return CompletableFuture.supplyAsync(() -> {
+            Path path = PathUtil.toPath(params.getTextDocument().getUri());
+            LogMessages.request("semanticTokensFull", path, logger);
+            CompilationUnit unit = getUnit(path).orElseThrow();
+            lockForRead();
+            try {
+                SemanticTokens result = SemanticTokensProvider.semanticTokensFull(unit, params);
+                LogMessages.response("semanticTokensFull", path, logger);
+                return result;
+            } finally {
+                unlockForRead();
+            }
+        }).exceptionally(e -> {
+            LogMessages.error("semanticTokensFull", params, e, logger);
+            return null;
+        });
     }
 
     /* End Text Document Service */
