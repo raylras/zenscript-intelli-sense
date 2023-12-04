@@ -54,7 +54,7 @@ public final class CompletionProvider {
             this.cursor = Position.of(params.getPosition());
             this.tailing = CSTNodes.getCstAtPosition(unit.getParseTree(), cursor);
             this.leading = CSTNodes.getPrevTerminal(unit.getTokenStream(), tailing);
-            this.text = tailing.getText();
+            this.text = CSTNodes.getText(tailing);
             this.unit = unit;
             this.list = list;
         }

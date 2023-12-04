@@ -79,11 +79,7 @@ public class CSTNodes {
     }
 
     public static String getText(ParseTree cst) {
-        if (cst != null) {
-            return cst.getText();
-        } else {
-            return "";
-        }
+        return (cst != null) ? cst.getText() : "";
     }
 
     public static <T extends ParseTree> T findParentOfType(ParseTree cst, Class<T> parentClass) {
