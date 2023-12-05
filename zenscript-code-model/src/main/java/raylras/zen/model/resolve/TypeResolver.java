@@ -164,12 +164,10 @@ public final class TypeResolver {
 
         @Override
         public Type visitMapLiteralExpr(MapLiteralExprContext ctx) {
-            if (ctx.mapEntryList() == null) {
-                return new MapType(AnyType.INSTANCE, AnyType.INSTANCE);
-            }
-            MapEntryContext firstEntry = ctx.mapEntryList().mapEntry(0);
-            Type keyType = visit(firstEntry.key);
-            Type valueType = visit(firstEntry.value);
+            Optional<MapEntryContext> firstEntry = Optional.ofNullable(ctx.mapEntryList())
+                    .map(entries -> entries.mapEntry(0));
+            Type keyType = firstEntry.map(entry -> visit(entry.key)).orElse(AnyType.INSTANCE);
+            Type valueType = firstEntry.map(entry -> visit(entry.value)).orElse(AnyType.INSTANCE);
             return new MapType(keyType, valueType);
         }
 
