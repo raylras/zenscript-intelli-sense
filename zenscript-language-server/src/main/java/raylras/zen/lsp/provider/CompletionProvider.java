@@ -115,6 +115,13 @@ public final class CompletionProvider {
         }
 
         @Override
+        public Void visitSimpleName(SimpleNameContext ctx) {
+            appendLocalSymbols();
+            appendGlobalSymbols();
+            return null;
+        }
+
+        @Override
         public Void visitFormalParameter(FormalParameterContext ctx) {
             // name text|
             // ^^^^ ____
@@ -232,8 +239,7 @@ public final class CompletionProvider {
             // { text| }
             // ^ ____
             if (containsLeading(ctx.BRACE_OPEN())) {
-                appendLocalSymbols();
-                appendGlobalSymbols();
+                visitParent(tailing);
                 appendKeywords(Keywords.STATEMENT);
                 return null;
             }
@@ -241,8 +247,7 @@ public final class CompletionProvider {
             // { } text|
             //   ^ ____
             if (containsLeading(ctx.BRACE_CLOSE())) {
-                appendLocalSymbols();
-                appendGlobalSymbols();
+                visitParent(tailing);
                 appendKeywords(Keywords.STATEMENT);
                 return null;
             }
@@ -256,16 +261,14 @@ public final class CompletionProvider {
             // return text|
             // ^^^^^^ ____
             if (containsLeading(ctx.RETURN())) {
-                appendLocalSymbols();
-                appendGlobalSymbols();
+                visit(ctx.expression());
                 return null;
             }
 
             // return; text|
             //       ^ ____
             if (containsLeading(ctx.SEMICOLON())) {
-                appendLocalSymbols();
-                appendGlobalSymbols();
+                visitParent(tailing);
                 appendKeywords(Keywords.STATEMENT);
                 return null;
             }
@@ -339,8 +342,7 @@ public final class CompletionProvider {
             // expr; text|
             //     ^ ____
             if (containsLeading(ctx.SEMICOLON())) {
-                appendLocalSymbols();
-                appendGlobalSymbols();
+                visitParent(tailing);
                 appendKeywords(Keywords.STATEMENT);
                 return null;
             }
@@ -370,6 +372,26 @@ public final class CompletionProvider {
         }
 
         @Override
+        public Void visitMapLiteralExpr(MapLiteralExprContext ctx) {
+            // { text| }
+            // ^ ____
+            if (containsLeading(ctx.BRACE_OPEN())) {
+                visit(ctx.mapEntryList());
+                return null;
+            }
+
+            // { expr| }
+            //
+            if (containsLeading(ctx.mapEntryList())) {
+                visit(ctx.mapEntryList());
+                return null;
+            }
+
+            visitChildren(ctx);
+            return null;
+        }
+
+        @Override
         public Void visitSimpleNameExpr(SimpleNameExprContext ctx) {
             appendLocalSymbols();
             appendGlobalSymbols();
@@ -392,8 +414,7 @@ public final class CompletionProvider {
             // (text|)
             // ^____
             if (containsLeading(ctx.PAREN_OPEN())) {
-                appendLocalSymbols();
-                appendGlobalSymbols();
+                visit(ctx.expression());
                 return null;
             }
 
@@ -482,12 +503,23 @@ public final class CompletionProvider {
         }
 
         @Override
+        public Void visitArrayLiteralExpr(ArrayLiteralExprContext ctx) {
+            // [ text ]
+            // ^ ____
+            if (containsLeading(ctx.BRACK_OPEN())) {
+                visit(ctx.expressionList());
+            }
+
+            visitChildren(ctx);
+            return null;
+        }
+
+        @Override
         public Void visitCallExpr(CallExprContext ctx) {
             // expr(text|)
             //     ^____
             if (containsLeading(ctx.PAREN_OPEN())) {
-                appendLocalSymbols();
-                appendGlobalSymbols();
+                visit(ctx.expressionList());
                 return null;
             }
 
@@ -508,8 +540,7 @@ public final class CompletionProvider {
             // expr, text|
             //     ^ ____
             if (containsLeading(ctx.COMMA())) {
-                appendLocalSymbols();
-                appendGlobalSymbols();
+                visitParent(tailing);
                 return null;
             }
 
@@ -526,6 +557,31 @@ public final class CompletionProvider {
         }
 
         @Override
+        public Void visitMapEntry(MapEntryContext ctx) {
+            // text|
+            // ____
+            if (containsTailing(ctx.key)) {
+                visit(ctx.key);
+                return null;
+            }
+
+            // expr : text|
+            //      ^ ____
+            if (containsLeading(ctx.COLON())) {
+                visit(ctx.value);
+                return null;
+            }
+
+            visitChildren(ctx);
+            return null;
+        }
+
+        @Override
+        public Void visit(ParseTree node) {
+            return (node != null) ? node.accept(this) : null;
+        }
+
+        @Override
         public Void visitChildren(RuleNode node) {
             for (int i = 0; i < node.getChildCount(); i++) {
                 ParseTree child = node.getChild(i);
@@ -539,6 +595,12 @@ public final class CompletionProvider {
                 }
             }
             return null;
+        }
+
+        public void visitParent(ParseTree node) {
+            if (node != null) {
+                visit(node.getParent());
+            }
         }
 
         boolean containsLeading(Token token) {
