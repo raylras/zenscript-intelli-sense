@@ -43,6 +43,10 @@ public class CompilationEnvironment {
         unitMap.remove(unitPath);
     }
 
+    public boolean containsUnit(Path unitPath) {
+        return unitMap.containsKey(unitPath);
+    }
+
     public Collection<CompilationUnit> getUnits() {
         return unitMap.values();
     }

@@ -269,7 +269,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
 
     private Optional<CompilationEnvironment> getEnv(Path documentPath) {
         return environments.stream()
-                .filter(env -> PathUtil.isSubPath(documentPath, env.getRoot()))
+                .filter(env -> env.containsUnit(documentPath))
                 .findFirst();
     }
 
