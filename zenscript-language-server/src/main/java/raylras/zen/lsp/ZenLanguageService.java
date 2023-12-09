@@ -38,10 +38,11 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
             lockForWrite();
             try {
                 Path path = PathUtil.toPath(params.getTextDocument().getUri());
-                LogMessages.request("didOpen", path, logger);
+                LogMessages.start("didOpen", path, logger);
                 if (getEnv(path).isEmpty()) {
                     createEnv(path);
                 }
+                LogMessages.finish("didOpen", path, logger);
             } finally {
                 unlockForWrite();
             }
@@ -57,10 +58,11 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
             lockForWrite();
             try {
                 Path path = PathUtil.toPath(params.getTextDocument().getUri());
-                LogMessages.request("didChange", path, logger);
+                LogMessages.start("didChange", path, logger);
                 CompilationUnit unit = getUnit(path).orElseThrow();
                 String source = params.getContentChanges().get(0).getText();
                 Compilations.load(unit, source);
+                LogMessages.finish("didChange", path, logger);
             } finally {
                 unlockForWrite();
             }
@@ -84,10 +86,10 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
             lockForRead();
             try {
                 Path path = PathUtil.toPath(params.getTextDocument().getUri());
-                LogMessages.request("completion", path, params.getPosition(), logger);
+                LogMessages.start("completion", path, params.getPosition(), logger);
                 CompilationUnit unit = getUnit(path).orElseThrow();
                 CompletionList result = CompletionProvider.completion(unit, params);
-                LogMessages.response("completion", path, params.getPosition(), logger);
+                LogMessages.finish("completion", path, params.getPosition(), logger);
                 return Either.<List<CompletionItem>, CompletionList>forRight(result);
             } finally {
                 unlockForRead();
@@ -101,9 +103,9 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     @Override
     public CompletableFuture<CompletionItem> resolveCompletionItem(CompletionItem unresolved) {
         return CompletableFuture.supplyAsync(() -> {
-            LogMessages.request("resolveCompletionItem", logger);
+            LogMessages.start("resolveCompletionItem", logger);
             // do nothing
-            LogMessages.response("resolveCompletionItem", logger);
+            LogMessages.finish("resolveCompletionItem", logger);
             return unresolved;
         }).exceptionally(e -> {
             LogMessages.error("resolveCompletionItem", unresolved, e, logger);
@@ -117,10 +119,10 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
             lockForRead();
             try {
                 Path path = PathUtil.toPath(params.getTextDocument().getUri());
-                LogMessages.request("hover", path, params.getPosition(), logger);
+                LogMessages.start("hover", path, params.getPosition(), logger);
                 CompilationUnit unit = getUnit(path).orElseThrow();
                 Hover result = HoverProvider.hover(unit, params);
-                LogMessages.response("hover", path, params.getPosition(), logger);
+                LogMessages.finish("hover", path, params.getPosition(), logger);
                 return result;
             } finally {
                 unlockForRead();
@@ -137,10 +139,10 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
             lockForRead();
             try {
                 Path path = PathUtil.toPath(params.getTextDocument().getUri());
-                LogMessages.request("definition", path, params.getPosition(), logger);
+                LogMessages.start("definition", path, params.getPosition(), logger);
                 CompilationUnit unit = getUnit(path).orElseThrow();
                 List<LocationLink> result = DefinitionProvider.definition(unit, params);
-                LogMessages.response("definition", path, params.getPosition(), logger);
+                LogMessages.finish("definition", path, params.getPosition(), logger);
                 return Either.<List<? extends Location>, List<? extends LocationLink>>forRight(result);
             } finally {
                 unlockForRead();
@@ -157,10 +159,10 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
             lockForRead();
             try {
                 Path path = PathUtil.toPath(params.getTextDocument().getUri());
-                LogMessages.request("references", path, params.getPosition(), logger);
+                LogMessages.start("references", path, params.getPosition(), logger);
                 CompilationUnit unit = getUnit(path).orElseThrow();
                 List<Location> result = ReferencesProvider.references(unit, params);
-                LogMessages.response("references", path, params.getPosition(), logger);
+                LogMessages.finish("references", path, params.getPosition(), logger);
                 return result;
             } finally {
                 unlockForRead();
@@ -179,10 +181,10 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
             lockForRead();
             try {
                 Path path = PathUtil.toPath(params.getTextDocument().getUri());
-                LogMessages.request("documentSymbol", path, logger);
+                LogMessages.start("documentSymbol", path, logger);
                 CompilationUnit unit = getUnit(path).orElseThrow();
                 List<DocumentSymbol> result = DocumentSymbolProvider.documentSymbol(unit, params);
-                LogMessages.response("documentSymbol", path, logger);
+                LogMessages.finish("documentSymbol", path, logger);
                 return result.stream()
                         .map(Either::<SymbolInformation, DocumentSymbol>forRight)
                         .toList();
@@ -201,10 +203,10 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
             lockForRead();
             try {
                 Path path = PathUtil.toPath(params.getTextDocument().getUri());
-                LogMessages.request("semanticTokensFull", path, logger);
+                LogMessages.start("semanticTokensFull", path, logger);
                 CompilationUnit unit = getUnit(path).orElseThrow();
                 SemanticTokens result = SemanticTokensProvider.semanticTokensFull(unit, params);
-                LogMessages.response("semanticTokensFull", path, logger);
+                LogMessages.finish("semanticTokensFull", path, logger);
                 return result;
             } finally {
                 unlockForRead();
@@ -228,7 +230,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
         CompletableFuture.runAsync(() -> {
             lockForWrite();
             try {
-                LogMessages.request("didChangeWatchedFiles", logger);
+                LogMessages.start("didChangeWatchedFiles", logger);
                 for (FileEvent event : params.getChanges()) {
                     Path path = PathUtil.toPath(event.getUri());
                     getEnv(path).ifPresent(env -> {
@@ -245,6 +247,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
                         }
                     });
                 }
+                LogMessages.finish("didChangeWatchedFiles", logger);
             } catch (Exception e) {
                 LogMessages.error("didChangeWatchedFiles", e, logger);
             } finally {

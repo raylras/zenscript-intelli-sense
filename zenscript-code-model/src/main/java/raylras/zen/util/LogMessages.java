@@ -10,40 +10,49 @@ import java.nio.file.Path;
 
 public class LogMessages {
 
-    public static void error(String message, Object params, Throwable t, Logger logger) {
-        logger.error("{} {}", message, params, t);
-    }
-
-    public static void error(String message, Throwable t, Logger logger) {
-        logger.error("{}", message, t);
-    }
-
-    public static void request(String message, Logger logger) {
-        logger.info("=> {}", message);
-    }
-
-    public static void request(String message, Path path, Logger logger) {
-        logger.info("=> {} {}", message, path.getFileName());
-    }
-
-    public static void request(String message, Path path, Position position, Logger logger) {
-        logger.info("=> {} {}:{}:{}", message, path.getFileName(), position.getLine() + 1, position.getCharacter());
-    }
-
-    public static void response(String message, Path path, Logger logger) {
-        logger.info("<= {} {}", message, path.getFileName());
-    }
-
-    public static void response(String message, Path path, Position position, Logger logger) {
-        logger.info("<= {} {}:{}:{}", message, path.getFileName(), position.getLine() + 1, position.getCharacter());
-    }
-
-    public static void response(String message, Logger logger) {
-        logger.info("<= {}", message);
-    }
+    private static final ThreadLocal<Long> START_TIME = ThreadLocal.withInitial(System::currentTimeMillis);
 
     public static void info(String message, LanguageClient client) {
         client.showMessage(new MessageParams(MessageType.Info, message));
+    }
+
+    public static void error(String label, Object params, Throwable t, Logger logger) {
+        logger.error("{} {}", label, params, t);
+    }
+
+    public static void error(String label, Throwable t, Logger logger) {
+        logger.error("{}", label, t);
+    }
+
+    public static void start(String label, Logger logger) {
+        START_TIME.set(System.currentTimeMillis());
+        logger.info("{} started", label);
+    }
+
+    public static void start(String label, Path path, Logger logger) {
+        START_TIME.set(System.currentTimeMillis());
+        logger.info("{} {} started", label, path.getFileName());
+    }
+
+    public static void start(String label, Path path, Position position, Logger logger) {
+        START_TIME.set(System.currentTimeMillis());
+        logger.info("{} {}:{}:{} started", label, path.getFileName(), position.getLine() + 1, position.getCharacter());
+    }
+
+    public static void finish(String label, Path path, Logger logger) {
+        logger.info("{} {} finished {} ms", label, path.getFileName(), getElapsedMillis());
+    }
+
+    public static void finish(String label, Path path, Position position, Logger logger) {
+        logger.info("{} {}:{}:{} finished {} ms", label, path.getFileName(), position.getLine() + 1, position.getCharacter(), getElapsedMillis());
+    }
+
+    public static void finish(String label, Logger logger) {
+        logger.info("{} finished {} ms", label, getElapsedMillis());
+    }
+
+    private static long getElapsedMillis() {
+        return System.currentTimeMillis() - START_TIME.get();
     }
 
 }
