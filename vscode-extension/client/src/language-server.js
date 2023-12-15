@@ -1,15 +1,13 @@
-import { join } from "node:path";
-import { window, workspace } from "vscode";
-import { LanguageClient, LanguageClientOptions, ServerOptions } from "vscode-languageclient/node";
-import { SimpleLogger } from "./simple-logger";
+import {join} from "node:path";
+import {window, workspace} from "vscode";
+import {LanguageClient, LanguageClientOptions, ServerOptions} from "vscode-languageclient/node";
 
 /**
  * @param {string} javaBin
  */
 export async function activateLanguageServer(javaBin) {
     const logChannel = window.createOutputChannel('ZenScript Language Server', "log");
-    const logger = new SimpleLogger(logChannel);
-    logger.info('Starting ZensScript language server');
+    logChannel.appendLine('Starting ZensScript language server');
 
     const config = workspace.getConfiguration();
     const classpath = join(__dirname, '..', '..', 'server', '*');
@@ -22,7 +20,7 @@ export async function activateLanguageServer(javaBin) {
 
     let suspend = false;
     if (config.get('zenscript.languageServer.debug')) {
-        logger.info(`Language server is running in debug mode`);
+        logChannel.appendLine(`Language server is running in debug mode`);
         if (config.get('zenscript.languageServer.suspend')) {
             args.push('-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005,quiet=y');
             suspend = true;
@@ -33,9 +31,9 @@ export async function activateLanguageServer(javaBin) {
 
     args.push(main);
 
-    logger.info(`Command: "${[javaBin, ...args].join(' ')}"`);
+    logChannel.appendLine(`Launch command: "${[javaBin, ...args].join(' ')}"`);
     if (suspend) {
-        logger.info('Waiting for debugger to connect...');
+        logChannel.appendLine('Waiting for debugger to connect...');
     }
 
     /** @type {ServerOptions} */

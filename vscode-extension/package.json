@@ -78,7 +78,6 @@
 	},
 	"dependencies": {
 		"@viperproject/locate-java-home": "^1.1.15",
-		"dayjs": "^1.11.9",
 		"vscode-languageclient": "^9.0.1"
 	},
 	"devDependencies": {
