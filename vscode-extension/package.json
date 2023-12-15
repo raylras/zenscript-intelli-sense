@@ -46,25 +46,25 @@
 			}
 		],
 		"configuration": {
-			"title": "ZenScript Language Server",
+			"title": "ZenScript",
 			"properties": {
-				"zenscript.languageServer.debug": {
+				"zenscript.languageServer.enableJavaArguments": {
 					"order": 0,
 					"type": "boolean",
 					"default": false,
-					"description": "Enable/disable debug mode for language server"
+					"description": "Enable/disable java arguments"
 				},
-				"zenscript.languageServer.suspend": {
+				"zenscript.languageServer.javaArguments": {
 					"order": 1,
-					"type": "boolean",
-					"default": false,
-					"description": "Suspend to wait for the debugger to attach"
+					"type": "string",
+					"default": "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005,quiet=y",
+					"description": "Java arguments"
 				},
 				"zenscript.languageServer.javaHome": {
 					"order": 2,
 					"type": "string",
-					"default": null,
-					"description": "Path of java home"
+					"default": "",
+					"description": "Java home directory"
 				}
 			}
 		}

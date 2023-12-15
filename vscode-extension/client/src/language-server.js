@@ -16,25 +16,14 @@ export async function activateLanguageServer(javaBin) {
     /** @type {string[]} */
     const args = [];
 
-    args.push('-classpath', classpath);
-
-    let suspend = false;
-    if (config.get('zenscript.languageServer.debug')) {
-        logChannel.appendLine(`Language server is running in debug mode`);
-        if (config.get('zenscript.languageServer.suspend')) {
-            args.push('-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005,quiet=y');
-            suspend = true;
-        } else {
-            args.push('-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005,quiet=y');
-        }
+    if (config.get('zenscript.languageServer.enableJavaArguments')) {
+        args.push(config.get('zenscript.languageServer.javaArguments'));
     }
 
+    args.push('-classpath', classpath);
     args.push(main);
 
-    logChannel.appendLine(`Launch command: "${[javaBin, ...args].join(' ')}"`);
-    if (suspend) {
-        logChannel.appendLine('Waiting for debugger to connect...');
-    }
+    logChannel.appendLine(`Launch command: "${[javaBin, ...args].join(' ')}"`)
 
     /** @type {ServerOptions} */
     const serverOptions = {
