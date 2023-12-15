@@ -2,13 +2,13 @@ package raylras.zen.util;
 
 import raylras.zen.model.CompilationEnvironment;
 import raylras.zen.model.symbol.Executable;
-import raylras.zen.model.symbol.FunctionSymbol;
 import raylras.zen.model.symbol.ParameterSymbol;
-import raylras.zen.model.type.*;
+import raylras.zen.model.type.SubtypeResult;
+import raylras.zen.model.type.Type;
+import raylras.zen.model.type.Types;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 
 public class Executables {
 
@@ -64,13 +64,6 @@ public class Executables {
             }
         }
         return found;
-    }
-
-    public static Optional<FunctionType> findLambdaForm(ClassType type, CompilationEnvironment env) {
-        return Symbols.getMembersByName(type, "", FunctionSymbol.class, env)
-                .stream()
-                .map(FunctionSymbol::getType)
-                .findFirst();
     }
 
 }

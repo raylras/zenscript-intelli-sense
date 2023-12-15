@@ -1,43 +1,38 @@
 package raylras.zen.util;
 
 import raylras.zen.model.CompilationEnvironment;
-import raylras.zen.model.symbol.SymbolProvider;
-import raylras.zen.model.symbol.Symbol;
 import raylras.zen.model.symbol.Executable;
+import raylras.zen.model.symbol.FunctionSymbol;
+import raylras.zen.model.symbol.Symbol;
+import raylras.zen.model.symbol.SymbolProvider;
+import raylras.zen.model.type.ClassType;
 import raylras.zen.model.type.Type;
-import java.util.Collections;
-import java.util.List;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
+
+import java.util.Optional;
+import java.util.stream.Stream;
 
 public class Symbols {
 
-    public static <T extends Symbol> List<T> getMembersByName(Type type, String simpleName, Class<T> clazz, CompilationEnvironment env) {
-        return getMember(type, clazz, env, it -> it.getName().equals(simpleName));
+    public static Optional<FunctionSymbol> getAnonymousFunction(ClassType type, CompilationEnvironment env) {
+        return Symbols.getMembers(type, FunctionSymbol.class, env)
+                .filter(it -> it.getName().isEmpty())
+                .findFirst();
     }
 
-    public static List<Executable> getExecutableMembersByName(Type type, String simpleName, CompilationEnvironment env) {
-        if (!(type instanceof SymbolProvider provider)) {
-            return Collections.emptyList();
-        }
-        return provider.withExpands(env).getSymbols().stream()
+    public static Stream<Executable> getExecutableMembersByName(Type type, String simpleName, CompilationEnvironment env) {
+        return getMembers(type, Symbol.class, env)
                 .filter(it -> it.getName().equals(simpleName))
                 .filter(Executable.class::isInstance)
-                .map(Executable.class::cast)
-                .collect(Collectors.toList());
+                .map(Executable.class::cast);
     }
 
-    public static <T extends Symbol> List<T> getMember(Type type, Class<T> clazz, CompilationEnvironment env, Predicate<T> filter) {
-
-        if (!(type instanceof SymbolProvider provider)) {
-            return Collections.emptyList();
+    public static <T extends Symbol> Stream<T> getMembers(Type type, Class<T> memberClass, CompilationEnvironment env) {
+        if (type instanceof SymbolProvider provider) {
+            return provider.withExpands(env).getSymbols().stream()
+                    .filter(memberClass::isInstance)
+                    .map(memberClass::cast);
         }
-        return provider.withExpands(env).getSymbols().stream()
-                .filter(clazz::isInstance)
-                .map(clazz::cast)
-                .filter(filter)
-                .collect(Collectors.toList());
-
+        return Stream.empty();
     }
 
 }

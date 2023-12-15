@@ -77,8 +77,9 @@ public final class TypeResolver {
             if (type instanceof FunctionType functionType) {
                 return functionType.parameterTypes().get(argumentIndex);
             } else if (type instanceof ClassType classType) {
-                return Executables.findLambdaForm(classType, unit.getEnv())
-                        .map(it -> it.parameterTypes().get(argumentIndex))
+                return Symbols.getAnonymousFunction(classType, unit.getEnv())
+                        .map(it -> it.getParameterList().get(argumentIndex))
+                        .map(ParameterSymbol::getType)
                         .orElse(AnyType.INSTANCE);
             }
             return AnyType.INSTANCE;
@@ -140,7 +141,7 @@ public final class TypeResolver {
             ForeachStatementContext forEachStatement = (ForeachStatementContext) ctx.getParent().getParent();
             List<ForeachVariableContext> variables = forEachStatement.foreachVariableList().foreachVariable();
             Type iterableType = visit(forEachStatement.expression());
-            Type result = Operators.getUnaryResult(iterableType, Operator.FOR_IN, unit.getEnv()).orElse(null);
+            Type result = Operators.apply(iterableType, Operator.FOR_IN, unit.getEnv()).orElse(null);
             if (result instanceof ListType listType) {
                 return getListForeachVariableType(listType.elementType(), ctx, variables);
             }
@@ -173,7 +174,7 @@ public final class TypeResolver {
 
         @Override
         public Type visitIntRangeExpr(IntRangeExprContext ctx) {
-            return Operators.getBinaryResult(visit(ctx.from), Operator.RANGE, unit.getEnv(), visit(ctx.to)).orElse(AnyType.INSTANCE);
+            return Operators.apply(visit(ctx.from), visit(ctx.to), Operator.RANGE, unit.getEnv()).orElse(AnyType.INSTANCE);
         }
 
         @Override
@@ -189,7 +190,7 @@ public final class TypeResolver {
             Type leftType = visit(ctx.left);
             Type rightType = visit(ctx.right);
             return Operator.of(literal, Operator.Kind.BINARY)
-                    .flatMap(op -> Operators.getBinaryResult(leftType, op, unit.getEnv(), rightType))
+                    .flatMap(op -> Operators.apply(leftType, rightType, op, unit.getEnv()))
                     .orElse(leftType);
         }
 
@@ -230,7 +231,7 @@ public final class TypeResolver {
                         }
                         Type type = visit(memberAccessExpr.expression());
                         String name = memberAccessExpr.simpleName().getText();
-                        List<Executable> functions = Symbols.getExecutableMembersByName(type, name, unit.getEnv());
+                        List<Executable> functions = Symbols.getExecutableMembersByName(type, name, unit.getEnv()).toList();
                         return Executables.predictNextArgumentType(functions, argumentTypes, unit.getEnv());
                     }
                 }
@@ -252,7 +253,7 @@ public final class TypeResolver {
         public Type visitUnaryExpr(UnaryExprContext ctx) {
             Type type = visit(ctx.expression());
             return Operator.of(ctx.op.getText(), Operator.Kind.UNARY)
-                    .flatMap(op -> Operators.getUnaryResult(type, op, unit.getEnv()))
+                    .flatMap(op -> Operators.apply(type, op, unit.getEnv()))
                     .orElse(AnyType.INSTANCE);
         }
 
@@ -308,7 +309,7 @@ public final class TypeResolver {
                     return member.getType();
                 }
             }
-            return Operators.getBinaryResult(leftType, Operator.MEMBER_GET, unit.getEnv(), StringType.INSTANCE).orElse(AnyType.INSTANCE);
+            return Operators.apply(leftType, StringType.INSTANCE, Operator.MEMBER_GET, unit.getEnv()).orElse(AnyType.INSTANCE);
         }
 
         @Override
@@ -335,7 +336,7 @@ public final class TypeResolver {
                     }
                     argumentTypes.add(argumentType);
                 }
-                List<Executable> functions = Symbols.getExecutableMembersByName(owner, memberAccessExpr.simpleName().getText(), unit.getEnv());
+                List<Executable> functions = Symbols.getExecutableMembersByName(owner, memberAccessExpr.simpleName().getText(), unit.getEnv()).toList();
                 Executable matchedFunction = Executables.findBestMatch(functions, argumentTypes, unit.getEnv());
                 return matchedFunction == null ? null : matchedFunction.getReturnType();
             } else {
@@ -354,7 +355,7 @@ public final class TypeResolver {
         public Type visitMemberIndexExpr(MemberIndexExprContext ctx) {
             Type leftType = visit(ctx.left);
             Type rightType = visit(ctx.index);
-            return Operators.getBinaryResult(leftType, Operator.INDEX_GET, unit.getEnv(), rightType)
+            return Operators.apply(leftType, rightType, Operator.INDEX_GET, unit.getEnv())
                     .orElse(AnyType.INSTANCE);
         }
 
@@ -363,7 +364,7 @@ public final class TypeResolver {
             Type leftType = visit(ctx.left);
             Type rightType = visit(ctx.right);
             return Operator.of(ctx.op.getText(), Operator.Kind.BINARY)
-                    .flatMap(op -> Operators.getBinaryResult(leftType, op, unit.getEnv(), rightType))
+                    .flatMap(op -> Operators.apply(leftType, rightType, op, unit.getEnv()))
                     .orElse(AnyType.INSTANCE);
         }
 
