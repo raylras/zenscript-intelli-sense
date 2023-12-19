@@ -19,6 +19,7 @@ repository:
       - include: '#class-declaration'
       - include: '#constructor-declaration'
       - include: '#function-declaration'
+      - include: '#operator-declaration'
       - include: '#variable-declaration'
 
   import-declaration:
@@ -91,18 +92,32 @@ repository:
 
   function-declaration:
     name: meta.function.zs
-    begin: '(?=(?:\b(static|global|operator)\b\s+)?\b(function)\b)'
+    begin: '(?:\b(static|global)\b\s+)?\b(?=(function))\b'
     beginCaptures:
       '1':
         name: storage.type.zs
       '2':
         name: storage.type.function.zs
-    end: '(?=[({])|(?<=[)}])'
+    end: '(?=[({])'
     patterns:
       - match: '\bfunction\b\s+([a-zA-Z_$][a-zA-Z0-9_$]*)'
         captures:
           '1':
             name: meta.definition.function.zs entity.name.function.zs
+      - include: '#comments'
+
+  operator-declaration:
+    name: meta.operator.zs
+    begin: '(?=\b(operator)\b)'
+    beginCaptures:
+      '1':
+        name: storage.type.operator.zs
+    end: '(?=[({])'
+    patterns:
+      - match: '\boperator\b\s+([^(\s]+)'
+        captures:
+          '1':
+            name: meta.definition.operator.zs entity.name.function.zs
       - include: '#comments'
 
   statements:
