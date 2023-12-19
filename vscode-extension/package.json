@@ -70,11 +70,10 @@
 		}
 	},
 	"scripts": {
-		"package": "vsce package",
-		"vscode:prepublish": "npm run yaml2json && npm run prod",
-		"yaml2json": "yaml2json ./language/ZenScript.tmLanguage.yaml | json-minify > ./language/ZenScript.tmLanguage.json",
-		"prod": "rollup --config ./rollup.config.prod.mjs --environment BUILD:production",
-		"dev": "rollup --config ./rollup.config.dev.mjs --environment BUILD:development"
+		"package": "npm run prod && vsce package",
+		"prod": "rollup --config ./rollup.config.prod.mjs --environment BUILD:production & npm run yaml2json",
+		"dev": "rollup --config ./rollup.config.dev.mjs --environment BUILD:development & npm run yaml2json",
+		"yaml2json": "yaml2json ./language/ZenScript.tmLanguage.yaml | json-minify > ./language/ZenScript.tmLanguage.json"
 	},
 	"dependencies": {
 		"@viperproject/locate-java-home": "^1.1.15",
