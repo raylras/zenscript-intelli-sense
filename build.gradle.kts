@@ -1,10 +1,27 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
+plugins {
+    kotlin("jvm") version "1.9.21" apply false
+}
+
+repositories {
+    mavenCentral()
+}
+
 subprojects {
+    apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "java")
     apply(plugin = "idea")
 
     tasks.withType<JavaCompile> {
         sourceCompatibility = "17"
         targetCompatibility = "17"
+    }
+
+    tasks.withType<KotlinCompile> {
+        kotlinOptions {
+            jvmTarget = "17"
+        }
     }
 
     tasks.withType<Test> {
@@ -37,6 +54,7 @@ subprojects {
         from(configurations.named("runtimeClasspath").get())
         into("../vscode-extension/server")
 
+        include("kotlin-stdlib-*.jar")
         include("slf4j-api-*.jar")
         include("slf4j-simple-*.jar")
     }
