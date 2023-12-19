@@ -71,8 +71,8 @@
 	},
 	"scripts": {
 		"package": "npm run prod && vsce package",
-		"prod": "rollup --config ./rollup.config.prod.mjs --environment BUILD:production & npm run yaml2json",
-		"dev": "rollup --config ./rollup.config.dev.mjs --environment BUILD:development & npm run yaml2json",
+		"prod": "rollup --config ./rollup.config.prod.mjs --environment BUILD:production && npm run yaml2json",
+		"dev": "rollup --config ./rollup.config.dev.mjs --environment BUILD:development && npm run yaml2json",
 		"yaml2json": "yaml2json ./language/ZenScript.tmLanguage.yaml | json-minify > ./language/ZenScript.tmLanguage.json"
 	},
 	"dependencies": {
