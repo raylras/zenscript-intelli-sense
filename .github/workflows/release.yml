@@ -30,13 +30,6 @@ jobs:
           cd vscode-extension
           npm version ${{ env.VERSION }}
 
-      - name: Commit version changes
-        uses: EndBug/add-and-commit@v9
-        with:
-          default_author: github_actions
-          message: 'chore: bump to ${{ env.VERSION }}'
-          commit: --signoff
-
       - name: Setup JDK
         uses: actions/setup-java@v3
         with:
@@ -69,3 +62,10 @@ jobs:
           artifacts: 'vscode-extension/*.vsix'
           generateReleaseNotes: true
           token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Commit version changes
+        uses: EndBug/add-and-commit@v9
+        with:
+          default_author: github_actions
+          message: 'chore: bump to ${{ env.VERSION }}'
+          commit: --signoff
