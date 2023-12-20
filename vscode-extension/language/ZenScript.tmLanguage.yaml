@@ -7,11 +7,28 @@ fileTypes:
   - dzs
 
 patterns:
+  - include: '#preprocessor'
   - include: '#comments'
   - include: '#declarations'
   - include: '#statements'
 
 repository:
+
+  preprocessor:
+    name: meta.preprocessor.zs
+    begin: '^(#)(\S+)'
+    beginCaptures:
+      '1':
+        name: punctuation.definition.preprocessor.zs
+      '2':
+        name: support.other.preprocessor.zs
+    end: '\n'
+    patterns:
+      - include: '#numeric'
+      - match: '[-+]'
+        name: keyword.operator.arithmetic.zs
+      - match: '\S+'
+        name: string.unquoted.zs
 
   declarations:
     patterns:
