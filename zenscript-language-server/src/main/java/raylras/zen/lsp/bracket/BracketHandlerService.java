@@ -58,10 +58,12 @@ public class BracketHandlerService {
     private static final Gson GSON = createGson();
 
     private BracketHandlerService(CompilationEnvironment env) {
-        env.getGeneratedRoot()
-                .map(p -> p.resolve("brackets.json"))
-                .filter(Files::exists)
-                .ifPresentOrElse(this::loadMirrorsFromJson, () -> logger.error("brackets.json not found for env: {}", env));
+        Path path = env.getGeneratedRoot().resolve("brackets.json");
+        if (Files.exists(path)) {
+            loadMirrorsFromJson(path);
+        } else {
+            logger.error("brackets.json not found for env: {}", env);
+        }
     }
 
     private void loadMirrorsFromJson(Path jsonPath) {

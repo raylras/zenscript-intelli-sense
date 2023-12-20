@@ -1,5 +1,7 @@
 package raylras.zen.model;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import raylras.zen.model.symbol.*;
 import raylras.zen.model.type.StringType;
 import raylras.zen.model.type.Type;
@@ -11,8 +13,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Stream;
 
 public class CompilationEnvironment {
@@ -21,12 +23,11 @@ public class CompilationEnvironment {
     public static final String DEFAULT_GENERATED_DIRECTORY = "generated";
 
     private final Path root;
-    private final Path generatedRoot;
     private final Map<Path, CompilationUnit> unitMap = new HashMap<>();
+    private Collection<String> availablePreprocessors;
 
     public CompilationEnvironment(Path root) {
         this.root = root;
-        this.generatedRoot = resolveGeneratedRoot(this);
     }
 
     public CompilationUnit createUnit(Path unitPath) {
@@ -91,22 +92,32 @@ public class CompilationEnvironment {
         return SymbolFactory.createPackageSymbol(this);
     }
 
+    public Collection<String> getAvailablePreprocessors() {
+        if (availablePreprocessors == null) {
+            resolveAvailablePreprocessors(this);
+        }
+        return availablePreprocessors;
+    }
+
     public Path getRoot() {
         return root;
     }
 
-    public Optional<Path> getGeneratedRoot() {
-        return Optional.of(generatedRoot).filter(Files::exists);
+    public Path getGeneratedRoot() {
+        return FileSystems.getDefault()
+                .getPath(System.getProperty("user.home"))
+                .resolve(".probezs")
+                .resolve(PathUtil.toHash(root))
+                .resolve(DEFAULT_GENERATED_DIRECTORY);
     }
 
     public Path relativize(Path other) {
-        Path root;
+        Path generatedRoot = getGeneratedRoot();
         if (Files.exists(generatedRoot) && PathUtil.isSubPath(other, generatedRoot)) {
-            root = this.generatedRoot;
+            return generatedRoot.relativize(other);
         } else {
-            root = this.root.getParent();
+            return root.getParent().relativize(other);
         }
-        return root.relativize(other);
     }
 
     public void clear() {
@@ -118,12 +129,17 @@ public class CompilationEnvironment {
         return root.toString();
     }
 
-    private static Path resolveGeneratedRoot(CompilationEnvironment env) {
-        return FileSystems.getDefault()
-                .getPath(System.getProperty("user.home"))
-                .resolve(".probezs")
-                .resolve(PathUtil.toHash(env.getRoot()))
-                .resolve(DEFAULT_GENERATED_DIRECTORY);
+    private static void resolveAvailablePreprocessors(CompilationEnvironment env) {
+        Path path = env.getGeneratedRoot().resolve("preprocessors.json");
+        if (Files.exists(path)) {
+            try {
+                Gson gson = new Gson();
+                env.availablePreprocessors = gson.fromJson(Files.newBufferedReader(path), new TypeToken<HashSet<String>>(){});
+            } catch (Exception e) {
+                env.availablePreprocessors = new HashSet<>();
+                throw new RuntimeException(e);
+            }
+        }
     }
 
 }

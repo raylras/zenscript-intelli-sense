@@ -14,6 +14,7 @@ import raylras.zen.util.LogMessages;
 import raylras.zen.util.PathUtil;
 import raylras.zen.util.l10n.L10N;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashSet;
 import java.util.List;
@@ -281,7 +282,7 @@ public class ZenLanguageService implements TextDocumentService, WorkspaceService
     }
 
     private void checkDzs(CompilationEnvironment env) {
-        if (env.getGeneratedRoot().isEmpty()) {
+        if (Files.exists(env.getGeneratedRoot())) {
             logger.info("Cannot find .dzs file directory of environment: {}", env);
             LogMessages.info(L10N.getString("dzs_not_found"), ZenLanguageServer.getClient());
         }

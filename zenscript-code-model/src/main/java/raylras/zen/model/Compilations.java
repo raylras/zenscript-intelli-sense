@@ -116,7 +116,10 @@ public class Compilations {
     private static Set<File> collectUnitFiles(CompilationEnvironment env) {
         Set<File> units = new HashSet<>();
         collect(units, env.getRoot());
-        env.getGeneratedRoot().ifPresent(root -> collect(units, root));
+        Path generatedRoot = env.getGeneratedRoot();
+        if (Files.exists(generatedRoot)) {
+            collect(units, generatedRoot);
+        }
         return units;
     }
 
