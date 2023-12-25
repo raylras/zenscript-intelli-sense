@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
     id ("antlr")
 }
@@ -7,7 +9,7 @@ group = "raylras.zen.model"
 dependencies {
     antlr("org.antlr:antlr4:4.13.1")
     implementation ("org.antlr:antlr4-runtime:4.13.1")
-    implementation ("org.eclipse.lsp4j:org.eclipse.lsp4j:0.21.1")
+    implementation("com.google.code.gson:gson:2.10.1")
 }
 
 sourceSets.main {
@@ -20,16 +22,20 @@ tasks.named<AntlrTask>("generateGrammarSource") {
     outputDirectory = file("src/main/gen/java/raylras/zen/model/parser")
 }
 
+tasks.named<KotlinCompile>("compileKotlin") {
+    dependsOn("generateGrammarSource")
+}
+
 tasks.named<Copy>("distDeps") {
     include("antlr4-runtime-*.jar")
-    include("org.eclipse.lsp4j-*.jar")
+    include("gson-*.jar")
+}
+
+tasks.named<Delete>("clean") {
+    finalizedBy(tasks.named("cleanGen"))
 }
 
 tasks.register<Delete>("cleanGen") {
     group = "build"
     delete("src/main/gen")
-}
-
-tasks.named<Delete>("clean") {
-    finalizedBy("cleanGen")
 }

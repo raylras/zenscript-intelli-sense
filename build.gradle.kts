@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "1.9.21" apply false
+    kotlin("jvm") version "2.0.0-Beta2" apply false
 }
 
 repositories {
@@ -10,17 +10,27 @@ repositories {
 
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
-    apply(plugin = "java")
-    apply(plugin = "idea")
+
+    /*
+        Additional information:
+
+        The last version supporting Java 1.8 is lsp4j 0.19.1.
+        Starting from lsp4j 0.21.0, Java 11 is required.
+
+        Consider setting compatibility to 11.
+
+        @see ::zenscript-language-server/build.gradle.kts
+        @see ::vscode-extension/client/src/extension.js
+    */
 
     tasks.withType<JavaCompile> {
-        sourceCompatibility = "17"
-        targetCompatibility = "17"
+        sourceCompatibility = "1.8"
+        targetCompatibility = "1.8"
     }
 
     tasks.withType<KotlinCompile> {
         kotlinOptions {
-            jvmTarget = "17"
+            jvmTarget = "1.8"
         }
     }
 
@@ -51,7 +61,8 @@ subprojects {
 
     tasks.register<Copy>("distDeps") {
         group = "dist"
-        from(configurations.named("runtimeClasspath").get())
+        val runtimeClasspath by configurations
+        from(runtimeClasspath)
         into("../vscode-extension/server")
 
         include("kotlin-stdlib-*.jar")
@@ -61,6 +72,13 @@ subprojects {
 }
 
 // root project
+tasks.register<Delete>("clean") {
+    group = "build"
+    delete("build")
+    delete("out")
+    finalizedBy(tasks.named("cleanDist"))
+}
+
 tasks.register<Delete>("cleanDist") {
     group = "dist"
     delete("vscode-extension/server")

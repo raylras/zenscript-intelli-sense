@@ -11,7 +11,7 @@ class RangeTest {
 
     @ParameterizedTest
     @MethodSource("contains")
-    void contains(Range a, Range b, boolean expected) {
+    void contains(TextRange a, TextRange b, boolean expected) {
         System.out.printf("test: %s contains %s, expected: %s%n", a, b, expected);
         Assertions.assertEquals(expected, a.contains(b));
     }
@@ -19,17 +19,17 @@ class RangeTest {
     static Stream<Arguments> contains() {
         return Stream.of(
                 // single line
-                Arguments.of(Range.of(0, 1, 0, 3), Range.of(0, 0, 0, 1), false),
-                Arguments.of(Range.of(0, 1, 0, 3), Range.of(0, 1, 0, 2), true),
-                Arguments.of(Range.of(0, 1, 0, 3), Range.of(0, 2, 0, 3), true),
-                Arguments.of(Range.of(0, 1, 0, 3), Range.of(0, 3, 0, 4), false),
+                Arguments.of(new TextRange(0, 1, 0, 3), new TextRange(0, 0, 0, 1), false),
+                Arguments.of(new TextRange(0, 1, 0, 3), new TextRange(0, 1, 0, 2), true),
+                Arguments.of(new TextRange(0, 1, 0, 3), new TextRange(0, 2, 0, 3), true),
+                Arguments.of(new TextRange(0, 1, 0, 3), new TextRange(0, 3, 0, 4), false),
                 // multi lines
-                Arguments.of(Range.of(0, 2, 2, 0), Range.of(0, 0, 2, 0), false),
-                Arguments.of(Range.of(0, 2, 2, 0), Range.of(0, 2, 0, 3), true),
-                Arguments.of(Range.of(0, 2, 2, 0), Range.of(0, 2, 1, 3), true),
-                Arguments.of(Range.of(0, 2, 2, 0), Range.of(0, 2, 2, 0), true),
-                Arguments.of(Range.of(0, 2, 2, 0), Range.of(0, 2, 2, 3), false),
-                Arguments.of(Range.of(0, 2, 2, 0), Range.of(2, 0, 2, 3), false)
+                Arguments.of(new TextRange(0, 2, 2, 0), new TextRange(0, 0, 2, 0), false),
+                Arguments.of(new TextRange(0, 2, 2, 0), new TextRange(0, 2, 0, 3), true),
+                Arguments.of(new TextRange(0, 2, 2, 0), new TextRange(0, 2, 1, 3), true),
+                Arguments.of(new TextRange(0, 2, 2, 0), new TextRange(0, 2, 2, 0), true),
+                Arguments.of(new TextRange(0, 2, 2, 0), new TextRange(0, 2, 2, 3), false),
+                Arguments.of(new TextRange(0, 2, 2, 0), new TextRange(2, 0, 2, 3), false)
         );
     }
 
