@@ -15,15 +15,11 @@ topLevelElement
     ;
 
 importDeclaration
-    : 'import' qualifiedName ('as' alias)? ';'
+    : 'import' qualifiedName ('as' alias = simpleName)? ';'
     ;
 
 qualifiedName
     : simpleName ('.' simpleName)*
-    ;
-
-alias
-    : simpleName
     ;
 
 simpleName
@@ -36,19 +32,12 @@ simpleName
     ;
 
 functionDeclaration
-    : prefix='static'? 'function' simpleName '(' formalParameterList ')' ('as' returnType)? functionBody
-    | prefix=('static' | 'global')? 'function' simpleName? '(' formalParameterList ')' 'as' returnType ';' // dzs
+    : prefix='static'? 'function' simpleName '(' (formalParameter (',' formalParameter)*)? ')' ('as' returnType)? functionBody
+    | prefix=('static' | 'global')? 'function' simpleName? '(' (formalParameter (',' formalParameter)*)? ')' 'as' returnType ';' // dzs
     ;
 
 expandFunctionDeclaration
-    : '$expand' typeLiteral '$' simpleName '(' formalParameterList ')' ('as' returnType)? functionBody
-    ;
-
-formalParameterList
-    : formalParameter (',' formalParameter)*
-    |
-    // compatable with ZenScript's zenConstructor?
-    // (formalParameter ','?)*
+    : '$expand' typeLiteral '$' simpleName '(' (formalParameter (',' formalParameter)*)? ')' ('as' returnType)? functionBody
     ;
 
 formalParameter
@@ -74,7 +63,7 @@ functionBody
 
 classDeclaration
     : 'zenClass' simpleName classBody
-    | 'zenClass' simpleNameOrPrimitiveType ('extends' qualifiedNameList)? classBody // dzs
+    | 'zenClass' simpleNameOrPrimitiveType ('extends' qualifiedName (',' qualifiedName)*)? classBody // dzs
     ;
 
 simpleNameOrPrimitiveType
@@ -89,10 +78,6 @@ simpleNameOrPrimitiveType
     | 'bool'
     | 'void'
     | 'string'
-    ;
-
-qualifiedNameList
-    : qualifiedName (',' qualifiedName)*
     ;
 
 classBody
@@ -112,8 +97,8 @@ invaildStatementInClassBody
     ;
 
 constructorDeclaration
-    : 'zenConstructor' '(' formalParameterList ')' constructorBody
-    | 'zenConstructor' '(' formalParameterList ')' ';' // dzs
+    : 'zenConstructor' '(' (formalParameter (',' formalParameter)*)? ')' constructorBody
+    | 'zenConstructor' '(' (formalParameter (',' formalParameter)*)? ')' ';' // dzs
     ;
 
 constructorBody
@@ -121,16 +106,12 @@ constructorBody
     ;
 
 variableDeclaration
-    : prefix=('var' | 'val' | 'static' | 'global') simpleName ('as' typeLiteral)? ('=' initializer)? ';'
+    : prefix=('var' | 'val' | 'static' | 'global') simpleName ('as' typeLiteral)? ('=' initializer = expression)? ';'
     | prefix=('var' | 'val' | 'static' | 'global') simpleName 'as' typeLiteral ';' //dzs
     ;
 
-initializer
-    : expression
-    ;
-
 operatorFunctionDeclaration // dzs
-    : 'operator' operator '(' formalParameterList ')' 'as' returnType ';'
+    : 'operator' operator '(' (formalParameter (',' formalParameter)*)? ')' 'as' returnType ';'
     ;
 
 operator // dzs
@@ -189,23 +170,11 @@ continueStatement
     ;
 
 ifStatement
-    : 'if' expression thenPart ('else' elsePart)?
-    ;
-
-thenPart
-    : statement
-    ;
-
-elsePart
-    : statement
+    : 'if' expression thenPart = statement ('else' elsePart = statement)?
     ;
 
 foreachStatement
-    : 'for' foreachVariableList 'in' expression foreachBody
-    ;
-
-foreachVariableList
-    : foreachVariable (',' foreachVariable)*
+    : 'for' foreachVariable (',' foreachVariable)* 'in' expression foreachBody
     ;
 
 foreachVariable
@@ -232,7 +201,7 @@ expression
     // ParsedExpression.java: L308-L453
     | literal=(TRUE | FALSE | NULL | DECIMAL_LITERAL | HEX_LITERAL | FLOAT_LITERAL | STRING_LITERAL)  #literalExpr
     | simpleName  #simpleNameExpr
-    | 'function' '(' formalParameterList ')' ('as' typeLiteral)? functionBody  #functionExpr
+    | 'function' '(' (formalParameter (',' formalParameter)*)? ')' ('as' typeLiteral)? functionBody  #functionExpr
     | '<' raw '>'                  #bracketHandlerExpr
     | '[' expressionList ','? ']'  #arrayLiteralExpr
     | '{' mapEntryList ','? '}'    #mapLiteralExpr
@@ -274,13 +243,13 @@ mapEntry
     ;
 
 typeLiteral
-    : qualifiedName                                               #classType
-    | 'function' '(' typeLiteralList ')' returnType               #functionType
-    | '[' typeLiteral ']'                                         #listType
-    | typeLiteral '['']'                                          #arrayType
-    | value=typeLiteral '[' key=typeLiteral ']' ('$' 'orderly')?  #mapType
-    | typeLiteral ('&' typeLiteral)+                              #intersectionType // dzs
-    | typeLiteral ('|' typeLiteral)+                              #unionType        // dzs
+    : qualifiedName                                                    #classType
+    | 'function' '(' (typeLiteral (',' typeLiteral)*)? ')' returnType  #functionType
+    | '[' typeLiteral ']'                                              #listType
+    | typeLiteral '['']'                                               #arrayType
+    | value=typeLiteral '[' key=typeLiteral ']' ('$' 'orderly')?       #mapType
+    | typeLiteral ('&' typeLiteral)+                                   #intersectionType // dzs
+    | typeLiteral ('|' typeLiteral)+                                   #unionType        // dzs
     | ANY     #primitiveType
     | BYTE    #primitiveType
     | SHORT   #primitiveType
@@ -291,9 +260,4 @@ typeLiteral
     | BOOL    #primitiveType
     | VOID    #primitiveType
     | STRING  #primitiveType
-    ;
-
-typeLiteralList
-    : typeLiteral (',' typeLiteral)*
-    |
     ;

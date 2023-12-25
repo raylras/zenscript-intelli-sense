@@ -13,9 +13,14 @@ class RangesTest {
     @ParameterizedTest
     @MethodSource("isRangeContainsPosition")
     void isRangeContainsPosition(int startLine, int startColumn, int endLine, int endColumn, int line, int column, boolean expected) {
-        Range range = Range.of(startLine, startColumn, endLine, endColumn);
+        TextRange range = new TextRange(startLine, startColumn, endLine, endColumn);
         System.out.printf("test: %s contains (%d:%d), expected: %s%n", range, line, column, expected);
-        assertEquals(expected, Ranges.isRangeContainsLineAndColumn(range, line, column));
+        assertEquals(expected, isRangeContainsLineAndColumn(range, line, column));
+    }
+
+    boolean isRangeContainsLineAndColumn(TextRange range, int line, int column) {
+        TextPosition pos = new TextPosition(line, column);
+        return range.contains(new TextRange(pos, pos));
     }
 
     static Stream<Arguments> isRangeContainsPosition() {

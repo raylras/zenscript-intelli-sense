@@ -16,6 +16,8 @@ export async function activateLanguageServer(javaBin) {
     /** @type {string[]} */
     const args = [];
 
+    args.push("-Dfile.encoding=UTF-8")
+
     if (config.get('zenscript.languageServer.enableJavaArguments')) {
         args.push(config.get('zenscript.languageServer.javaArguments'));
     }
