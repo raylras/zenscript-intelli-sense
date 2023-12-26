@@ -84,9 +84,9 @@ private fun createImportSymbolInternal(
 
         override val unit = unit
 
-        override val range by lazy { cst.textRange }
+        override val textRange by lazy { cst.textRange }
 
-        override val selectionRange by lazy { simpleNameCtx.textRange }
+        override val selectionTextRange by lazy { simpleNameCtx.textRange }
 
         override fun toString() = qualifiedName
     }
@@ -153,9 +153,9 @@ private fun createClassSymbolInternal(
 
         override val unit = unit
 
-        override val range by lazy { cst.textRange }
+        override val textRange by lazy { cst.textRange }
 
-        override val selectionRange by lazy { simpleNameCtx.textRange }
+        override val selectionTextRange by lazy { simpleNameCtx.textRange }
 
         override fun toString() = qualifiedName
     }
@@ -193,9 +193,9 @@ private fun createVariableSymbolInternal(
 
         override val unit = unit
 
-        override val range by lazy { cst.textRange }
+        override val textRange by lazy { cst.textRange }
 
-        override val selectionRange by lazy { simpleNameCtx.textRange }
+        override val selectionTextRange by lazy { simpleNameCtx.textRange }
 
         override fun toString() = simpleName
     }
@@ -246,9 +246,9 @@ fun createFunctionSymbolInternal(
 
         override val unit = unit
 
-        override val range by lazy { cst.textRange }
+        override val textRange by lazy { cst.textRange }
 
-        override val selectionRange by lazy { simpleNameCtx?.textRange ?: cst.FUNCTION().textRange }
+        override val selectionTextRange by lazy { simpleNameCtx?.textRange ?: cst.FUNCTION().textRange }
 
         override fun toString() = simpleName
     }
@@ -316,9 +316,9 @@ private fun createOperatorFunctionSymbolInternal(
 
         override val unit = unit
 
-        override val range by lazy { cst.textRange }
+        override val textRange by lazy { cst.textRange }
 
-        override val selectionRange by lazy { simpleNameCtx.textRange }
+        override val selectionTextRange by lazy { simpleNameCtx.textRange }
 
         override fun toString() = simpleName
     }
@@ -378,9 +378,9 @@ private fun createParameterSymbolInternal(
 
         override val unit = unit
 
-        override val range by lazy { ctx.textRange }
+        override val textRange by lazy { ctx.textRange }
 
-        override val selectionRange by lazy { simpleNameCtx.textRange }
+        override val selectionTextRange by lazy { simpleNameCtx.textRange }
 
         override fun toString() = simpleName
     }
@@ -445,9 +445,9 @@ private fun createExpandFunctionSymbolInternal(
 
         override val unit = unit
 
-        override val range by lazy { cst.textRange }
+        override val textRange by lazy { cst.textRange }
 
-        override val selectionRange by lazy { simpleNameCtx.textRange }
+        override val selectionTextRange by lazy { simpleNameCtx.textRange }
 
         override fun toString() = simpleName
     }
@@ -506,9 +506,9 @@ private fun createConstructorSymbol(
 
         override val unit= unit
 
-        override val range by lazy { cst.textRange }
+        override val textRange by lazy { cst.textRange }
 
-        override val selectionRange by lazy { cst.ZEN_CONSTRUCTOR().textRange }
+        override val selectionTextRange by lazy { cst.ZEN_CONSTRUCTOR().textRange }
 
         override fun toString() = simpleName
     }

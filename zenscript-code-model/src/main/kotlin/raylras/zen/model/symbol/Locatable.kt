@@ -6,7 +6,7 @@ import java.nio.file.Path
 interface Locatable {
     val path: Path
 
-    val range: TextRange
+    val textRange: TextRange
 
-    val selectionRange: TextRange
+    val selectionTextRange: TextRange
 }

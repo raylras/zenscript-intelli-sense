@@ -4,7 +4,6 @@ import org.eclipse.lsp4j.SemanticTokens
 import org.eclipse.lsp4j.SemanticTokensParams
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Listener
-import raylras.zen.model.parser.ZenScriptParser
 import raylras.zen.util.BASE_COLUMN
 import raylras.zen.util.BASE_LINE
 import raylras.zen.util.TextRange
@@ -17,13 +16,9 @@ object SemanticTokensProvider {
     }
 
     private class SemanticTokensListener(private val unit: CompilationUnit) : Listener() {
-        val data: MutableList<Int> = ArrayList()
+        val data = ArrayList<Int>()
         private var prevLine: Int = BASE_LINE
         private var prevColumn: Int = BASE_COLUMN
-
-        override fun enterCompilationUnit(ctx: ZenScriptParser.CompilationUnitContext) {
-            super.enterCompilationUnit(ctx)
-        }
 
         private fun push(range: TextRange?, tokenType: Int, tokenModifiers: Int) {
             if (range == null) return
