@@ -104,7 +104,7 @@ repository:
           - match: '\b(?:val|static|global)\b\s+([a-zA-Z_$][a-zA-Z0-9_$]*)'
             captures:
               '1':
-                name: variable.other.readonly.zs
+                name: variable.other.constant.zs
           - include: '#type-annotation'
 
   function-declaration:
