@@ -2,12 +2,14 @@ package raylras.zen.lsp.provider
 
 import org.eclipse.lsp4j.SemanticTokens
 import org.eclipse.lsp4j.SemanticTokensParams
+import raylras.zen.lsp.TokenModifier
 import raylras.zen.lsp.TokenType
 import raylras.zen.lsp.tokenModifier
 import raylras.zen.lsp.tokenType
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Listener
 import raylras.zen.model.lookupScope
+import raylras.zen.model.parser.ZenScriptParser.FormalParameterContext
 import raylras.zen.model.parser.ZenScriptParser.SimpleNameExprContext
 import raylras.zen.model.symbol.Modifiable
 import raylras.zen.util.BASE_COLUMN
@@ -37,6 +39,11 @@ object SemanticTokensProvider {
                         it is Modifiable -> push(ctx.textRange, it.tokenType, it.tokenModifier)
                     }
                 }
+        }
+
+        override fun enterFormalParameter(ctx: FormalParameterContext) {
+            // Workaround: in VSCode, it seems that read-only Parameter are not highlighted as expected, but Variable working fine.
+            push(ctx.simpleName().textRange, TokenType.VARIABLE, TokenModifier.READONLY.bitflag or TokenModifier.DEFINITION.bitflag)
         }
 
         private fun push(range: TextRange?, tokenType: TokenType?, tokenModifiers: Int) {
