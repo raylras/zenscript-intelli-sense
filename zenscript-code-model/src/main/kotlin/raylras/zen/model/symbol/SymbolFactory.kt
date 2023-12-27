@@ -374,6 +374,8 @@ private fun createParameterSymbolInternal(
 
         override val type by lazy { getType(ctx, unit) }
 
+        override val modifier = Modifier.IMPLICIT_VAL
+
         override val cst = ctx
 
         override val unit = unit
@@ -395,6 +397,8 @@ fun createParameterSymbol(name: String, type: Type, optional: Boolean = false, v
         override val simpleName = name
 
         override val type = type
+
+        override val modifier = Modifier.IMPLICIT_VAL
 
         override fun toString() = simpleName
     }

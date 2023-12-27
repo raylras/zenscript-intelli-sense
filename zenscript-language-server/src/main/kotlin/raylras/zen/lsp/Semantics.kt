@@ -33,15 +33,15 @@ enum class TokenModifier(val bitflag: Int, val modifierName: String) {
 val Modifiable.tokenModifier: Int
     get() = when {
         this.isGlobal || this.isStatic -> {
-            TokenModifier.STATIC.bitflag or TokenModifier.READONLY.bitflag or TokenModifier.DEFINITION.bitflag
+            TokenModifier.STATIC.bitflag or TokenModifier.READONLY.bitflag
         }
 
         this.isReadonly -> {
-            TokenModifier.READONLY.bitflag or TokenModifier.DEFINITION.bitflag
+            TokenModifier.READONLY.bitflag
         }
 
         else -> {
-            TokenModifier.DEFINITION.bitflag
+            0
         }
     }
 
@@ -52,7 +52,8 @@ val Symbol.tokenType: TokenType?
         }
 
         is ParameterSymbol -> {
-            TokenType.PARAMETER
+            // Workaround: in VSCode, it seems that read-only Parameter are not highlighted as expected, but Variable working fine.
+            TokenType.VARIABLE
         }
 
         is ClassSymbol -> {
