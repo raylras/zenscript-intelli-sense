@@ -7,8 +7,8 @@ import raylras.zen.lsp.tokenModifier
 import raylras.zen.lsp.tokenType
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Listener
+import raylras.zen.model.lookupScope
 import raylras.zen.model.parser.ZenScriptParser.SimpleNameExprContext
-import raylras.zen.model.resolve.lookupSymbol
 import raylras.zen.model.symbol.Modifiable
 import raylras.zen.util.BASE_COLUMN
 import raylras.zen.util.BASE_LINE
@@ -30,12 +30,13 @@ object SemanticTokensProvider {
         private var prevColumn: Int = BASE_COLUMN
 
         override fun enterSimpleNameExpr(ctx: SimpleNameExprContext) {
-            val lookupSymbol = lookupSymbol(ctx, unit)
-            lookupSymbol.firstOrNull()?.let {
-                when {
-                    it is Modifiable -> push(ctx.textRange, it.tokenType, it.tokenModifier)
+            lookupScope(ctx, unit)
+                ?.firstOrNull { it.simpleName == ctx.text }
+                ?.let {
+                    when {
+                        it is Modifiable -> push(ctx.textRange, it.tokenType, it.tokenModifier)
+                    }
                 }
-            }
         }
 
         private fun push(range: TextRange?, tokenType: TokenType?, tokenModifiers: Int) {
