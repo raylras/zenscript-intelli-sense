@@ -3,7 +3,7 @@ package raylras.zen.lsp
 import org.eclipse.lsp4j.SemanticTokenModifiers
 import org.eclipse.lsp4j.SemanticTokenTypes
 import org.eclipse.lsp4j.SemanticTokensLegend
-import raylras.zen.model.symbol.Modifiable
+import raylras.zen.model.symbol.*
 
 val SEMANTIC_TOKENS_LEGEND = SemanticTokensLegend().apply {
     tokenTypes = TokenType.entries.map { it.tokenName }
@@ -42,5 +42,40 @@ val Modifiable.tokenModifier: Int
 
         else -> {
             TokenModifier.DEFINITION.bitflag
+        }
+    }
+
+val Symbol.tokenType: TokenType?
+    get() = when (this) {
+        is VariableSymbol -> {
+            TokenType.VARIABLE
+        }
+
+        is ParameterSymbol -> {
+            TokenType.PARAMETER
+        }
+
+        is ClassSymbol -> {
+            TokenType.CLASS
+        }
+
+        is FunctionSymbol -> {
+            TokenType.FUNCTION
+        }
+
+        is ConstructorSymbol -> {
+            TokenType.FUNCTION
+        }
+
+        is OperatorFunctionSymbol -> {
+            TokenType.FUNCTION
+        }
+
+        is ExpandFunctionSymbol -> {
+            TokenType.FUNCTION
+        }
+
+        else -> {
+            null
         }
     }
