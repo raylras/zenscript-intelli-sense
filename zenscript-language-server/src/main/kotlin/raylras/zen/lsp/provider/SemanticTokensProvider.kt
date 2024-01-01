@@ -8,9 +8,9 @@ import raylras.zen.lsp.tokenModifier
 import raylras.zen.lsp.tokenType
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Listener
-import raylras.zen.model.lookupScope
 import raylras.zen.model.parser.ZenScriptParser.FormalParameterContext
 import raylras.zen.model.parser.ZenScriptParser.SimpleNameExprContext
+import raylras.zen.model.resolve.lookupScope
 import raylras.zen.model.symbol.Modifiable
 import raylras.zen.util.BASE_COLUMN
 import raylras.zen.util.BASE_LINE

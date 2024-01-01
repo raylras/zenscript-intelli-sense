@@ -7,7 +7,6 @@ import org.antlr.v4.runtime.tree.ParseTree
 import raylras.zen.model.parser.ZenScriptLexer
 import raylras.zen.model.parser.ZenScriptParser
 import raylras.zen.model.resolve.resolveDeclarations
-import raylras.zen.model.scope.Scope
 import java.io.File
 import java.io.IOException
 import java.nio.file.Path
@@ -44,18 +43,6 @@ fun extractClassName(path: Path): String {
         .replace('-', '_')
         .replace(' ', '_')
         .replace(File.separatorChar, '.')
-}
-
-fun lookupScope(cst: ParseTree?, unit: CompilationUnit): Scope? {
-    var current = cst
-    while (current != null) {
-        val scope = unit.scopeMap[current]
-        if (scope != null) {
-            return scope
-        }
-        current = current.parent
-    }
-    return null
 }
 
 fun createUnit(unitPath: Path, env: CompilationEnvironment): CompilationUnit {

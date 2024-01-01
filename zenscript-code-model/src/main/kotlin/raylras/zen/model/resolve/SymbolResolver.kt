@@ -4,7 +4,6 @@ import org.antlr.v4.runtime.tree.ParseTree
 import raylras.zen.model.CompilationEnvironment
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Visitor
-import raylras.zen.model.lookupScope
 import raylras.zen.model.parser.ZenScriptParser.*
 import raylras.zen.model.symbol.*
 import raylras.zen.util.contains

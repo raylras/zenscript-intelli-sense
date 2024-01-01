@@ -10,9 +10,9 @@ import raylras.zen.lsp.provider.data.Keywords
 import raylras.zen.lsp.provider.data.Snippet
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Visitor
-import raylras.zen.model.lookupScope
 import raylras.zen.model.parser.ZenScriptParser.*
 import raylras.zen.model.resolve.getType
+import raylras.zen.model.resolve.lookupScope
 import raylras.zen.model.scope.Scope
 import raylras.zen.model.symbol.*
 import raylras.zen.model.type.Type
