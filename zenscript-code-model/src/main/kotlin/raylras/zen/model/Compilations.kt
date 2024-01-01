@@ -34,19 +34,16 @@ val CompilationUnit.isZsUnit: Boolean
 val CompilationUnit.isDzsUnit: Boolean
     get() = isDzsFile(this.path)
 
+/**
+ * @see raylras.zen.model.CompilationsKtTest.extractClassName
+ */
 fun extractClassName(path: Path): String {
-    var classNameWithSlash = path.toString().replace(File.separatorChar, '/')
-
-    // trim extension
-    val lastDot = classNameWithSlash.lastIndexOf('.')
-    if (lastDot > 0) {
-        classNameWithSlash = classNameWithSlash.substring(0, lastDot)
-    }
-
-    classNameWithSlash = classNameWithSlash.replace(".", "_")
-    classNameWithSlash = classNameWithSlash.replace(" ", "_")
-
-    return classNameWithSlash.replace('/', '.')
+    return path.toString()
+        .substringBeforeLast('.')
+        .replace('.', '_')
+        .replace('-', '_')
+        .replace(' ', '_')
+        .replace(File.separatorChar, '.')
 }
 
 fun lookupScope(cst: ParseTree?, unit: CompilationUnit): Scope? {
