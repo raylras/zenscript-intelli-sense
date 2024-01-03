@@ -3,6 +3,7 @@ package raylras.zen.model.symbol
 import org.antlr.v4.runtime.ParserRuleContext
 import raylras.zen.model.CompilationEnvironment
 import raylras.zen.model.CompilationUnit
+import raylras.zen.model.isDzsUnit
 import raylras.zen.model.isZsUnit
 import raylras.zen.model.parser.ZenScriptParser.*
 import raylras.zen.model.resolve.*
@@ -119,7 +120,7 @@ private fun createClassSymbolInternal(
 ): ClassSymbol {
     return object : ClassSymbol, ParseTreeLocatable {
         override val qualifiedName by lazy {
-            if (unit.isZsUnit) {
+            if (unit.isDzsUnit) {
                 unit.qualifiedName
             } else {
                 unit.qualifiedName + '.' + simpleName
