@@ -29,16 +29,16 @@ object CompletionProvider {
 
     private class CompletionVisitor(val unit: CompilationUnit, params: CompletionParams) : Visitor<Unit>() {
         private val cursor: TextPosition = params.position.toTextPosition()
-        private val tailingNode: ParseTree? = getCstAtPosition(unit.parseTree, cursor)
-        private val leadingNode: TerminalNode? = getPrevTerminal(unit.tokenStream, tailingNode)
+        private val tailingNode: TerminalNode? = unit.parseTree.getTerminalAt(cursor)
+        private val leadingNode: TerminalNode? = tailingNode.getPrev(unit.tokenStream)
         private val tailingText: String = tailingNode?.text ?: ""
         private val leadingText: String = leadingNode?.text ?: ""
-        val result: CompletionList = CompletionList()
+        val result = CompletionList()
 
         /*
             | represents the cursor
-            ^ represents the leading cst node
-            _ represents the tailing cst node
+            ^ represents the leading terminal node
+            _ represents the tailing terminal node
          */
         override fun visitImportDeclaration(ctx: ImportDeclarationContext) {
             // import text|

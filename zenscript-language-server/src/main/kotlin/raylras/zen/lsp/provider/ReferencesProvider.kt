@@ -103,11 +103,10 @@ object ReferencesProvider {
         }
 
         if (symbol is VariableSymbol && symbol is ParseTreeLocatable) {
-            val parent = findParentOfTypes(
-                symbol.cst,
-                ClassDeclarationContext::class,
-                BlockStatementContext::class
-            )
+            val parent = symbol.cst.walkParent().firstOrNull{
+                it is ClassDeclarationContext || it is BlockStatementContext
+            }
+
             // variables and functions in classes are accessible by other units.
             if (parent is ClassDeclarationContext) {
                 return true
@@ -123,7 +122,7 @@ object ReferencesProvider {
     }
 
     private fun getSymbolOnCursor(unit: CompilationUnit, cursor: TextPosition): Symbol? {
-        val cstStack = getCstStackAtPosition(unit.parseTree, cursor)
+        val cstStack = unit.parseTree.getCstStackAt(cursor)
 
         for (cst in cstStack) {
             val symbol: Symbol? = unit.symbolMap[cst]

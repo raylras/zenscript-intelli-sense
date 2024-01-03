@@ -33,7 +33,7 @@ class CstTest {
     @ParameterizedTest
     @MethodSource("getNodeAtLineAndColumn")
     void getNodeAtPosition(String expected, int line, int column) {
-        ParseTree cst = CSTNodesKt.getCstAtPosition(unit, new TextPosition(line, column));
+        ParseTree cst = CSTNodesKt.getTerminalAt(unit, new TextPosition(line, column));
         Assertions.assertEquals(expected, getText(cst));
     }
 
@@ -52,8 +52,8 @@ class CstTest {
     @ParameterizedTest
     @MethodSource("getPrevTerminal")
     void getPrevTerminal(String expected, int line, int column) {
-        ParseTree cst = CSTNodesKt.getCstAtPosition(unit, new TextPosition(line, column));
-        TerminalNode prev = CSTNodesKt.getPrevTerminal(tokenStream, cst);
+        TerminalNode cst = CSTNodesKt.getTerminalAt(unit, new TextPosition(line, column));
+        TerminalNode prev = CSTNodesKt.getPrev(cst, tokenStream);
         Assertions.assertEquals(expected, getText(prev));
     }
 

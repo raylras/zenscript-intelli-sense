@@ -9,7 +9,10 @@ import raylras.zen.lsp.bracket.BracketHandlerService
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Visitor
 import raylras.zen.model.parser.ZenScriptParser.BracketHandlerExprContext
-import raylras.zen.util.*
+import raylras.zen.util.getCstStackAt
+import raylras.zen.util.textRange
+import raylras.zen.util.toLspRange
+import raylras.zen.util.toTextPosition
 import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import javax.imageio.ImageIO
@@ -19,36 +22,39 @@ import kotlin.io.encoding.ExperimentalEncodingApi
 object HoverProvider {
     fun hover(unit: CompilationUnit?, params: HoverParams): Hover? {
         unit ?: return null
-        val cursor: TextPosition = params.position.toTextPosition()
-        val cstStack = getCstStackAtPosition(unit.parseTree, cursor)
-        val visitor = HoverVisitor(BracketHandlerService.getInstance(unit.env))
+        val cursor = params.position.toTextPosition()
+        val cstStack = unit.parseTree.getCstStackAt(cursor)
+        val visitor = HoverVisitor(unit)
         for (cst in cstStack) {
-            val hover = cst.accept(visitor)
-            if (hover != null) {
-                return hover
+            cst.accept(visitor)?.let {
+                return it
             }
         }
         return null
     }
 
-    private class HoverVisitor(private val service: BracketHandlerService) : Visitor<Hover?>() {
+    private class HoverVisitor(private val unit: CompilationUnit) : Visitor<Hover?>() {
         override fun visitBracketHandlerExpr(ctx: BracketHandlerExprContext): Hover {
+            val service = BracketHandlerService.getInstance(unit.env)
             val entry = service.getEntryRemote(ctx.raw().text)
-            val builder = StringBuilder()
-            entry.getStringOrNull("_errorMessage")?.let {
-                builder.append(it)
-                builder.append("  \n")
+            val hover = buildString {
+                entry.getStringOrNull("_errorMessage")?.let {
+                    append(it)
+                    append("  \n")
+                }
+                entry.getStringOrNull("_icon")?.let {
+                    append("![img](data:image/png;base64,${resize(it, 64)})")
+                    append("  \n")
+                }
+                entry.getStringOrNull("_name")?.let {
+                    append(it)
+                    append("  \n")
+                }
+            }.let {
+                toHover(it)
+            }.apply {
+                range = ctx.textRange.toLspRange()
             }
-            entry.getStringOrNull("_icon")?.let {
-                builder.append("![img](data:image/png;base64,${resize(it, 64)})")
-                builder.append("  \n")
-            }
-            entry.getStringOrNull("_name")?.let {
-                builder.append(it)
-                builder.append("  \n")
-            }
-            val hover = toHover(builder.toString())
-            hover.range = ctx.textRange.toLspRange()
             return hover
         }
 
