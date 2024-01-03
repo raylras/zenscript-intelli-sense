@@ -616,7 +616,7 @@ object CompletionProvider {
 
         private fun shouldCreateCompletionItem(symbol: Symbol): Boolean {
             return when( symbol) {
-                is Executable -> true
+                is FunctionSymbol -> true
                 is VariableSymbol -> true
                 is ParameterSymbol -> true
                 else -> false
