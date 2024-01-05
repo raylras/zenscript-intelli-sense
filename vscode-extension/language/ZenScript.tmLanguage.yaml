@@ -332,7 +332,7 @@ repository:
     beginCaptures:
       '1':
         name: 'keyword.control.as.zs'
-    end: '(?=[-+*/%~^!&|:?<>,=){};])'
+    end: '(?=[-+*/%~^!&|:?<>,=){};#\]])'
     patterns:
       - include: '#type-literal'
 
