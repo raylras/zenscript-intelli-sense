@@ -2,6 +2,7 @@ package raylras.zen.model
 
 import com.google.gson.Gson
 import raylras.zen.model.symbol.*
+import raylras.zen.model.symbol.impl.createPackageSymbol
 import raylras.zen.util.toHash
 import java.nio.file.FileSystems
 import java.nio.file.Path

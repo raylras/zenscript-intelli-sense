@@ -6,7 +6,9 @@ import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Visitor
 import raylras.zen.model.parser.ZenScriptParser.*
 import raylras.zen.model.scope.Scope
-import raylras.zen.model.symbol.*
+import raylras.zen.model.symbol.ClassSymbol
+import raylras.zen.model.symbol.Symbol
+import raylras.zen.model.symbol.impl.*
 import raylras.zen.util.ArrayStack
 import raylras.zen.util.Stack
 

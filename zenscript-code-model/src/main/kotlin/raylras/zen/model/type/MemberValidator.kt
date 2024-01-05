@@ -1,6 +1,10 @@
 package raylras.zen.model.type
 
-import raylras.zen.model.symbol.*
+import raylras.zen.model.symbol.Executable
+import raylras.zen.model.symbol.Operator
+import raylras.zen.model.symbol.OperatorFunctionSymbol
+import raylras.zen.model.symbol.Symbol
+import raylras.zen.model.symbol.impl.createOperatorFunctionSymbol
 
 class MemberValidator {
     private val properties = HashMap<String, Symbol>()
