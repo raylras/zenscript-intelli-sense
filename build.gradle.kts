@@ -45,7 +45,7 @@ subprojects {
     dependencies {
         val implementation by configurations
         implementation("org.slf4j:slf4j-api:2.0.10")
-        implementation("org.slf4j:slf4j-simple:2.0.9")
+        implementation("org.slf4j:slf4j-simple:2.0.10")
 
         val testImplementation by configurations
         testImplementation(platform("org.junit:junit-bom:5.10.1"))
