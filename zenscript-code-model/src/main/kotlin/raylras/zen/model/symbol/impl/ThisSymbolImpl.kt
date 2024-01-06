@@ -5,14 +5,10 @@ import raylras.zen.model.type.Type
 
 fun createThisSymbol(typeSupplier: () -> Type): ThisSymbol {
     return object : ThisSymbol {
-        override val simpleName: String
-            get() = "this"
+        override val simpleName: String = "this"
 
-        override val type: Type
-            get() = typeSupplier()
+        override val type: Type by lazy { typeSupplier() }
 
-        override fun toString(): String {
-            return simpleName
-        }
+        override fun toString(): String = simpleName
     }
 }

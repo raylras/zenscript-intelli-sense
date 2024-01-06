@@ -24,30 +24,21 @@ fun createVariableSymbol(
 ) {
     simpleNameCtx ?: return
     callback(object : VariableSymbol, ParseTreeLocatable {
-        override val simpleName: String
-            get() = simpleNameCtx.text
+        override val simpleName: String by lazy { simpleNameCtx.text }
 
-        override val type: Type
-            get() = getType(ctx, unit)
+        override val type: Type by lazy { getType(ctx, unit) }
 
-        override val modifier: Modifier
-            get() = ctx.accept(modifierResolver)
+        override val modifier: Modifier by lazy { ctx.accept(modifierResolver) }
 
-        override val cst: ParserRuleContext
-            get() = ctx
+        override val cst: ParserRuleContext = ctx
 
-        override val unit: CompilationUnit
-            get() = unit
+        override val unit: CompilationUnit = unit
 
-        override val textRange: TextRange
-            get() = ctx.textRange
+        override val textRange: TextRange by lazy { ctx.textRange }
 
-        override val selectionTextRange: TextRange
-            get() = simpleNameCtx.textRange
+        override val selectionTextRange: TextRange by lazy { simpleNameCtx.textRange }
 
-        override fun toString(): String {
-            return simpleName
-        }
+        override fun toString(): String = simpleName
     })
 }
 

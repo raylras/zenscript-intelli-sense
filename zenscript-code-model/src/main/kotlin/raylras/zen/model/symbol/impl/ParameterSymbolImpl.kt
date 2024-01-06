@@ -20,36 +20,25 @@ fun createParameterSymbol(
 ) {
     simpleNameCtx ?: return
     callback(object : ParameterSymbol, ParseTreeLocatable {
-        override val isOptional: Boolean
-            get() = ctx.defaultValue() != null
+        override val isOptional: Boolean by lazy { ctx.defaultValue() != null }
 
-        override val isVararg: Boolean
-            get() = ctx.varargsPrefix() != null
+        override val isVararg: Boolean by lazy { ctx.varargsPrefix() != null }
 
-        override val simpleName: String
-            get() = simpleNameCtx.text
+        override val simpleName: String by lazy { simpleNameCtx.text }
 
-        override val type: Type
-            get() = getType(ctx, unit)
+        override val type: Type by lazy { getType(ctx, unit) }
 
-        override val modifier: Modifier
-            get() = Modifier.IMPLICIT_VAL
+        override val modifier: Modifier = Modifier.IMPLICIT_VAL
 
-        override val cst: FormalParameterContext
-            get() = ctx
+        override val cst: FormalParameterContext = ctx
 
-        override val unit: CompilationUnit
-            get() = unit
+        override val unit: CompilationUnit = unit
 
-        override val textRange: TextRange
-            get() = ctx.textRange
+        override val textRange: TextRange by lazy { ctx.textRange }
 
-        override val selectionTextRange: TextRange
-            get() = simpleNameCtx.textRange
+        override val selectionTextRange: TextRange by lazy { simpleNameCtx.textRange }
 
-        override fun toString(): String {
-            return simpleName
-        }
+        override fun toString(): String = simpleName
     })
 }
 

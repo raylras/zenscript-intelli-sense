@@ -22,39 +22,30 @@ fun createOperatorFunctionSymbol(
 ) {
     simpleNameCtx ?: return
     callback(object : OperatorFunctionSymbol, ParseTreeLocatable {
-        override val operator: Operator
-            get() = Operator.of(
+        override val operator: Operator by lazy {
+            Operator.of(
                 simpleName,
                 ctx.formalParameter()?.size ?: -1
             )
-
-        override val type: FunctionType
-            get() = FunctionType(returnType, parameters.map { it.type })
-
-        override val parameters: List<ParameterSymbol>
-            get() = ctx.formalParameter().map { unit.symbolMap[it] as ParameterSymbol }
-
-        override val returnType: Type
-            get() = resolveTypes(ctx.returnType(), unit).firstOrNull() ?: ErrorType
-
-        override val simpleName: String
-            get() = simpleNameCtx.text
-
-        override val cst: OperatorFunctionDeclarationContext
-            get() = ctx
-
-        override val unit: CompilationUnit
-            get() = unit
-
-        override val textRange: TextRange
-            get() = ctx.textRange
-
-        override val selectionTextRange: TextRange
-            get() = simpleNameCtx.textRange
-
-        override fun toString(): String {
-            return simpleName
         }
+
+        override val type: FunctionType by lazy { FunctionType(returnType, parameters.map { it.type }) }
+
+        override val parameters: List<ParameterSymbol> by lazy { ctx.formalParameter().map { unit.symbolMap[it] as ParameterSymbol } }
+
+        override val returnType: Type by lazy { resolveTypes(ctx.returnType(), unit).firstOrNull() ?: ErrorType }
+
+        override val simpleName: String by lazy { simpleNameCtx.text }
+
+        override val cst: OperatorFunctionDeclarationContext = ctx
+
+        override val unit: CompilationUnit = unit
+
+        override val textRange: TextRange by lazy { ctx.textRange }
+
+        override val selectionTextRange: TextRange by lazy { simpleNameCtx.textRange }
+
+        override fun toString(): String = simpleName
     })
 }
 
@@ -64,23 +55,16 @@ fun createOperatorFunctionSymbol(
     params: List<ParameterSymbol> = emptyList()
 ): OperatorFunctionSymbol {
     return object : OperatorFunctionSymbol {
-        override val operator: Operator
-            get() = operator
+        override val operator: Operator = operator
 
-        override val type: FunctionType
-            get() = FunctionType(returnType, params.map { it.type })
+        override val type: FunctionType by lazy { FunctionType(returnType, params.map { it.type }) }
 
-        override val parameters: List<ParameterSymbol>
-            get() = params
+        override val parameters: List<ParameterSymbol> = params
 
-        override val returnType: Type
-            get() = returnType
+        override val returnType: Type = returnType
 
-        override val simpleName: String
-            get() = operator.literal
+        override val simpleName: String = operator.literal
 
-        override fun toString(): String {
-            return simpleName
-        }
+        override fun toString(): String = simpleName
     }
 }

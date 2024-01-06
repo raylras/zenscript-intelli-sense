@@ -21,36 +21,25 @@ fun createFunctionSymbol(
     callback: (FunctionSymbol) -> Unit
 ) {
     callback(object : FunctionSymbol, ParseTreeLocatable {
-        override val type: FunctionType
-            get() = FunctionType(returnType, parameters.map { it.type })
+        override val type: FunctionType by lazy { FunctionType(returnType, parameters.map { it.type }) }
 
-        override val parameters: List<ParameterSymbol>
-            get() = ctx.formalParameter().map { unit.symbolMap[it] as ParameterSymbol }
+        override val parameters: List<ParameterSymbol> by lazy { ctx.formalParameter().map { unit.symbolMap[it] as ParameterSymbol } }
 
-        override val returnType: Type
-            get() = resolveTypes(ctx.returnType(), unit).firstOrNull() ?: ErrorType
+        override val returnType: Type by lazy { resolveTypes(ctx.returnType(), unit).firstOrNull() ?: ErrorType }
 
-        override val simpleName: String
-            get() = simpleNameCtx?.text ?: ""
+        override val simpleName: String by lazy { simpleNameCtx?.text ?: "" }
 
-        override val modifier: Modifier
-            get() = ctx.accept(modifierResolver)
+        override val modifier: Modifier by lazy { ctx.accept(modifierResolver) }
 
-        override val cst: FunctionDeclarationContext
-            get() = ctx
+        override val cst: FunctionDeclarationContext = ctx
 
-        override val unit: CompilationUnit
-            get() = unit
+        override val unit: CompilationUnit = unit
 
-        override val textRange: TextRange
-            get() = ctx.textRange
+        override val textRange: TextRange by lazy { ctx.textRange }
 
-        override val selectionTextRange: TextRange
-            get() = simpleNameCtx?.textRange ?: ctx.FUNCTION().textRange
+        override val selectionTextRange: TextRange by lazy { simpleNameCtx?.textRange ?: ctx.FUNCTION().textRange }
 
-        override fun toString(): String {
-            return simpleName
-        }
+        override fun toString(): String = simpleName
     })
 }
 

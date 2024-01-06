@@ -20,35 +20,24 @@ fun createConstructorSymbol(
     declaringClass ?: return
     ctx.constructorBody() ?: return
     callback(object : ConstructorSymbol, ParseTreeLocatable {
-        override val declaringClass: ClassSymbol
-            get() = declaringClass
+        override val declaringClass: ClassSymbol = declaringClass
 
-        override val parameters: List<ParameterSymbol>
-            get() = ctx.formalParameter().map { unit.symbolMap[it] as ParameterSymbol }
+        override val parameters: List<ParameterSymbol> by lazy { ctx.formalParameter().map { unit.symbolMap[it] as ParameterSymbol } }
 
-        override val returnType: Type
-            get() = declaringClass.type
+        override val returnType: Type = declaringClass.type
 
-        override val simpleName: String
-            get() = ctx.ZEN_CONSTRUCTOR().text
+        override val simpleName: String by lazy { ctx.ZEN_CONSTRUCTOR().text }
 
-        override val type: FunctionType
-            get() = FunctionType(returnType, parameters.map { it.type })
+        override val type: FunctionType by lazy { FunctionType(returnType, parameters.map { it.type }) }
 
-        override val cst: ConstructorDeclarationContext
-            get() = ctx
+        override val cst: ConstructorDeclarationContext = ctx
 
-        override val unit: CompilationUnit
-            get() = unit
+        override val unit: CompilationUnit = unit
 
-        override val textRange: TextRange
-            get() = ctx.textRange
+        override val textRange: TextRange by lazy { ctx.textRange }
 
-        override val selectionTextRange: TextRange
-            get() = ctx.ZEN_CONSTRUCTOR().textRange
+        override val selectionTextRange: TextRange by lazy { ctx.ZEN_CONSTRUCTOR().textRange }
 
-        override fun toString(): String {
-            return simpleName
-        }
+        override fun toString(): String = simpleName
     })
 }

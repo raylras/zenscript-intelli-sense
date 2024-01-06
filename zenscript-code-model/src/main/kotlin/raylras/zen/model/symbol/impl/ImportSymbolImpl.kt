@@ -21,33 +21,24 @@ fun createImportSymbol(
     simpleNameCtx ?: return
     ctx.qualifiedName() ?: return
     callback(object : ImportSymbol, ParseTreeLocatable {
-        override val qualifiedName: String
-            get() = ctx.qualifiedName().text
+        override val qualifiedName: String by lazy { ctx.qualifiedName().text }
 
-        override val simpleName: String
-            get() = simpleNameCtx.text
+        override val simpleName: String by lazy { simpleNameCtx.text }
 
-        override val type: VoidType
-            get() = VoidType
+        override val type: VoidType = VoidType
 
         override fun getSymbols(env: CompilationEnvironment?): Sequence<Symbol> {
             return resolveSymbols(ctx, unit)
         }
 
-        override val cst: ImportDeclarationContext
-            get() = ctx
+        override val cst: ImportDeclarationContext = ctx
 
-        override val unit: CompilationUnit
-            get() = unit
+        override val unit: CompilationUnit = unit
 
-        override val textRange: TextRange
-            get() = ctx.textRange
+        override val textRange: TextRange by lazy { ctx.textRange }
 
-        override val selectionTextRange: TextRange
-            get() = simpleNameCtx.textRange
+        override val selectionTextRange: TextRange by lazy { simpleNameCtx.textRange }
 
-        override fun toString(): String {
-            return qualifiedName
-        }
+        override fun toString(): String = qualifiedName
     })
 }

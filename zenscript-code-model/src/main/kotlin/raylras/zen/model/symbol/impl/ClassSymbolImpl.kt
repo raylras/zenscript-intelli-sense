@@ -23,30 +23,36 @@ fun createClassSymbol(
     simpleNameCtx ?: return
     ctx.classBody() ?: return
     callback(object : ClassSymbol, ParseTreeLocatable {
-        override val qualifiedName = when {
-            unit.isDzsUnit -> {
-                unit.qualifiedName
-            }
+        override val simpleName: String by lazy { simpleNameCtx.text }
 
-            unit.isZsUnit -> {
-                unit.qualifiedName + '.' + simpleName
-            }
+        override val qualifiedName by lazy {
+            when {
+                unit.isDzsUnit -> {
+                    unit.qualifiedName
+                }
 
-            else -> {
-                "ERROR"
+                unit.isZsUnit -> {
+                    unit.qualifiedName + '.' + simpleName
+                }
+
+                else -> {
+                    "ERROR"
+                }
             }
         }
 
-        override val declaredMembers: Sequence<Symbol>
-            get() = unit.scopeMap[ctx]?.getSymbols()
+        override val declaredMembers: Sequence<Symbol> by lazy {
+            unit.scopeMap[ctx]?.getSymbols()
                 ?.filter { it is ParseTreeLocatable }
-                ?: emptySequence()
+                .orEmpty()
+        }
 
-        override val interfaces: Sequence<ClassSymbol>
-            get() = ctx.qualifiedName()
+        override val interfaces: Sequence<ClassSymbol> by lazy {
+            ctx.qualifiedName()
                 ?.flatMap { resolveSymbols<ClassSymbol>(it, unit) }
                 ?.asSequence()
-                ?: emptySequence()
+                .orEmpty()
+        }
 
         override val type = ClassType(this)
 
@@ -54,23 +60,14 @@ fun createClassSymbol(
             return declaredMembers + type.getExpands(env)
         }
 
-        override val simpleName: String
-            get() = simpleNameCtx.text
+        override val cst: ClassDeclarationContext = ctx
 
-        override val cst: ClassDeclarationContext
-            get() = ctx
+        override val unit: CompilationUnit = unit
 
-        override val unit: CompilationUnit
-            get() = unit
+        override val textRange: TextRange by lazy { ctx.textRange }
 
-        override val textRange: TextRange
-            get() = ctx.textRange
+        override val selectionTextRange: TextRange by lazy { simpleNameCtx.textRange }
 
-        override val selectionTextRange: TextRange
-            get() = simpleNameCtx.textRange
-
-        override fun toString(): String {
-            return qualifiedName
-        }
+        override fun toString(): String = qualifiedName
     })
 }

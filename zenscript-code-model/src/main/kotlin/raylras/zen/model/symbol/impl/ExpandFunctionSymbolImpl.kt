@@ -23,35 +23,24 @@ fun createExpandFunctionSymbol(
     ctx.typeLiteral() ?: return
     ctx.functionBody() ?: return
     callback(object : ExpandFunctionSymbol, ParseTreeLocatable {
-        override val parameters: List<ParameterSymbol>
-            get() = ctx.formalParameter().map { unit.symbolMap[it] as ParameterSymbol }
+        override val parameters: List<ParameterSymbol> by lazy { ctx.formalParameter().map { unit.symbolMap[it] as ParameterSymbol } }
 
-        override val returnType: Type
-            get() = resolveTypes(ctx.returnType(), unit).firstOrNull() ?: ErrorType
+        override val returnType: Type by lazy { resolveTypes(ctx.returnType(), unit).firstOrNull() ?: ErrorType }
 
-        override val expandingType: Type
-            get() = resolveTypes(cst.typeLiteral(), unit).firstOrNull() ?: ErrorType
+        override val expandingType: Type by lazy { resolveTypes(cst.typeLiteral(), unit).firstOrNull() ?: ErrorType }
 
-        override val simpleName: String
-            get() = simpleNameCtx.text
+        override val simpleName: String by lazy { simpleNameCtx.text }
 
-        override val type: FunctionType
-            get() = FunctionType(returnType, parameters.map { it.type })
+        override val type: FunctionType by lazy { FunctionType(returnType, parameters.map { it.type }) }
 
-        override val cst: ExpandFunctionDeclarationContext
-            get() = ctx
+        override val cst: ExpandFunctionDeclarationContext = ctx
 
-        override val unit: CompilationUnit
-            get() = unit
+        override val unit: CompilationUnit = unit
 
-        override val textRange: TextRange
-            get() = cst.textRange
+        override val textRange: TextRange by lazy { cst.textRange }
 
-        override val selectionTextRange: TextRange
-            get() = simpleNameCtx.textRange
+        override val selectionTextRange: TextRange by lazy { simpleNameCtx.textRange }
 
-        override fun toString(): String {
-            return simpleName
-        }
+        override fun toString(): String = simpleName
     })
 }
