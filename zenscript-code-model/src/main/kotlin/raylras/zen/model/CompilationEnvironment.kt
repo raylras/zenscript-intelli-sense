@@ -17,25 +17,17 @@ class CompilationEnvironment(val root: Path) {
     val unitMap = HashMap<Path, CompilationUnit>()
     val availablePreprocessors: Set<String> by lazy { loadAvailablePreprocessors() }
 
-    val units: Collection<CompilationUnit>
-        get() = unitMap.values
+    val units: Sequence<CompilationUnit>
+        get() = unitMap.values.asSequence()
 
     val globals: Sequence<Symbol>
-        get() = units.asSequence()
-            .flatMap { it.topLevelSymbols }
-            .filter { it is Modifiable && it.isGlobal }
+        get() = units.flatMap { it.symbols }.filter { it is Modifiable && it.isGlobal }
 
     val classes: Sequence<ClassSymbol>
-        get() = units.asSequence()
-            .flatMap { it.topLevelSymbols }
-            .filter { it is ClassSymbol }
-            .map { it as ClassSymbol }
+        get() = units.flatMap { it.topLevelScope.symbols }.filterIsInstance<ClassSymbol>()
 
     val expandFunctions: Sequence<ExpandFunctionSymbol>
-        get() = units.asSequence()
-            .flatMap { it.topLevelSymbols }
-            .filter { it is ExpandFunctionSymbol }
-            .map { it as ExpandFunctionSymbol }
+        get() = units.flatMap { it.topLevelScope.symbols }.filterIsInstance<ExpandFunctionSymbol>()
 
     val rootPackage: PackageSymbol
         get() = createPackageSymbol(this)

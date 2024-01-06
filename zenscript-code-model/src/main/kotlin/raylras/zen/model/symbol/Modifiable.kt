@@ -27,3 +27,21 @@ interface Modifiable {
         ERROR
     }
 }
+
+val Symbol.isStatic: Boolean
+    get() = when (this) {
+        is Modifiable -> isStatic
+        else -> false
+    }
+
+val Symbol.isGlobal: Boolean
+    get() = when (this) {
+        is Modifiable -> isGlobal
+        else -> false
+    }
+
+val Symbol.isReadonly: Boolean
+    get() = when (this) {
+        is Modifiable -> isReadonly
+        else -> false
+    }

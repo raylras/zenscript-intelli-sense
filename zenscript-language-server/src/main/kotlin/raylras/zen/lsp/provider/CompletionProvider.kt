@@ -9,10 +9,11 @@ import raylras.zen.lsp.bracket.BracketHandlerService
 import raylras.zen.lsp.provider.data.Keywords
 import raylras.zen.lsp.provider.data.Snippet
 import raylras.zen.model.CompilationUnit
+import raylras.zen.model.SemanticEntity
 import raylras.zen.model.Visitor
 import raylras.zen.model.parser.ZenScriptParser.*
-import raylras.zen.model.resolve.getType
 import raylras.zen.model.resolve.lookupScope
+import raylras.zen.model.resolve.resolveSemantics
 import raylras.zen.model.scope.Scope
 import raylras.zen.model.symbol.*
 import raylras.zen.model.type.Type
@@ -84,12 +85,6 @@ object CompletionProvider {
                 appendKeywords(*Keywords.TOPLEVEL_STATEMENT)
                 return
             }
-        }
-
-        override fun visitSimpleName(ctx: SimpleNameContext) {
-            appendLocalSymbols()
-            appendGlobalSymbols()
-            return
         }
 
         override fun visitFormalParameter(ctx: FormalParameterContext) {
@@ -416,21 +411,47 @@ object CompletionProvider {
             // expr.text|
             //     ^____
             if (leadingNode in ctx.DOT()) {
-                getType(expr, unit).let { type ->
-                    appendMembers(type)
-                    appendMemberAccessSnippets(type, ctx)
-                    return
+                resolveSemantics(expr, unit).firstOrNull()?.let { entity: SemanticEntity ->
+                    when (entity) {
+                        is ClassSymbol -> {
+                            appendStaticMembers(entity)
+                        }
+
+                        is Symbol -> {
+                            appendInstanceMembers(entity.type)
+                            appendMemberAccessSnippets(entity.type, ctx)
+                        }
+
+                        is Type -> {
+                            appendInstanceMembers(entity)
+                            appendMemberAccessSnippets(entity, ctx)
+                        }
+                    }
                 }
+                return
             }
 
             // expr.|
             // ^^^^_
             if (leadingNode in expr && tailingNode in ctx.DOT()) {
-                getType(expr, unit).let { type ->
-                    appendMembers(type)
-                    appendMemberAccessSnippets(type, ctx)
-                    return
+                resolveSemantics(ctx.expression(), unit).firstOrNull()?.let { entity: SemanticEntity ->
+                    when (entity) {
+                        is ClassSymbol -> {
+                            appendStaticMembers(entity)
+                        }
+
+                        is Symbol -> {
+                            appendInstanceMembers(entity.type)
+                            appendMemberAccessSnippets(entity.type, ctx)
+                        }
+
+                        is Type -> {
+                            appendInstanceMembers(entity)
+                            appendMemberAccessSnippets(entity, ctx)
+                        }
+                    }
                 }
+                return
             }
 
             visitChildren(ctx)
@@ -528,37 +549,36 @@ object CompletionProvider {
         private fun appendLocalSymbols() {
             var scope: Scope? = lookupScope(tailingNode, unit)
             while (scope != null) {
-                scope.getSymbols()
-                    .map { createCompletionItem(it) }
-                    .forEach { addToCompletionList(it) }
+                scope.getSymbols().forEach { addToCompletionList(it) }
                 scope = scope.parent
             }
+            unit.imports.forEach { addToCompletionList(it) }
         }
 
         private fun appendGlobalSymbols() {
-            unit.env.globals
-                .map { createCompletionItem(it) }
-                .forEach { addToCompletionList(it) }
+            unit.env.globals.forEach { addToCompletionList(it) }
         }
 
-        private fun appendMembers(type: Type) {
-            if (type is SymbolProvider) {
-                type.getSymbols(unit.env)
-                    .filter { shouldCreateCompletionItem(it) }
-                    .map { createCompletionItem(it) }
-                    .forEach { addToCompletionList(it) }
-            }
+        private fun appendInstanceMembers(type: Type) {
+            (type as? SymbolProvider)
+                ?.getSymbols(unit.env)
+                ?.filter { it is Modifiable && it.isStatic.not() }
+                ?.forEach { addToCompletionList(it) }
+        }
+
+        private fun appendStaticMembers(classSymbol: ClassSymbol) {
+            classSymbol.getSymbols()
+                .filter { it is Modifiable && it.isStatic }
+                .forEach { addToCompletionList(it) }
         }
 
         private fun appendTypeNames() {
-            unit.imports
-                .map { createCompletionItem(it) }
-                .forEach { addToCompletionList(it) }
+            unit.imports.forEach { addToCompletionList(it) }
         }
 
-        private fun appendKeywords(vararg keywords: String?) {
+        private fun appendKeywords(vararg keywords: String) {
             for (keyword in keywords) {
-                addToCompletionList(createCompletionItem(keyword))
+                addToCompletionList(keyword)
             }
         }
 
@@ -597,25 +617,22 @@ object CompletionProvider {
             }
         }
 
-        private fun appendMemberAccessSnippets(type: Type?, ctx: MemberAccessExprContext?) {
-            if (type == null || ctx == null) return
-            appendSnippet(Snippet.dotFor(type, unit.env, ctx))
-            appendSnippet(Snippet.dotForI(type, unit.env, ctx))
-            appendSnippet(Snippet.dotIfNull(type, ctx))
-            appendSnippet(Snippet.dotIfNotNull(type, ctx))
-            appendSnippet(Snippet.dotVal(ctx))
-            appendSnippet(Snippet.dotVar(ctx))
-        }
-
-        private fun appendSnippet(item: CompletionItem?) {
-            if (item != null) {
-                item.kind = CompletionItemKind.Snippet
-                addToCompletionList(item)
+        private fun appendMemberAccessSnippets(type: Type?, ctx: MemberAccessExprContext) {
+            type ?: return
+            sequenceOf(
+                Snippet.dotFor(type, unit.env, ctx),
+                Snippet.dotForI(type, unit.env, ctx),
+                Snippet.dotIfNull(type, ctx),
+                Snippet.dotIfNotNull(type, ctx),
+                Snippet.dotVal(ctx),
+                Snippet.dotVar(ctx),
+            ).forEach {
+                addToCompletionList(it)
             }
         }
 
         private fun shouldCreateCompletionItem(symbol: Symbol): Boolean {
-            return when( symbol) {
+            return when (symbol) {
                 is FunctionSymbol -> true
                 is VariableSymbol -> true
                 is ParameterSymbol -> true
@@ -623,46 +640,55 @@ object CompletionProvider {
             }
         }
 
-        private fun createCompletionItem(symbol: Symbol): CompletionItem {
-            val item = CompletionItem(symbol.simpleName)
-            item.kind = toCompletionKind(symbol)
-            item.labelDetails = createLabelDetails(symbol)
-            if (symbol is Executable) {
-                item.insertTextFormat = InsertTextFormat.Snippet
-                if (symbol.parameters.isEmpty()) {
-                    item.insertText = item.label + "()"
-                } else {
-                    item.insertText = item.label + "($1)"
+        private fun addToCompletionList(symbol: Symbol) {
+            if (shouldCreateCompletionItem(symbol).not()) return
+
+            CompletionItem().apply {
+                label = symbol.simpleName
+                kind = toCompletionKind(symbol)
+                labelDetails = toLabelDetails(symbol)
+                if (symbol is Executable) {
+                    insertTextFormat = InsertTextFormat.Snippet
+                    insertText = if (symbol.parameters.isEmpty()) {
+                        "$label()"
+                    } else {
+                        "$label($1)"
+                    }
                 }
+            }.let {
+                addToCompletionList(it)
             }
-            return item
         }
 
-        private fun createCompletionItem(keyword: String?): CompletionItem {
-            val item = CompletionItem(keyword)
-            item.detail = L10N.localize("completion_keyword")
-            item.kind = CompletionItemKind.Keyword
-            return item
+        private fun addToCompletionList(keyword: String) {
+            CompletionItem().apply {
+                label = keyword
+                detail = L10N.localize("completion_keyword")
+                kind = CompletionItemKind.Keyword
+            }.let {
+                addToCompletionList(it)
+            }
         }
 
-        private fun createLabelDetails(symbol: Symbol): CompletionItemLabelDetails {
-            when (symbol) {
-                is Executable -> {
-                    return CompletionItemLabelDetails().apply {
+        private fun addToCompletionList(item: CompletionItem?) {
+            item?.let { result.items.add(it) }
+        }
+
+        private fun toLabelDetails(symbol: Symbol): CompletionItemLabelDetails {
+            return CompletionItemLabelDetails().apply {
+                when (symbol) {
+                    is Executable -> {
                         detail = symbol.parameters.joinToString(
                             separator = ", ",
                             prefix = "(",
                             postfix = ")"
-                        ) { it.simpleName + " as " + it.type.simpleTypeName }
+                        ) { symbol.simpleName + " as " + symbol.type.simpleTypeName }
                         description = symbol.returnType.simpleTypeName
                     }
-                }
 
-                else -> {
-                    val labelDetails = CompletionItemLabelDetails()
-                    val type: String = symbol.type.simpleTypeName
-                    labelDetails.description = type
-                    return labelDetails
+                    else -> {
+                        description = symbol.type.simpleTypeName
+                    }
                 }
             }
         }
@@ -674,10 +700,6 @@ object CompletionProvider {
                 is VariableSymbol, is ParameterSymbol -> CompletionItemKind.Variable
                 else -> null
             }
-        }
-
-        private fun addToCompletionList(item: CompletionItem?) {
-            result.items.add(item)
         }
     }
 }

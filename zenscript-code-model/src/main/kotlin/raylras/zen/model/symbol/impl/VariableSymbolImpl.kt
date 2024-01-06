@@ -1,15 +1,17 @@
 package raylras.zen.model.symbol.impl
 
 import org.antlr.v4.runtime.ParserRuleContext
+import org.antlr.v4.runtime.tree.ParseTree
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Visitor
 import raylras.zen.model.parser.ZenScriptParser
 import raylras.zen.model.parser.ZenScriptParser.ForeachVariableContext
 import raylras.zen.model.parser.ZenScriptParser.VariableDeclarationContext
-import raylras.zen.model.resolve.getType
+import raylras.zen.model.resolve.resolveTypes
 import raylras.zen.model.symbol.Modifiable.Modifier
 import raylras.zen.model.symbol.ParseTreeLocatable
 import raylras.zen.model.symbol.VariableSymbol
+import raylras.zen.model.type.ErrorType
 import raylras.zen.model.type.Type
 import raylras.zen.util.TextRange
 import raylras.zen.util.textRange
@@ -73,4 +75,24 @@ private val modifierResolver = object : Visitor<Modifier>() {
     override fun visitForeachVariable(ctx: ForeachVariableContext): Modifier {
         return Modifier.IMPLICIT_VAR
     }
+}
+
+private fun getType(ctx: ParseTree, unit: CompilationUnit): Type {
+    return ctx.accept(object : Visitor<Type>() {
+        override fun visitVariableDeclaration(ctx: VariableDeclarationContext): Type {
+            return when {
+                ctx.typeLiteral() != null -> {
+                    resolveTypes(ctx.typeLiteral(), unit).firstOrNull() ?: ErrorType
+                }
+
+                ctx.initializer != null -> {
+                    resolveTypes(ctx.initializer, unit).firstOrNull() ?: ErrorType
+                }
+
+                else -> {
+                    ErrorType
+                }
+            }
+        }
+    })
 }

@@ -5,14 +5,16 @@ import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.ParseTreeWalker
 import raylras.zen.model.parser.ZenScriptLexer
 import raylras.zen.model.scope.Scope
+import raylras.zen.model.symbol.ClassSymbol
 import raylras.zen.model.symbol.ImportSymbol
 import raylras.zen.model.symbol.Symbol
+import raylras.zen.model.symbol.isStatic
 import java.nio.file.Path
 import java.util.*
 import kotlin.io.path.nameWithoutExtension
 
-const val ZS_FILE_EXTENSION: String = ".zs"
-const val DZS_FILE_EXTENSION: String = ".dzs"
+const val ZS_FILE_EXTENSION = ".zs"
+const val DZS_FILE_EXTENSION = ".dzs"
 
 class CompilationUnit(val path: Path, val env: CompilationEnvironment) {
     val qualifiedName: String = extractClassName(env.relativize(path))
@@ -28,8 +30,25 @@ class CompilationUnit(val path: Path, val env: CompilationEnvironment) {
     val symbols: Sequence<Symbol>
         get() = symbolMap.values.asSequence()
 
-    val topLevelSymbols: Sequence<Symbol>
-        get() = scopeMap[parseTree]?.getSymbols() ?: emptySequence()
+    val topLevelScope: Scope
+        get() = scopeMap[parseTree]!!
+
+    val topLevelStaticSymbols: Sequence<Symbol>
+        get() = when {
+            this.isZsUnit -> {
+                topLevelScope
+                    .getSymbols().filter { it.isStatic }
+            }
+
+            this.isDzsUnit -> {
+                (env.classes.firstOrNull { it.qualifiedName == this.qualifiedName } ?: topLevelScope)
+                    .getSymbols().filter { it.isStatic }
+            }
+
+            else -> {
+                emptySequence()
+            }
+        }
 
     val preprocessors: Sequence<Preprocessor>
         get() {
@@ -40,6 +59,31 @@ class CompilationUnit(val path: Path, val env: CompilationEnvironment) {
                     .filter { it.name in env.availablePreprocessors }
             } ?: emptySequence()
         }
+
+    fun lookupSymbols(qualifiedName: String): Sequence<Symbol> {
+        when {
+            qualifiedName == this.qualifiedName -> {
+                return when {
+                    this.isZsUnit -> topLevelStaticSymbols
+                    this.isDzsUnit -> topLevelScope.getSymbols()
+                        .filterIsInstance<ClassSymbol>()
+                        .filter { it.qualifiedName == qualifiedName }
+                        .ifEmpty { topLevelStaticSymbols }
+
+                    else -> emptySequence()
+                }
+            }
+
+            qualifiedName.startsWith(this.qualifiedName) -> {
+                val memberName = qualifiedName.substringAfterLast('.')
+                return topLevelStaticSymbols.filter { it.simpleName == memberName }
+            }
+
+            else -> {
+                return emptySequence()
+            }
+        }
+    }
 
     fun accept(visitor: Visitor<*>) {
         parseTree?.accept(visitor)

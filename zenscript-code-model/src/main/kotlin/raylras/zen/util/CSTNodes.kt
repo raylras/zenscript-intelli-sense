@@ -27,7 +27,7 @@ fun ParseTree?.getCstStackAt(pos: TextPosition): List<ParseTree> {
 }
 
 fun ParseTree?.walkParent(): Sequence<ParseTree> {
-    return generateSequence(this?.parent) { it.parent }
+    return generateSequence(this) { it.parent }
 }
 
 fun TerminalNode?.getPrev(tokenStream: TokenStream?): TerminalNode? {

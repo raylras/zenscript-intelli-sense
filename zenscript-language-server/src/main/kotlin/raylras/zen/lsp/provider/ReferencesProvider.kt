@@ -9,7 +9,7 @@ import org.eclipse.lsp4j.ReferenceParams
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Listener
 import raylras.zen.model.parser.ZenScriptParser.*
-import raylras.zen.model.resolve.lookupSymbol
+import raylras.zen.model.resolve.resolveSymbols
 import raylras.zen.model.symbol.*
 import raylras.zen.util.*
 
@@ -27,11 +27,11 @@ object ReferencesProvider {
         val symbol = getSymbolOnCursor(unit, cursor) ?: return emptyList()
         val searchRule = getSymbolSearchRule(symbol)
         val list = getSearchingScope(symbol, unit).flatMap { unit ->
-                val uri = unit.path.toUri().toString()
-                searchPossible(searchRule, unit.parseTree).filter { cst: ParseTree? ->
-                    lookupSymbol(cst, unit).any { it: Symbol -> it == symbol }
-                }.map { it: ParseTree -> toLocation(uri, it) }
-            }
+            val uri = unit.path.toUri().toString()
+            searchPossible(searchRule, unit.parseTree).filter { cst ->
+                    resolveSymbols<Symbol>(cst, unit).any { it == symbol }
+            }.map { toLocation(uri, it) }
+        }
         return list
     }
 
@@ -44,7 +44,7 @@ object ReferencesProvider {
 
     private fun getSearchingScope(symbol: Symbol, symbolUnit: CompilationUnit): Collection<CompilationUnit> {
         if (isGloballyAccessibleSymbol(symbol)) {
-            return symbolUnit.env.units
+            return symbolUnit.env.units.toList()
         }
 
         return listOf(symbolUnit)
@@ -69,7 +69,7 @@ object ReferencesProvider {
                 Operator.INDEX_GET, Operator.INDEX_SET -> Predicate { node: TerminalNode -> node.symbol.type == BRACK_OPEN && node.parent is MemberIndexExprContext }
                 Operator.RANGE -> Predicate { node: TerminalNode -> (node.symbol.type == TO || node.symbol.type == DOT_DOT) && node.parent is IntRangeExprContext }
                 Operator.HAS -> Predicate { node: TerminalNode -> (node.symbol.type == HAS || node.symbol.type == IN) && node.parent is BinaryExprContext }
-                Operator.EQUALS -> Predicate { node: TerminalNode -> node.parent is CompareExprContext }
+                Operator.EQUALS -> Predicate { node: TerminalNode -> node.parent is BinaryExprContext }
                 Operator.MEMBER_GET, Operator.MEMBER_SET -> Predicate { node: TerminalNode -> (node.symbol.type == DOT && node.parent is MemberAccessExprContext) }
                 Operator.AS -> Predicate { node: TerminalNode ->
                     ((node.symbol.type == AS && node.parent is TypeCastExprContext)

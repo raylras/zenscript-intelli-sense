@@ -1,10 +1,11 @@
 package raylras.zen.model.type
 
 import raylras.zen.model.CompilationEnvironment
+import raylras.zen.model.SemanticEntity
 import raylras.zen.model.symbol.Symbol
 import raylras.zen.model.symbol.hasCasterFor
 
-interface Type {
+interface Type: SemanticEntity {
     val typeName: String
     val simpleTypeName: String
         get() = typeName
@@ -24,7 +25,7 @@ interface Type {
 
     fun isNullable(): Boolean {
         return when (this) {
-            is NumberType, BoolType, VoidType -> false
+            is NumberType, BoolType, VoidType, ErrorType -> false
             else -> true
         }
     }

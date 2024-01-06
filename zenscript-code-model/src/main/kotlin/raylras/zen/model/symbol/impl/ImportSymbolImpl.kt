@@ -4,7 +4,7 @@ import org.antlr.v4.runtime.ParserRuleContext
 import raylras.zen.model.CompilationEnvironment
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.parser.ZenScriptParser.ImportDeclarationContext
-import raylras.zen.model.resolve.lookupSymbol
+import raylras.zen.model.resolve.resolveSymbols
 import raylras.zen.model.symbol.ImportSymbol
 import raylras.zen.model.symbol.ParseTreeLocatable
 import raylras.zen.model.symbol.Symbol
@@ -24,9 +24,6 @@ fun createImportSymbol(
         override val qualifiedName: String
             get() = ctx.qualifiedName().text
 
-        override val targets
-            get() = lookupSymbol(ctx.qualifiedName(), unit)
-
         override val simpleName: String
             get() = simpleNameCtx.text
 
@@ -34,7 +31,7 @@ fun createImportSymbol(
             get() = VoidType
 
         override fun getSymbols(env: CompilationEnvironment?): Sequence<Symbol> {
-            return targets.asSequence()
+            return resolveSymbols(ctx, unit)
         }
 
         override val cst: ImportDeclarationContext

@@ -3,11 +3,12 @@ package raylras.zen.model.symbol.impl
 import org.antlr.v4.runtime.ParserRuleContext
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.parser.ZenScriptParser.FormalParameterContext
-import raylras.zen.model.resolve.getType
+import raylras.zen.model.parser.ZenScriptParser.FunctionExprContext
+import raylras.zen.model.resolve.resolveTypes
 import raylras.zen.model.symbol.Modifiable.Modifier
 import raylras.zen.model.symbol.ParameterSymbol
 import raylras.zen.model.symbol.ParseTreeLocatable
-import raylras.zen.model.type.Type
+import raylras.zen.model.type.*
 import raylras.zen.util.TextRange
 import raylras.zen.util.textRange
 
@@ -70,5 +71,37 @@ fun createParameterSymbol(
         override val modifier = Modifier.IMPLICIT_VAL
 
         override fun toString() = simpleName
+    }
+}
+
+private fun getType(ctx: FormalParameterContext, unit: CompilationUnit): Type {
+    when {
+        ctx.typeLiteral() != null -> {
+            return resolveTypes(ctx.typeLiteral(), unit).firstOrNull() ?: ErrorType
+        }
+
+        ctx.defaultValue() != null -> {
+            return resolveTypes(ctx.typeLiteral(), unit).firstOrNull() ?: ErrorType
+        }
+
+        ctx.parent is FunctionExprContext -> {
+            val index = (ctx.parent as FunctionExprContext).formalParameter().indexOf(ctx)
+            return when (val parent =
+                resolveTypes(ctx.parent, unit).firstOrNull()) {
+                is FunctionType -> {
+                    parent.parameterTypes[index]
+                }
+
+                is ClassType -> {
+                    parent.firstAnonymousFunctionOrNull()
+                        ?.parameters?.get(index)?.type
+                        ?: ErrorType
+                }
+
+                else -> ErrorType
+            }
+        }
+
+        else -> return ErrorType
     }
 }

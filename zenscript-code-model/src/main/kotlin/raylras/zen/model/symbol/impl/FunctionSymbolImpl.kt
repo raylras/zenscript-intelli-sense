@@ -3,12 +3,12 @@ package raylras.zen.model.symbol.impl
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Visitor
 import raylras.zen.model.parser.ZenScriptParser.*
-import raylras.zen.model.resolve.getType
+import raylras.zen.model.resolve.resolveTypes
 import raylras.zen.model.symbol.FunctionSymbol
 import raylras.zen.model.symbol.Modifiable.Modifier
 import raylras.zen.model.symbol.ParameterSymbol
 import raylras.zen.model.symbol.ParseTreeLocatable
-import raylras.zen.model.type.AnyType
+import raylras.zen.model.type.ErrorType
 import raylras.zen.model.type.FunctionType
 import raylras.zen.model.type.Type
 import raylras.zen.util.TextRange
@@ -22,16 +22,13 @@ fun createFunctionSymbol(
 ) {
     callback(object : FunctionSymbol, ParseTreeLocatable {
         override val type: FunctionType
-            get() = getType(ctx, unit)
-                .takeIf { it is FunctionType }
-                ?.let { it as FunctionType }
-                ?: FunctionType(AnyType)
+            get() = FunctionType(returnType, parameters.map { it.type })
 
         override val parameters: List<ParameterSymbol>
             get() = ctx.formalParameter().map { unit.symbolMap[it] as ParameterSymbol }
 
         override val returnType: Type
-            get() = type.returnType
+            get() = resolveTypes(ctx.returnType(), unit).firstOrNull() ?: ErrorType
 
         override val simpleName: String
             get() = simpleNameCtx?.text ?: ""

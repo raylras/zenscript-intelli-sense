@@ -4,7 +4,7 @@ import org.eclipse.lsp4j.DefinitionParams
 import org.eclipse.lsp4j.LocationLink
 import org.eclipse.lsp4j.Range
 import raylras.zen.model.CompilationUnit
-import raylras.zen.model.resolve.lookupSymbol
+import raylras.zen.model.resolve.resolveSymbols
 import raylras.zen.model.symbol.ParseTreeLocatable
 import raylras.zen.model.symbol.Symbol
 import raylras.zen.util.getTerminalAt
@@ -18,9 +18,9 @@ object DefinitionProvider {
         val cursor = params.position.toTextPosition()
         val terminal = unit.parseTree.getTerminalAt(cursor) ?: return null
         val originSelectionRange = terminal.textRange.toLspRange()
-        return lookupSymbol(terminal, unit)
-            .filter { symbol: Symbol? -> symbol is ParseTreeLocatable }
-            .map { symbol: Symbol -> toLocationLink(symbol, originSelectionRange) }
+        return resolveSymbols<Symbol>(terminal, unit)
+            .filter { it is ParseTreeLocatable }
+            .map { toLocationLink(it, originSelectionRange) }
             .toList()
     }
 
