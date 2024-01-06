@@ -636,6 +636,7 @@ object CompletionProvider {
                 is FunctionSymbol -> true
                 is VariableSymbol -> true
                 is ParameterSymbol -> true
+                is ImportSymbol -> true
                 else -> false
             }
         }
@@ -684,6 +685,10 @@ object CompletionProvider {
                             postfix = ")"
                         ) { symbol.simpleName + " as " + symbol.type.simpleTypeName }
                         description = symbol.returnType.simpleTypeName
+                    }
+
+                    is ImportSymbol -> {
+                        description = symbol.simpleName
                     }
 
                     else -> {
