@@ -7,7 +7,7 @@ import org.antlr.v4.runtime.tree.TerminalNode
 import org.eclipse.lsp4j.*
 import raylras.zen.lsp.bracket.BracketHandlerService
 import raylras.zen.lsp.provider.data.Keywords
-import raylras.zen.lsp.provider.data.Snippet
+import raylras.zen.lsp.provider.data.Snippets
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.SemanticEntity
 import raylras.zen.model.Visitor
@@ -620,12 +620,12 @@ object CompletionProvider {
         private fun appendMemberAccessSnippets(type: Type?, ctx: MemberAccessExprContext) {
             type ?: return
             sequenceOf(
-                Snippet.dotFor(type, unit.env, ctx),
-                Snippet.dotForI(type, unit.env, ctx),
-                Snippet.dotIfNull(type, ctx),
-                Snippet.dotIfNotNull(type, ctx),
-                Snippet.dotVal(ctx),
-                Snippet.dotVar(ctx),
+                Snippets.dotFor(type, unit.env, ctx),
+                Snippets.dotForI(type, unit.env, ctx),
+                Snippets.dotIfNull(type, ctx),
+                Snippets.dotIfNotNull(type, ctx),
+                Snippets.dotVal(ctx),
+                Snippets.dotVar(ctx),
             ).forEach {
                 addToCompletionList(it)
             }
