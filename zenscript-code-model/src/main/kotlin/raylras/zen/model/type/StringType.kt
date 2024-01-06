@@ -9,7 +9,7 @@ object StringType : Type, SymbolProvider {
 
     override fun getSymbols(env: CompilationEnvironment?): Sequence<Symbol> {
         val classDeclared = env?.classes
-            ?.filter { it.qualifiedName == BoolType.typeName }
+            ?.filter { it.qualifiedName == typeName }
             ?.flatMap { it.getSymbols() }
             ?: emptySequence()
         return classDeclared + getExpands(env)
