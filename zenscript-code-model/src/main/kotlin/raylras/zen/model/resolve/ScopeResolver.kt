@@ -5,10 +5,7 @@ import raylras.zen.model.CompilationUnit
 import raylras.zen.model.scope.Scope
 
 fun lookupScope(cst: ParseTree?, unit: CompilationUnit): Scope? {
-    var current = cst
-    while (current != null) {
-        unit.scopeMap[current]?.let { return it }
-        current = current.parent
-    }
-    return null
+    return generateSequence(cst) { it.parent }
+            .mapNotNull { unit.scopeMap[it] }
+            .firstOrNull()
 }

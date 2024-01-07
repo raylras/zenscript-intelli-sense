@@ -103,7 +103,7 @@ object ReferencesProvider {
         }
 
         if (symbol is VariableSymbol && symbol is ParseTreeLocatable) {
-            val parent = symbol.cst.walkParent().firstOrNull{
+            val parent = generateSequence(symbol.cst) { it.parent }.firstOrNull {
                 it is ClassDeclarationContext || it is BlockStatementContext
             }
 

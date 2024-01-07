@@ -26,10 +26,6 @@ fun ParseTree?.getCstStackAt(pos: TextPosition): List<ParseTree> {
     return result
 }
 
-fun ParseTree?.walkParent(): Sequence<ParseTree> {
-    return generateSequence(this) { it.parent }
-}
-
 fun TerminalNode?.getPrev(tokenStream: TokenStream?): TerminalNode? {
     val prevToken = this?.startToken?.getPrev(tokenStream) ?: return null
     val prevNode = this.root.getTerminalAt(prevToken.textRange.end)

@@ -9,11 +9,10 @@ import raylras.zen.model.Visitor
 import raylras.zen.model.parser.ZenScriptParser.*
 import raylras.zen.model.symbol.*
 import raylras.zen.model.type.*
-import raylras.zen.util.walkParent
 
 fun resolveSemantics(tree: ParseTree?, unit: CompilationUnit): Sequence<SemanticEntity> {
     val visitor = SemanticVisitor(unit)
-    return tree.walkParent()
+    return generateSequence(tree) { it.parent }
         .map { it.accept(visitor) }
         .firstOrNull { it != null && it.iterator().hasNext() }
         .orEmpty()
@@ -291,11 +290,7 @@ private fun lookupSymbols(cst: ParseTree, name: String, unit: CompilationUnit): 
 }
 
 private fun lookupLocalSymbols(cst: ParseTree, name: String, unit: CompilationUnit): Sequence<Symbol> {
-    return lookupScope(cst, unit)
-        ?.symbols
-        ?.asSequence()
-        ?.filter { it.simpleName == name }
-        .orEmpty()
+    return lookupScope(cst, unit)?.filter { it.simpleName == name }.orEmpty()
 }
 
 private fun lookupToplevelSymbols(name: String, unit: CompilationUnit): Sequence<Symbol> {
