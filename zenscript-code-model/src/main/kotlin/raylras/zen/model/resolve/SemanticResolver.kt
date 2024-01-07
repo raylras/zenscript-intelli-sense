@@ -261,6 +261,12 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
 }
 
 private fun lookupSymbols(cst: ParseTree, name: String, unit: CompilationUnit): Sequence<Symbol> {
+    // is a qualified name
+    if (name.contains('.')) {
+        return unit.env.units.flatMap { it.lookupSymbols(name) }
+    }
+
+    // is a simple name
     lookupLocalSymbols(cst, name, unit).let {
         if (it.iterator().hasNext()) return it
     }
