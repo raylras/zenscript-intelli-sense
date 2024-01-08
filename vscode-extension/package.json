@@ -25,6 +25,15 @@
 	"icon": "./icon/zs.webp",
 	"main": "./client/out/extension.js",
 	"contributes": {
+		"views": {
+			"explorer": [
+				{
+					"id": "zenscript-generated-sources",
+					"name": "ZenScript Generated Sources",
+					"when": "resourceLangId == zenscript"
+				}
+			]
+		},
 		"languages": [
 			{
 				"id": "zenscript",
