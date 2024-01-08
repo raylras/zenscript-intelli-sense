@@ -4,20 +4,19 @@ import org.antlr.v4.runtime.ParserRuleContext
 import org.antlr.v4.runtime.tree.ParseTree
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Visitor
-import raylras.zen.model.parser.ZenScriptParser
-import raylras.zen.model.parser.ZenScriptParser.ForeachVariableContext
-import raylras.zen.model.parser.ZenScriptParser.VariableDeclarationContext
+import raylras.zen.model.parser.ZenScriptParser.*
 import raylras.zen.model.resolve.resolveTypes
 import raylras.zen.model.symbol.Modifiable.Modifier
+import raylras.zen.model.symbol.Operator
 import raylras.zen.model.symbol.ParseTreeLocatable
 import raylras.zen.model.symbol.VariableSymbol
-import raylras.zen.model.type.ErrorType
-import raylras.zen.model.type.Type
+import raylras.zen.model.symbol.applyUnaryOperator
+import raylras.zen.model.type.*
 import raylras.zen.util.TextRange
 import raylras.zen.util.textRange
 
 fun createVariableSymbol(
-    simpleNameCtx: ZenScriptParser.SimpleNameContext?,
+    simpleNameCtx: SimpleNameContext?,
     ctx: ParserRuleContext,
     unit: CompilationUnit,
     callback: (VariableSymbol) -> Unit
@@ -55,10 +54,10 @@ fun createVariableSymbol(simpleName: String, type: Type, modifier: Modifier): Va
 private val modifierResolver = object : Visitor<Modifier>() {
     override fun visitVariableDeclaration(ctx: VariableDeclarationContext): Modifier {
         return when (ctx.prefix.type) {
-            ZenScriptParser.VAR -> Modifier.VAR
-            ZenScriptParser.VAL -> Modifier.VAL
-            ZenScriptParser.STATIC -> Modifier.STATIC
-            ZenScriptParser.GLOBAL -> Modifier.GLOBAL
+            VAR -> Modifier.VAR
+            VAL -> Modifier.VAL
+            STATIC -> Modifier.STATIC
+            GLOBAL -> Modifier.GLOBAL
             else -> Modifier.ERROR
         }
     }
@@ -83,6 +82,81 @@ private fun getType(ctx: ParseTree, unit: CompilationUnit): Type {
                 else -> {
                     ErrorType
                 }
+            }
+        }
+
+        override fun visitForeachVariable(ctx: ForeachVariableContext): Type {
+            val statement = ctx.parent as? ForeachStatementContext ?: return ErrorType
+            val variables = statement.foreachVariable()
+            val exprType = resolveTypes(statement.expression(), unit).firstOrNull() ?: return ErrorType
+            return when (val type = exprType.applyUnaryOperator(Operator.FOR_IN, unit.env)) {
+                is ListType -> {
+                    when (variables.size) {
+                        // for v in expr
+                        1 -> type.elementType
+
+                        // for i, v in expr
+                        2 -> {
+                            when (variables.indexOf(ctx)) {
+                                // case i
+                                0 -> IntType
+
+                                // case v
+                                1 -> type.elementType
+
+                                else -> ErrorType
+                            }
+                        }
+
+                        else -> ErrorType
+                    }
+                }
+
+                is ArrayType -> {
+                    when (variables.size) {
+                        // for v in expr
+                        1 -> type.elementType
+
+                        // for i, v in expr
+                        2 -> {
+                            when (variables.indexOf(ctx)) {
+                                // case i
+                                0 -> IntType
+
+                                // case v
+                                1 -> type.elementType
+
+                                else -> ErrorType
+                            }
+                        }
+
+                        else -> ErrorType
+                    }
+                }
+
+                is MapType -> {
+                    when (variables.size) {
+                        // for v in expr
+                        1 -> type.valueType
+
+                        // for k, v in expr
+                        2 -> {
+                            when (variables.indexOf(ctx)) {
+                                // case k
+                                0 -> type.keyType
+
+                                // case v
+                                1 -> type.valueType
+
+                                else -> ErrorType
+                            }
+                        }
+
+                        else -> ErrorType
+                    }
+                }
+
+                else -> ErrorType
             }
         }
     })
