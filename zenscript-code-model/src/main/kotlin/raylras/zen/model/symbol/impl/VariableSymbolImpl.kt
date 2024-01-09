@@ -92,16 +92,16 @@ private fun getType(ctx: ParseTree, unit: CompilationUnit): Type {
             return when (val type = exprType.applyUnaryOperator(Operator.FOR_IN, unit.env)) {
                 is ListType -> {
                     when (variables.size) {
-                        // for v in expr
+                        // for element in list
                         1 -> type.elementType
 
-                        // for i, v in expr
+                        // for index, element in list
                         2 -> {
                             when (variables.indexOf(ctx)) {
-                                // case i
+                                // case index
                                 0 -> IntType
 
-                                // case v
+                                // case element
                                 1 -> type.elementType
 
                                 else -> ErrorType
@@ -114,16 +114,16 @@ private fun getType(ctx: ParseTree, unit: CompilationUnit): Type {
 
                 is ArrayType -> {
                     when (variables.size) {
-                        // for v in expr
+                        // for element in array
                         1 -> type.elementType
 
-                        // for i, v in expr
+                        // for index, element in array
                         2 -> {
                             when (variables.indexOf(ctx)) {
-                                // case i
+                                // case index
                                 0 -> IntType
 
-                                // case v
+                                // case element
                                 1 -> type.elementType
 
                                 else -> ErrorType
@@ -136,16 +136,16 @@ private fun getType(ctx: ParseTree, unit: CompilationUnit): Type {
 
                 is MapType -> {
                     when (variables.size) {
-                        // for v in expr
-                        1 -> type.valueType
+                        // for key in map
+                        1 -> type.keyType
 
-                        // for k, v in expr
+                        // for key, value in map
                         2 -> {
                             when (variables.indexOf(ctx)) {
-                                // case k
+                                // case key
                                 0 -> type.keyType
 
-                                // case v
+                                // case value
                                 1 -> type.valueType
 
                                 else -> ErrorType
