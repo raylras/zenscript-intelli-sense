@@ -87,6 +87,11 @@ object CompletionProvider {
             }
         }
 
+        override fun visitSimpleName(ctx: SimpleNameContext) {
+            appendLocalSymbols()
+            appendGlobalSymbols()
+        }
+
         override fun visitFormalParameter(ctx: FormalParameterContext) {
             // name text|
             // ^^^^ ____
@@ -286,7 +291,7 @@ object CompletionProvider {
             // expr; text|
             //     ^ ____
             if (leadingNode in ctx.SEMICOLON()) {
-                visitParent(tailingNode)
+                tailingNode?.parent?.accept(this)
                 appendKeywords(*Keywords.STATEMENT)
                 return
             }
