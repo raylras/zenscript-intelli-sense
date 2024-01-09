@@ -41,6 +41,12 @@ data class ClassType(val symbol: ClassSymbol) : Type, SymbolProvider {
     override fun toString() = typeName
 }
 
+fun ClassType?.isFunctionalInterface(): Boolean {
+    this?.symbol?.declaredMembers?.count()?.equals(1) ?: return false
+    firstAnonymousFunctionOrNull() ?: return false
+    return true
+}
+
 fun ClassType?.firstAnonymousFunctionOrNull(): FunctionSymbol? {
     return this?.symbol?.declaredMembers
         ?.filterIsInstance<FunctionSymbol>()
