@@ -688,7 +688,7 @@ object CompletionProvider {
                             separator = ", ",
                             prefix = "(",
                             postfix = ")"
-                        ) { symbol.simpleName + " as " + symbol.type.simpleTypeName }
+                        ) { it.simpleName + " as " + it.type.simpleTypeName }
                         description = symbol.returnType.simpleTypeName
                     }
 
