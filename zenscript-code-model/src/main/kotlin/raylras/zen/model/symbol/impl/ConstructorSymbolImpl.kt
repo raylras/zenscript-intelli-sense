@@ -36,7 +36,7 @@ fun createConstructorSymbol(
 
         override val textRange: TextRange by lazy { ctx.textRange }
 
-        override val selectionTextRange: TextRange by lazy { ctx.ZEN_CONSTRUCTOR().textRange }
+        override val simpleNameTextRange: TextRange by lazy { ctx.ZEN_CONSTRUCTOR().textRange }
 
         override fun toString(): String = simpleName
     })

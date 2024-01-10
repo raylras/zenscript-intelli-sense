@@ -8,5 +8,5 @@ interface Locatable {
 
     val textRange: TextRange
 
-    val selectionTextRange: TextRange
+    val simpleNameTextRange: TextRange
 }

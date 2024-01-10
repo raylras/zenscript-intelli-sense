@@ -28,7 +28,7 @@ object DefinitionProvider {
         val locatable = (symbol as ParseTreeLocatable)
         val uri = locatable.path.toUri().toString()
         val range = locatable.textRange.toLspRange()
-        val selectionRange = locatable.selectionTextRange.toLspRange()
+        val selectionRange = locatable.simpleNameTextRange.toLspRange()
         return LocationLink(uri, range, selectionRange, originSelectionRange)
     }
 }

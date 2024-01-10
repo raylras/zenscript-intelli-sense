@@ -35,7 +35,7 @@ fun createVariableSymbol(
 
         override val textRange: TextRange by lazy { ctx.textRange }
 
-        override val selectionTextRange: TextRange by lazy { simpleNameCtx.textRange }
+        override val simpleNameTextRange: TextRange by lazy { simpleNameCtx.textRange }
 
         override fun toString(): String = simpleName
     })

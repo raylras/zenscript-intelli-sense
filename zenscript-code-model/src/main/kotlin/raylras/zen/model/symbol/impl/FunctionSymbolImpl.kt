@@ -37,7 +37,7 @@ fun createFunctionSymbol(
 
         override val textRange: TextRange by lazy { ctx.textRange }
 
-        override val selectionTextRange: TextRange by lazy { simpleNameCtx?.textRange ?: ctx.FUNCTION().textRange }
+        override val simpleNameTextRange: TextRange by lazy { simpleNameCtx?.textRange ?: ctx.FUNCTION().textRange }
 
         override fun toString(): String = simpleName
     })
