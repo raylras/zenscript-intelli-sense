@@ -2,13 +2,14 @@ package raylras.zen.model.symbol.impl
 
 import org.antlr.v4.runtime.ParserRuleContext
 import raylras.zen.model.CompilationUnit
-import raylras.zen.model.parser.ZenScriptParser.FormalParameterContext
-import raylras.zen.model.parser.ZenScriptParser.FunctionExprContext
+import raylras.zen.model.parser.ZenScriptParser.*
 import raylras.zen.model.resolve.resolveTypes
 import raylras.zen.model.symbol.Modifiable.Modifier
 import raylras.zen.model.symbol.ParameterSymbol
 import raylras.zen.model.symbol.ParseTreeLocatable
+import raylras.zen.model.symbol.TypeAnnotatable
 import raylras.zen.model.type.*
+import raylras.zen.util.TextPosition
 import raylras.zen.util.TextRange
 import raylras.zen.util.textRange
 
@@ -19,7 +20,7 @@ fun createParameterSymbol(
     callback: (ParameterSymbol) -> Unit
 ) {
     simpleNameCtx ?: return
-    callback(object : ParameterSymbol, ParseTreeLocatable {
+    callback(object : ParameterSymbol, TypeAnnotatable, ParseTreeLocatable {
         override val isOptional: Boolean by lazy { ctx.defaultValue() != null }
 
         override val isVararg: Boolean by lazy { ctx.varargsPrefix() != null }
@@ -29,6 +30,10 @@ fun createParameterSymbol(
         override val type: Type by lazy { getType(ctx, unit) }
 
         override val modifier: Modifier = Modifier.IMPLICIT_VAL
+
+        override val typeAnnotationCst: TypeLiteralContext? by lazy { ctx.typeLiteral() }
+
+        override val typeAnnotationTextPosition: TextPosition by lazy { simpleNameTextRange.end }
 
         override val cst: FormalParameterContext = ctx
 

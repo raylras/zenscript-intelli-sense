@@ -6,28 +6,31 @@ import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Visitor
 import raylras.zen.model.parser.ZenScriptParser.*
 import raylras.zen.model.resolve.resolveTypes
+import raylras.zen.model.symbol.*
 import raylras.zen.model.symbol.Modifiable.Modifier
-import raylras.zen.model.symbol.Operator
-import raylras.zen.model.symbol.ParseTreeLocatable
-import raylras.zen.model.symbol.VariableSymbol
-import raylras.zen.model.symbol.applyUnaryOperator
 import raylras.zen.model.type.*
+import raylras.zen.util.TextPosition
 import raylras.zen.util.TextRange
 import raylras.zen.util.textRange
 
 fun createVariableSymbol(
     simpleNameCtx: SimpleNameContext?,
+    typeAnnotationCtx: TypeLiteralContext?,
     ctx: ParserRuleContext,
     unit: CompilationUnit,
     callback: (VariableSymbol) -> Unit
 ) {
     simpleNameCtx ?: return
-    callback(object : VariableSymbol, ParseTreeLocatable {
+    callback(object : VariableSymbol, TypeAnnotatable, ParseTreeLocatable {
         override val simpleName: String by lazy { simpleNameCtx.text }
 
         override val type: Type by lazy { getType(ctx, unit) }
 
         override val modifier: Modifier by lazy { ctx.accept(modifierResolver) }
+
+        override val typeAnnotationCst: TypeLiteralContext? = typeAnnotationCtx
+
+        override val typeAnnotationTextPosition: TextPosition by lazy { simpleNameCtx.textRange.end }
 
         override val cst: ParserRuleContext = ctx
 

@@ -202,6 +202,26 @@ class ZenLanguageService : TextDocumentService, WorkspaceService {
         }
     }
 
+    override fun inlayHint(params: InlayHintParams): CompletableFuture<List<InlayHint>> {
+        return CompletableFuture.supplyAsync {
+            val path = toPath(params.textDocument.uri)
+            val logMessage = LogMessage("inlayHint", path, logger = logger)
+            logMessage.start()
+            lockForRead()
+            val result: List<InlayHint>?
+            try {
+                measureTime {
+                    result = InlayHintProvider.inlayHint(getUnit(path), params)
+                }.also {
+                    logMessage.finish(it)
+                }
+                result
+            } finally {
+                unlockForRead()
+            }
+        }
+    }
+
     /* End Text Document Service */ /* Workspace Service */
     override fun didChangeConfiguration(params: DidChangeConfigurationParams) {
     }

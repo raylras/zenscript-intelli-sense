@@ -29,6 +29,7 @@ class ZenLanguageServer(private val service: ZenLanguageService) : LanguageServe
             completionProvider = CompletionOptions(true, listOf(".", "<"))
 //            signatureHelpProvider = SignatureHelpOptions(listOf("(", ","))
             semanticTokensProvider = SemanticTokensWithRegistrationOptions(SEMANTIC_TOKENS_LEGEND, true)
+            setInlayHintProvider(true)
         }
         return CompletableFuture.completedFuture(InitializeResult(capabilities))
     }

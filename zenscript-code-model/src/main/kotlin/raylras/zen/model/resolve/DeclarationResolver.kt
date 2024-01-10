@@ -101,7 +101,7 @@ private class DeclarationVisitor(private val unit: CompilationUnit) : Visitor<Un
     }
 
     override fun visitVariableDeclaration(ctx: VariableDeclarationContext) {
-        createVariableSymbol(ctx.simpleName(), ctx, unit) {
+        createVariableSymbol(ctx.simpleName(),ctx.typeLiteral(), ctx, unit) {
             enterSymbol(ctx, it)
         }
     }
@@ -118,7 +118,7 @@ private class DeclarationVisitor(private val unit: CompilationUnit) : Visitor<Un
     }
 
     override fun visitForeachVariable(ctx: ForeachVariableContext) {
-        createVariableSymbol(ctx.simpleName(), ctx, unit) {
+        createVariableSymbol(ctx.simpleName(), null, ctx, unit) {
             enterSymbol(ctx, it)
         }
     }

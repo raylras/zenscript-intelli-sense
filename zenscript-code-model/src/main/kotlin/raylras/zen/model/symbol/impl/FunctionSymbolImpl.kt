@@ -8,9 +8,11 @@ import raylras.zen.model.symbol.FunctionSymbol
 import raylras.zen.model.symbol.Modifiable.Modifier
 import raylras.zen.model.symbol.ParameterSymbol
 import raylras.zen.model.symbol.ParseTreeLocatable
+import raylras.zen.model.symbol.TypeAnnotatable
 import raylras.zen.model.type.ErrorType
 import raylras.zen.model.type.FunctionType
 import raylras.zen.model.type.Type
+import raylras.zen.util.TextPosition
 import raylras.zen.util.TextRange
 import raylras.zen.util.textRange
 
@@ -20,7 +22,7 @@ fun createFunctionSymbol(
     unit: CompilationUnit,
     callback: (FunctionSymbol) -> Unit
 ) {
-    callback(object : FunctionSymbol, ParseTreeLocatable {
+    callback(object : FunctionSymbol, TypeAnnotatable, ParseTreeLocatable {
         override val type: FunctionType by lazy { FunctionType(returnType, parameters.map { it.type }) }
 
         override val parameters: List<ParameterSymbol> by lazy { ctx.formalParameter().map { unit.symbolMap[it] as ParameterSymbol } }
@@ -30,6 +32,10 @@ fun createFunctionSymbol(
         override val simpleName: String by lazy { simpleNameCtx?.text ?: "" }
 
         override val modifier: Modifier by lazy { ctx.accept(modifierResolver) }
+
+        override val typeAnnotationCst: TypeLiteralContext? by lazy { ctx.returnType()?.typeLiteral() }
+
+        override val typeAnnotationTextPosition: TextPosition by lazy { ctx.PAREN_CLOSE().textRange.end }
 
         override val cst: FunctionDeclarationContext = ctx
 
