@@ -18,6 +18,9 @@ out
 build
 .gradle
 
+# kotlin
+.kotlin
+
 # node
 node_modules
 
