@@ -273,9 +273,10 @@ repository:
         name: constant.language.brackets.begin.zs
       '2':
         patterns:
-          - match: '(?<=<)\s*([a-zA-Z][a-zA-Z0-9]*)'
+          - match: '(?<=<)\s*([a-zA-Z./_-][a-zA-Z0-9./_-]*)'
             name: variable.other.constant.zs
-          - include: '#identifier'
+          - match: '\b([a-zA-Z./_-][a-zA-Z0-9./_-]*)\b'
+            name: variable.other.zs
           - include: '#numeric'
       '3':
         name: constant.language.brackets.end.zs
