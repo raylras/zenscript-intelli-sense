@@ -4,7 +4,7 @@
 	"description": "Code IntelliSense for ZenScript",
 	"author": "raylras",
 	"license": "MIT",
-	"version": "0.23.0",
+	"version": "0.24.0",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/raylras/zenscript-intelli-sense"
@@ -65,37 +65,49 @@
 				"[Default Dark Modern]": {
 					"enabled": true,
 					"rules": {
-						"*.global": { "italic": true }
+						"*.global": {
+							"italic": true
+						}
 					}
 				},
 				"[Default Light Modern]": {
 					"enabled": true,
 					"rules": {
-						"*.global": { "italic": true }
+						"*.global": {
+							"italic": true
+						}
 					}
 				},
 				"[Default Dark+]": {
 					"enabled": true,
 					"rules": {
-						"*.global": { "italic": true }
+						"*.global": {
+							"italic": true
+						}
 					}
 				},
 				"[Default Light+]": {
 					"enabled": true,
 					"rules": {
-						"*.global": { "italic": true }
+						"*.global": {
+							"italic": true
+						}
 					}
 				},
 				"[Default High Contrast]": {
 					"enabled": true,
 					"rules": {
-						"*.global": { "italic": true }
+						"*.global": {
+							"italic": true
+						}
 					}
 				},
 				"[Default High Contrast Light]": {
 					"enabled": true,
 					"rules": {
-						"*.global": { "italic": true }
+						"*.global": {
+							"italic": true
+						}
 					}
 				}
 			}
