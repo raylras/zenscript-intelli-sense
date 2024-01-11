@@ -1,4 +1,4 @@
-package raylras.zen.lsp
+package raylras.zen.lsp.provider.data
 
 import org.eclipse.lsp4j.SemanticTokenModifiers
 import org.eclipse.lsp4j.SemanticTokenTypes

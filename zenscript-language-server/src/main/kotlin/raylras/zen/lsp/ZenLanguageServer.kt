@@ -4,6 +4,7 @@ import org.eclipse.lsp4j.*
 import org.eclipse.lsp4j.jsonrpc.messages.Either
 import org.eclipse.lsp4j.services.LanguageServer
 import org.slf4j.LoggerFactory
+import raylras.zen.lsp.provider.data.SEMANTIC_TOKENS_LEGEND
 import raylras.zen.model.ZS_FILE_EXTENSION
 import raylras.zen.util.l10n.L10N
 import java.util.*

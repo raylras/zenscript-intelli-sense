@@ -2,10 +2,10 @@ package raylras.zen.lsp.provider
 
 import org.eclipse.lsp4j.SemanticTokens
 import org.eclipse.lsp4j.SemanticTokensParams
-import raylras.zen.lsp.TokenModifier
-import raylras.zen.lsp.TokenType
-import raylras.zen.lsp.tokenModifier
-import raylras.zen.lsp.tokenType
+import raylras.zen.lsp.provider.data.TokenModifier
+import raylras.zen.lsp.provider.data.TokenType
+import raylras.zen.lsp.provider.data.tokenModifier
+import raylras.zen.lsp.provider.data.tokenType
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Listener
 import raylras.zen.model.parser.ZenScriptParser.FormalParameterContext
