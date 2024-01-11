@@ -54,6 +54,52 @@
 				"path": "./language/ZenScript.tmLanguage.json"
 			}
 		],
+		"semanticTokenModifiers": [
+			{
+				"id": "global",
+				"description": "Style for global variables and functions"
+			}
+		],
+		"configurationDefaults": {
+			"editor.semanticTokenColorCustomizations": {
+				"[Default Dark Modern]": {
+					"enabled": true,
+					"rules": {
+						"*.global": { "italic": true }
+					}
+				},
+				"[Default Light Modern]": {
+					"enabled": true,
+					"rules": {
+						"*.global": { "italic": true }
+					}
+				},
+				"[Default Dark+]": {
+					"enabled": true,
+					"rules": {
+						"*.global": { "italic": true }
+					}
+				},
+				"[Default Light+]": {
+					"enabled": true,
+					"rules": {
+						"*.global": { "italic": true }
+					}
+				},
+				"[Default High Contrast]": {
+					"enabled": true,
+					"rules": {
+						"*.global": { "italic": true }
+					}
+				},
+				"[Default High Contrast Light]": {
+					"enabled": true,
+					"rules": {
+						"*.global": { "italic": true }
+					}
+				}
+			}
+		},
 		"configuration": {
 			"title": "ZenScript",
 			"properties": {

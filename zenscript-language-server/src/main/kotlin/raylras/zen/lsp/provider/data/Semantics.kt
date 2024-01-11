@@ -27,13 +27,18 @@ enum class TokenType(val tokenName: String) {
 enum class TokenModifier(val bitflag: Int, val modifierName: String) {
     DEFINITION(0b1, SemanticTokenModifiers.Definition),
     READONLY(0b10, SemanticTokenModifiers.Readonly),
-    STATIC(0b100, SemanticTokenModifiers.Static)
+    STATIC(0b100, SemanticTokenModifiers.Static),
+    GLOBAL(0b1000, "global")
 }
 
 val Modifiable.tokenModifier: Int
     get() = when {
-        this.isGlobal || this.isStatic -> {
-            TokenModifier.STATIC.bitflag or TokenModifier.READONLY.bitflag
+        this.isGlobal -> {
+            TokenModifier.GLOBAL.bitflag + TokenModifier.READONLY.bitflag
+        }
+
+        this.isStatic -> {
+            TokenModifier.STATIC.bitflag + TokenModifier.READONLY.bitflag
         }
 
         this.isReadonly -> {

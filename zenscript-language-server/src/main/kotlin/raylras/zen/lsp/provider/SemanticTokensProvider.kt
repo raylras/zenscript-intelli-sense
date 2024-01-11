@@ -10,8 +10,9 @@ import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Listener
 import raylras.zen.model.parser.ZenScriptParser.FormalParameterContext
 import raylras.zen.model.parser.ZenScriptParser.SimpleNameExprContext
-import raylras.zen.model.resolve.lookupScope
+import raylras.zen.model.resolve.resolveSemantics
 import raylras.zen.model.symbol.Modifiable
+import raylras.zen.model.symbol.Symbol
 import raylras.zen.util.BASE_COLUMN
 import raylras.zen.util.BASE_LINE
 import raylras.zen.util.TextRange
@@ -32,13 +33,11 @@ object SemanticTokensProvider {
         private var prevColumn: Int = BASE_COLUMN
 
         override fun enterSimpleNameExpr(ctx: SimpleNameExprContext) {
-            lookupScope(ctx, unit)
-                ?.firstOrNull { it.simpleName == ctx.text }
-                ?.let {
-                    when {
-                        it is Modifiable -> push(ctx.textRange, it.tokenType, it.tokenModifier)
-                    }
+            resolveSemantics(ctx, unit).firstOrNull()?.let {
+                when {
+                    it is Symbol && it is Modifiable -> push(ctx.textRange, it.tokenType, it.tokenModifier)
                 }
+            }
         }
 
         override fun enterFormalParameter(ctx: FormalParameterContext) {
