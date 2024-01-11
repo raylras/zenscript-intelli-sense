@@ -329,11 +329,11 @@ repository:
 
   type-annotation:
     name: meta.type-annotation.zs
-    begin: '(?=\b(as)\b)'
+    begin: '\b(as)\b'
     beginCaptures:
       '1':
         name: 'keyword.control.as.zs'
-    end: '(?=[-+*/%~^!&|:?<>,=){};#\]])'
+    end: '(?=[-+*/%~^!&|:?<>,=){};#\]]|as)'
     patterns:
       - include: '#type-literal'
 
