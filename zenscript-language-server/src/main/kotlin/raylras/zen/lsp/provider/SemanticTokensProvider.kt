@@ -8,8 +8,7 @@ import raylras.zen.lsp.provider.data.tokenModifier
 import raylras.zen.lsp.provider.data.tokenType
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Listener
-import raylras.zen.model.parser.ZenScriptParser.FormalParameterContext
-import raylras.zen.model.parser.ZenScriptParser.SimpleNameExprContext
+import raylras.zen.model.parser.ZenScriptParser.*
 import raylras.zen.model.resolve.resolveSemantics
 import raylras.zen.model.symbol.Modifiable
 import raylras.zen.model.symbol.Symbol
@@ -31,6 +30,28 @@ object SemanticTokensProvider {
 
         private var prevLine: Int = BASE_LINE
         private var prevColumn: Int = BASE_COLUMN
+
+        override fun enterVariableDeclaration(ctx: VariableDeclarationContext) {
+            ctx.simpleName() ?: return
+            val tokenModifier = when (ctx.prefix?.type) {
+                GLOBAL -> TokenModifier.GLOBAL.bitflag + TokenModifier.READONLY.bitflag + TokenModifier.DECLARATION.bitflag
+                STATIC -> TokenModifier.STATIC.bitflag + TokenModifier.READONLY.bitflag+ TokenModifier.DECLARATION.bitflag
+                VAL -> TokenModifier.READONLY.bitflag + TokenModifier.DECLARATION.bitflag
+                VAR -> TokenModifier.DECLARATION.bitflag
+                else -> 0
+            }
+            push(ctx.simpleName().textRange, TokenType.VARIABLE, tokenModifier)
+        }
+
+        override fun enterFunctionDeclaration(ctx: FunctionDeclarationContext) {
+            ctx.simpleName() ?: return
+            val tokenModifier = when (ctx.prefix?.type) {
+                GLOBAL -> TokenModifier.GLOBAL.bitflag + TokenModifier.DECLARATION.bitflag
+                STATIC -> TokenModifier.STATIC.bitflag + TokenModifier.DECLARATION.bitflag
+                else -> 0
+            }
+            push(ctx.simpleName().textRange, TokenType.FUNCTION, tokenModifier)
+        }
 
         override fun enterSimpleNameExpr(ctx: SimpleNameExprContext) {
             resolveSemantics(ctx, unit).firstOrNull()?.let {
