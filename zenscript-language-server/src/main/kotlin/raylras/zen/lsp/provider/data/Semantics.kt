@@ -25,7 +25,7 @@ enum class TokenType(val tokenName: String) {
 }
 
 enum class TokenModifier(val bitflag: Int, val modifierName: String) {
-    DEFINITION(0b1, SemanticTokenModifiers.Definition),
+    DECLARATION(0b1, SemanticTokenModifiers.Declaration),
     READONLY(0b10, SemanticTokenModifiers.Readonly),
     STATIC(0b100, SemanticTokenModifiers.Static),
     GLOBAL(0b1000, "global")

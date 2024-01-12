@@ -42,7 +42,7 @@ object SemanticTokensProvider {
 
         override fun enterFormalParameter(ctx: FormalParameterContext) {
             // Workaround: in VSCode, it seems that read-only Parameter are not highlighted as expected, but Variable working fine.
-            push(ctx.simpleName().textRange, TokenType.VARIABLE, TokenModifier.READONLY.bitflag or TokenModifier.DEFINITION.bitflag)
+            push(ctx.simpleName().textRange, TokenType.VARIABLE, TokenModifier.READONLY.bitflag or TokenModifier.DECLARATION.bitflag)
         }
 
         private fun push(range: TextRange?, tokenType: TokenType?, tokenModifiers: Int) {
