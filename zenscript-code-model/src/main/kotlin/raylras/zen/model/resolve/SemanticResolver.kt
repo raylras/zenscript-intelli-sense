@@ -131,10 +131,25 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
                 visitTypes(ctx.typeLiteral())
             }
 
-            else -> {
-                // FIXME: examine parameters and return values
-                sequenceOf(AnyType)
+            ctx.parent is ArgumentContext && ctx.parent.parent is CallExprContext -> {
+                val callExprCtx = ctx.parent.parent as CallExprContext
+                visitTypes(callExprCtx.caller)
+                    .filterIsInstance<FunctionType>()
+                    .map {
+                        val index = callExprCtx.argument().indexOf(ctx.parent)
+                        it.parameterTypes.getOrNull(index)
+                    }
+                    .map {
+                        if (it is ClassType && it.isFunctionalInterface()) {
+                            it.firstAnonymousFunctionOrNull()?.type
+                        } else {
+                            it
+                        }
+                    }
+                    .filterNotNull()
             }
+
+            else -> emptySequence()
         }
     }
 
