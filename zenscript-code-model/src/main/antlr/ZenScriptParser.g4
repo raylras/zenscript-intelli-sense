@@ -203,14 +203,14 @@ expression
     | simpleName  #simpleNameExpr
     | 'function' '(' (formalParameter (',' formalParameter)*)? ')' ('as' typeLiteral)? functionBody  #functionExpr
     | '<' raw '>'                  #bracketHandlerExpr
-    | '[' expressionList ','? ']'  #arrayLiteralExpr
-    | '{' mapEntryList ','? '}'    #mapLiteralExpr
+    | '[' (expression (',' expression)*)? ','? ']'  #arrayLiteralExpr
+    | '{' (mapEntry (',' mapEntry)*)? ','? '}'    #mapLiteralExpr
     | '(' expression ')'           #parensExpr
 
     // ParsedExpression.java: L35-L306
     | left=expression op='instanceof' right=expression       #instanceOfExpr
     | expression 'as' typeLiteral                            #typeCastExpr
-    | expression '(' expressionList ')'                      #callExpr
+    | caller=expression '(' (argument (',' argument)*)? ','? ')'  #callExpr
     | left=expression '[' index=expression ']'               #memberIndexExpr
     | expression op='.' (simpleName | STRING_LITERAL)        #memberAccessExpr
     | from=expression op=('..' | 'to') to=expression         #intRangeExpr
@@ -228,14 +228,8 @@ raw
     : (~'>')*
     ;
 
-expressionList
-    : expression (',' expression)*
-    |
-    ;
-
-mapEntryList
-    : mapEntry (',' mapEntry)*
-    |
+argument
+    : expression
     ;
 
 mapEntry

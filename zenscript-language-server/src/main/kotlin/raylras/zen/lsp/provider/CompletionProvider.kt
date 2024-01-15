@@ -327,14 +327,14 @@ object CompletionProvider {
             // { text| }
             // ^ ____
             if (leadingNode in ctx.BRACE_OPEN()) {
-                visit(ctx.mapEntryList())
+                visit(ctx.mapEntry())
                 return
             }
 
-            // { expr| }
-            //
-            if (leadingNode in ctx.mapEntryList()) {
-                visit(ctx.mapEntryList())
+            // { ..., text| }
+            //      ^ ____
+            if (ctx.COMMA().any { leadingNode in it }) {
+                visit(ctx.mapEntry())
                 return
             }
 
@@ -470,7 +470,14 @@ object CompletionProvider {
             // [ text ]
             // ^ ____
             if (leadingNode in ctx.BRACK_OPEN()) {
-                visit(ctx.expressionList())
+                visit(ctx.expression())
+                return
+            }
+
+            // [ ..., text| ]
+            //      ^ ____
+            if (ctx.COMMA().any { leadingNode in it }) {
+                visit(ctx.expression())
                 return
             }
 
@@ -481,34 +488,14 @@ object CompletionProvider {
             // expr(text|)
             //     ^____
             if (leadingNode in ctx.PAREN_OPEN()) {
-                visit(ctx.expressionList())
+                visit(ctx.argument())
                 return
             }
 
-            // expr(expr,|)
-            //          ^
-            if (leadingNode is ErrorNode) {
-                appendLocalSymbols()
-                appendGlobalSymbols()
-                return
-            }
-
-            visitChildren(ctx)
-        }
-
-        override fun visitExpressionList(ctx: ExpressionListContext) {
-            // expr, text|
-            //     ^ ____
-            if (leadingNode in ctx.COMMA()) {
-                visitParent(tailingNode)
-                return
-            }
-
-            // expr,|
-            // ^^^^_
-            if (tailingNode in ctx.COMMA()) {
-                appendLocalSymbols()
-                appendGlobalSymbols()
+            // expr(..., text|)
+            //         ^ ____
+            if (ctx.COMMA().any { leadingNode in it }) {
+                visit(ctx.argument())
                 return
             }
 
@@ -535,6 +522,10 @@ object CompletionProvider {
 
         override fun visit(node: ParseTree?) {
             return node?.accept(this) ?: Unit
+        }
+
+        fun visit(nodes: List<ParseTree>) {
+            nodes.firstOrNull { leadingNode in it || tailingNode in it }?.accept(this)
         }
 
         override fun visitChildren(node: RuleNode) {

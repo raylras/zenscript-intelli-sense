@@ -174,13 +174,13 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
     }
 
     override fun visitArrayLiteralExpr(ctx: ArrayLiteralExprContext): Sequence<Type> {
-        val firstElement = ctx.expressionList()?.expression()?.firstOrNull()
+        val firstElement = ctx.expression().firstOrNull()
         val firstElementType = visitTypes(firstElement).firstOrNull() ?: AnyType
         return sequenceOf(ArrayType(firstElementType))
     }
 
     override fun visitMapLiteralExpr(ctx: MapLiteralExprContext): Sequence<Type> {
-        val firstEntry = ctx.mapEntryList()?.mapEntry()?.firstOrNull()
+        val firstEntry = ctx.mapEntry().firstOrNull()
         val keyType = visitTypes(firstEntry?.key).firstOrNull() ?: AnyType
         val valueType = visitTypes(firstEntry?.value).firstOrNull() ?: AnyType
         return sequenceOf(MapType(keyType, valueType))
