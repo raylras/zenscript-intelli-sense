@@ -212,8 +212,8 @@ expression
     | expression 'as' typeLiteral                            #typeCastExpr
     | expression '(' expressionList ')'                      #callExpr
     | left=expression '[' index=expression ']'               #memberIndexExpr
-    | from=expression op=('..' | 'to') to=expression         #intRangeExpr
     | expression op='.' (simpleName | STRING_LITERAL)        #memberAccessExpr
+    | from=expression op=('..' | 'to') to=expression         #intRangeExpr
     | <assoc=right> op=('!' | '-') expression                #unaryExpr
     | left=expression op=('*' | '/' | '%') right=expression  #binaryExpr
     | left=expression op=('+' | '-' | '~') right=expression  #binaryExpr
