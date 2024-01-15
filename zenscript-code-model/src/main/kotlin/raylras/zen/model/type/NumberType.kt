@@ -57,6 +57,10 @@ interface NumberType : Type, SymbolProvider {
                 parameter("value", this@NumberType)
             }
         }
-        return builtin + getExpands(env)
+        val classDeclared = env?.classes
+            ?.firstOrNull { it.qualifiedName == IntType.typeName }
+            ?.getSymbols()
+            ?: emptySequence()
+        return builtin + classDeclared + getExpands(env)
     }
 }

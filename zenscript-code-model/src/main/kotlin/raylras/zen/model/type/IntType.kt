@@ -9,16 +9,11 @@ object IntType : NumberType {
     override val typeName = "int"
 
     override fun getSymbols(env: CompilationEnvironment?): Sequence<Symbol> {
-        val builtin = symbolSequence {
+        return symbolSequence {
             operator(Operator.RANGE, IntRangeType) {
                 parameter("value", IntType)
             }
-        }
-        val classDeclared = env?.classes
-            ?.firstOrNull { it.qualifiedName == typeName }
-            ?.getSymbols()
-            ?: emptySequence()
-        return builtin + classDeclared + getExpands(env)
+        } + super.getSymbols(env)
     }
 
     override fun toString() = typeName
