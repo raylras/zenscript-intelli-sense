@@ -20,8 +20,7 @@ import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
 
 object HoverProvider {
-    fun hover(unit: CompilationUnit?, params: HoverParams): Hover? {
-        unit ?: return null
+    fun hover(unit: CompilationUnit, params: HoverParams): Hover? {
         val cursor = params.position.toTextPosition()
         val cstStack = unit.parseTree.getCstStackAt(cursor)
         val visitor = HoverVisitor(unit)

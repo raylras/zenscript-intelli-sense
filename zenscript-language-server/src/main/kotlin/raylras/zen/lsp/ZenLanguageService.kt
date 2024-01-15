@@ -8,58 +8,55 @@ import org.slf4j.LoggerFactory
 import raylras.zen.lsp.StandardIOLauncher.CLIENT
 import raylras.zen.lsp.provider.*
 import raylras.zen.model.*
-import raylras.zen.util.LogMessage
-import raylras.zen.util.findUpwardsOrSelf
-import raylras.zen.util.info
+import raylras.zen.util.*
 import raylras.zen.util.l10n.L10N
-import raylras.zen.util.toPath
 import java.nio.file.Path
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.io.path.notExists
 import kotlin.time.measureTime
+import kotlin.time.measureTimedValue
 
 class ZenLanguageService : TextDocumentService, WorkspaceService {
     private val logger = LoggerFactory.getLogger(javaClass)
     private val environments = HashSet<CompilationEnvironment>()
     private val lock = ReentrantReadWriteLock()
 
-    /* Text Document Service */
+    //region Text Document Service
     override fun didOpen(params: DidOpenTextDocumentParams) {
-        CompletableFuture.runAsync {
-            val path = toPath(params.textDocument.uri)
-            val logMessage = LogMessage("didOpen", path, logger = logger)
-            logMessage.start()
-            lockForWrite()
-            try {
-                measureTime {
-                    getEnv(path) ?: createEnv(path)
-                }.also {
-                    logMessage.finish(it)
-                }
-            } finally {
-                unlockForWrite()
+        val uri = params.textDocument.uri
+        logger.start(::didOpen, uri)
+        lockForWrite()
+        try {
+            measureTime {
+                val path = uri.toPath()
+                getEnv(path) ?: createEnv(path)
+            }.let {
+                logger.finish(::didOpen, uri, duration = it)
             }
+        } catch (e: Exception) {
+            logger.fail(::didOpen, uri, throwable = e)
+        } finally {
+            unlockForWrite()
         }
     }
 
     override fun didChange(params: DidChangeTextDocumentParams) {
-        CompletableFuture.runAsync {
-            val path = toPath(params.textDocument.uri)
-            val logMessage = LogMessage("didChange", path, logger = logger)
-            logMessage.start()
-            lockForWrite()
-            try {
-                measureTime {
-                    val unit = getUnit(path)
-                    val source = params.contentChanges[0].text
-                    unit?.load(source)
-                }.also {
-                    logMessage.finish(it)
-                }
-            } finally {
-                unlockForWrite()
+        val uri = params.textDocument.uri
+        logger.start(::didChange, uri)
+        lockForWrite()
+        try {
+            measureTime {
+                val unit = uri.toCompilationUnit()!!
+                val source = params.contentChanges[0].text
+                unit.load(source)
+            }.let {
+                logger.finish(::didChange, uri, duration = it)
             }
+        } catch (e: Exception) {
+            logger.fail(::didChange, uri, throwable = e)
+        } finally {
+            unlockForWrite()
         }
     }
 
@@ -71,18 +68,21 @@ class ZenLanguageService : TextDocumentService, WorkspaceService {
 
     override fun completion(params: CompletionParams): CompletableFuture<Either<List<CompletionItem>, CompletionList>> {
         return CompletableFuture.supplyAsync {
-            val path = toPath(params.textDocument.uri)
-            val logMessage = LogMessage("completion", path, params.position, logger)
-            logMessage.start()
+            val uri = params.textDocument.uri
+            val pos = params.position
+            logger.start(::completion, uri, pos)
             lockForRead()
             try {
-                val result: CompletionList?
-                measureTime {
-                    result = CompletionProvider.completion(getUnit(path), params)
-                }.also {
-                    logMessage.finish(it)
+                measureTimedValue {
+                    val unit = uri.toCompilationUnit()!!
+                    CompletionProvider.completion(unit, params)
+                }.let { (value, duration) ->
+                    logger.finish(::completion, uri, pos, duration)
+                    Either.forRight(value)
                 }
-                Either.forRight(result)
+            } catch (e: Exception) {
+                logger.fail(::completion, uri, pos, e)
+                null
             } finally {
                 unlockForRead()
             }
@@ -91,31 +91,38 @@ class ZenLanguageService : TextDocumentService, WorkspaceService {
 
     override fun resolveCompletionItem(unresolved: CompletionItem): CompletableFuture<CompletionItem> {
         return CompletableFuture.supplyAsync {
-            val logMessage = LogMessage("resolveCompletionItem", logger = logger)
-            logMessage.start()
-            measureTime {
-                // do something
-            }.also {
-                logMessage.finish(it)
+            logger.start(::resolveCompletionItem)
+            try {
+                measureTimedValue {
+                    CompletionProvider.resolveCompletionItem(unresolved)
+                }.let { (value, duration) ->
+                    logger.finish(::resolveCompletionItem, duration = duration)
+                    value
+                }
+            } catch (e: Exception) {
+                logger.fail(::resolveCompletionItem, throwable = e)
+                unresolved
             }
-            unresolved
         }
     }
 
-    override fun hover(params: HoverParams): CompletableFuture<Hover?> {
+    override fun hover(params: HoverParams): CompletableFuture<Hover> {
         return CompletableFuture.supplyAsync {
-            val path = toPath(params.textDocument.uri)
-            val logMessage = LogMessage("hover", path, params.position, logger)
-            logMessage.start()
+            val uri = params.textDocument.uri
+            val pos = params.position
+            logger.start(::hover, uri, pos)
             lockForRead()
             try {
-                val result: Hover?
-                measureTime {
-                    result = HoverProvider.hover(getUnit(path), params)
-                }.also {
-                    logMessage.finish(it)
+                measureTimedValue {
+                    val unit = uri.toCompilationUnit()!!
+                    HoverProvider.hover(unit, params)
+                }.let { (value, duration) ->
+                    logger.finish(::hover, uri, pos, duration)
+                    value
                 }
-                result
+            } catch (e: Exception) {
+                logger.fail(::hover, uri, pos, e)
+                null
             } finally {
                 unlockForRead()
             }
@@ -124,18 +131,21 @@ class ZenLanguageService : TextDocumentService, WorkspaceService {
 
     override fun definition(params: DefinitionParams): CompletableFuture<Either<List<Location>, List<LocationLink>>> {
         return CompletableFuture.supplyAsync {
-            val path = toPath(params.textDocument.uri)
-            val logMessage = LogMessage("definition", path, params.position, logger)
-            logMessage.start()
+            val uri = params.textDocument.uri
+            val pos = params.position
+            logger.start(::definition, uri, pos)
             lockForRead()
             try {
-                val result: List<LocationLink>?
-                measureTime {
-                    result = DefinitionProvider.definition(getUnit(path), params)
-                }.also {
-                    logMessage.finish(it)
+                measureTimedValue {
+                    val unit = uri.toCompilationUnit()!!
+                    DefinitionProvider.definition(unit, params)
+                }.let { (value, duration) ->
+                    logger.finish(::definition, uri, pos, duration)
+                    Either.forRight(value)
                 }
-                Either.forRight(result)
+            } catch (e: Exception) {
+                logger.fail(::definition, uri, pos, e)
+                null
             } finally {
                 unlockForRead()
             }
@@ -144,18 +154,21 @@ class ZenLanguageService : TextDocumentService, WorkspaceService {
 
     override fun references(params: ReferenceParams): CompletableFuture<List<Location>> {
         return CompletableFuture.supplyAsync {
-            val path = toPath(params.textDocument.uri)
-            val logMessage = LogMessage("references", path, params.position, logger)
-            logMessage.start()
+            val uri = params.textDocument.uri
+            val pos = params.position
+            logger.start(::references, uri, pos)
             lockForRead()
             try {
-                val result: List<Location>?
-                measureTime {
-                    result = ReferencesProvider.references(getUnit(path), params)
-                }.also {
-                    logMessage.finish(it)
+                measureTimedValue {
+                    val unit = uri.toCompilationUnit()!!
+                    ReferencesProvider.references(unit, params)
+                }.let { (value, duration) ->
+                    logger.finish(::references, uri, pos, duration)
+                    value
                 }
-                result
+            } catch (e: Exception) {
+                logger.fail(::references, uri, pos, e)
+                null
             } finally {
                 unlockForRead()
             }
@@ -164,18 +177,20 @@ class ZenLanguageService : TextDocumentService, WorkspaceService {
 
     override fun documentSymbol(params: DocumentSymbolParams): CompletableFuture<List<Either<SymbolInformation, DocumentSymbol>>> {
         return CompletableFuture.supplyAsync {
-            val path = toPath(params.textDocument.uri)
-            val logMessage = LogMessage("documentSymbol", path, logger = logger)
-            logMessage.start()
+            val uri = params.textDocument.uri
+            logger.start(::documentSymbol, uri)
             lockForRead()
-            val result: List<DocumentSymbol>?
             try {
-                measureTime {
-                    result = DocumentSymbolProvider.documentSymbol(getUnit(path), params)
-                }.also {
-                    logMessage.finish(it)
+                measureTimedValue {
+                    val unit = uri.toCompilationUnit()!!
+                    DocumentSymbolProvider.documentSymbol(unit, params)
+                }.let { (value, duration) ->
+                    logger.finish(::documentSymbol, uri, duration = duration)
+                    value.map { Either.forRight(it) }
                 }
-                result?.map { Either.forRight(it) }
+            } catch (e: Exception) {
+                logger.fail(::documentSymbol, uri, throwable = e)
+                null
             } finally {
                 unlockForRead()
             }
@@ -184,18 +199,20 @@ class ZenLanguageService : TextDocumentService, WorkspaceService {
 
     override fun semanticTokensFull(params: SemanticTokensParams): CompletableFuture<SemanticTokens> {
         return CompletableFuture.supplyAsync {
-            val path = toPath(params.textDocument.uri)
-            val logMessage = LogMessage("semanticTokensFull", path, logger = logger)
-            logMessage.start()
+            val uri = params.textDocument.uri
+            logger.start(::semanticTokensFull, uri)
             lockForRead()
-            val result: SemanticTokens?
             try {
-                measureTime {
-                    result = SemanticTokensProvider.semanticTokensFull(getUnit(path), params)
-                }.also {
-                    logMessage.finish(it)
+                measureTimedValue {
+                    val unit = uri.toCompilationUnit()!!
+                    SemanticTokensProvider.semanticTokensFull(unit, params)
+                }.let { (value, duration) ->
+                    logger.finish(::semanticTokensFull, uri, duration = duration)
+                    value
                 }
-                result
+            } catch (e: Exception) {
+                logger.fail(::semanticTokensFull, uri, throwable = e)
+                null
             } finally {
                 unlockForRead()
             }
@@ -204,69 +221,69 @@ class ZenLanguageService : TextDocumentService, WorkspaceService {
 
     override fun inlayHint(params: InlayHintParams): CompletableFuture<List<InlayHint>> {
         return CompletableFuture.supplyAsync {
-            val path = toPath(params.textDocument.uri)
-            val logMessage = LogMessage("inlayHint", path, logger = logger)
-            logMessage.start()
+            val uri = params.textDocument.uri
+            logger.start(::inlayHint, uri)
             lockForRead()
-            val result: List<InlayHint>?
             try {
-                measureTime {
-                    result = InlayHintProvider.inlayHint(getUnit(path), params)
-                }.also {
-                    logMessage.finish(it)
+                measureTimedValue {
+                    val unit = uri.toCompilationUnit()!!
+                    InlayHintProvider.inlayHint(unit, params)
+                }.let { (value, duration) ->
+                    logger.finish(::inlayHint, uri, duration = duration)
+                    value
                 }
-                result
+            } catch (e: Exception) {
+                logger.fail(::inlayHint, uri, throwable = e)
+                null
             } finally {
                 unlockForRead()
             }
         }
     }
+    //endregion
 
-    /* End Text Document Service */ /* Workspace Service */
+    //region Workspace Service
     override fun didChangeConfiguration(params: DidChangeConfigurationParams) {
     }
 
     override fun didChangeWatchedFiles(params: DidChangeWatchedFilesParams) {
-        CompletableFuture.runAsync {
-            val logMessage = LogMessage("didChangeWatchedFiles", logger = logger)
-            logMessage.start()
-            lockForWrite()
-            try {
-                measureTime {
-                    for (event in params.changes) {
-                        val path = toPath(event.uri)
-                        getEnv(path)?.let {
-                            when (event.type) {
-                                FileChangeType.Created -> {
-                                    val unit = createUnit(path, it)
-                                    unit.load()
-                                }
-
-                                FileChangeType.Changed -> {
-                                    val unit = it.unitMap[path]
-                                    unit?.load()
-                                }
-
-                                FileChangeType.Deleted -> it.unitMap.remove(path)
-
-                                else -> {}
+        logger.start(::didChangeWatchedFiles)
+        lockForWrite()
+        try {
+            measureTime {
+                for (event in params.changes) {
+                    val path = event.uri.toPath()
+                    getEnv(path)?.let { env ->
+                        when (event.type) {
+                            FileChangeType.Created -> {
+                                createUnit(path, env).load()
                             }
+
+                            FileChangeType.Changed -> {
+                                env.unitMap[path]!!.load()
+                            }
+
+                            FileChangeType.Deleted -> env.unitMap.remove(path)
+
+                            else -> {}
                         }
                     }
-                }.also {
-                    logMessage.finish(it)
                 }
-            } finally {
-                unlockForWrite()
+            }.let {
+                logger.finish(::didChangeWatchedFiles, duration = it)
             }
+        } catch (e: Exception) {
+            logger.fail(::didChangeWatchedFiles, throwable = e)
+        } finally {
+            unlockForWrite()
         }
     }
 
     override fun didChangeWorkspaceFolders(params: DidChangeWorkspaceFoldersParams) {
     }
+    //endregion
 
-    /* End Workspace Service */
-
+    //region Private
     private fun createEnv(documentPath: Path) {
         val compilationRoot = findUpwardsOrSelf(documentPath, DEFAULT_ROOT_DIRECTORY)
         val env = CompilationEnvironment(compilationRoot)
@@ -305,4 +322,13 @@ class ZenLanguageService : TextDocumentService, WorkspaceService {
     private fun unlockForWrite() {
         lock.writeLock().unlock()
     }
+
+    private fun String.toCompilationUnit(): CompilationUnit? {
+        return getUnit(this.toPath())
+    }
+
+    private fun String.toPath(): Path {
+        return toPath(this)
+    }
+    //endregion
 }

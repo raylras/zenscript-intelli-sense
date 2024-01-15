@@ -11,16 +11,16 @@ import raylras.zen.model.symbol.VariableSymbol
 import raylras.zen.util.toLspPosition
 
 object InlayHintProvider {
-    fun inlayHint(unit: CompilationUnit?, params: InlayHintParams): List<InlayHint>? {
-        return unit?.symbols
-            ?.filter { shouldProvideTypeInlayHints(it) }
-            ?.map {
+    fun inlayHint(unit: CompilationUnit, params: InlayHintParams): List<InlayHint> {
+        return unit.symbols
+            .filter { shouldProvideTypeInlayHints(it) }
+            .map {
                 InlayHint(
                     (it as TypeAnnotatable).typeAnnotationTextPosition.toLspPosition(),
                     Either.forLeft(": " + it.type.simpleTypeName)
                 )
             }
-            ?.toList()
+            .toList()
     }
 }
 

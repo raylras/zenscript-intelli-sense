@@ -13,8 +13,7 @@ import raylras.zen.util.toLspRange
 import raylras.zen.util.toTextPosition
 
 object DefinitionProvider {
-    fun definition(unit: CompilationUnit?, params: DefinitionParams): List<LocationLink>? {
-        unit ?: return null
+    fun definition(unit: CompilationUnit, params: DefinitionParams): List<LocationLink>? {
         val cursor = params.position.toTextPosition()
         val terminal = unit.parseTree.getTerminalAt(cursor) ?: return null
         val originSelectionRange = terminal.textRange.toLspRange()

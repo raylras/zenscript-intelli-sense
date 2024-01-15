@@ -18,8 +18,7 @@ import raylras.zen.util.TextRange
 import raylras.zen.util.textRange
 
 object SemanticTokensProvider {
-    fun semanticTokensFull(unit: CompilationUnit?, params: SemanticTokensParams): SemanticTokens? {
-        unit ?: return null
+    fun semanticTokensFull(unit: CompilationUnit, params: SemanticTokensParams): SemanticTokens {
         val provider = SemanticTokensListener(unit)
         unit.accept(provider)
         return SemanticTokens(provider.data)

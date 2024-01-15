@@ -21,11 +21,15 @@ import raylras.zen.util.*
 import raylras.zen.util.l10n.L10N
 
 object CompletionProvider {
-    fun completion(unit: CompilationUnit?, params: CompletionParams): CompletionList? {
-        unit ?: return null
+    fun completion(unit: CompilationUnit, params: CompletionParams): CompletionList {
         val visitor = CompletionVisitor(unit, params)
         unit.accept(visitor)
         return visitor.result
+    }
+
+    fun resolveCompletionItem(unresolved: CompletionItem): CompletionItem {
+        // TODO: Not yet implemented
+        return unresolved
     }
 
     private class CompletionVisitor(val unit: CompilationUnit, params: CompletionParams) : Visitor<Unit>() {

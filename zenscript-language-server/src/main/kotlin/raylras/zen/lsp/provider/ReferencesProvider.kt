@@ -21,8 +21,7 @@ object ReferencesProvider {
      * 3. search the terminal node at all documents
      * 4. get the cst at every searched node, and resolve its symbol, filtering those containing the current symbol.
      */
-    fun references(unit: CompilationUnit?, params: ReferenceParams): List<Location>? {
-        unit ?: return null
+    fun references(unit: CompilationUnit, params: ReferenceParams): List<Location> {
         val cursor = params.position.toTextPosition()
         val symbol = getSymbolOnCursor(unit, cursor) ?: return emptyList()
         val searchRule = getSymbolSearchRule(symbol)

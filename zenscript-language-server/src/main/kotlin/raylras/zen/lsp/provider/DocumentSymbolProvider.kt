@@ -13,9 +13,9 @@ import raylras.zen.util.textRange
 import raylras.zen.util.toLspRange
 
 object DocumentSymbolProvider {
-    fun documentSymbol(unit: CompilationUnit?, params: DocumentSymbolParams): List<DocumentSymbol> {
+    fun documentSymbol(unit: CompilationUnit, params: DocumentSymbolParams): List<DocumentSymbol> {
         val visitor = DocumentSymbolVisitor()
-        unit?.parseTree?.accept(visitor)
+        unit.parseTree!!.accept(visitor)
         return visitor.topLevelSymbolList
     }
 
