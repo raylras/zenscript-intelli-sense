@@ -19,10 +19,16 @@ object BoolType : Type, SymbolProvider {
     override fun getSymbols(env: CompilationEnvironment?): Sequence<Symbol> {
         val builtin = symbolSequence {
             operator(Operator.NOT, BoolType)
-            operator(Operator.AND, BoolType) {
+            operator(Operator.BITWISE_AND, BoolType) {
                 parameter("value", BoolType)
             }
-            operator(Operator.OR, BoolType) {
+            operator(Operator.BITWISE_OR, BoolType) {
+                parameter("value", BoolType)
+            }
+            operator(Operator.LOGICAL_AND, BoolType) {
+                parameter("value", BoolType)
+            }
+            operator(Operator.LOGICAL_OR, BoolType) {
                 parameter("value", BoolType)
             }
             operator(Operator.XOR, BoolType) {
