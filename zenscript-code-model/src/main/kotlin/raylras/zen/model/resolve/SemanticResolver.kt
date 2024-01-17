@@ -12,27 +12,25 @@ import raylras.zen.model.symbol.*
 import raylras.zen.model.type.*
 
 fun resolveSemantics(tree: ParseTree?, unit: CompilationUnit): Sequence<SemanticEntity> {
-    val visitor = SemanticVisitor(unit)
-    return generateSequence(tree) { it.parent }
-        .map { it.accept(visitor) }
-        .firstOrNull { it != null && it.iterator().hasNext() }
-        .orEmpty()
+    return tree?.accept(SemanticVisitor(unit)).orEmpty()
 }
 
 inline fun <reified T : Symbol> resolveSymbols(tree: ParseTree?, unit: CompilationUnit): Sequence<T> {
     return resolveSemantics(tree, unit).filterIsInstance<T>()
 }
 
-fun resolveTypes(tree: ParseTree?, unit: CompilationUnit): Sequence<Type> {
-    return resolveSemantics(tree, unit)
-        .map {
-            when (it) {
-                is Type -> it
-                is Symbol -> it.type
-                else -> null
-            }
+inline fun <reified T : Type> resolveTypes(tree: ParseTree?, unit: CompilationUnit): Sequence<T> {
+    return resolveSemantics(tree, unit).map {
+        when (it) {
+            is Type -> it
+            is Symbol -> it.type
+            else -> null
         }
-        .filterIsInstance<Type>()
+    }.filterIsInstance<T>()
+}
+
+inline fun <reified T : Type> resolveType(tree: ParseTree?, unit: CompilationUnit): T? {
+    return resolveTypes<T>(tree, unit).firstOrNull()
 }
 
 private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<SemanticEntity>>() {
@@ -68,7 +66,7 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
         return lookupSymbols(ctx, ctx.simpleName().text, unit)
     }
 
-    override fun visitClassDeclaration(ctx: ClassDeclarationContext?): Sequence<ClassSymbol> {
+    override fun visitClassDeclaration(ctx: ClassDeclarationContext): Sequence<ClassSymbol> {
         return (unit.symbolMap[ctx] as? ClassSymbol)?.let { sequenceOf(it) }.orEmpty()
     }
 
@@ -168,7 +166,7 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
     }
 
     override fun visitTernaryExpr(ctx: TernaryExprContext): Sequence<Type> {
-        return visitTypes(ctx.truePart)
+        return visitTypes(ctx.truePart) + visitTypes(ctx.falsePart)
     }
 
     override fun visitLiteralExpr(ctx: LiteralExprContext): Sequence<Type> {
@@ -179,12 +177,14 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
                     else -> IntType
                 }
             }
+
             FLOAT_LITERAL -> {
                 when (ctx.literal.text.last()) {
                     'f', 'F' -> FloatType
                     else -> DoubleType
                 }
             }
+
             HEX_LITERAL -> IntType
             STRING_LITERAL -> StringType
             TRUE, FALSE -> BoolType

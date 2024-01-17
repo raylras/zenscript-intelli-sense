@@ -3,7 +3,7 @@ package raylras.zen.model.symbol.impl
 import org.antlr.v4.runtime.ParserRuleContext
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.parser.ZenScriptParser.*
-import raylras.zen.model.resolve.resolveTypes
+import raylras.zen.model.resolve.resolveType
 import raylras.zen.model.symbol.Modifiable.Modifier
 import raylras.zen.model.symbol.ParameterSymbol
 import raylras.zen.model.symbol.ParseTreeLocatable
@@ -71,17 +71,16 @@ fun createParameterSymbol(
 private fun getType(ctx: FormalParameterContext, unit: CompilationUnit): Type {
     when {
         ctx.typeLiteral() != null -> {
-            return resolveTypes(ctx.typeLiteral(), unit).firstOrNull() ?: ErrorType
+            return resolveType(ctx.typeLiteral(), unit) ?: AnyType
         }
 
         ctx.defaultValue() != null -> {
-            return resolveTypes(ctx.typeLiteral(), unit).firstOrNull() ?: ErrorType
+            return resolveType(ctx.typeLiteral(), unit) ?: AnyType
         }
 
         ctx.parent is FunctionExprContext -> {
             val index = (ctx.parent as FunctionExprContext).formalParameter().indexOf(ctx)
-            return when (val parent =
-                resolveTypes(ctx.parent, unit).firstOrNull()) {
+            return when (val parent = resolveType<Type>(ctx.parent, unit)) {
                 is FunctionType -> {
                     parent.parameterTypes[index]
                 }
@@ -92,10 +91,10 @@ private fun getType(ctx: FormalParameterContext, unit: CompilationUnit): Type {
                         ?: ErrorType
                 }
 
-                else -> ErrorType
+                else -> AnyType
             }
         }
 
-        else -> return ErrorType
+        else -> return AnyType
     }
 }

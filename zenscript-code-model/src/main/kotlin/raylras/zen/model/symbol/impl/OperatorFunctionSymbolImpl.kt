@@ -3,12 +3,12 @@ package raylras.zen.model.symbol.impl
 import org.antlr.v4.runtime.ParserRuleContext
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.parser.ZenScriptParser.OperatorFunctionDeclarationContext
-import raylras.zen.model.resolve.resolveTypes
+import raylras.zen.model.resolve.resolveType
 import raylras.zen.model.symbol.Operator
 import raylras.zen.model.symbol.OperatorFunctionSymbol
 import raylras.zen.model.symbol.ParameterSymbol
 import raylras.zen.model.symbol.ParseTreeLocatable
-import raylras.zen.model.type.ErrorType
+import raylras.zen.model.type.AnyType
 import raylras.zen.model.type.FunctionType
 import raylras.zen.model.type.Type
 import raylras.zen.util.TextRange
@@ -33,7 +33,7 @@ fun createOperatorFunctionSymbol(
 
         override val parameters: List<ParameterSymbol> by lazy { ctx.formalParameter().map { unit.symbolMap[it] as ParameterSymbol } }
 
-        override val returnType: Type by lazy { resolveTypes(ctx.returnType(), unit).firstOrNull() ?: ErrorType }
+        override val returnType: Type by lazy { resolveType(ctx.returnType(), unit) ?: AnyType }
 
         override val simpleName: String by lazy { simpleNameCtx.text }
 

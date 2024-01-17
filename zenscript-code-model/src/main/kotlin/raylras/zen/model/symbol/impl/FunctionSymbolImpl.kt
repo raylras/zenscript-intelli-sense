@@ -3,7 +3,7 @@ package raylras.zen.model.symbol.impl
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Visitor
 import raylras.zen.model.parser.ZenScriptParser.*
-import raylras.zen.model.resolve.resolveTypes
+import raylras.zen.model.resolve.resolveType
 import raylras.zen.model.symbol.FunctionSymbol
 import raylras.zen.model.symbol.Modifiable.Modifier
 import raylras.zen.model.symbol.ParameterSymbol
@@ -27,7 +27,7 @@ fun createFunctionSymbol(
 
         override val parameters: List<ParameterSymbol> by lazy { ctx.formalParameter().map { unit.symbolMap[it] as ParameterSymbol } }
 
-        override val returnType: Type by lazy { resolveTypes(ctx.returnType(), unit).firstOrNull() ?: AnyType }
+        override val returnType: Type by lazy { resolveType<Type>(ctx.returnType(), unit) ?: AnyType }
 
         override val simpleName: String by lazy { simpleNameCtx?.text ?: "" }
 

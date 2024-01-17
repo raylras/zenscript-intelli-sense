@@ -7,7 +7,7 @@ import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Listener
 import raylras.zen.model.brackets.BracketHandlers
 import raylras.zen.model.parser.ZenScriptParser.*
-import raylras.zen.model.resolve.resolveTypes
+import raylras.zen.model.resolve.resolveType
 import raylras.zen.model.symbol.FunctionSymbol
 import raylras.zen.model.symbol.ParameterSymbol
 import raylras.zen.model.symbol.TypeAnnotatable
@@ -72,12 +72,9 @@ class InlayHintListener(private val unit: CompilationUnit) : Listener() {
         when {
             ctx.typeLiteral() != null -> return
             else -> {
-                val returnType = resolveTypes(ctx, unit)
-                    .filterIsInstance<FunctionType>()
-                    .firstOrNull()
-                    ?.returnType
-                    ?: return
-                addInlayHint(ctx.PAREN_CLOSE().textRange.end, ": ${returnType.simpleTypeName}")
+                resolveType<FunctionType>(ctx, unit)?.returnType?.let { returnType ->
+                    addInlayHint(ctx.PAREN_CLOSE().textRange.end, ": ${returnType.simpleTypeName}")
+                }
             }
         }
     }

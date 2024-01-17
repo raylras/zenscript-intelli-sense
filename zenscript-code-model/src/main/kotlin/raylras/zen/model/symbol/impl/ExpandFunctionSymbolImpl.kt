@@ -3,10 +3,11 @@ package raylras.zen.model.symbol.impl
 import org.antlr.v4.runtime.ParserRuleContext
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.parser.ZenScriptParser.ExpandFunctionDeclarationContext
-import raylras.zen.model.resolve.resolveTypes
+import raylras.zen.model.resolve.resolveType
 import raylras.zen.model.symbol.ExpandFunctionSymbol
 import raylras.zen.model.symbol.ParameterSymbol
 import raylras.zen.model.symbol.ParseTreeLocatable
+import raylras.zen.model.type.AnyType
 import raylras.zen.model.type.ErrorType
 import raylras.zen.model.type.FunctionType
 import raylras.zen.model.type.Type
@@ -25,9 +26,9 @@ fun createExpandFunctionSymbol(
     callback(object : ExpandFunctionSymbol, ParseTreeLocatable {
         override val parameters: List<ParameterSymbol> by lazy { ctx.formalParameter().map { unit.symbolMap[it] as ParameterSymbol } }
 
-        override val returnType: Type by lazy { resolveTypes(ctx.returnType(), unit).firstOrNull() ?: ErrorType }
+        override val returnType: Type by lazy { resolveType<Type>(ctx.returnType(), unit) ?: AnyType }
 
-        override val expandingType: Type by lazy { resolveTypes(cst.typeLiteral(), unit).firstOrNull() ?: ErrorType }
+        override val expandingType: Type by lazy { resolveType<Type>(cst.typeLiteral(), unit) ?: ErrorType }
 
         override val simpleName: String by lazy { simpleNameCtx.text }
 

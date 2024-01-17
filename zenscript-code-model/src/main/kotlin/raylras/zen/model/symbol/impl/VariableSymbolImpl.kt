@@ -5,7 +5,7 @@ import org.antlr.v4.runtime.tree.ParseTree
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Visitor
 import raylras.zen.model.parser.ZenScriptParser.*
-import raylras.zen.model.resolve.resolveTypes
+import raylras.zen.model.resolve.resolveType
 import raylras.zen.model.symbol.*
 import raylras.zen.model.symbol.Modifiable.Modifier
 import raylras.zen.model.type.*
@@ -73,25 +73,15 @@ private val modifierResolver = object : Visitor<Modifier>() {
 private fun getType(ctx: ParseTree, unit: CompilationUnit): Type {
     return ctx.accept(object : Visitor<Type>() {
         override fun visitVariableDeclaration(ctx: VariableDeclarationContext): Type {
-            return when {
-                ctx.typeLiteral() != null -> {
-                    resolveTypes(ctx.typeLiteral(), unit).firstOrNull() ?: ErrorType
-                }
-
-                ctx.initializer != null -> {
-                    resolveTypes(ctx.initializer, unit).firstOrNull() ?: ErrorType
-                }
-
-                else -> {
-                    ErrorType
-                }
-            }
+            return resolveType(ctx.typeLiteral(), unit)
+                ?: resolveType(ctx.initializer, unit)
+                ?: AnyType
         }
 
         override fun visitForeachVariable(ctx: ForeachVariableContext): Type {
-            val statement = ctx.parent as? ForeachStatementContext ?: return ErrorType
+            val statement = ctx.parent as? ForeachStatementContext ?: return AnyType
             val variables = statement.foreachVariable()
-            val exprType = resolveTypes(statement.expression(), unit).firstOrNull() ?: return ErrorType
+            val exprType = resolveType<Type>(statement.expression(), unit) ?: return AnyType
             return when (val type = exprType.applyUnaryOperator(Operator.FOR_IN, unit.env)) {
                 is ListType -> {
                     when (variables.size) {
@@ -107,11 +97,11 @@ private fun getType(ctx: ParseTree, unit: CompilationUnit): Type {
                                 // case element
                                 1 -> type.elementType
 
-                                else -> ErrorType
+                                else -> AnyType
                             }
                         }
 
-                        else -> ErrorType
+                        else -> AnyType
                     }
                 }
 
@@ -129,11 +119,11 @@ private fun getType(ctx: ParseTree, unit: CompilationUnit): Type {
                                 // case element
                                 1 -> type.elementType
 
-                                else -> ErrorType
+                                else -> AnyType
                             }
                         }
 
-                        else -> ErrorType
+                        else -> AnyType
                     }
                 }
 
@@ -151,15 +141,15 @@ private fun getType(ctx: ParseTree, unit: CompilationUnit): Type {
                                 // case value
                                 1 -> type.valueType
 
-                                else -> ErrorType
+                                else -> AnyType
                             }
                         }
 
-                        else -> ErrorType
+                        else -> AnyType
                     }
                 }
 
-                else -> ErrorType
+                else -> AnyType
             }
         }
     })
