@@ -73,29 +73,30 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
     }
 
     override fun visitMemberAccessExpr(ctx: MemberAccessExprContext): Sequence<SemanticEntity> {
+        val simpleName = ctx.simpleName()?.text ?: return emptySequence()
         return visitSemantics(ctx.expression()).flatMap { entity: SemanticEntity ->
             when {
                 entity is ClassSymbol -> {
                     entity.getSymbols(unit.env)
                         .filter { it is Modifiable && it.isStatic }
-                        .filter { it.simpleName == ctx.simpleName().text }
+                        .filter { it.simpleName == simpleName }
                 }
 
                 entity is Symbol && entity.type is SymbolProvider -> {
                     (entity.type as SymbolProvider).getSymbols(unit.env)
                         .filter { it is Modifiable && it.isStatic.not() }
-                        .filter { it.simpleName == ctx.simpleName().text }
+                        .filter { it.simpleName == simpleName }
                 }
 
                 entity is Type && entity is SymbolProvider -> {
                     entity.getSymbols(unit.env)
                         .filter { it is Modifiable && it.isStatic.not() }
-                        .filter { it.simpleName == ctx.simpleName().text }
+                        .filter { it.simpleName == simpleName }
                 }
 
                 entity is SymbolProvider -> {
                     entity.getSymbols(unit.env)
-                        .filter { it.simpleName == ctx.simpleName().text }
+                        .filter { it.simpleName == simpleName }
                 }
 
                 else -> emptySequence()
