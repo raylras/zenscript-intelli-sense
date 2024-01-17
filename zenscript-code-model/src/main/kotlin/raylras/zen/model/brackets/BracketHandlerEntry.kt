@@ -1,4 +1,4 @@
-package raylras.zen.lsp.bracket
+package raylras.zen.model.brackets
 
 data class BracketHandlerEntry(val properties: Map<String, Any>) {
     fun getStringOrNull(key: String): String? {

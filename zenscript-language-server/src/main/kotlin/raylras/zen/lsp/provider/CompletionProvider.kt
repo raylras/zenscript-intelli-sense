@@ -5,12 +5,12 @@ import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.RuleNode
 import org.antlr.v4.runtime.tree.TerminalNode
 import org.eclipse.lsp4j.*
-import raylras.zen.lsp.bracket.BracketHandlerService
 import raylras.zen.lsp.provider.data.Keywords
 import raylras.zen.lsp.provider.data.Snippets
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.SemanticEntity
 import raylras.zen.model.Visitor
+import raylras.zen.model.brackets.bracketEntriesLocal
 import raylras.zen.model.parser.ZenScriptParser.*
 import raylras.zen.model.resolve.lookupScope
 import raylras.zen.model.resolve.resolveSemantics
@@ -583,8 +583,7 @@ object CompletionProvider {
         }
 
         private fun appendBracketHandlers() {
-            val service = BracketHandlerService.getInstance(unit.env)
-            val entries = service.entriesLocal
+            val entries = unit.env.bracketEntriesLocal
             entries.forEach { entry ->
                 entry.getStringOrNull("_id")?.let { id ->
                     val item = CompletionItem().apply {
