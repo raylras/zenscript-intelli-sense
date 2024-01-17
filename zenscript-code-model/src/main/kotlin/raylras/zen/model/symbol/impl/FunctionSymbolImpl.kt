@@ -9,7 +9,7 @@ import raylras.zen.model.symbol.Modifiable.Modifier
 import raylras.zen.model.symbol.ParameterSymbol
 import raylras.zen.model.symbol.ParseTreeLocatable
 import raylras.zen.model.symbol.TypeAnnotatable
-import raylras.zen.model.type.ErrorType
+import raylras.zen.model.type.AnyType
 import raylras.zen.model.type.FunctionType
 import raylras.zen.model.type.Type
 import raylras.zen.util.TextPosition
@@ -27,7 +27,7 @@ fun createFunctionSymbol(
 
         override val parameters: List<ParameterSymbol> by lazy { ctx.formalParameter().map { unit.symbolMap[it] as ParameterSymbol } }
 
-        override val returnType: Type by lazy { resolveTypes(ctx.returnType(), unit).firstOrNull() ?: ErrorType }
+        override val returnType: Type by lazy { resolveTypes(ctx.returnType(), unit).firstOrNull() ?: AnyType }
 
         override val simpleName: String by lazy { simpleNameCtx?.text ?: "" }
 
