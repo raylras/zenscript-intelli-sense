@@ -73,7 +73,7 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
     }
 
     override fun visitMemberAccessExpr(ctx: MemberAccessExprContext): Sequence<SemanticEntity> {
-        val simpleName = ctx.simpleName()?.text ?: return emptySequence()
+        val simpleName = ctx.simpleName()?.text ?: return sequenceOf(ErrorType)
         return visitSemantics(ctx.expression()).flatMap { entity: SemanticEntity ->
             when {
                 entity is ClassSymbol -> {
