@@ -6,6 +6,7 @@ import raylras.zen.model.CompilationEnvironment
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.SemanticEntity
 import raylras.zen.model.Visitor
+import raylras.zen.model.brackets.BracketHandlers
 import raylras.zen.model.parser.ZenScriptParser.*
 import raylras.zen.model.symbol.*
 import raylras.zen.model.type.*
@@ -153,9 +154,12 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
         }
     }
 
-    override fun visitBracketHandlerExpr(ctx: BracketHandlerExprContext?): Sequence<Type> {
-        // FIXME
-        return sequenceOf(AnyType)
+    override fun visitBracketHandlerExpr(ctx: BracketHandlerExprContext): Sequence<Type> {
+        val typeName = BracketHandlers.getTypeNameLocal(ctx.raw().text, unit.env)
+        return unit.env.classes
+            .firstOrNull { it.qualifiedName == typeName }
+            ?.let { sequenceOf(it.type) }
+            ?: sequenceOf(AnyType)
     }
 
     override fun visitUnaryExpr(ctx: UnaryExprContext): Sequence<Type> {
