@@ -126,14 +126,14 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
     }
 
     override fun visitFunctionExpr(ctx: FunctionExprContext): Sequence<Type> {
-        return when {
+        when {
             ctx.typeLiteral() != null -> {
-                visitTypes(ctx.typeLiteral())
+                return visitTypes(ctx.typeLiteral())
             }
 
             ctx.parent is ArgumentContext && ctx.parent.parent is CallExprContext -> {
                 val callExprCtx = ctx.parent.parent as CallExprContext
-                visitTypes(callExprCtx.caller)
+                return visitTypes(callExprCtx.caller)
                     .filterIsInstance<FunctionType>()
                     .map {
                         val index = callExprCtx.argument().indexOf(ctx.parent)
@@ -149,7 +149,18 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
                     .filterNotNull()
             }
 
-            else -> emptySequence()
+            ctx.parent is AssignmentExprContext -> {
+                val assignExpr = ctx.parent as AssignmentExprContext
+                return visitTypes(assignExpr.left).map {
+                    if (it is ClassType && it.isFunctionalInterface()) {
+                        it.firstAnonymousFunctionOrNull()?.type
+                    } else {
+                        it
+                    }
+                }.filterIsInstance<FunctionType>()
+            }
+
+            else -> return emptySequence()
         }
     }
 
