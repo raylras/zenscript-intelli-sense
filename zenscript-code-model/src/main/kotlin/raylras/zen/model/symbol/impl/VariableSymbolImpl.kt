@@ -71,86 +71,40 @@ private val modifierResolver = object : Visitor<Modifier>() {
 }
 
 private fun getType(ctx: ParseTree, unit: CompilationUnit): Type {
-    return ctx.accept(object : Visitor<Type>() {
-        override fun visitVariableDeclaration(ctx: VariableDeclarationContext): Type {
+    when (ctx) {
+        is VariableDeclarationContext -> {
             return resolveType(ctx.typeLiteral(), unit)
                 ?: resolveType(ctx.initializer, unit)
                 ?: AnyType
         }
 
-        override fun visitForeachVariable(ctx: ForeachVariableContext): Type {
-            val statement = ctx.parent as? ForeachStatementContext ?: return AnyType
+        is ForeachVariableContext -> {
+            val statement = ctx.parent as ForeachStatementContext
             val variables = statement.foreachVariable()
-            val exprType = resolveType<Type>(statement.expression(), unit) ?: return AnyType
-            return when (val type = exprType.applyUnaryOperator(Operator.FOR_IN, unit.env)) {
-                is ListType -> {
-                    when (variables.size) {
-                        // for element in list
-                        1 -> type.elementType
-
-                        // for index, element in list
-                        2 -> {
-                            when (variables.indexOf(ctx)) {
-                                // case index
-                                0 -> IntType
-
-                                // case element
-                                1 -> type.elementType
-
-                                else -> AnyType
-                            }
-                        }
-
-                        else -> AnyType
-                    }
+            val exprType = resolveType<Type>(statement.expression(), unit)
+            return when (val type = exprType?.applyUnaryOperator(Operator.FOR_IN, unit.env)) {
+                is ListType -> when (variables.reversed().indexOf(ctx)) {
+                    0 -> type.elementType
+                    1 -> IntType
+                    else -> AnyType
                 }
 
-                is ArrayType -> {
-                    when (variables.size) {
-                        // for element in array
-                        1 -> type.elementType
-
-                        // for index, element in array
-                        2 -> {
-                            when (variables.indexOf(ctx)) {
-                                // case index
-                                0 -> IntType
-
-                                // case element
-                                1 -> type.elementType
-
-                                else -> AnyType
-                            }
-                        }
-
-                        else -> AnyType
-                    }
+                is ArrayType -> when (variables.reversed().indexOf(ctx)) {
+                    0 -> type.elementType
+                    1 -> IntType
+                    else -> AnyType
                 }
 
-                is MapType -> {
-                    when (variables.size) {
-                        // for key in map
-                        1 -> type.keyType
-
-                        // for key, value in map
-                        2 -> {
-                            when (variables.indexOf(ctx)) {
-                                // case key
-                                0 -> type.keyType
-
-                                // case value
-                                1 -> type.valueType
-
-                                else -> AnyType
-                            }
-                        }
-
-                        else -> AnyType
-                    }
+                is MapType -> when (variables.indexOf(ctx)) {
+                    0 -> type.keyType
+                    1 -> type.valueType
+                    else -> AnyType
                 }
 
                 else -> AnyType
             }
         }
-    })
+
+        else -> return AnyType
+    }
 }
