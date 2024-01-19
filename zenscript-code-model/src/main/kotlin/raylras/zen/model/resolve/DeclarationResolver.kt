@@ -44,6 +44,10 @@ private class DeclarationVisitor(private val unit: CompilationUnit) : Visitor<Un
         scopeStack.peek()?.symbols?.add(symbol)
     }
 
+    fun visit(trees: List<ParseTree>) {
+        trees.forEach { visit(it) }
+    }
+
     override fun visitCompilationUnit(ctx: CompilationUnitContext) {
         enterScope(ctx)
     }
@@ -114,6 +118,13 @@ private class DeclarationVisitor(private val unit: CompilationUnit) : Visitor<Un
     }
 
     override fun visitForeachStatement(ctx: ForeachStatementContext) {
+        ctx.foreachBody()?.let { foreachBodyContext ->
+            visit(foreachBodyContext)
+            visit(ctx.foreachVariable())
+        }
+    }
+
+    override fun visitForeachBody(ctx: ForeachBodyContext) {
         enterScope(ctx)
     }
 
