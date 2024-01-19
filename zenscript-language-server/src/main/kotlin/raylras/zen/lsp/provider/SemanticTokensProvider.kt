@@ -9,8 +9,7 @@ import raylras.zen.lsp.provider.data.tokenType
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Listener
 import raylras.zen.model.parser.ZenScriptParser.*
-import raylras.zen.model.resolve.resolveSemantics
-import raylras.zen.model.symbol.Modifiable
+import raylras.zen.model.resolve.resolveSymbols
 import raylras.zen.model.symbol.Symbol
 import raylras.zen.util.BASE_COLUMN
 import raylras.zen.util.BASE_LINE
@@ -23,61 +22,58 @@ object SemanticTokensProvider {
         unit.accept(provider)
         return SemanticTokens(provider.data)
     }
+}
 
-    private class SemanticTokensListener(private val unit: CompilationUnit) : Listener() {
-        val data = ArrayList<Int>()
+private class SemanticTokensListener(private val unit: CompilationUnit) : Listener() {
+    val data = mutableListOf<Int>()
+    private var prevLine: Int = BASE_LINE
+    private var prevColumn: Int = BASE_COLUMN
 
-        private var prevLine: Int = BASE_LINE
-        private var prevColumn: Int = BASE_COLUMN
-
-        override fun enterVariableDeclaration(ctx: VariableDeclarationContext) {
-            ctx.simpleName() ?: return
-            val tokenModifier = when (ctx.prefix?.type) {
-                GLOBAL -> TokenModifier.GLOBAL.bitflag + TokenModifier.READONLY.bitflag + TokenModifier.DECLARATION.bitflag
-                STATIC -> TokenModifier.STATIC.bitflag + TokenModifier.READONLY.bitflag+ TokenModifier.DECLARATION.bitflag
-                VAL -> TokenModifier.READONLY.bitflag + TokenModifier.DECLARATION.bitflag
-                VAR -> TokenModifier.DECLARATION.bitflag
-                else -> 0
-            }
-            push(ctx.simpleName().textRange, TokenType.VARIABLE, tokenModifier)
+    override fun exitVariableDeclaration(ctx: VariableDeclarationContext) {
+        unit.symbolMap[ctx]?.let {
+            push(ctx.simpleName().textRange, TokenType.VARIABLE, it.tokenModifier + TokenModifier.DECLARATION.bitflag)
         }
+    }
 
-        override fun enterFunctionDeclaration(ctx: FunctionDeclarationContext) {
-            ctx.simpleName() ?: return
-            val tokenModifier = when (ctx.prefix?.type) {
-                GLOBAL -> TokenModifier.GLOBAL.bitflag + TokenModifier.DECLARATION.bitflag
-                STATIC -> TokenModifier.STATIC.bitflag + TokenModifier.DECLARATION.bitflag
-                else -> 0
-            }
-            push(ctx.simpleName().textRange, TokenType.FUNCTION, tokenModifier)
+    override fun exitFunctionDeclaration(ctx: FunctionDeclarationContext) {
+        unit.symbolMap[ctx]?.let {
+            push(ctx.simpleName().textRange, TokenType.FUNCTION, it.tokenModifier + TokenModifier.DECLARATION.bitflag)
         }
+    }
 
-        override fun enterSimpleNameExpr(ctx: SimpleNameExprContext) {
-            resolveSemantics(ctx, unit).firstOrNull()?.let {
-                when {
-                    it is Symbol && it is Modifiable -> push(ctx.textRange, it.tokenType, it.tokenModifier)
-                }
-            }
-        }
+    override fun exitFormalParameter(ctx: FormalParameterContext) {
+        // Workaround: in VSCode, it seems that read-only Parameter are not highlighted as expected, but Variable working fine.
+        push(
+            ctx.simpleName().textRange,
+            TokenType.VARIABLE,
+            TokenModifier.READONLY.bitflag + TokenModifier.DECLARATION.bitflag
+        )
+    }
 
-        override fun enterFormalParameter(ctx: FormalParameterContext) {
-            // Workaround: in VSCode, it seems that read-only Parameter are not highlighted as expected, but Variable working fine.
-            push(ctx.simpleName().textRange, TokenType.VARIABLE, TokenModifier.READONLY.bitflag or TokenModifier.DECLARATION.bitflag)
+    override fun exitSimpleNameExpr(ctx: SimpleNameExprContext) {
+        resolveSymbols<Symbol>(ctx, unit).firstOrNull()?.let {
+            push(ctx.textRange, it.tokenType, it.tokenModifier)
         }
+    }
 
-        private fun push(range: TextRange?, tokenType: TokenType?, tokenModifiers: Int) {
-            range ?: return
-            tokenType ?: return
-            val line = range.start.line - prevLine
-            val column = if (range.start.line == prevLine) range.start.column - prevColumn else range.start.column
-            val length = range.end.column - range.start.column
-            prevLine = range.start.line
-            prevColumn = range.start.column
-            data.add(line)
-            data.add(column)
-            data.add(length)
-            data.add(tokenType.ordinal)
-            data.add(tokenModifiers)
+    override fun exitMemberAccessExpr(ctx: MemberAccessExprContext) {
+        resolveSymbols<Symbol>(ctx, unit).firstOrNull()?.let {
+            push(ctx.simpleName().textRange, it.tokenType, it.tokenModifier)
         }
+    }
+
+    private fun push(range: TextRange?, tokenType: TokenType?, tokenModifiers: Int) {
+        range ?: return
+        tokenType ?: return
+        val line = range.start.line - prevLine
+        val column = if (range.start.line == prevLine) range.start.column - prevColumn else range.start.column
+        val length = range.end.column - range.start.column
+        prevLine = range.start.line
+        prevColumn = range.start.column
+        data.add(line)
+        data.add(column)
+        data.add(length)
+        data.add(tokenType.ordinal)
+        data.add(tokenModifiers)
     }
 }

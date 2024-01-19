@@ -11,6 +11,7 @@ val SEMANTIC_TOKENS_LEGEND = SemanticTokensLegend().apply {
 }
 
 enum class TokenType(val tokenName: String) {
+    NAMESPACE(SemanticTokenTypes.Namespace),
     TYPE(SemanticTokenTypes.Type),
     CLASS(SemanticTokenTypes.Class),
     PARAMETER(SemanticTokenTypes.Parameter),
@@ -31,8 +32,10 @@ enum class TokenModifier(val bitflag: Int, val modifierName: String) {
     GLOBAL(0b1000, "global")
 }
 
-val Modifiable.tokenModifier: Int
+val Symbol.tokenModifier: Int
     get() = when {
+        this !is Modifiable -> 0
+
         this.isGlobal -> {
             TokenModifier.GLOBAL.bitflag + TokenModifier.READONLY.bitflag
         }
@@ -45,9 +48,7 @@ val Modifiable.tokenModifier: Int
             TokenModifier.READONLY.bitflag
         }
 
-        else -> {
-            0
-        }
+        else -> 0
     }
 
 val Symbol.tokenType: TokenType?
@@ -79,6 +80,10 @@ val Symbol.tokenType: TokenType?
 
         is ExpandFunctionSymbol -> {
             TokenType.FUNCTION
+        }
+
+        is PackageSymbol -> {
+            TokenType.NAMESPACE
         }
 
         else -> {
