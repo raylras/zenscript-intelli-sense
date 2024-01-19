@@ -6,7 +6,6 @@ import org.antlr.v4.runtime.misc.ParseCancellationException
 import org.antlr.v4.runtime.tree.ParseTree
 import raylras.zen.model.parser.ZenScriptLexer
 import raylras.zen.model.parser.ZenScriptParser
-import raylras.zen.model.resolve.resolveDeclarations
 import java.io.File
 import java.io.IOException
 import java.nio.file.Path
@@ -64,15 +63,6 @@ fun CompilationUnit.load() {
 
 fun CompilationUnit.load(source: String) {
     this.load(CharStreams.fromString(source, this.path.toString()))
-}
-
-fun CompilationUnit.load(charStream: CharStream) {
-    this.clear()
-    val tokenStream = lex(charStream)
-    val parseTree = parse(tokenStream)
-    this.tokenStream = tokenStream
-    this.parseTree = parseTree
-    this.resolveDeclarations()
 }
 
 fun lex(charStream: CharStream): CommonTokenStream {

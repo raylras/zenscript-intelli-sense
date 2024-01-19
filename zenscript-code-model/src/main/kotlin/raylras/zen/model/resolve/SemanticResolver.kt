@@ -165,11 +165,9 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
     }
 
     override fun visitBracketHandlerExpr(ctx: BracketHandlerExprContext): Sequence<Type> {
-        val typeName = BracketHandlers.getTypeNameLocal(ctx.raw().text, unit.env)
-        return unit.env.classes
-            .firstOrNull { it.qualifiedName == typeName }
-            ?.let { sequenceOf(it.type) }
-            ?: sequenceOf(AnyType)
+        val typeName = BracketHandlers.getTypeNameLocal(ctx.raw().text, unit.env) ?: return sequenceOf(AnyType)
+        val classType = unit.env.lookupClass(typeName)?.type
+        return sequenceOf(classType ?: AnyType)
     }
 
     override fun visitUnaryExpr(ctx: UnaryExprContext): Sequence<Type> {
@@ -309,8 +307,8 @@ private fun lookupSymbols(cst: ParseTree, name: String, unit: CompilationUnit): 
         if (it.iterator().hasNext()) return it
     }
 
-    lookupGlobalSymbols(name, unit.env).let {
-        if (it.iterator().hasNext()) return it
+    unit.env.lookupGlobal(name)?.let {
+        return sequenceOf(it)
     }
 
     lookupPackageSymbols(name, unit.env).let {
@@ -338,10 +336,6 @@ private fun lookupImportSymbols(name: String, unit: CompilationUnit): Sequence<S
         }
     }
         ?: return emptySequence()
-}
-
-private fun lookupGlobalSymbols(name: String, env: CompilationEnvironment): Sequence<Symbol> {
-    return env.globals.filter { it.simpleName == name }
 }
 
 private fun lookupPackageSymbols(name: String, env: CompilationEnvironment): Sequence<PackageSymbol> {

@@ -1,7 +1,10 @@
 package raylras.zen.model
 
 import com.google.gson.Gson
-import raylras.zen.model.symbol.*
+import raylras.zen.model.symbol.ClassSymbol
+import raylras.zen.model.symbol.ExpandFunctionSymbol
+import raylras.zen.model.symbol.PackageSymbol
+import raylras.zen.model.symbol.Symbol
 import raylras.zen.model.symbol.impl.createPackageSymbol
 import raylras.zen.util.toHash
 import java.nio.file.FileSystems
@@ -21,13 +24,21 @@ class CompilationEnvironment(val root: Path) {
         get() = unitMap.values.asSequence()
 
     val globals: Sequence<Symbol>
-        get() = units.flatMap { it.symbols }.filter { it is Modifiable && it.isGlobal }
+        get() = units.flatMap { it.globals }
+
+    fun lookupGlobal(simpleName: String): Symbol? {
+        return units.firstNotNullOfOrNull { it.lookupGlobal(simpleName) }
+    }
 
     val classes: Sequence<ClassSymbol>
-        get() = units.flatMap { it.topLevelScope.symbols }.filterIsInstance<ClassSymbol>()
+        get() = units.flatMap { it.classes }
+
+    fun lookupClass(qualifiedName: String): ClassSymbol? {
+        return units.firstNotNullOfOrNull { it.lookupClass(qualifiedName) }
+    }
 
     val expandFunctions: Sequence<ExpandFunctionSymbol>
-        get() = units.flatMap { it.topLevelScope.symbols }.filterIsInstance<ExpandFunctionSymbol>()
+        get() = units.flatMap { it.expandFunctions }
 
     val rootPackage: PackageSymbol
         get() = createPackageSymbol(this)
@@ -45,6 +56,7 @@ class CompilationEnvironment(val root: Path) {
             other.startsWith(generatedRoot) -> {
                 generatedRoot.relativize(other)
             }
+
             else -> {
                 root.parent.relativize(other)
             }
