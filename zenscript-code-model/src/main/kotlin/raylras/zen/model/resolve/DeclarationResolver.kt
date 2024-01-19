@@ -119,13 +119,10 @@ private class DeclarationVisitor(private val unit: CompilationUnit) : Visitor<Un
 
     override fun visitForeachStatement(ctx: ForeachStatementContext) {
         ctx.foreachBody()?.let { foreachBodyContext ->
-            visit(foreachBodyContext)
-            visit(ctx.foreachVariable())
+            enterScope(foreachBodyContext) {
+                visit(ctx.foreachVariable())
+            }
         }
-    }
-
-    override fun visitForeachBody(ctx: ForeachBodyContext) {
-        enterScope(ctx)
     }
 
     override fun visitForeachVariable(ctx: ForeachVariableContext) {
