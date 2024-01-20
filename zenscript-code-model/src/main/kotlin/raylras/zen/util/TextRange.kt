@@ -14,26 +14,32 @@ data class TextRange(val start: TextPosition, val end: TextPosition) {
     constructor(startLine: Int, startColumn: Int, endLine: Int, endColumn: Int) :
         this(TextPosition(startLine, startColumn), TextPosition(endLine, endColumn))
 
-    operator fun contains(that: TextRange): Boolean {
-        if (this.start.line > that.start.line || this.end.line < that.end.line) {
-            return false
-        }
-        if (this.start.line == that.start.line && this.start.column > that.start.column) {
-            return false
-        }
-        if (this.end.line == that.end.line && this.end.column < that.end.column) {
-            return false
-        }
-        return true
-    }
-
-    operator fun contains(pos: TextPosition): Boolean {
-        return this.contains(TextRange(pos, pos))
-    }
-
     override fun toString(): String {
         return "(" + start.line + ":" + start.column + ")-(" + end.line + ":" + end.column + ')'
     }
+}
+
+operator fun TextRange?.contains(that: TextRange?): Boolean {
+    if (this == null || that == null) {
+        return false
+    }
+    if (this.start.line > that.start.line || this.end.line < that.end.line) {
+        return false
+    }
+    if (this.start.line == that.start.line && this.start.column > that.start.column) {
+        return false
+    }
+    if (this.end.line == that.end.line && this.end.column < that.end.column) {
+        return false
+    }
+    return true
+}
+
+operator fun TextRange?.contains(pos: TextPosition?): Boolean {
+    if (this == null || pos == null) {
+        return false
+    }
+    return this.contains(TextRange(pos, pos))
 }
 
 val NO_RANGE = TextRange(NO_POSITION, NO_POSITION)

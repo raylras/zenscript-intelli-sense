@@ -219,6 +219,28 @@ class ZenLanguageService : TextDocumentService, WorkspaceService {
         }
     }
 
+    override fun semanticTokensRange(params: SemanticTokensRangeParams): CompletableFuture<SemanticTokens> {
+        return CompletableFuture.supplyAsync {
+            val uri = params.textDocument.uri
+            logger.start(::semanticTokensRange, uri)
+            lockForRead()
+            try {
+                measureTimedValue {
+                    val unit = uri.toCompilationUnit()!!
+                    SemanticTokensProvider.semanticTokensRange(unit, params)
+                }.let { (value, duration) ->
+                    logger.finish(::semanticTokensRange, uri, duration = duration)
+                    value
+                }
+            } catch (e: Exception) {
+                logger.fail(::semanticTokensRange, uri, throwable = e)
+                null
+            } finally {
+                unlockForRead()
+            }
+        }
+    }
+
     override fun inlayHint(params: InlayHintParams): CompletableFuture<List<InlayHint>> {
         return CompletableFuture.supplyAsync {
             val uri = params.textDocument.uri

@@ -29,7 +29,7 @@ class ZenLanguageServer(private val service: ZenLanguageService) : LanguageServe
             setTextDocumentSync(TextDocumentSyncKind.Full)
             completionProvider = CompletionOptions(true, listOf(".", "<"))
 //            signatureHelpProvider = SignatureHelpOptions(listOf("(", ","))
-            semanticTokensProvider = SemanticTokensWithRegistrationOptions(SEMANTIC_TOKENS_LEGEND, true)
+            semanticTokensProvider = SemanticTokensWithRegistrationOptions(SEMANTIC_TOKENS_LEGEND, false, true)
             setInlayHintProvider(true)
         }
         return CompletableFuture.completedFuture(InitializeResult(capabilities))

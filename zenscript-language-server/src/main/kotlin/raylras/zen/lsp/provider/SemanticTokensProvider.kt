@@ -2,6 +2,7 @@ package raylras.zen.lsp.provider
 
 import org.eclipse.lsp4j.SemanticTokens
 import org.eclipse.lsp4j.SemanticTokensParams
+import org.eclipse.lsp4j.SemanticTokensRangeParams
 import raylras.zen.lsp.provider.data.TokenModifier
 import raylras.zen.lsp.provider.data.TokenType
 import raylras.zen.lsp.provider.data.tokenModifier
@@ -11,10 +12,7 @@ import raylras.zen.model.Listener
 import raylras.zen.model.parser.ZenScriptParser.*
 import raylras.zen.model.resolve.resolveSymbols
 import raylras.zen.model.symbol.Symbol
-import raylras.zen.util.BASE_COLUMN
-import raylras.zen.util.BASE_LINE
-import raylras.zen.util.TextRange
-import raylras.zen.util.textRange
+import raylras.zen.util.*
 
 object SemanticTokensProvider {
     fun semanticTokensFull(unit: CompilationUnit, params: SemanticTokensParams): SemanticTokens {
@@ -22,26 +20,35 @@ object SemanticTokensProvider {
         unit.accept(provider)
         return SemanticTokens(provider.data)
     }
+
+    fun semanticTokensRange(unit: CompilationUnit, params: SemanticTokensRangeParams): SemanticTokens {
+        val provider = SemanticTokensListener(unit, params.range.toTextRange())
+        unit.accept(provider)
+        return SemanticTokens(provider.data)
+    }
 }
 
-private class SemanticTokensListener(private val unit: CompilationUnit) : Listener() {
+private class SemanticTokensListener(private val unit: CompilationUnit, private val range: TextRange? = null) : Listener() {
     val data = mutableListOf<Int>()
     private var prevLine: Int = BASE_LINE
     private var prevColumn: Int = BASE_COLUMN
 
     override fun exitVariableDeclaration(ctx: VariableDeclarationContext) {
+        if (ctx.textRange !in range) return
         unit.symbolMap[ctx]?.let {
             push(ctx.simpleName().textRange, TokenType.VARIABLE, it.tokenModifier + TokenModifier.DECLARATION.bitflag)
         }
     }
 
     override fun exitFunctionDeclaration(ctx: FunctionDeclarationContext) {
+        if (ctx.textRange !in range) return
         unit.symbolMap[ctx]?.let {
             push(ctx.simpleName().textRange, TokenType.FUNCTION, it.tokenModifier + TokenModifier.DECLARATION.bitflag)
         }
     }
 
     override fun exitFormalParameter(ctx: FormalParameterContext) {
+        if (ctx.textRange !in range) return
         // Workaround: in VSCode, it seems that read-only Parameter are not highlighted as expected, but Variable working fine.
         push(
             ctx.simpleName().textRange,
@@ -51,12 +58,14 @@ private class SemanticTokensListener(private val unit: CompilationUnit) : Listen
     }
 
     override fun exitSimpleNameExpr(ctx: SimpleNameExprContext) {
+        if (ctx.textRange !in range) return
         resolveSymbols<Symbol>(ctx, unit).firstOrNull()?.let {
             push(ctx.textRange, it.tokenType, it.tokenModifier)
         }
     }
 
     override fun exitMemberAccessExpr(ctx: MemberAccessExprContext) {
+        if (ctx.textRange !in range) return
         resolveSymbols<Symbol>(ctx, unit).firstOrNull()?.let {
             push(ctx.simpleName().textRange, it.tokenType, it.tokenModifier)
         }
