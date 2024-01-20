@@ -1,6 +1,6 @@
 import vscode from "vscode"
 import {existsSync, readdirSync, readFileSync, statSync} from "node:fs"
-import {relative, resolve} from "node:path"
+import {isAbsolute, relative, resolve} from "node:path"
 
 export function registerGeneratedSourcesView() {
     vscode.window.registerTreeDataProvider("zenscript-generated-sources", new GeneratedSourcesProvider())
@@ -20,13 +20,17 @@ function findGeneratedRoot() {
         if (existsSync(envJsonPath) && statSync(envJsonPath).isFile()) {
             const envJson = JSON.parse(readFileSync(envJsonPath, 'utf-8'))
             if (typeof envJson.scriptPath === "string") {
-                const relativePath = relative(workspacePath, envJson.scriptPath)
-                if (!relativePath.startsWith('..') || relativePath === '') {
+                if (isSubPath(envJson.scriptPath, workspacePath)) {
                     return generatedPath
                 }
             }
         }
     }
+}
+
+function isSubPath(parent, path) {
+    const relativePath = relative(path, parent);
+    return relativePath && !relativePath.startsWith('..') && !isAbsolute(relativePath)
 }
 
 /**
