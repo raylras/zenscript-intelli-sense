@@ -43,7 +43,7 @@ private class SemanticTokensListener(private val unit: CompilationUnit, private 
     override fun exitFunctionDeclaration(ctx: FunctionDeclarationContext) {
         if (ctx.textRange !in range) return
         unit.symbolMap[ctx]?.let {
-            push(ctx.simpleName().textRange, TokenType.FUNCTION, it.tokenModifier + TokenModifier.DECLARATION.bitflag)
+            push(ctx.simpleName()?.textRange, TokenType.FUNCTION, it.tokenModifier + TokenModifier.DECLARATION.bitflag)
         }
     }
 
