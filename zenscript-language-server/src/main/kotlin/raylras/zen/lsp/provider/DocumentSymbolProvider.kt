@@ -28,7 +28,7 @@ object DocumentSymbolProvider {
         }
 
         override fun visitClassDeclaration(ctx: ClassDeclarationContext) {
-            enterSymbol(ctx, ctx.simpleName() ?: ctx.simpleNameOrPrimitiveType(), SymbolKind.Class)
+            enterSymbol(ctx, ctx.simpleClassName(), SymbolKind.Class)
         }
 
         override fun visitExpandFunctionDeclaration(ctx: ExpandFunctionDeclarationContext) {

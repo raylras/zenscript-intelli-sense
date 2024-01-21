@@ -86,8 +86,7 @@ private class DeclarationVisitor(private val unit: CompilationUnit) : Visitor<Un
     }
 
     override fun visitClassDeclaration(ctx: ClassDeclarationContext) {
-        val simpleNameCtx = ctx.simpleName() ?: ctx.simpleNameOrPrimitiveType()
-        createClassSymbol(simpleNameCtx, ctx, unit) { symbol ->
+        createClassSymbol(ctx, unit) { symbol ->
             enterSymbol(ctx, symbol)
             enterClass(symbol) {
                 enterScope(ctx) { scope ->

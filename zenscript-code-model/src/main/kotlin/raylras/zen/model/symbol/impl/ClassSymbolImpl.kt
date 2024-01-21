@@ -1,6 +1,5 @@
 package raylras.zen.model.symbol.impl
 
-import org.antlr.v4.runtime.ParserRuleContext
 import raylras.zen.model.CompilationEnvironment
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.isDzsUnit
@@ -15,15 +14,14 @@ import raylras.zen.util.TextRange
 import raylras.zen.util.textRange
 
 fun createClassSymbol(
-    simpleNameCtx: ParserRuleContext?,
     ctx: ClassDeclarationContext,
     unit: CompilationUnit,
     callback: (ClassSymbol) -> Unit
 ) {
-    simpleNameCtx ?: return
+    ctx.simpleClassName() ?: return
     ctx.classBody() ?: return
     callback(object : ClassSymbol, ParseTreeLocatable {
-        override val simpleName: String by lazy { simpleNameCtx.text }
+        override val simpleName: String by lazy { ctx.simpleClassName().text }
 
         override val qualifiedName by lazy {
             when {
@@ -66,7 +64,7 @@ fun createClassSymbol(
 
         override val textRange: TextRange by lazy { ctx.textRange }
 
-        override val simpleNameTextRange: TextRange by lazy { simpleNameCtx.textRange }
+        override val simpleNameTextRange: TextRange by lazy { ctx.simpleClassName().textRange }
 
         override fun toString(): String = qualifiedName
     })

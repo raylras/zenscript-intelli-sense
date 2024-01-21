@@ -62,11 +62,10 @@ functionBody
     ;
 
 classDeclaration
-    : 'zenClass' simpleName classBody
-    | 'zenClass' simpleNameOrPrimitiveType ('extends' qualifiedName (',' qualifiedName)*)? classBody // dzs
+    : 'zenClass' simpleClassName ('extends' qualifiedName (',' qualifiedName)*)? classBody // extended for dzs
     ;
 
-simpleNameOrPrimitiveType
+simpleClassName
     : simpleName
     | 'any'
     | 'byte'
