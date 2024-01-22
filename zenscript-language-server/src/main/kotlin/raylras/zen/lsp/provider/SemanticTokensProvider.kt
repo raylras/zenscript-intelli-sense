@@ -1,5 +1,6 @@
 package raylras.zen.lsp.provider
 
+import org.antlr.v4.runtime.tree.ParseTree
 import org.eclipse.lsp4j.SemanticTokens
 import org.eclipse.lsp4j.SemanticTokensParams
 import org.eclipse.lsp4j.SemanticTokensRangeParams
@@ -16,58 +17,69 @@ import raylras.zen.util.*
 
 object SemanticTokensProvider {
     fun semanticTokensFull(unit: CompilationUnit, params: SemanticTokensParams): SemanticTokens {
-        val provider = SemanticTokensListener(unit)
-        unit.accept(provider)
-        return SemanticTokens(provider.data)
+        val listener = SemanticTokensListener(unit)
+        unit.accept(listener)
+        return SemanticTokens(listener.result)
     }
 
     fun semanticTokensRange(unit: CompilationUnit, params: SemanticTokensRangeParams): SemanticTokens {
-        val provider = SemanticTokensListener(unit, params.range.toTextRange())
-        unit.accept(provider)
-        return SemanticTokens(provider.data)
+        val listener = SemanticTokensListener(unit, params.range.toTextRange())
+        unit.accept(listener)
+        return SemanticTokens(listener.result)
     }
 }
 
 private class SemanticTokensListener(private val unit: CompilationUnit, private val range: TextRange? = null) : Listener() {
-    val data = mutableListOf<Int>()
+    val result = mutableListOf<Int>()
     private var prevLine: Int = BASE_LINE
     private var prevColumn: Int = BASE_COLUMN
 
     override fun exitVariableDeclaration(ctx: VariableDeclarationContext) {
-        if (ctx.textRange !in range) return
-        unit.symbolMap[ctx]?.let {
-            push(ctx.simpleName().textRange, TokenType.VARIABLE, it.tokenModifier + TokenModifier.DECLARATION.bitflag)
+        checkRange(ctx.simpleName()) { simpleName ->
+            unit.symbolMap[simpleName]?.let {
+                push(simpleName.textRange, TokenType.VARIABLE, it.tokenModifier + TokenModifier.DECLARATION.bitflag)
+            }
         }
     }
 
     override fun exitFunctionDeclaration(ctx: FunctionDeclarationContext) {
-        if (ctx.textRange !in range) return
-        unit.symbolMap[ctx]?.let {
-            push(ctx.simpleName()?.textRange, TokenType.FUNCTION, it.tokenModifier + TokenModifier.DECLARATION.bitflag)
+        checkRange(ctx.simpleName()) { simpleName ->
+            unit.symbolMap[simpleName]?.let {
+                push(simpleName.textRange, TokenType.FUNCTION, it.tokenModifier + TokenModifier.DECLARATION.bitflag)
+            }
         }
     }
 
     override fun exitFormalParameter(ctx: FormalParameterContext) {
-        if (ctx.textRange !in range) return
-        // Workaround: in VSCode, it seems that read-only Parameter are not highlighted as expected, but Variable working fine.
-        push(
-            ctx.simpleName().textRange,
-            TokenType.VARIABLE,
-            TokenModifier.READONLY.bitflag + TokenModifier.DECLARATION.bitflag
-        )
+        checkRange(ctx.simpleName()) { simpleName ->
+            push(
+                simpleName.textRange,
+                // Workaround: in VSCode, it seems that read-only Parameter are not highlighted as expected, but Variable working fine.
+                TokenType.VARIABLE,
+                TokenModifier.READONLY.bitflag + TokenModifier.DECLARATION.bitflag
+            )
+        }
     }
 
     override fun exitSimpleNameExpr(ctx: SimpleNameExprContext) {
-        if (ctx.textRange !in range) return
-        resolveSymbols<Symbol>(ctx, unit).firstOrNull()?.let {
-            push(ctx.textRange, it.tokenType, it.tokenModifier)
+        checkRange(ctx) {
+            resolveSymbols<Symbol>(ctx, unit).firstOrNull()?.let {
+                push(ctx.textRange, it.tokenType, it.tokenModifier)
+            }
         }
     }
 
     override fun exitMemberAccessExpr(ctx: MemberAccessExprContext) {
-        if (ctx.textRange !in range) return
-        resolveSymbols<Symbol>(ctx, unit).firstOrNull()?.let {
-            push(ctx.simpleName().textRange, it.tokenType, it.tokenModifier)
+        checkRange(ctx.simpleName()) { simpleName ->
+            resolveSymbols<Symbol>(ctx, unit).firstOrNull()?.let {
+                push(simpleName.textRange, it.tokenType, it.tokenModifier)
+            }
+        }
+    }
+
+    private fun checkRange(ctx: ParseTree, callback: (ParseTree) -> Unit) {
+        if (range == null || ctx.textRange in range) {
+            callback(ctx)
         }
     }
 
@@ -79,10 +91,10 @@ private class SemanticTokensListener(private val unit: CompilationUnit, private 
         val length = range.end.column - range.start.column
         prevLine = range.start.line
         prevColumn = range.start.column
-        data.add(line)
-        data.add(column)
-        data.add(length)
-        data.add(tokenType.ordinal)
-        data.add(tokenModifiers)
+        result.add(line)
+        result.add(column)
+        result.add(length)
+        result.add(tokenType.ordinal)
+        result.add(tokenModifiers)
     }
 }
