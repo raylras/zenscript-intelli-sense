@@ -1,7 +1,7 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.0.0-Beta2" apply false
+    kotlin("jvm") version "2.0.0-Beta3" apply false
 }
 
 repositories {
