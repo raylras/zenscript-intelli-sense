@@ -299,7 +299,7 @@ private fun lookupSymbols(cst: ParseTree, name: String, unit: CompilationUnit): 
         if (it.iterator().hasNext()) return it
     }
 
-    lookupToplevelSymbols(name, unit).let {
+    lookupStaticSymbols(name, unit).let {
         if (it.iterator().hasNext()) return it
     }
 
@@ -319,15 +319,18 @@ private fun lookupSymbols(cst: ParseTree, name: String, unit: CompilationUnit): 
 }
 
 private fun lookupLocalSymbols(cst: ParseTree, name: String, unit: CompilationUnit): Sequence<Symbol> {
-    return lookupScope(cst, unit)?.filter { it.simpleName == name }.orEmpty()
+    return lookupScope(cst, unit)
+        ?.filter { it !is ImportSymbol }
+        ?.filter { it.simpleName == name }
+        .orEmpty()
 }
 
-private fun lookupToplevelSymbols(name: String, unit: CompilationUnit): Sequence<Symbol> {
-    return unit.topLevelStaticSymbols.filter { it.simpleName == name }
+private fun lookupStaticSymbols(name: String, unit: CompilationUnit): Sequence<Symbol> {
+    return unit.staticSymbolMap[name]?.asSequence().orEmpty()
 }
 
-private fun lookupImportSymbols(name: String, unit: CompilationUnit): Sequence<Symbol> {
-    val importSymbol = unit.imports.firstOrNull { it.simpleName == name }
+private fun lookupImportSymbols(simpleName: String, unit: CompilationUnit): Sequence<Symbol> {
+    val importSymbol = unit.importMap[simpleName]?.firstOrNull()
     importSymbol?.getSymbols(unit.env)?.let { targets ->
         return if (targets.iterator().hasNext()) {
             targets

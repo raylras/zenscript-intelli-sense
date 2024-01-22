@@ -26,19 +26,27 @@ class CompilationEnvironment(val root: Path) {
     val globals: Sequence<Symbol>
         get() = units.flatMap { it.globals }
 
-    fun lookupGlobal(simpleName: String): Symbol? {
-        return units.firstNotNullOfOrNull { it.lookupGlobal(simpleName) }
-    }
-
     val classes: Sequence<ClassSymbol>
         get() = units.flatMap { it.classes }
 
-    fun lookupClass(qualifiedName: String): ClassSymbol? {
-        return units.firstNotNullOfOrNull { it.lookupClass(qualifiedName) }
-    }
-
     val expandFunctions: Sequence<ExpandFunctionSymbol>
         get() = units.flatMap { it.expandFunctions }
+
+    fun lookupGlobal(simpleName: String): Symbol? {
+        return lookupGlobals(simpleName).firstOrNull()
+    }
+
+    fun lookupGlobals(simpleName: String): Sequence<Symbol> {
+        return units.mapNotNull { it.globalMap[simpleName] }.flatten()
+    }
+
+    fun lookupClass(qualifiedName: String): ClassSymbol? {
+        return lookupClasses(qualifiedName).firstOrNull()
+    }
+
+    fun lookupClasses(qualifiedName: String): Sequence<ClassSymbol> {
+        return units.mapNotNull { it.classMap[qualifiedName] }.flatten()
+    }
 
     val rootPackage: PackageSymbol
         get() = createPackageSymbol(this)

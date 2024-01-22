@@ -73,7 +73,7 @@ fun createPackageSymbol(unit: CompilationUnit): PackageSymbol {
 
         private val _subpackages = emptyMap<String, PackageSymbol>()
 
-        override val members = unit.topLevelStaticSymbols
+        override val members = unit.staticSymbols
 
         override val simpleName
             get() = unit.simpleName

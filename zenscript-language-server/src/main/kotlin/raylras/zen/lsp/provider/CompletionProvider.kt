@@ -552,7 +552,6 @@ object CompletionProvider {
                 scope.getSymbols().forEach { addToCompletionList(it) }
                 scope = scope.parent
             }
-            unit.imports.forEach { addToCompletionList(it) }
         }
 
         private fun appendGlobalSymbols() {
@@ -573,7 +572,6 @@ object CompletionProvider {
         }
 
         private fun appendTypeNames() {
-            unit.imports.forEach { addToCompletionList(it) }
         }
 
         private fun appendKeywords(vararg keywords: String) {

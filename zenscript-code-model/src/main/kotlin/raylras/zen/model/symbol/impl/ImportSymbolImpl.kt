@@ -1,6 +1,5 @@
 package raylras.zen.model.symbol.impl
 
-import org.antlr.v4.runtime.ParserRuleContext
 import raylras.zen.model.CompilationEnvironment
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.parser.ZenScriptParser.ImportDeclarationContext
@@ -13,13 +12,11 @@ import raylras.zen.util.TextRange
 import raylras.zen.util.textRange
 
 fun createImportSymbol(
-    simpleNameCtx: ParserRuleContext?,
     ctx: ImportDeclarationContext,
     unit: CompilationUnit,
     callback: (ImportSymbol) -> Unit
 ) {
-    simpleNameCtx ?: return
-    ctx.qualifiedName() ?: return
+    val simpleNameCtx = ctx.alias ?: ctx.qualifiedName()?.simpleName()?.last() ?: return
     callback(object : ImportSymbol, ParseTreeLocatable {
         override val qualifiedName: String by lazy { ctx.qualifiedName().text }
 

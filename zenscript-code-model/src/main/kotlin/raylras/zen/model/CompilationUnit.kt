@@ -1,15 +1,14 @@
 package raylras.zen.model
 
-import org.antlr.v4.runtime.CharStream
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.ParseTreeWalker
 import raylras.zen.model.parser.ZenScriptLexer
-import raylras.zen.model.resolve.resolveDeclarations
 import raylras.zen.model.scope.Scope
 import raylras.zen.model.symbol.*
 import java.nio.file.Path
 import java.util.*
+import java.util.Collections.*
 import kotlin.io.path.nameWithoutExtension
 
 const val ZS_FILE_EXTENSION = ".zs"
@@ -19,52 +18,95 @@ class CompilationUnit(val path: Path, val env: CompilationEnvironment) {
     val qualifiedName: String = extractClassName(env.relativize(path))
     val simpleName: String = path.nameWithoutExtension
 
-    val imports = ArrayList<ImportSymbol>()
     val scopeMap = IdentityHashMap<ParseTree, Scope>()
     val symbolMap = IdentityHashMap<ParseTree, Symbol>()
 
-    val tokenStream: CommonTokenStream
-        get() = _tokenStream!!
+    lateinit var tokenStream: CommonTokenStream
+    lateinit var parseTree: ParseTree
 
-    private var _tokenStream: CommonTokenStream? = null
+    val globals: Sequence<Symbol>
+        get() = globalMap.values.asSequence().flatten()
+
+    val classes: Sequence<ClassSymbol>
+        get() = classMap.values.asSequence().flatten()
+
+    val expandFunctions: Sequence<ExpandFunctionSymbol>
+        get() = expandFunctionMap.values.asSequence().flatten()
+
+    val staticSymbols: Sequence<Symbol>
+        get() = staticSymbolMap.values.asSequence().flatten()
+
+    val toplevelSymbols: Sequence<Symbol>
+        get() = scopeMap[parseTree]?.getSymbols().orEmpty()
+
+    var importMap: Map<String, List<ImportSymbol>> = emptyMap()
         get() {
-            if (field == null) {
-                this.load()
+            if (field === EMPTY_MAP) {
+                field = toplevelSymbols
+                    .filterIsInstance<ImportSymbol>()
+                    .groupBy { it.simpleName }
             }
             return field
         }
+        private set
 
-    val parseTree: ParseTree
-        get() = _parseTree!!
-
-    private var _parseTree: ParseTree? = null
+    var globalMap: Map<String, List<Symbol>> = emptyMap()
         get() {
-            if (field == null) {
-                this.load()
+            if (field === EMPTY_MAP) {
+                field = toplevelSymbols
+                    .filter { it is Modifiable && it.isGlobal }
+                    .groupBy { it.simpleName }
             }
             return field
         }
+        private set
 
-    val symbols: Sequence<Symbol>
-        get() = symbolMap.values.asSequence()
+    var classMap: Map<String, List<ClassSymbol>> = emptyMap()
+        get() {
+            if (field === EMPTY_MAP) {
+                field = toplevelSymbols
+                    .filterIsInstance<ClassSymbol>()
+                    .groupBy { it.qualifiedName }
+            }
+            return field
+        }
+        private set
+
+    var expandFunctionMap: Map<String, List<ExpandFunctionSymbol>> = emptyMap()
+        get() {
+            if (field === EMPTY_LIST) {
+                field = toplevelSymbols
+                    .filterIsInstance<ExpandFunctionSymbol>()
+                    .groupBy { it.simpleName }
+            }
+            return field
+        }
+        private set
+
+    var staticSymbolMap: Map<String, List<Symbol>> = emptyMap()
+        get() {
+            if (field === EMPTY_MAP) {
+                field = toplevelSymbols
+                    .filter { it.isStatic || it is ClassSymbol }
+                    .groupBy { it.simpleName }
+            }
+            return field
+        }
+        private set
 
     fun lookupSymbols(qualifiedName: String): Sequence<Symbol> {
         when {
             qualifiedName == this.qualifiedName -> {
                 return when {
-                    this.isZsUnit -> topLevelStaticSymbols
-                    this.isDzsUnit -> topLevelScope.getSymbols()
-                        .filterIsInstance<ClassSymbol>()
-                        .filter { it.qualifiedName == qualifiedName }
-                        .ifEmpty { topLevelStaticSymbols }
-
+                    this.isZsUnit -> staticSymbols
+                    this.isDzsUnit -> classMap[qualifiedName]?.asSequence() ?: staticSymbols
                     else -> emptySequence()
                 }
             }
 
             qualifiedName.startsWith(this.qualifiedName) -> {
                 val memberName = qualifiedName.substringAfterLast('.')
-                return topLevelStaticSymbols.filter { it.simpleName == memberName }
+                return staticSymbols.filter { it.simpleName == memberName }
             }
 
             else -> {
@@ -72,73 +114,6 @@ class CompilationUnit(val path: Path, val env: CompilationEnvironment) {
             }
         }
     }
-
-    val globals: Sequence<Symbol>
-        get() = _globals!!.values.asSequence()
-
-    fun lookupGlobal(simpleName: String): Symbol? {
-        return _globals!![simpleName]
-    }
-
-    private var _globals: Map<String, Symbol>? = null
-        get() {
-            if (field == null) {
-                field = topLevelScope.symbols
-                    .filter { it is Modifiable && it.isGlobal }
-                    .associateBy { it.simpleName }
-            }
-            return field
-        }
-
-    val classes: Sequence<ClassSymbol>
-        get() = _classes!!.values.asSequence()
-
-    fun lookupClass(qualifiedName: String): ClassSymbol? {
-        return _classes!![qualifiedName]
-    }
-
-    private var _classes: Map<String, ClassSymbol>? = null
-        get() {
-            if (field == null) {
-                field = topLevelScope.symbols
-                    .filterIsInstance<ClassSymbol>()
-                    .associateBy { it.qualifiedName }
-            }
-            return field
-        }
-
-    val expandFunctions: Sequence<ExpandFunctionSymbol>
-        get() = _expandFunctions!!.asSequence()
-
-    private var _expandFunctions: List<ExpandFunctionSymbol>? = null
-        get() {
-            if (field == null) {
-                field = topLevelScope.symbols
-                    .filterIsInstance<ExpandFunctionSymbol>()
-                    .toList()
-            }
-            return field
-        }
-
-    val topLevelScope: Scope
-        get() = scopeMap[parseTree]!!
-
-    val topLevelStaticSymbols: Sequence<Symbol>
-        get() = when {
-            this.isZsUnit -> {
-                topLevelScope
-                    .getSymbols().filter { it.isStatic }
-            }
-
-            this.isDzsUnit -> {
-                (env.classes.firstOrNull { it.qualifiedName == this.qualifiedName } ?: topLevelScope)
-                    .getSymbols().filter { it.isStatic }
-            }
-
-            else -> {
-                emptySequence()
-            }
-        }
 
     val preprocessors: Sequence<Preprocessor>
         get() {
@@ -155,27 +130,15 @@ class CompilationUnit(val path: Path, val env: CompilationEnvironment) {
     }
 
     fun accept(listener: Listener) {
-        parseTree.let { ParseTreeWalker.DEFAULT.walk(listener, it) }
+        ParseTreeWalker.DEFAULT.walk(listener, parseTree)
     }
 
-    fun load(charStream: CharStream) {
-        this.clear()
-        val tokenStream = lex(charStream)
-        val parseTree = parse(tokenStream)
-        this._tokenStream = tokenStream
-        this._parseTree = parseTree
-        this.resolveDeclarations()
-    }
-
-    private fun clear() {
-        imports.clear()
+    fun clear() {
         scopeMap.clear()
         symbolMap.clear()
-        _tokenStream = null
-        _parseTree = null
-        _classes = null
-        _globals = null
-        _expandFunctions = null
+        classMap = emptyMap()
+        globalMap = emptyMap()
+        expandFunctionMap = emptyMap()
     }
 
     override fun toString(): String = path.toString()

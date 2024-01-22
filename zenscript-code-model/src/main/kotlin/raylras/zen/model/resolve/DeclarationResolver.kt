@@ -1,7 +1,6 @@
 package raylras.zen.model.resolve
 
 import org.antlr.v4.runtime.tree.ParseTree
-import org.antlr.v4.runtime.tree.RuleNode
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Visitor
 import raylras.zen.model.parser.ZenScriptParser.*
@@ -20,18 +19,17 @@ private class DeclarationVisitor(private val unit: CompilationUnit) : Visitor<Un
     val scopeStack: Stack<Scope> = ArrayStack()
     val classStack: Stack<ClassSymbol> = ArrayStack()
 
-    fun enterScope(cst: RuleNode, also: (Scope) -> Unit = {}) {
+    fun enterScope(cst: ParseTree, callback: (Scope) -> Unit = {}) {
         val scope = Scope(scopeStack.peek(), cst)
         unit.scopeMap[cst] = scope
         scopeStack.push(scope)
-        also.invoke(scope)
-        visitChildren(cst)
+        callback(scope)
         scopeStack.pop()
     }
 
-    fun enterClass(symbol: ClassSymbol, also: () -> Unit) {
+    fun enterClass(symbol: ClassSymbol, callback: () -> Unit) {
         classStack.push(symbol)
-        also.invoke()
+        callback()
         classStack.pop()
     }
 
@@ -39,58 +37,56 @@ private class DeclarationVisitor(private val unit: CompilationUnit) : Visitor<Un
         return classStack.peek()
     }
 
-    fun enterSymbol(cst: ParseTree, symbol: Symbol) {
+    fun putSymbol(cst: ParseTree, symbol: Symbol) {
         unit.symbolMap[cst] = symbol
         scopeStack.peek()?.symbols?.add(symbol)
     }
 
-    fun visit(trees: List<ParseTree>) {
-        trees.forEach { visit(it) }
-    }
-
     override fun visitCompilationUnit(ctx: CompilationUnitContext) {
-        enterScope(ctx)
+        enterScope(ctx) {
+            visitChildren(ctx)
+        }
     }
 
     override fun visitImportDeclaration(ctx: ImportDeclarationContext) {
-        val simpleNameCtx = ctx.alias ?: ctx.qualifiedName()?.simpleName()?.last()
-        createImportSymbol(simpleNameCtx, ctx, unit) {
-            unit.imports.add(it)
+        createImportSymbol(ctx, unit) {
+            putSymbol(ctx, it)
         }
     }
 
     override fun visitFunctionDeclaration(ctx: FunctionDeclarationContext) {
         createFunctionSymbol(ctx.simpleName(), ctx, unit) {
-            enterSymbol(ctx, it)
-            enterScope(ctx)
+            putSymbol(ctx, it)
+            enterScope(ctx.functionBody() ?: ctx) {
+                visitChildren(ctx)
+            }
         }
     }
 
     override fun visitExpandFunctionDeclaration(ctx: ExpandFunctionDeclarationContext) {
-        createExpandFunctionSymbol(ctx.simpleName(), ctx, unit) {
-            enterSymbol(ctx, it)
-            enterScope(ctx) { scope ->
-                scope.symbols.add(createThisSymbol { it.expandingType })
+        createExpandFunctionSymbol(ctx.simpleName(), ctx, unit) { symbol ->
+            putSymbol(ctx, symbol)
+            enterScope(ctx.functionBody() ?: ctx) { scope ->
+                scope.symbols.add(createThisSymbol { symbol.expandingType })
+                visitChildren(ctx)
             }
         }
     }
 
     override fun visitFormalParameter(ctx: FormalParameterContext) {
         createParameterSymbol(ctx.simpleName(), ctx, unit) {
-            enterSymbol(ctx, it)
+            putSymbol(ctx, it)
+            visitChildren(ctx)
         }
-    }
-
-    override fun visitFunctionBody(ctx: FunctionBodyContext) {
-        enterScope(ctx)
     }
 
     override fun visitClassDeclaration(ctx: ClassDeclarationContext) {
         createClassSymbol(ctx, unit) { symbol ->
-            enterSymbol(ctx, symbol)
+            putSymbol(ctx, symbol)
             enterClass(symbol) {
                 enterScope(ctx) { scope ->
                     scope.symbols.add(createThisSymbol { symbol.type })
+                    visitChildren(ctx)
                 }
             }
         }
@@ -98,43 +94,50 @@ private class DeclarationVisitor(private val unit: CompilationUnit) : Visitor<Un
 
     override fun visitConstructorDeclaration(ctx: ConstructorDeclarationContext) {
         createConstructorSymbol(ctx, unit, currentClass()) {
-            enterSymbol(ctx, it)
-            enterScope(ctx)
+            putSymbol(ctx, it)
+            enterScope(ctx.constructorBody() ?: ctx) {
+                visitChildren(ctx)
+            }
         }
     }
 
     override fun visitVariableDeclaration(ctx: VariableDeclarationContext) {
         createVariableSymbol(ctx.simpleName(),ctx.typeLiteral(), ctx, unit) {
-            enterSymbol(ctx, it)
+            putSymbol(ctx, it)
+            visitChildren(ctx)
         }
     }
 
     override fun visitOperatorFunctionDeclaration(ctx: OperatorFunctionDeclarationContext) {
         createOperatorFunctionSymbol(ctx.operator(), ctx, unit) {
-            enterSymbol(ctx, it)
-            enterScope(ctx)
+            putSymbol(ctx, it)
+            enterScope(ctx) {
+                visitChildren(ctx)
+            }
         }
     }
 
     override fun visitForeachStatement(ctx: ForeachStatementContext) {
-        ctx.foreachBody()?.let { foreachBodyContext ->
-            enterScope(foreachBodyContext) {
-                visit(ctx.foreachVariable())
-            }
+        enterScope(ctx.foreachBody() ?: ctx) {
+            visitChildren(ctx)
         }
     }
 
     override fun visitForeachVariable(ctx: ForeachVariableContext) {
         createVariableSymbol(ctx.simpleName(), null, ctx, unit) {
-            enterSymbol(ctx, it)
+            putSymbol(ctx, it)
         }
     }
 
     override fun visitWhileStatement(ctx: WhileStatementContext) {
-        enterScope(ctx)
+        enterScope(ctx.statement() ?: ctx) {
+            visitChildren(ctx)
+        }
     }
 
     override fun visitFunctionExpr(ctx: FunctionExprContext) {
-        enterScope(ctx)
+        enterScope(ctx.functionBody() ?: ctx) {
+            visitChildren(ctx)
+        }
     }
 }
