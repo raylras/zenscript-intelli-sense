@@ -136,9 +136,11 @@ class CompilationUnit(val path: Path, val env: CompilationEnvironment) {
     fun clear() {
         scopeMap.clear()
         symbolMap.clear()
-        classMap = emptyMap()
+        importMap = emptyMap()
         globalMap = emptyMap()
+        classMap = emptyMap()
         expandFunctionMap = emptyMap()
+        staticSymbolMap = emptyMap()
     }
 
     override fun toString(): String = path.toString()
