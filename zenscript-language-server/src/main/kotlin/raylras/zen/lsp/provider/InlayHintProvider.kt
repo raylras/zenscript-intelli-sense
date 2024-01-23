@@ -6,7 +6,8 @@ import org.eclipse.lsp4j.InlayHintParams
 import org.eclipse.lsp4j.jsonrpc.messages.Either
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Listener
-import raylras.zen.model.brackets.BracketHandlers
+import raylras.zen.model.brackets.BracketHandlers.getLocalizedNameLocal
+import raylras.zen.model.brackets.BracketHandlers.getLocalizedNameRemote
 import raylras.zen.model.parser.ZenScriptParser.*
 import raylras.zen.model.resolve.resolveType
 import raylras.zen.model.symbol.*
@@ -73,9 +74,10 @@ class InlayHintListener(private val unit: CompilationUnit, private val range: Te
     override fun enterBracketHandlerExpr(ctx: BracketHandlerExprContext) {
         checkRange(ctx.GREATER_THEN()) {
             val expr = ctx.raw().text
-            BracketHandlers.getLocalizedNameLocal(expr, unit.env)?.let { name ->
-                addInlayHint(ctx.textRange.end, ": $name")
-            }
+            (getLocalizedNameLocal(expr, unit.env) ?: getLocalizedNameRemote(expr).getOrNull())
+                ?.let { name ->
+                    addInlayHint(ctx.textRange.end, ": $name")
+                }
         }
     }
 
