@@ -127,11 +127,11 @@
 					"default": "-agentlib:jdwp=transport=dt_socket,server=y,suspend=n,address=5005,quiet=y",
 					"description": "Java arguments"
 				},
-				"zenscript.languageServer.javaHome": {
+				"zenscript.languageServer.javaBin": {
 					"order": 2,
 					"type": "string",
 					"default": "",
-					"description": "Java home directory"
+					"description": "Path to the Java executable (java.exe on Windows)"
 				}
 			}
 		}

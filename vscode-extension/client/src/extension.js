@@ -1,4 +1,4 @@
-import {ExtensionContext, window} from "vscode";
+import {ExtensionContext, window, workspace} from "vscode";
 import {LanguageClient} from "vscode-languageclient/node";
 import LocateJavaHome from "@viperproject/locate-java-home";
 import {activateLanguageServer} from "./language-server"
@@ -12,14 +12,19 @@ let languageClient = undefined;
  */
 export async function activate(context) {
     registerGeneratedSourcesView();
-    LocateJavaHome({ version: ">=11" }, async (error, javaHomes) => {
-        if (javaHomes.length === 0) {
-            window.showErrorMessage("No valid Java environment found, please install Java 11 or later");
-        } else {
-            const javaBin = javaHomes[0].executables.java;
-            languageClient = await activateLanguageServer(javaBin);
-        }
-    });
+
+    let javaBin = workspace.getConfiguration().get('zenscript.languageServer.javaBin');
+    if (!javaBin) {
+        LocateJavaHome({version: ">=11"}, (error, javaHomes) => {
+            if (javaHomes.length === 0) {
+                window.showErrorMessage("No valid Java environment found, please install Java 11 or later");
+                return
+            }
+            javaBin = javaHomes[0].executables.java;
+        });
+    }
+
+    languageClient = await activateLanguageServer(javaBin);
 }
 
 export async function deactivate() {
