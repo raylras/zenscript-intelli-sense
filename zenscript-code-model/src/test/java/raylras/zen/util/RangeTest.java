@@ -13,7 +13,7 @@ class RangeTest {
     @MethodSource("contains")
     void contains(TextRange a, TextRange b, boolean expected) {
         System.out.printf("test: %s contains %s, expected: %s%n", a, b, expected);
-        Assertions.assertEquals(expected, a.contains(b));
+        Assertions.assertEquals(expected, TextRangeKt.contains(a, b));
     }
 
     static Stream<Arguments> contains() {

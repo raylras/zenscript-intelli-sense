@@ -20,7 +20,7 @@ class RangesTest {
 
     boolean isRangeContainsLineAndColumn(TextRange range, int line, int column) {
         TextPosition pos = new TextPosition(line, column);
-        return range.contains(new TextRange(pos, pos));
+        return TextRangeKt.contains(range, new TextRange(pos, pos));
     }
 
     static Stream<Arguments> isRangeContainsPosition() {
