@@ -16,16 +16,16 @@ object BracketHandlers {
     fun getBracketEntryLocal(expr: String, env: CompilationEnvironment): BracketHandlerEntry? {
         return env.bracketMirrorsLocal
             .filter { it.regex.matches(expr) }
-            .map { it.entries[expr] }
+            .map { it.entries[specialize(expr)] }
             .firstOrNull()
     }
 
     fun getLocalizedNameLocal(expr: String, env: CompilationEnvironment): String? {
-        return getBracketEntryLocal(expr, env)?.getStringOrNull("_name")
+        return getBracketEntryLocal(specialize(expr), env)?.getStringOrNull("_name")
     }
 
     fun getTypeNameLocal(expr: String, env: CompilationEnvironment): String? {
-        return env.bracketMirrorsLocal.firstOrNull { it.entries.containsKey(expr) }?.type
+        return env.bracketMirrorsLocal.firstOrNull { it.entries.containsKey(specialize(expr)) }?.type
     }
 
     fun getIconRemote(expr: String): Result<String?> {
@@ -117,4 +117,25 @@ private fun createGson(): Gson {
         .registerTypeAdapter(BracketHandlerMirror::class.java, mirrorDeserializer)
         .registerTypeAdapter(BracketHandlerEntry::class.java, entryDeserializer)
         .create()
+}
+
+/**
+ * @see raylras.zen.model.brackets.BracketHandlersKtTest.specialize
+ */
+fun specialize(expr: String): String {
+    if (expr == "*") {
+        return expr
+    }
+
+    val str = if (expr.startsWith("item:")) {
+        expr.substringAfter("item:")
+    } else {
+        expr
+    }
+
+    return if (str.endsWith(":0")) {
+        str.substringBeforeLast(":0")
+    } else {
+        str
+    }
 }
