@@ -7,96 +7,91 @@ import org.eclipse.lsp4j.jsonrpc.messages.Either
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Listener
 import raylras.zen.model.brackets.BracketHandlers.getLocalizedNameLocal
-import raylras.zen.model.brackets.BracketHandlers.getLocalizedNameRemote
 import raylras.zen.model.parser.ZenScriptParser.*
-import raylras.zen.model.resolve.resolveType
 import raylras.zen.model.symbol.*
-import raylras.zen.model.type.FunctionType
 import raylras.zen.util.*
+import java.util.concurrent.CompletableFuture
 
 object InlayHintProvider {
     fun inlayHint(unit: CompilationUnit, params: InlayHintParams): List<InlayHint> {
-        val visitor = InlayHintListener(unit, params.range.toTextRange())
-        unit.accept(visitor)
-        return visitor.result
+        val listener = InlayHintListener(unit, params.range.toTextRange())
+        unit.accept(listener)
+        return listener.getResult()
     }
 }
 
 class InlayHintListener(private val unit: CompilationUnit, private val range: TextRange) : Listener() {
-    val result = ArrayList<InlayHint>()
+    private val pendingList = mutableListOf<CompletableFuture<InlayHint?>>()
+
+    fun getResult(): List<InlayHint> {
+        return pendingList.mapNotNull { it.get() }
+    }
 
     override fun enterVariableDeclaration(ctx: VariableDeclarationContext) {
-        checkRange(ctx.simpleName()) {
-            val symbol = unit.symbolMap[ctx]
-            checkTypeAnnotation<VariableSymbol>(symbol) { sym, pos ->
-                addInlayHint(pos, " as ${sym.type.simpleTypeName}")
-            }
-        }
+        CompletableFuture.supplyAsync {
+            if (ctx.simpleName().invalidRange()) return@supplyAsync null
+            val symbol = unit.symbolMap[ctx] as? VariableSymbol ?: return@supplyAsync null
+            symbol.typeHintPos?.hint(" as ${symbol.type.simpleTypeName}")
+        }.addToPendingList()
     }
 
     override fun enterFunctionDeclaration(ctx: FunctionDeclarationContext) {
-        checkRange(ctx.PAREN_CLOSE()) {
-            val symbol = unit.symbolMap[ctx]
-            checkTypeAnnotation<FunctionSymbol>(symbol) { sym, pos ->
-                addInlayHint(pos, " as ${sym.returnType.simpleTypeName}")
-            }
-        }
+        CompletableFuture.supplyAsync {
+            if (ctx.PAREN_CLOSE().invalidRange()) return@supplyAsync null
+            val symbol = unit.symbolMap[ctx] as? FunctionSymbol ?: return@supplyAsync null
+            symbol.typeHintPos?.hint(" as ${symbol.returnType.simpleTypeName}")
+        }.addToPendingList()
     }
 
     override fun enterFormalParameter(ctx: FormalParameterContext) {
-        checkRange(ctx.simpleName()) {
-            val symbol = unit.symbolMap[ctx]
-            checkTypeAnnotation<ParameterSymbol>(symbol) { sym, pos ->
-                addInlayHint(pos, " as ${sym.type.simpleTypeName}")
-            }
-        }
+        CompletableFuture.supplyAsync {
+            if (ctx.simpleName().invalidRange()) return@supplyAsync null
+            val symbol = unit.symbolMap[ctx] as? ParameterSymbol ?: return@supplyAsync null
+            symbol.typeHintPos?.hint(" as ${symbol.type.simpleTypeName}")
+        }.addToPendingList()
     }
 
     override fun enterForeachVariable(ctx: ForeachVariableContext) {
-        checkRange(ctx.simpleName()) {
-            val symbol = unit.symbolMap[ctx]
-            checkTypeAnnotation<VariableSymbol>(symbol) { sym, pos ->
-                addInlayHint(pos, ": ${sym.type.simpleTypeName}")
-            }
-        }
+        CompletableFuture.supplyAsync {
+            if (ctx.simpleName().invalidRange()) return@supplyAsync null
+            val symbol = unit.symbolMap[ctx] as? VariableSymbol ?: return@supplyAsync null
+            symbol.typeHintPos?.hint(": ${symbol.type.simpleTypeName}")
+        }.addToPendingList()
     }
 
     override fun enterFunctionExpr(ctx: FunctionExprContext) {
-        checkRange(ctx.PAREN_CLOSE()) {
-            if (ctx.typeLiteral() == null) {
-                resolveType<FunctionType>(ctx, unit)?.returnType?.let { returnType ->
-                    addInlayHint(ctx.PAREN_CLOSE().textRange.end, ": ${returnType.simpleTypeName}")
-                }
-            }
-        }
+        CompletableFuture.supplyAsync {
+            if (ctx.PAREN_CLOSE().invalidRange()) return@supplyAsync null
+            val symbol = unit.symbolMap[ctx] as? FunctionSymbol ?: return@supplyAsync null
+            symbol.typeHintPos?.hint(": ${symbol.returnType.simpleTypeName}")
+        }.addToPendingList()
     }
 
     override fun enterBracketHandlerExpr(ctx: BracketHandlerExprContext) {
-        checkRange(ctx.GREATER_THEN()) {
+        CompletableFuture.supplyAsync {
+            if (ctx.GREATER_THEN().invalidRange()) return@supplyAsync null
             val expr = ctx.raw().text
-            (getLocalizedNameLocal(expr, unit.env) ?: getLocalizedNameRemote(expr).getOrNull())
-                ?.let { name ->
-                    addInlayHint(ctx.textRange.end, ": $name")
-                }
-        }
+            val name = getLocalizedNameLocal(expr, unit.env) ?: return@supplyAsync null
+            ctx.GREATER_THEN().textRange.end.hint(": $name")
+        }.addToPendingList()
     }
 
-    private fun checkRange(ctx: ParseTree?, callback: (ParseTree) -> Unit) {
-        if (ctx != null && ctx.textRange in range) {
-            callback(ctx)
-        }
+    private fun ParseTree?.invalidRange(): Boolean {
+        return this == null || this.textRange !in range
     }
 
-    private inline fun <reified T : Symbol> checkTypeAnnotation(
-        symbol: Symbol?,
-        callback: (T, pos: TextPosition) -> Unit
-    ) {
-        if (symbol is T && symbol is TypeAnnotatable && symbol.typeAnnotationCst == null) {
-            callback(symbol, symbol.typeAnnotationTextPosition)
+    private val <T : Symbol> T.typeHintPos: TextPosition?
+        get() = if (this is TypeAnnotatable && this.typeAnnotationCst == null) {
+            this.typeAnnotationTextPosition
+        } else {
+            null
         }
+
+    private fun TextPosition.hint(text: String): InlayHint {
+        return InlayHint(this.toLspPosition(), Either.forLeft(text))
     }
 
-    private fun addInlayHint(pos: TextPosition, text: String) {
-        result.add(InlayHint(pos.toLspPosition(), Either.forLeft(text)))
+    private fun CompletableFuture<InlayHint?>.addToPendingList() {
+        pendingList.add(this)
     }
 }
