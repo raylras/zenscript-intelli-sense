@@ -22,7 +22,7 @@ object DefinitionProvider {
     }
 }
 
-class DefinitionVisitor(private val unit: CompilationUnit, private val terminal: TerminalNode) : Visitor<Unit>() {
+private class DefinitionVisitor(private val unit: CompilationUnit, private val terminal: TerminalNode) : Visitor<Unit>() {
     var result = emptySequence<LocationLink>()
 
     override fun visitQualifiedName(ctx: QualifiedNameContext) {

@@ -20,7 +20,7 @@ object InlayHintProvider {
     }
 }
 
-class InlayHintListener(private val unit: CompilationUnit, private val range: TextRange) : Listener() {
+private class InlayHintListener(private val unit: CompilationUnit, private val range: TextRange) : Listener() {
     private val pendingList = mutableListOf<CompletableFuture<InlayHint?>>()
 
     fun getResult(): List<InlayHint> {
@@ -30,40 +30,40 @@ class InlayHintListener(private val unit: CompilationUnit, private val range: Te
     override fun enterVariableDeclaration(ctx: VariableDeclarationContext) {
         CompletableFuture.supplyAsync {
             if (ctx.simpleName().invalidRange()) return@supplyAsync null
-            val symbol = unit.symbolMap[ctx] as? VariableSymbol ?: return@supplyAsync null
-            symbol.typeHintPos?.hint(" as ${symbol.type.simpleTypeName}")
+            val symbol = unit.symbolMap[ctx] as? VariableSymbol
+            symbol?.typeHintPos?.hint(" as ${symbol.type.simpleTypeName}")
         }.addToPendingList()
     }
 
     override fun enterFunctionDeclaration(ctx: FunctionDeclarationContext) {
         CompletableFuture.supplyAsync {
             if (ctx.PAREN_CLOSE().invalidRange()) return@supplyAsync null
-            val symbol = unit.symbolMap[ctx] as? FunctionSymbol ?: return@supplyAsync null
-            symbol.typeHintPos?.hint(" as ${symbol.returnType.simpleTypeName}")
+            val symbol = unit.symbolMap[ctx] as? FunctionSymbol
+            symbol?.typeHintPos?.hint(" as ${symbol.returnType.simpleTypeName}")
         }.addToPendingList()
     }
 
     override fun enterFormalParameter(ctx: FormalParameterContext) {
         CompletableFuture.supplyAsync {
             if (ctx.simpleName().invalidRange()) return@supplyAsync null
-            val symbol = unit.symbolMap[ctx] as? ParameterSymbol ?: return@supplyAsync null
-            symbol.typeHintPos?.hint(" as ${symbol.type.simpleTypeName}")
+            val symbol = unit.symbolMap[ctx] as? ParameterSymbol
+            symbol?.typeHintPos?.hint(" as ${symbol.type.simpleTypeName}")
         }.addToPendingList()
     }
 
     override fun enterForeachVariable(ctx: ForeachVariableContext) {
         CompletableFuture.supplyAsync {
             if (ctx.simpleName().invalidRange()) return@supplyAsync null
-            val symbol = unit.symbolMap[ctx] as? VariableSymbol ?: return@supplyAsync null
-            symbol.typeHintPos?.hint(": ${symbol.type.simpleTypeName}")
+            val symbol = unit.symbolMap[ctx] as? VariableSymbol
+            symbol?.typeHintPos?.hint(": ${symbol.type.simpleTypeName}")
         }.addToPendingList()
     }
 
     override fun enterFunctionExpr(ctx: FunctionExprContext) {
         CompletableFuture.supplyAsync {
             if (ctx.PAREN_CLOSE().invalidRange()) return@supplyAsync null
-            val symbol = unit.symbolMap[ctx] as? FunctionSymbol ?: return@supplyAsync null
-            symbol.typeHintPos?.hint(": ${symbol.returnType.simpleTypeName}")
+            val symbol = unit.symbolMap[ctx] as? FunctionSymbol
+            symbol?.typeHintPos?.hint(": ${symbol.returnType.simpleTypeName}")
         }.addToPendingList()
     }
 
@@ -71,8 +71,9 @@ class InlayHintListener(private val unit: CompilationUnit, private val range: Te
         CompletableFuture.supplyAsync {
             if (ctx.GREATER_THEN().invalidRange()) return@supplyAsync null
             val expr = ctx.raw().text
-            val name = getLocalizedNameLocal(expr, unit.env) ?: return@supplyAsync null
-            ctx.GREATER_THEN().textRange.end.hint(": $name")
+            getLocalizedNameLocal(expr, unit.env)?.let { name ->
+                ctx.GREATER_THEN().textRange.end.hint(": $name")
+            }
         }.addToPendingList()
     }
 

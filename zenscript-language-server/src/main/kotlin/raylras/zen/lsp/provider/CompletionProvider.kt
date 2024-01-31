@@ -14,7 +14,6 @@ import raylras.zen.model.brackets.bracketEntriesLocal
 import raylras.zen.model.parser.ZenScriptParser.*
 import raylras.zen.model.resolve.lookupScope
 import raylras.zen.model.resolve.resolveSemantics
-import raylras.zen.model.scope.Scope
 import raylras.zen.model.symbol.*
 import raylras.zen.model.type.Type
 import raylras.zen.util.*
@@ -31,418 +30,393 @@ object CompletionProvider {
         // TODO: Not yet implemented
         return unresolved
     }
+}
 
-    private class CompletionVisitor(val unit: CompilationUnit, params: CompletionParams) : Visitor<Unit>() {
-        private val cursor: TextPosition = params.position.toTextPosition()
-        private val tailingNode: TerminalNode? = unit.parseTree.getTerminalAt(cursor)
-        private val leadingNode: TerminalNode? = tailingNode.getPrev(unit.tokenStream)
-        private val tailingText: String = tailingNode?.text ?: ""
-        private val leadingText: String = leadingNode?.text ?: ""
-        val result = CompletionList()
+private class CompletionVisitor(val unit: CompilationUnit, params: CompletionParams) : Visitor<Unit>() {
+    private val cursor: TextPosition = params.position.toTextPosition()
+    private val tailingNode: TerminalNode? = unit.parseTree.getTerminalAt(cursor)
+    private val leadingNode: TerminalNode? = tailingNode.getPrev(unit.tokenStream)
+    private val tailingText: String = tailingNode?.text ?: ""
+    private val leadingText: String = leadingNode?.text ?: ""
+    val result = CompletionList()
 
-        /*
-            | represents the cursor
-            ^ represents the leading terminal node
-            _ represents the tailing terminal node
-         */
-        override fun visitImportDeclaration(ctx: ImportDeclarationContext) {
+    /*
+        | represents the cursor
+        ^ represents the leading terminal node
+        _ represents the tailing terminal node
+     */
+    override fun visitImportDeclaration(ctx: ImportDeclarationContext) {
+        when {
             // import text|
             // ^^^^^^ ____
-            if (leadingNode in ctx.IMPORT()) {
+            leadingNode in ctx.IMPORT() -> {
                 appendImports()
-                return
             }
 
             // import foo.|
             //        ^^^_
-            if (tailingNode is ErrorNode && tailingText == ".") {
+            tailingNode is ErrorNode && tailingText == "." -> {
                 appendImports()
-                return
             }
 
             // import foo.text|
             //           ^____
-            if (leadingText == ".") {
+            leadingText == "." -> {
                 appendImports()
-                return
             }
 
             // import foo.|bar
             //        ^^^_
-            if (tailingText == ".") {
+            tailingText == "." -> {
                 appendImports()
-                return
             }
 
             // import foo.bar text|
             //            ^^^ ____
-            if (leadingNode in ctx.qualifiedName() && tailingNode !in ctx.qualifiedName()) {
+            leadingNode in ctx.qualifiedName() && tailingNode !in ctx.qualifiedName() -> {
                 appendKeywords(Keywords.AS)
-                return
             }
 
             // import foo.bar; text|
             //               ^ ____
-            if (leadingNode in ctx.SEMICOLON()) {
+            leadingNode in ctx.SEMICOLON() -> {
                 appendLocalSymbols()
                 appendGlobalSymbols()
                 appendKeywords(*Keywords.TOPLEVEL_STATEMENT)
-                return
             }
         }
+    }
 
-        override fun visitSimpleName(ctx: SimpleNameContext) {
-            appendLocalSymbols()
-            appendGlobalSymbols()
-        }
+    override fun visitSimpleName(ctx: SimpleNameContext) {
+        appendLocalSymbols()
+        appendGlobalSymbols()
+    }
 
-        override fun visitFormalParameter(ctx: FormalParameterContext) {
+    override fun visitFormalParameter(ctx: FormalParameterContext) {
+        when {
             // name text|
             // ^^^^ ____
-            if (leadingNode in ctx.simpleName()) {
+            leadingNode in ctx.simpleName() -> {
                 appendKeywords(Keywords.AS)
-                return
             }
 
             // name as text|
             //      ^^ ____
-            if (leadingNode in ctx.AS()) {
+            leadingNode in ctx.AS() -> {
                 appendTypeNames()
-                return
             }
         }
+    }
 
-        override fun visitFunctionBody(ctx: FunctionBodyContext) {
+    override fun visitFunctionBody(ctx: FunctionBodyContext) {
+        when {
             // { text| }
             // ^ ____
-            if (leadingNode in ctx.BRACE_OPEN()) {
+            leadingNode in ctx.BRACE_OPEN() -> {
                 appendLocalSymbols()
                 appendGlobalSymbols()
                 appendKeywords(*Keywords.STATEMENT)
-                return
             }
 
-            visitChildren(ctx)
+            else -> visitChildren(ctx)
         }
+    }
 
-        override fun visitClassBody(ctx: ClassBodyContext) {
+    override fun visitClassBody(ctx: ClassBodyContext) {
+        when {
             // { } text|
             //   ^ ____
-            if (leadingNode in ctx.BRACE_CLOSE()) {
+            leadingNode in ctx.BRACE_CLOSE() -> {
                 appendLocalSymbols()
                 appendGlobalSymbols()
                 appendKeywords(*Keywords.CLASS_BODY)
-                return
             }
-
             // { text| }
             // ^ ____
-            if (leadingNode in ctx.BRACE_OPEN()) {
+            leadingNode in ctx.BRACE_OPEN() -> {
                 appendKeywords(*Keywords.CLASS_BODY)
-                return
             }
 
-            visitChildren(ctx)
+            else -> visitChildren(ctx)
         }
+    }
 
-        override fun visitClassMemberDeclaration(ctx: ClassMemberDeclarationContext) {
+    override fun visitClassMemberDeclaration(ctx: ClassMemberDeclarationContext) {
+        when {
             // } text|    ; test|    expr text|
             // ^ ____     ^ ____     ^^^^ ____
-            if (leadingNode in ctx.stop) {
+            leadingNode in ctx.stop -> {
                 appendKeywords(*Keywords.CLASS_BODY)
-                return
             }
 
-            visitChildren(ctx)
+            else -> visitChildren(ctx)
         }
+    }
 
-        override fun visitVariableDeclaration(ctx: VariableDeclarationContext) {
+    override fun visitVariableDeclaration(ctx: VariableDeclarationContext) {
+        when {
             // var name text|
             //     ^^^^ ____
-            if (leadingNode in ctx.simpleName()) {
+            leadingNode in ctx.simpleName() -> {
                 appendKeywords(Keywords.AS)
-                return
             }
 
             // var name as text|
             //          ^^ ____
-            if (leadingNode in ctx.AS()) {
+            leadingNode in ctx.AS() -> {
                 appendTypeNames()
-                return
             }
 
             // var name as type =|
             //                  ^
-            if (leadingNode in ctx.ASSIGN() && tailingNode !in ctx.initializer) {
+            leadingNode in ctx.ASSIGN() && tailingNode !in ctx.initializer -> {
                 appendLocalSymbols()
                 appendGlobalSymbols()
-                return
             }
 
             // var name as type = text|
             //                  ^ ____
-            if (leadingNode in ctx.ASSIGN() && tailingNode in ctx.initializer) {
+            leadingNode in ctx.ASSIGN() && tailingNode in ctx.initializer -> {
                 visit(ctx.initializer)
-                return
             }
 
             // var name; text|
             //         ^ ____
-            if (leadingNode in ctx.SEMICOLON()) {
+            leadingNode in ctx.SEMICOLON() -> {
                 appendLocalSymbols()
                 appendGlobalSymbols()
                 appendKeywords(*Keywords.STATEMENT)
-                return
             }
 
-            visitChildren(ctx)
+            else -> visitChildren(ctx)
         }
+    }
 
-        override fun visitBlockStatement(ctx: BlockStatementContext) {
+    override fun visitBlockStatement(ctx: BlockStatementContext) {
+        when {
             // { text| }
             // ^ ____
-            if (leadingNode in ctx.BRACE_OPEN()) {
-                visitParent(tailingNode)
+            leadingNode in ctx.BRACE_OPEN() -> {
+                visit(tailingNode?.parent)
                 appendKeywords(*Keywords.STATEMENT)
-                return
             }
 
             // { } text|
             //   ^ ____
-            if (leadingNode in ctx.BRACE_CLOSE()) {
-                visitParent(tailingNode)
+            leadingNode in ctx.BRACE_CLOSE() -> {
+                visit(tailingNode?.parent)
                 appendKeywords(*Keywords.STATEMENT)
-                return
             }
 
-            visitChildren(ctx)
+            else -> visitChildren(ctx)
         }
+    }
 
-        override fun visitReturnStatement(ctx: ReturnStatementContext) {
+    override fun visitReturnStatement(ctx: ReturnStatementContext) {
+        when {
             // return text|
             // ^^^^^^ ____
-            if (leadingNode in ctx.RETURN()) {
+            leadingNode in ctx.RETURN() -> {
                 visit(ctx.expression())
-                return
             }
 
             // return; text|
             //       ^ ____
-            if (leadingNode in ctx.SEMICOLON()) {
-                visitParent(tailingNode)
+            leadingNode in ctx.SEMICOLON() -> {
+                visit(tailingNode?.parent)
                 appendKeywords(*Keywords.STATEMENT)
-                return
             }
 
-            visitChildren(ctx)
+            else -> visitChildren(ctx)
         }
+    }
 
-        override fun visitIfStatement(ctx: IfStatementContext) {
+    override fun visitIfStatement(ctx: IfStatementContext) {
+        when {
             // if text|
             // ^^ ____
-            if (leadingNode in ctx.IF()) {
+            leadingNode in ctx.IF() -> {
                 appendLocalSymbols()
                 appendGlobalSymbols()
-                return
             }
 
-            visitChildren(ctx)
+            else -> visitChildren(ctx)
         }
+    }
 
-        override fun visitForeachBody(ctx: ForeachBodyContext) {
+    override fun visitForeachBody(ctx: ForeachBodyContext) {
+        when {
             // { text| }
             // ^ ____
-            if (leadingNode in ctx.BRACE_OPEN()) {
+            leadingNode in ctx.BRACE_OPEN() -> {
                 appendLocalSymbols()
                 appendGlobalSymbols()
                 appendKeywords(*Keywords.STATEMENT)
-                return
             }
 
             // { } text|
             //   ^ ____
-            if (leadingNode in ctx.BRACE_CLOSE()) {
+            leadingNode in ctx.BRACE_CLOSE() -> {
                 appendLocalSymbols()
                 appendGlobalSymbols()
                 appendKeywords(*Keywords.STATEMENT)
-                return
             }
 
-            visitChildren(ctx)
+            else -> visitChildren(ctx)
         }
+    }
 
-        override fun visitWhileStatement(ctx: WhileStatementContext) {
+    override fun visitWhileStatement(ctx: WhileStatementContext) {
+        when {
             // while expr|
             // ^^^^^
-            if (leadingNode in ctx.WHILE()) {
+            leadingNode in ctx.WHILE() -> {
                 visit(ctx.expression())
-                return
             }
 
-            visitChildren(ctx)
+            else -> visitChildren(ctx)
         }
+    }
 
-        override fun visitExpressionStatement(ctx: ExpressionStatementContext) {
+    override fun visitExpressionStatement(ctx: ExpressionStatementContext) {
+        when {
             // text|
             // ____
-            if (ctx.expression() is SimpleNameExprContext && tailingNode in ctx.expression()) {
+            ctx.expression() is SimpleNameExprContext && tailingNode in ctx.expression() -> {
                 appendLocalSymbols()
                 appendGlobalSymbols()
                 appendKeywords(*Keywords.STATEMENT)
-                return
             }
 
             // expr; text|
             //     ^ ____
-            if (leadingNode in ctx.SEMICOLON()) {
-                tailingNode?.parent?.accept(this)
+            leadingNode in ctx.SEMICOLON() -> {
+                visit(tailingNode?.parent)
                 appendKeywords(*Keywords.STATEMENT)
-                return
             }
 
-            visitChildren(ctx)
+            else -> visitChildren(ctx)
         }
+    }
 
-        override fun visitAssignmentExpr(ctx: AssignmentExprContext) {
+    override fun visitAssignmentExpr(ctx: AssignmentExprContext) {
+        when {
             // expr = text|
             //      ^ ____
-            if (leadingNode in ctx.op) {
+            leadingNode in ctx.op -> {
                 appendLocalSymbols()
                 appendGlobalSymbols()
-                return
             }
 
             // expr =|
             // ^^^^ _
-            if (ctx.left !is MemberAccessExprContext && leadingNode in ctx.left) {
+            ctx.left !is MemberAccessExprContext && leadingNode in ctx.left -> {
                 appendLocalSymbols()
                 appendGlobalSymbols()
-                return
             }
 
-            visitChildren(ctx)
+            else -> visitChildren(ctx)
         }
+    }
 
-        override fun visitMapLiteralExpr(ctx: MapLiteralExprContext) {
+    override fun visitMapLiteralExpr(ctx: MapLiteralExprContext) {
+        when {
             // { text| }
             // ^ ____
-            if (leadingNode in ctx.BRACE_OPEN()) {
+            leadingNode in ctx.BRACE_OPEN() -> {
                 visit(ctx.mapEntry())
-                return
             }
 
             // { ..., text| }
             //      ^ ____
-            if (ctx.COMMA().any { leadingNode in it }) {
+            ctx.COMMA().any { leadingNode in it } -> {
                 visit(ctx.mapEntry())
-                return
             }
 
-            visitChildren(ctx)
+            else -> visitChildren(ctx)
         }
+    }
 
-        override fun visitSimpleNameExpr(ctx: SimpleNameExprContext) {
-            appendLocalSymbols()
-            appendGlobalSymbols()
-            return
-        }
+    override fun visitSimpleNameExpr(ctx: SimpleNameExprContext) {
+        appendLocalSymbols()
+        appendGlobalSymbols()
+    }
 
-        override fun visitBinaryExpr(ctx: BinaryExprContext) {
+    override fun visitBinaryExpr(ctx: BinaryExprContext) {
+        when {
             // expr + text|
             //      ^ ____
-            if (leadingNode in ctx.op) {
+            leadingNode in ctx.op -> {
                 appendLocalSymbols()
                 appendGlobalSymbols()
-                return
             }
         }
+    }
 
-        override fun visitParensExpr(ctx: ParensExprContext) {
+    override fun visitParensExpr(ctx: ParensExprContext) {
+        when {
             // (text|)
             // ^____
-            if (leadingNode in ctx.PAREN_OPEN()) {
+            leadingNode in ctx.PAREN_OPEN() -> {
                 visit(ctx.expression())
-                return
             }
 
-            visitChildren(ctx)
+            else -> visitChildren(ctx)
         }
+    }
 
-        override fun visitBracketHandlerExpr(ctx: BracketHandlerExprContext) {
+    override fun visitBracketHandlerExpr(ctx: BracketHandlerExprContext) {
+        when {
             // <|
             // _
-            if (tailingNode in ctx.LESS_THEN()) {
+            tailingNode in ctx.LESS_THEN() -> {
                 appendBracketHandlers()
-                return
             }
 
             // <text|
             // ^____
-            if (leadingNode in ctx.LESS_THEN() && tailingNode in ctx.raw()) {
+            leadingNode in ctx.LESS_THEN() && tailingNode in ctx.raw() -> {
                 appendBracketHandlers()
-                return
             }
         }
+    }
 
-        override fun visitUnaryExpr(ctx: UnaryExprContext) {
+    override fun visitUnaryExpr(ctx: UnaryExprContext) {
+        when {
             // !text|
             // ^____
-            if (leadingNode in (ctx.op)) {
+            leadingNode in ctx.op -> {
                 appendLocalSymbols()
                 appendGlobalSymbols()
-                return
             }
 
-            visitChildren(ctx)
+            else -> visitChildren(ctx)
         }
+    }
 
-        override fun visitTernaryExpr(ctx: TernaryExprContext) {
+    override fun visitTernaryExpr(ctx: TernaryExprContext) {
+        when {
             // expr ? text|
             //      ^ ____
-            if (leadingNode in ctx.QUESTION()) {
+            leadingNode in ctx.QUESTION() -> {
                 visit(ctx.truePart)
-                return
             }
 
             // expr ? expr : text|
             //             ^ ____
-            if (leadingNode in ctx.COLON()) {
+            leadingNode in ctx.COLON() -> {
                 visit(ctx.falsePart)
-                return
             }
 
-            visitChildren(ctx)
+            else -> visitChildren(ctx)
         }
+    }
 
-        override fun visitMemberAccessExpr(ctx: MemberAccessExprContext) {
-            val expr: ExpressionContext = ctx.expression()
-
+    override fun visitMemberAccessExpr(ctx: MemberAccessExprContext) {
+        when {
             // expr.text|
             //     ^____
-            if (leadingNode in ctx.DOT()) {
-                resolveSemantics(expr, unit).firstOrNull()?.let { entity: SemanticEntity ->
-                    when (entity) {
-                        is ClassSymbol -> {
-                            appendStaticMembers(entity)
-                        }
-
-                        is Symbol -> {
-                            appendInstanceMembers(entity.type)
-                            appendMemberAccessSnippets(entity.type, ctx)
-                        }
-
-                        is Type -> {
-                            appendInstanceMembers(entity)
-                            appendMemberAccessSnippets(entity, ctx)
-                        }
-                    }
-                }
-                return
-            }
-
-            // expr.|
-            // ^^^^_
-            if (leadingNode in expr && tailingNode in ctx.DOT()) {
+            leadingNode in ctx.DOT() -> {
                 resolveSemantics(ctx.expression(), unit).firstOrNull()?.let { entity: SemanticEntity ->
                     when (entity) {
                         is ClassSymbol -> {
@@ -460,248 +434,264 @@ object CompletionProvider {
                         }
                     }
                 }
-                return
             }
 
-            visitChildren(ctx)
-        }
+            // expr.|
+            // ^^^^_
+            leadingNode in ctx.expression() && tailingNode in ctx.DOT() -> {
+                resolveSemantics(ctx.expression(), unit).firstOrNull()?.let { entity: SemanticEntity ->
+                    when (entity) {
+                        is ClassSymbol -> {
+                            appendStaticMembers(entity)
+                        }
 
-        override fun visitArrayLiteralExpr(ctx: ArrayLiteralExprContext) {
+                        is Symbol -> {
+                            appendInstanceMembers(entity.type)
+                            appendMemberAccessSnippets(entity.type, ctx)
+                        }
+
+                        is Type -> {
+                            appendInstanceMembers(entity)
+                            appendMemberAccessSnippets(entity, ctx)
+                        }
+                    }
+                }
+            }
+
+            else -> visitChildren(ctx)
+        }
+    }
+
+    override fun visitArrayLiteralExpr(ctx: ArrayLiteralExprContext) {
+        when {
             // [ text ]
             // ^ ____
-            if (leadingNode in ctx.BRACK_OPEN()) {
+            leadingNode in ctx.BRACK_OPEN() -> {
                 visit(ctx.expression())
-                return
             }
 
             // [ ..., text| ]
             //      ^ ____
-            if (ctx.COMMA().any { leadingNode in it }) {
+            ctx.COMMA().any { leadingNode in it } -> {
                 visit(ctx.expression())
-                return
             }
 
-            visitChildren(ctx)
+            else -> visitChildren(ctx)
         }
 
-        override fun visitCallExpr(ctx: CallExprContext) {
+    }
+
+    override fun visitCallExpr(ctx: CallExprContext) {
+        when {
             // expr(text|)
             //     ^____
-            if (leadingNode in ctx.PAREN_OPEN()) {
+            leadingNode in ctx.PAREN_OPEN() -> {
                 visit(ctx.argument())
-                return
             }
 
             // expr(..., text|)
             //         ^ ____
-            if (ctx.COMMA().any { leadingNode in it }) {
+            ctx.COMMA().any { leadingNode in it } -> {
                 visit(ctx.argument())
-                return
             }
 
-            visitChildren(ctx)
+            else -> visitChildren(ctx)
         }
+    }
 
-        override fun visitMapEntry(ctx: MapEntryContext) {
+    override fun visitMapEntry(ctx: MapEntryContext) {
+        when {
             // text|
             // ____
-            if (tailingNode in (ctx.key)) {
+            tailingNode in ctx.key -> {
                 visit(ctx.key)
-                return
             }
 
             // expr : text|
             //      ^ ____
-            if (leadingNode in ctx.COLON()) {
+            leadingNode in ctx.COLON() -> {
                 visit(ctx.value)
-                return
             }
 
-            visitChildren(ctx)
+            else -> visitChildren(ctx)
         }
+    }
 
-        override fun visit(node: ParseTree?) {
-            return node?.accept(this) ?: Unit
+    override fun visit(tree: ParseTree?) {
+        tree?.accept(this)
+    }
+
+    fun visit(trees: List<ParseTree>) {
+        trees.firstOrNull { leadingNode in it || tailingNode in it }?.accept(this)
+    }
+
+    override fun visitChildren(node: RuleNode) {
+        for (i in 0 until node.childCount) {
+            val child = node.getChild(i)
+            if (leadingNode in child || tailingNode in child) {
+                child.accept(this)
+                break
+            }
         }
+    }
 
-        fun visit(nodes: List<ParseTree>) {
-            nodes.firstOrNull { leadingNode in it || tailingNode in it }?.accept(this)
+    private fun appendImports() {
+        // FIXME: appendImports
+    }
+
+    private fun appendLocalSymbols() {
+        var scope = lookupScope(tailingNode, unit)
+        while (scope != null) {
+            scope.symbols.forEach { addToCompletionList(it) }
+            scope = scope.parent
         }
+    }
 
-        override fun visitChildren(node: RuleNode) {
-            for (i in 0 until node.childCount) {
-                val child = node.getChild(i)
-                if (leadingNode in child || tailingNode in child) {
-                    child.accept(this)
-                    break
+    private fun appendGlobalSymbols() {
+        unit.env.globals.forEach { addToCompletionList(it) }
+    }
+
+    private fun appendInstanceMembers(type: Type) {
+        (type as? SymbolProvider)
+            ?.getSymbols(unit.env)
+            ?.filter { it.isStatic.not() }
+            ?.forEach { addToCompletionList(it) }
+    }
+
+    private fun appendStaticMembers(classSymbol: ClassSymbol) {
+        classSymbol.getSymbols()
+            .filter { it.isStatic }
+            .forEach { addToCompletionList(it) }
+    }
+
+    private fun appendTypeNames() {
+    }
+
+    private fun appendKeywords(vararg keywords: String) {
+        for (keyword in keywords) {
+            addToCompletionList(keyword)
+        }
+    }
+
+    private fun appendBracketHandlers() {
+        val entries = unit.env.bracketEntriesLocal
+        entries.forEach { entry ->
+            entry.getStringOrNull("_id")?.let { id ->
+                val item = CompletionItem().apply {
+                    label = id
+                    kind = CompletionItemKind.Value
+                    insertText = "$id>"
+                    entry.getStringOrNull("_name")?.let { name ->
+                        labelDetails = CompletionItemLabelDetails().apply {
+                            description = name
+                        }
+                    }
                 }
+                addToCompletionList(item)
             }
         }
-
-        fun visitParent(node: ParseTree?) {
-            node?.parent?.accept(this)
-        }
-
-        private fun appendImports() {
-            // FIXME: appendImports
-        }
-
-        private fun appendLocalSymbols() {
-            var scope: Scope? = lookupScope(tailingNode, unit)
-            while (scope != null) {
-                scope.getSymbols().forEach { addToCompletionList(it) }
-                scope = scope.parent
-            }
-        }
-
-        private fun appendGlobalSymbols() {
-            unit.env.globals.forEach { addToCompletionList(it) }
-        }
-
-        private fun appendInstanceMembers(type: Type) {
-            (type as? SymbolProvider)
-                ?.getSymbols(unit.env)
-                ?.filter { it is Modifiable && it.isStatic.not() }
-                ?.forEach { addToCompletionList(it) }
-        }
-
-        private fun appendStaticMembers(classSymbol: ClassSymbol) {
-            classSymbol.getSymbols()
-                .filter { it is Modifiable && it.isStatic }
-                .forEach { addToCompletionList(it) }
-        }
-
-        private fun appendTypeNames() {
-        }
-
-        private fun appendKeywords(vararg keywords: String) {
-            for (keyword in keywords) {
-                addToCompletionList(keyword)
-            }
-        }
-
-        private fun appendBracketHandlers() {
-            val entries = unit.env.bracketEntriesLocal
-            entries.forEach { entry ->
+        entries.forEach { entry ->
+            entry.getStringOrNull("_name")?.let { name ->
                 entry.getStringOrNull("_id")?.let { id ->
                     val item = CompletionItem().apply {
-                        label = id
+                        label = name
                         kind = CompletionItemKind.Value
                         insertText = "$id>"
-                        entry.getStringOrNull("_name")?.let { name ->
-                            labelDetails = CompletionItemLabelDetails().apply {
-                                description = name
-                            }
+                        labelDetails = CompletionItemLabelDetails().apply {
+                            description = id
                         }
                     }
                     addToCompletionList(item)
                 }
             }
-            entries.forEach { entry ->
-                entry.getStringOrNull("_name")?.let { name ->
-                    entry.getStringOrNull("_id")?.let { id ->
-                        val item = CompletionItem().apply {
-                            label = name
-                            kind = CompletionItemKind.Value
-                            insertText = "$id>"
-                            labelDetails = CompletionItemLabelDetails().apply {
-                                description = id
-                            }
-                        }
-                        addToCompletionList(item)
-                    }
+        }
+    }
+
+    private fun appendMemberAccessSnippets(type: Type?, ctx: MemberAccessExprContext) {
+        type ?: return
+        sequenceOf(
+            Snippets.dotFor(type, unit.env, ctx),
+            Snippets.dotForI(type, unit.env, ctx),
+            Snippets.dotIfNull(type, ctx),
+            Snippets.dotIfNotNull(type, ctx),
+            Snippets.dotVal(ctx),
+            Snippets.dotVar(ctx),
+        ).forEach {
+            addToCompletionList(it)
+        }
+    }
+
+    private fun shouldCreateCompletionItem(symbol: Symbol): Boolean {
+        return when (symbol) {
+            is FunctionSymbol -> true
+            is VariableSymbol -> true
+            is ParameterSymbol -> true
+            is ImportSymbol -> true
+            else -> false
+        }
+    }
+
+    private fun addToCompletionList(symbol: Symbol) {
+        if (shouldCreateCompletionItem(symbol).not()) return
+
+        CompletionItem().apply {
+            label = symbol.simpleName
+            kind = symbol.completionKind
+            labelDetails = symbol.labelDetails
+            if (symbol is Executable) {
+                insertTextFormat = InsertTextFormat.Snippet
+                insertText = if (symbol.parameters.isEmpty()) {
+                    "$label()"
+                } else {
+                    "$label($1)"
                 }
             }
+        }.let {
+            addToCompletionList(it)
         }
+    }
 
-        private fun appendMemberAccessSnippets(type: Type?, ctx: MemberAccessExprContext) {
-            type ?: return
-            sequenceOf(
-                Snippets.dotFor(type, unit.env, ctx),
-                Snippets.dotForI(type, unit.env, ctx),
-                Snippets.dotIfNull(type, ctx),
-                Snippets.dotIfNotNull(type, ctx),
-                Snippets.dotVal(ctx),
-                Snippets.dotVar(ctx),
-            ).forEach {
-                addToCompletionList(it)
+    private fun addToCompletionList(keyword: String) {
+        CompletionItem().apply {
+            label = keyword
+            detail = L10N.localize("completion_keyword")
+            kind = CompletionItemKind.Keyword
+        }.let {
+            addToCompletionList(it)
+        }
+    }
+
+    private fun addToCompletionList(item: CompletionItem?) {
+        item?.let { result.items.add(it) }
+    }
+}
+
+private val Symbol.completionKind: CompletionItemKind?
+    get() = when (this) {
+        is ImportSymbol, is ClassSymbol -> CompletionItemKind.Class
+        is Executable -> CompletionItemKind.Function
+        is VariableSymbol, is ParameterSymbol -> CompletionItemKind.Variable
+        else -> null
+    }
+
+private val Symbol.labelDetails: CompletionItemLabelDetails
+    get() = CompletionItemLabelDetails().also { label ->
+        when (this) {
+            is Executable -> {
+                label.detail = parameters.joinToString(
+                    separator = ", ",
+                    prefix = "(",
+                    postfix = ")"
+                ) { it.simpleName + " as " + it.type.simpleTypeName }
+                label.description = returnType.simpleTypeName
             }
-        }
 
-        private fun shouldCreateCompletionItem(symbol: Symbol): Boolean {
-            return when (symbol) {
-                is FunctionSymbol -> true
-                is VariableSymbol -> true
-                is ParameterSymbol -> true
-                is ImportSymbol -> true
-                else -> false
+            is ImportSymbol -> {
+                label.description = qualifiedName
             }
-        }
 
-        private fun addToCompletionList(symbol: Symbol) {
-            if (shouldCreateCompletionItem(symbol).not()) return
-
-            CompletionItem().apply {
-                label = symbol.simpleName
-                kind = toCompletionKind(symbol)
-                labelDetails = toLabelDetails(symbol)
-                if (symbol is Executable) {
-                    insertTextFormat = InsertTextFormat.Snippet
-                    insertText = if (symbol.parameters.isEmpty()) {
-                        "$label()"
-                    } else {
-                        "$label($1)"
-                    }
-                }
-            }.let {
-                addToCompletionList(it)
-            }
-        }
-
-        private fun addToCompletionList(keyword: String) {
-            CompletionItem().apply {
-                label = keyword
-                detail = L10N.localize("completion_keyword")
-                kind = CompletionItemKind.Keyword
-            }.let {
-                addToCompletionList(it)
-            }
-        }
-
-        private fun addToCompletionList(item: CompletionItem?) {
-            item?.let { result.items.add(it) }
-        }
-
-        private fun toLabelDetails(symbol: Symbol): CompletionItemLabelDetails {
-            return CompletionItemLabelDetails().apply {
-                when (symbol) {
-                    is Executable -> {
-                        detail = symbol.parameters.joinToString(
-                            separator = ", ",
-                            prefix = "(",
-                            postfix = ")"
-                        ) { it.simpleName + " as " + it.type.simpleTypeName }
-                        description = symbol.returnType.simpleTypeName
-                    }
-
-                    is ImportSymbol -> {
-                        description = symbol.simpleName
-                    }
-
-                    else -> {
-                        description = symbol.type.simpleTypeName
-                    }
-                }
-            }
-        }
-
-        private fun toCompletionKind(symbol: Symbol): CompletionItemKind? {
-            return when (symbol) {
-                is ImportSymbol, is ClassSymbol -> CompletionItemKind.Class
-                is Executable -> CompletionItemKind.Function
-                is VariableSymbol, is ParameterSymbol -> CompletionItemKind.Variable
-                else -> null
+            else -> {
+                label.description = type.simpleTypeName
             }
         }
     }
-}
