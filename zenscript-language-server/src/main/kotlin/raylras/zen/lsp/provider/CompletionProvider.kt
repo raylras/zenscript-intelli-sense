@@ -361,6 +361,12 @@ private class CompletionVisitor(val unit: CompilationUnit, params: CompletionPar
                 visit(ctx.expression())
             }
 
+            // (expr)text|
+            //      ^____
+            leadingNode in ctx.PAREN_CLOSE() -> {
+                visit(tailingNode?.parent)
+            }
+
             else -> visitChildren(ctx)
         }
     }
