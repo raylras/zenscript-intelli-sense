@@ -106,7 +106,21 @@ class CompilationUnit(val path: Path, val env: CompilationEnvironment) {
 
             qualifiedName.startsWith(this.qualifiedName) -> {
                 val memberName = qualifiedName.substringAfterLast('.')
-                return staticSymbols.filter { it.simpleName == memberName }
+                return when {
+                    this.isZsUnit -> {
+                        staticSymbols.filter { it.simpleName == memberName }
+                    }
+
+                    this.isDzsUnit -> {
+                        classMap[this.qualifiedName]?.firstOrNull()?.getSymbols()
+                            ?.filter { it.simpleName == memberName }
+                            ?: staticSymbols.filter { it.simpleName == memberName }
+                    }
+
+                    else -> {
+                        throw IllegalStateException("Unknown CompilationUnit $path")
+                    }
+                }
             }
 
             else -> {

@@ -34,6 +34,14 @@ private class SemanticTokensListener(private val unit: CompilationUnit, private 
     private var prevLine: Int = BASE_LINE
     private var prevColumn: Int = BASE_COLUMN
 
+    override fun enterQualifiedName(ctx: QualifiedNameContext) {
+        checkRange(ctx) {
+            resolveSymbols<Symbol>(ctx, unit).firstOrNull()?.let {
+                push(ctx.simpleName().last().textRange, it.tokenType, it.tokenModifier)
+            }
+        }
+    }
+
     override fun exitVariableDeclaration(ctx: VariableDeclarationContext) {
         checkRange(ctx.simpleName()) { simpleName ->
             unit.symbolMap[simpleName]?.let {
