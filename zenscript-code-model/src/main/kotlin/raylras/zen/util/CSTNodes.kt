@@ -5,6 +5,7 @@ import org.antlr.v4.runtime.Token
 import org.antlr.v4.runtime.TokenStream
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.TerminalNode
+import kotlin.collections.removeFirst as pop
 
 fun ParseTree?.getTerminalAt(pos: TextPosition): TerminalNode? {
     return getCstStackAt(pos).firstOrNull() as? TerminalNode
@@ -14,7 +15,7 @@ fun ParseTree?.getCstStackAt(pos: TextPosition): List<ParseTree> {
     val result = ArrayDeque<ParseTree>()
     val tempQueue = mutableListOf(this)
     while (tempQueue.isNotEmpty()) {
-        val current = tempQueue.removeFirst() ?: continue
+        val current = tempQueue.pop() ?: continue
         if (pos in current.textRange) {
             result.addFirst(current)
             tempQueue.clear()
