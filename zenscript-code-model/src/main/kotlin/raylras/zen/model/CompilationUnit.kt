@@ -6,6 +6,7 @@ import org.antlr.v4.runtime.tree.ParseTreeWalker
 import raylras.zen.model.parser.ZenScriptLexer
 import raylras.zen.model.scope.Scope
 import raylras.zen.model.symbol.*
+import raylras.zen.model.symbol.impl.createPackageSymbol
 import java.nio.file.Path
 import java.util.*
 import java.util.Collections.*
@@ -98,9 +99,9 @@ class CompilationUnit(val path: Path, val env: CompilationEnvironment) {
         when {
             qualifiedName == this.qualifiedName -> {
                 return when {
-                    this.isZsUnit -> staticSymbols
-                    this.isDzsUnit -> classMap[qualifiedName]?.asSequence() ?: staticSymbols
-                    else -> emptySequence()
+                    this.isZsUnit -> sequenceOf(createPackageSymbol(this))
+                    this.isDzsUnit -> classMap[qualifiedName]?.asSequence() ?: sequenceOf(createPackageSymbol(this))
+                    else -> throw IllegalStateException("Unknown CompilationUnit $path")
                 }
             }
 

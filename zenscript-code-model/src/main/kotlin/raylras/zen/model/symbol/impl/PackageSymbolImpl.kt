@@ -1,11 +1,17 @@
 package raylras.zen.model.symbol.impl
 
+import org.antlr.v4.runtime.tree.ParseTree
 import raylras.zen.model.CompilationEnvironment
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.isZsUnit
 import raylras.zen.model.symbol.PackageSymbol
+import raylras.zen.model.symbol.ParseTreeLocatable
 import raylras.zen.model.symbol.Symbol
 import raylras.zen.model.type.VoidType
+import raylras.zen.util.BASE_COLUMN
+import raylras.zen.util.BASE_LINE
+import raylras.zen.util.TextRange
+import raylras.zen.util.textRange
 
 fun createPackageSymbol(env: CompilationEnvironment): PackageSymbol {
     class PackageSymbolImpl(override val simpleName: String) : PackageSymbol {
@@ -67,7 +73,7 @@ fun createPackageSymbol(env: CompilationEnvironment): PackageSymbol {
 }
 
 fun createPackageSymbol(unit: CompilationUnit): PackageSymbol {
-    return object : PackageSymbol {
+    return object : PackageSymbol, ParseTreeLocatable {
         override val subpackages
             get() = _subpackages.values.asSequence()
 
@@ -83,6 +89,18 @@ fun createPackageSymbol(unit: CompilationUnit): PackageSymbol {
         override fun getSymbols(env: CompilationEnvironment?): Sequence<Symbol> {
             return subpackages + members
         }
+
+        override val cst: ParseTree
+            get() = unit.parseTree
+
+        override val unit: CompilationUnit
+            get() = unit
+
+        override val textRange: TextRange
+            get() = unit.parseTree.textRange
+
+        override val simpleNameTextRange: TextRange
+            get() = TextRange(BASE_LINE, BASE_COLUMN, BASE_LINE, BASE_COLUMN)
 
         override fun toString() = simpleName
     }
