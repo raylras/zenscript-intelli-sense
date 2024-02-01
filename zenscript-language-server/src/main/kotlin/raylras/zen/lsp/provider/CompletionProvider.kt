@@ -1,6 +1,5 @@
 package raylras.zen.lsp.provider
 
-import org.antlr.v4.runtime.tree.ErrorNode
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.RuleNode
 import org.antlr.v4.runtime.tree.TerminalNode
@@ -50,25 +49,25 @@ private class CompletionVisitor(val unit: CompilationUnit, params: CompletionPar
             // import text|
             // ^^^^^^ ____
             leadingNode in ctx.IMPORT() -> {
-                appendImports()
+                unit.env.rootPackage.getSymbols().forEach { addToCompletionList(it) }
             }
 
-            // import foo.|
-            //        ^^^_
-            tailingNode is ErrorNode && tailingText == "." -> {
-                appendImports()
+            // import foo.|    import foo.|bar
+            //        ^^^_            ^^^_
+            tailingText == "." -> {
+                val pkg = ctx.qualifiedName().getTextUntil(tailingNode).split('.')
+                toSymbolProvider(pkg).getSymbols()
+                    .filter { it is PackageSymbol || it is ClassSymbol || it.isStatic }
+                    .forEach { addToCompletionList(it) }
             }
 
             // import foo.text|
             //           ^____
             leadingText == "." -> {
-                appendImports()
-            }
-
-            // import foo.|bar
-            //        ^^^_
-            tailingText == "." -> {
-                appendImports()
+                val pkg = ctx.qualifiedName().getTextUntil(leadingNode).split('.')
+                toSymbolProvider(pkg).getSymbols()
+                    .filter { it is PackageSymbol || it is ClassSymbol || it.isStatic }
+                    .forEach { addToCompletionList(it) }
             }
 
             // import foo.bar text|
@@ -541,8 +540,14 @@ private class CompletionVisitor(val unit: CompilationUnit, params: CompletionPar
         }
     }
 
-    private fun appendImports() {
-        // FIXME: appendImports
+    private fun toSymbolProvider(pkg: List<String>): SymbolProvider {
+        var provider: SymbolProvider = unit.env.rootPackage
+        for (p in pkg) {
+            provider = provider.getSymbols()
+                .firstOrNull { it.simpleName == p } as? SymbolProvider
+                ?: SymbolProvider.EMPTY
+        }
+        return provider
     }
 
     private fun appendLocalSymbols() {
@@ -633,6 +638,8 @@ private class CompletionVisitor(val unit: CompilationUnit, params: CompletionPar
             is VariableSymbol -> true
             is ParameterSymbol -> true
             is ImportSymbol -> true
+            is PackageSymbol -> true
+            is ClassSymbol -> true
             else -> false
         }
     }
@@ -644,14 +651,14 @@ private class CompletionVisitor(val unit: CompilationUnit, params: CompletionPar
             label = symbol.simpleName
             kind = symbol.completionKind
             labelDetails = symbol.labelDetails
-            if (symbol is Executable) {
-                insertTextFormat = InsertTextFormat.Snippet
-                insertText = if (symbol.parameters.isEmpty()) {
-                    "$label()"
-                } else {
-                    "$label($1)"
-                }
-            }
+//            if (symbol is Executable) {
+//                insertTextFormat = InsertTextFormat.Snippet
+//                insertText = if (symbol.parameters.isEmpty()) {
+//                    "$label()"
+//                } else {
+//                    "$label($1)"
+//                }
+//            }
         }.let {
             addToCompletionList(it)
         }
@@ -696,8 +703,27 @@ private val Symbol.labelDetails: CompletionItemLabelDetails
                 label.description = qualifiedName
             }
 
+            is PackageSymbol -> {
+
+            }
+
+            is ClassSymbol -> {
+
+            }
+
             else -> {
                 label.description = type.simpleTypeName
             }
         }
     }
+
+private fun QualifiedNameContext.getTextUntil(terminal: TerminalNode?): String {
+    val builder = StringBuilder()
+    for (child in this.children) {
+        if (child in terminal) {
+            break
+        }
+        builder.append(child.text)
+    }
+    return builder.toString()
+}
