@@ -48,7 +48,7 @@ subprojects {
         implementation("org.slf4j:slf4j-simple:2.0.11")
 
         val testImplementation by configurations
-        testImplementation(platform("org.junit:junit-bom:5.10.1"))
+        testImplementation(platform("org.junit:junit-bom:5.10.2"))
         testImplementation("org.junit.jupiter:junit-jupiter")
     }
 
