@@ -71,35 +71,22 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
     }
 
     override fun visitMemberAccessExpr(ctx: MemberAccessExprContext): Sequence<SemanticEntity> {
-        val simpleName = ctx.simpleName()?.text ?: return sequenceOf(ErrorType)
-        return visitSemantics(ctx.expression()).flatMap { entity: SemanticEntity ->
-            when {
-                entity is ClassSymbol -> {
-                    entity.getSymbols(unit.env)
-                        .filter { it is Modifiable && it.isStatic }
-                        .filter { it.simpleName == simpleName }
-                }
+        val simpleName = ctx.simpleName()?.text
+        return visitSemantics(ctx.expression())
+            .flatMap { expr ->
+                when {
+                    expr is SymbolProvider -> {
+                        expr.getSymbols(unit.env)
+                    }
 
-                entity is Symbol && entity.type is SymbolProvider -> {
-                    (entity.type as SymbolProvider).getSymbols(unit.env)
-                        .filter { it is Modifiable && it.isStatic.not() }
-                        .filter { it.simpleName == simpleName }
-                }
+                    expr is Symbol && expr.type is SymbolProvider -> {
+                        (expr.type as SymbolProvider).getSymbols(unit.env)
+                    }
 
-                entity is Type && entity is SymbolProvider -> {
-                    entity.getSymbols(unit.env)
-                        .filter { it is Modifiable && it.isStatic.not() }
-                        .filter { it.simpleName == simpleName }
+                    else -> emptySequence()
                 }
-
-                entity is SymbolProvider -> {
-                    entity.getSymbols(unit.env)
-                        .filter { it.simpleName == simpleName }
-                }
-
-                else -> emptySequence()
             }
-        }
+            .filter { it.simpleName == simpleName }
     }
 
     override fun visitThisExpr(ctx: ThisExprContext): Sequence<Symbol> {

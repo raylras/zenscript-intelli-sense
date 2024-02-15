@@ -7,7 +7,7 @@ interface ClassSymbol : Symbol, SymbolProvider {
 
     val declaredMembers: Sequence<Symbol>
 
-    val interfaces: Sequence<ClassSymbol>
+    val interfaces: Sequence<ClassType>
 
     override val type: ClassType
 }

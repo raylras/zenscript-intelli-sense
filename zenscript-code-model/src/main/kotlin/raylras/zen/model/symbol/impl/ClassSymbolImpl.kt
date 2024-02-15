@@ -5,10 +5,11 @@ import raylras.zen.model.CompilationUnit
 import raylras.zen.model.isDzsUnit
 import raylras.zen.model.isZsUnit
 import raylras.zen.model.parser.ZenScriptParser.ClassDeclarationContext
-import raylras.zen.model.resolve.resolveSymbols
+import raylras.zen.model.resolve.resolveTypes
 import raylras.zen.model.symbol.ClassSymbol
 import raylras.zen.model.symbol.ParseTreeLocatable
 import raylras.zen.model.symbol.Symbol
+import raylras.zen.model.symbol.isStatic
 import raylras.zen.model.type.ClassType
 import raylras.zen.util.TextRange
 import raylras.zen.util.textRange
@@ -45,9 +46,9 @@ fun createClassSymbol(
                 .orEmpty()
         }
 
-        override val interfaces: Sequence<ClassSymbol> by lazy {
+        override val interfaces: Sequence<ClassType> by lazy {
             ctx.qualifiedName()
-                ?.flatMap { resolveSymbols<ClassSymbol>(it, unit) }
+                ?.flatMap { resolveTypes<ClassType>(it, unit) }
                 ?.asSequence()
                 .orEmpty()
         }
@@ -55,7 +56,7 @@ fun createClassSymbol(
         override val type = ClassType(this)
 
         override fun getSymbols(env: CompilationEnvironment?): Sequence<Symbol> {
-            return declaredMembers + type.getExpands(env)
+            return declaredMembers.filter { it.isStatic }
         }
 
         override val cst: ClassDeclarationContext = ctx

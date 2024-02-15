@@ -7,7 +7,6 @@ import org.eclipse.lsp4j.*
 import raylras.zen.lsp.provider.data.Keywords
 import raylras.zen.lsp.provider.data.Snippets
 import raylras.zen.model.CompilationUnit
-import raylras.zen.model.SemanticEntity
 import raylras.zen.model.Visitor
 import raylras.zen.model.brackets.bracketEntriesLocal
 import raylras.zen.model.parser.ZenScriptParser.*
@@ -422,20 +421,15 @@ private class CompletionVisitor(val unit: CompilationUnit, params: CompletionPar
             // expr.text|
             //     ^____
             leadingNode in ctx.DOT() -> {
-                resolveSemantics(ctx.expression(), unit).firstOrNull()?.let { entity: SemanticEntity ->
-                    when (entity) {
-                        is ClassSymbol -> {
-                            appendStaticMembers(entity)
+                resolveSemantics(ctx.expression(), unit).firstOrNull()?.let { expr ->
+                    when {
+                        expr is SymbolProvider -> {
+                            appendSymbols(expr)
                         }
 
-                        is Symbol -> {
-                            appendInstanceMembers(entity.type)
-                            appendMemberAccessSnippets(entity.type, ctx)
-                        }
-
-                        is Type -> {
-                            appendInstanceMembers(entity)
-                            appendMemberAccessSnippets(entity, ctx)
+                        expr is Symbol && expr.type is SymbolProvider -> {
+                            appendSymbols(expr.type as SymbolProvider)
+                            appendMemberAccessSnippets(expr.type, ctx)
                         }
                     }
                 }
@@ -444,20 +438,15 @@ private class CompletionVisitor(val unit: CompilationUnit, params: CompletionPar
             // expr.|
             // ^^^^_
             leadingNode in ctx.expression() && tailingNode in ctx.DOT() -> {
-                resolveSemantics(ctx.expression(), unit).firstOrNull()?.let { entity: SemanticEntity ->
-                    when (entity) {
-                        is ClassSymbol -> {
-                            appendStaticMembers(entity)
+                resolveSemantics(ctx.expression(), unit).firstOrNull()?.let { expr ->
+                    when {
+                        expr is SymbolProvider -> {
+                            appendSymbols(expr)
                         }
 
-                        is Symbol -> {
-                            appendInstanceMembers(entity.type)
-                            appendMemberAccessSnippets(entity.type, ctx)
-                        }
-
-                        is Type -> {
-                            appendInstanceMembers(entity)
-                            appendMemberAccessSnippets(entity, ctx)
+                        expr is Symbol && expr.type is SymbolProvider -> {
+                            appendSymbols(expr.type as SymbolProvider)
+                            appendMemberAccessSnippets(expr.type, ctx)
                         }
                     }
                 }
@@ -562,17 +551,8 @@ private class CompletionVisitor(val unit: CompilationUnit, params: CompletionPar
         unit.env.globals.forEach { addToCompletionList(it) }
     }
 
-    private fun appendInstanceMembers(type: Type) {
-        (type as? SymbolProvider)
-            ?.getSymbols(unit.env)
-            ?.filter { it.isStatic.not() }
-            ?.forEach { addToCompletionList(it) }
-    }
-
-    private fun appendStaticMembers(classSymbol: ClassSymbol) {
-        classSymbol.getSymbols()
-            .filter { it.isStatic }
-            .forEach { addToCompletionList(it) }
+    private fun appendSymbols(provider: SymbolProvider) {
+        provider.getSymbols(unit.env).forEach { addToCompletionList(it) }
     }
 
     private fun appendTypeNames() {

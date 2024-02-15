@@ -1,23 +1,21 @@
 package raylras.zen.model.type
 
 import raylras.zen.model.CompilationEnvironment
-import raylras.zen.model.symbol.ClassSymbol
-import raylras.zen.model.symbol.FunctionSymbol
-import raylras.zen.model.symbol.Symbol
-import raylras.zen.model.symbol.SymbolProvider
-import java.util.*
+import raylras.zen.model.symbol.*
 
 data class ClassType(val symbol: ClassSymbol) : Type, SymbolProvider {
     override val typeName: String by symbol::qualifiedName
     override val simpleTypeName: String by symbol::simpleName
+    val interfaces: Sequence<ClassType> by symbol::interfaces
 
     override fun isSupertypeTo(type: Type): Boolean {
         if (type is ClassType) {
-            val deque: Deque<ClassSymbol> = ArrayDeque()
-            deque.push(type.symbol)
+            val deque = ArrayDeque<ClassType>().apply {
+                addFirst(type)
+            }
             while (deque.isNotEmpty()) {
-                val pop = deque.pop()
-                if (pop == this.symbol) {
+                val pop = deque.removeFirst()
+                if (pop == this) {
                     return true
                 }
                 deque.addAll(pop.interfaces)
@@ -28,12 +26,12 @@ data class ClassType(val symbol: ClassSymbol) : Type, SymbolProvider {
 
     override fun getSymbols(env: CompilationEnvironment?): Sequence<Symbol> {
         val validator = MemberValidator()
-        symbol.declaredMembers.forEach { validator.add(it) }
-        val interfaceDeque: Deque<ClassSymbol> = ArrayDeque(symbol.interfaces.toList())
-        while (interfaceDeque.isNotEmpty()) {
-            val pop = interfaceDeque.pop()
-            pop.getSymbols().forEach { validator.add(it) }
-            interfaceDeque.addAll(pop.interfaces)
+        symbol.declaredMembers.filter { it.isStatic.not() }.forEach { validator.add(it) }
+        val interfaces = symbol.interfaces.toCollection(ArrayDeque())
+        while (interfaces.isNotEmpty()) {
+            val pop = interfaces.removeFirst()
+            pop.getSymbols(env).forEach { validator.add(it) }
+            interfaces.addAll(pop.interfaces)
         }
         return validator.getMembers().asSequence()
     }
