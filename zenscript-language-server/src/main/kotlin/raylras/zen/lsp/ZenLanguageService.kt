@@ -197,28 +197,6 @@ class ZenLanguageService : TextDocumentService, WorkspaceService {
         }
     }
 
-    override fun semanticTokensFull(params: SemanticTokensParams): CompletableFuture<SemanticTokens> {
-        return CompletableFuture.supplyAsync {
-            val uri = params.textDocument.uri
-            logger.start(::semanticTokensFull, uri)
-            lockForRead()
-            try {
-                measureTimedValue {
-                    val unit = uri.toCompilationUnit()!!
-                    SemanticTokensProvider.semanticTokensFull(unit, params)
-                }.let { (value, duration) ->
-                    logger.finish(::semanticTokensFull, uri, duration = duration)
-                    value
-                }
-            } catch (e: Exception) {
-                logger.fail(::semanticTokensFull, uri, throwable = e)
-                null
-            } finally {
-                unlockForRead()
-            }
-        }
-    }
-
     override fun semanticTokensRange(params: SemanticTokensRangeParams): CompletableFuture<SemanticTokens> {
         return CompletableFuture.supplyAsync {
             val uri = params.textDocument.uri

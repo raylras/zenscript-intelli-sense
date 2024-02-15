@@ -2,7 +2,6 @@ package raylras.zen.lsp.provider
 
 import org.antlr.v4.runtime.tree.ParseTree
 import org.eclipse.lsp4j.SemanticTokens
-import org.eclipse.lsp4j.SemanticTokensParams
 import org.eclipse.lsp4j.SemanticTokensRangeParams
 import raylras.zen.lsp.provider.data.TokenModifier
 import raylras.zen.lsp.provider.data.TokenType
@@ -16,12 +15,6 @@ import raylras.zen.model.symbol.Symbol
 import raylras.zen.util.*
 
 object SemanticTokensProvider {
-    fun semanticTokensFull(unit: CompilationUnit, params: SemanticTokensParams): SemanticTokens {
-        val listener = SemanticTokensListener(unit)
-        unit.accept(listener)
-        return SemanticTokens(listener.result)
-    }
-
     fun semanticTokensRange(unit: CompilationUnit, params: SemanticTokensRangeParams): SemanticTokens {
         val listener = SemanticTokensListener(unit, params.range.toTextRange())
         unit.accept(listener)
@@ -29,7 +22,7 @@ object SemanticTokensProvider {
     }
 }
 
-private class SemanticTokensListener(private val unit: CompilationUnit, private val range: TextRange? = null) : Listener() {
+private class SemanticTokensListener(private val unit: CompilationUnit, private val range: TextRange) : Listener() {
     val result = mutableListOf<Int>()
     private var prevLine: Int = BASE_LINE
     private var prevColumn: Int = BASE_COLUMN
@@ -86,7 +79,7 @@ private class SemanticTokensListener(private val unit: CompilationUnit, private 
     }
 
     private fun checkRange(ctx: ParseTree, callback: (ParseTree) -> Unit) {
-        if (range == null || ctx.textRange in range) {
+        if (ctx.textRange in range) {
             callback(ctx)
         }
     }
