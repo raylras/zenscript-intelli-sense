@@ -253,4 +253,5 @@ typeLiteral
     | BOOL    #primitiveType
     | VOID    #primitiveType
     | STRING  #primitiveType
+    |         #errorType
     ;

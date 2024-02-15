@@ -276,6 +276,10 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
         return sequenceOf(ArrayType(elementType))
     }
 
+    override fun visitErrorType(ctx: ErrorTypeContext?): Sequence<SemanticEntity> {
+        return sequenceOf(ErrorType)
+    }
+
     override fun visitMemberIndexExpr(ctx: MemberIndexExprContext): Sequence<Type> {
         val leftType = visitTypes(ctx.left).firstOrNull()
         val rightType = visitTypes(ctx.index).firstOrNull()

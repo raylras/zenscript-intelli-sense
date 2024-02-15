@@ -78,8 +78,8 @@ private class SemanticTokensListener(private val unit: CompilationUnit, private 
         }
     }
 
-    private fun checkRange(ctx: ParseTree, callback: (ParseTree) -> Unit) {
-        if (ctx.textRange in range) {
+    private fun checkRange(ctx: ParseTree?, callback: (ParseTree) -> Unit) {
+        if (ctx != null && ctx.textRange in range) {
             callback(ctx)
         }
     }
