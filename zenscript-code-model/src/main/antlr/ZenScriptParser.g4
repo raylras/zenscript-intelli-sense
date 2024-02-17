@@ -200,7 +200,7 @@ expression
     // ParsedExpression.java: L308-L453
     | literal=(TRUE | FALSE | NULL | DECIMAL_LITERAL | HEX_LITERAL | FLOAT_LITERAL | STRING_LITERAL)  #literalExpr
     | simpleName  #simpleNameExpr
-    | 'function' '(' (formalParameter (',' formalParameter)*)? ')' ('as' typeLiteral)? functionBody  #functionExpr
+    | 'function' '(' (formalParameter (',' formalParameter)*)? ')' ('as' returnType)? functionBody  #functionExpr
     | '<' raw '>'                  #bracketHandlerExpr
     | '[' (expression (',' expression)*)? ','? ']'  #arrayLiteralExpr
     | '{' (mapEntry (',' mapEntry)*)? ','? '}'    #mapLiteralExpr

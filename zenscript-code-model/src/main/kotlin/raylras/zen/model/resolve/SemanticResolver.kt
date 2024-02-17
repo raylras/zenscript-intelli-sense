@@ -114,10 +114,6 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
 
     override fun visitFunctionExpr(ctx: FunctionExprContext): Sequence<Type> {
         when {
-            ctx.typeLiteral() != null -> {
-                return visitTypes(ctx.typeLiteral())
-            }
-
             ctx.parent is ArgumentContext && ctx.parent.parent is CallExprContext -> {
                 val callExprCtx = ctx.parent.parent as CallExprContext
                 return visitTypes(callExprCtx.caller)
