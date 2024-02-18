@@ -9,7 +9,7 @@ import raylras.zen.model.symbol.symbolSequence
 object BoolType : Type, SymbolProvider {
     override val typeName = "bool"
 
-    override fun isCastableTo(that: Type?, env: CompilationEnvironment): Boolean {
+    override fun isCastableTo(that: Type?, env: CompilationEnvironment?): Boolean {
         return when (that) {
             is StringType -> true
             else -> super.isCastableTo(that, env)

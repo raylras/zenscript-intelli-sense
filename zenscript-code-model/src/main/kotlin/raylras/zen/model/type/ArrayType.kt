@@ -12,7 +12,7 @@ data class ArrayType(val elementType: Type) : Type, SymbolProvider {
 
     override val simpleTypeName by lazy { elementType.simpleTypeName + "[]" }
 
-    override fun isCastableTo(that: Type?, env: CompilationEnvironment): Boolean {
+    override fun isCastableTo(that: Type?, env: CompilationEnvironment?): Boolean {
         return when (that) {
             is ArrayType -> {
                 elementType.isCastableTo(that.elementType, env)

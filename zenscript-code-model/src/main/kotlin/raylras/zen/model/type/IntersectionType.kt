@@ -13,8 +13,8 @@ data class IntersectionType(val typeList: List<Type>) : Type, SymbolProvider {
         typeList.joinToString(" & ") { it.simpleTypeName }
     }
 
-    override fun isSupertypeTo(type: Type): Boolean {
-        return typeList.any { it.isSupertypeTo(type) }
+    override fun isSupertypeTo(that: Type): Boolean {
+        return typeList.any { it.isSupertypeTo(that) }
     }
 
     override fun getSymbols(env: CompilationEnvironment?): Sequence<Symbol> {

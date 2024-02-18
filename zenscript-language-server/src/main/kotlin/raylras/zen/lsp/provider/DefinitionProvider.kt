@@ -8,7 +8,11 @@ import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Visitor
 import raylras.zen.model.parser.ZenScriptParser.*
 import raylras.zen.model.resolve.resolveSemantics
+import raylras.zen.model.resolve.resolveType
+import raylras.zen.model.symbol.Executable
 import raylras.zen.model.symbol.ParseTreeLocatable
+import raylras.zen.model.symbol.filterOverloads
+import raylras.zen.model.type.AnyType
 import raylras.zen.util.*
 
 object DefinitionProvider {
@@ -39,9 +43,41 @@ private class DefinitionVisitor(private val unit: CompilationUnit, private val t
     override fun visitMemberAccessExpr(ctx: MemberAccessExprContext) {
         when (terminal) {
             in ctx.simpleName() -> {
-                result = resolveSemantics(ctx, unit)
-                    .filterIsInstance<ParseTreeLocatable>()
-                    .map { it.toLocationLink(ctx.simpleName().textRange) }
+                val candidates = resolveSemantics(ctx, unit).toList()
+                when (candidates.size) {
+                    0 -> {
+                        result = emptySequence()
+                        return
+                    }
+                    1 -> {
+                        val single = candidates.single()
+                        result = when (single) {
+                            is ParseTreeLocatable -> sequenceOf(single.toLocationLink(ctx.simpleName().textRange))
+                            else -> emptySequence()
+                        }
+                        return
+                    }
+
+                    else -> {
+                        val parent = ctx.parent
+                        if (parent is CallExprContext) {
+                            val actualArgTypes = parent.argument().map { resolveType(it, unit) ?: AnyType }
+                            candidates.asSequence()
+                                .filterIsInstance<Executable>()
+                                .filterOverloads(actualArgTypes, unit.env)
+                                .filterIsInstance<ParseTreeLocatable>()
+                                .takeIf { it.iterator().hasNext() }
+                                ?.let { overloaded ->
+                                    result = overloaded.map { it.toLocationLink(ctx.simpleName().textRange) }
+                                    return
+                                }
+                        }
+                        result = candidates.asSequence()
+                            .filterIsInstance<ParseTreeLocatable>()
+                            .map { it.toLocationLink(ctx.simpleName().textRange) }
+                        return
+                    }
+                }
             }
 
             else -> {

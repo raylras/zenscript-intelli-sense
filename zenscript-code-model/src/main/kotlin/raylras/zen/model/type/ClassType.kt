@@ -8,10 +8,10 @@ data class ClassType(val symbol: ClassSymbol) : Type, SymbolProvider {
     override val simpleTypeName: String by symbol::simpleName
     val interfaces: Sequence<ClassType> by symbol::interfaces
 
-    override fun isSupertypeTo(type: Type): Boolean {
-        if (type is ClassType) {
+    override fun isSupertypeTo(that: Type): Boolean {
+        if (that is ClassType) {
             val deque = ArrayDeque<ClassType>().apply {
-                addFirst(type)
+                addFirst(that)
             }
             while (deque.isNotEmpty()) {
                 val pop = deque.removeFirst()

@@ -1,7 +1,6 @@
 package raylras.zen.model.symbol
 
 import raylras.zen.model.CompilationEnvironment
-import raylras.zen.model.type.CastingKind
 import raylras.zen.model.type.Type
 import raylras.zen.model.type.test
 
@@ -96,9 +95,9 @@ fun Type.applyBinaryOperator(op: Operator, t1: Type?, env: CompilationEnvironmen
 fun Type.applyTernaryOperator(op: Operator, t1: Type?, t2: Type?, env: CompilationEnvironment): Type? {
     return filterOperator(op, env)
         .maxByOrNull {
-            CastingKind.lower(
-                t1.test(it.parameters[0].type, env),
-                t2.test(it.parameters[1].type, env)
+            Math.min(
+                t1.test(it.parameters[0].type, env).intValue,
+                t2.test(it.parameters[1].type, env).intValue
             )
         }
         ?.returnType
