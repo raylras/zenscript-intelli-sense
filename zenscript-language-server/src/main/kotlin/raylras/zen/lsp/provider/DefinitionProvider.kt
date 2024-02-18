@@ -7,9 +7,8 @@ import org.eclipse.lsp4j.LocationLink
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Visitor
 import raylras.zen.model.parser.ZenScriptParser.*
-import raylras.zen.model.resolve.resolveSymbols
+import raylras.zen.model.resolve.resolveSemantics
 import raylras.zen.model.symbol.ParseTreeLocatable
-import raylras.zen.model.symbol.Symbol
 import raylras.zen.util.*
 
 object DefinitionProvider {
@@ -26,13 +25,13 @@ private class DefinitionVisitor(private val unit: CompilationUnit, private val t
     var result = emptySequence<LocationLink>()
 
     override fun visitQualifiedName(ctx: QualifiedNameContext) {
-        result = resolveSymbols<Symbol>(ctx, unit)
+        result = resolveSemantics(ctx, unit)
             .filterIsInstance<ParseTreeLocatable>()
             .map { it.toLocationLink(ctx.textRange) }
     }
 
     override fun visitSimpleNameExpr(ctx: SimpleNameExprContext) {
-        result = resolveSymbols<Symbol>(ctx, unit)
+        result = resolveSemantics(ctx, unit)
             .filterIsInstance<ParseTreeLocatable>()
             .map { it.toLocationLink(ctx.textRange) }
     }
@@ -40,7 +39,7 @@ private class DefinitionVisitor(private val unit: CompilationUnit, private val t
     override fun visitMemberAccessExpr(ctx: MemberAccessExprContext) {
         when (terminal) {
             in ctx.simpleName() -> {
-                result = resolveSymbols<Symbol>(ctx, unit)
+                result = resolveSemantics(ctx, unit)
                     .filterIsInstance<ParseTreeLocatable>()
                     .map { it.toLocationLink(ctx.simpleName().textRange) }
             }

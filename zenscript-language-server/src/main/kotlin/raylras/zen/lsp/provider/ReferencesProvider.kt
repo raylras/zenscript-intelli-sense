@@ -9,7 +9,7 @@ import org.eclipse.lsp4j.ReferenceParams
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Listener
 import raylras.zen.model.parser.ZenScriptParser.*
-import raylras.zen.model.resolve.resolveSymbols
+import raylras.zen.model.resolve.resolveSemantics
 import raylras.zen.model.symbol.*
 import raylras.zen.util.*
 
@@ -28,7 +28,7 @@ object ReferencesProvider {
         val list = getSearchingScope(symbol, unit).flatMap { unit ->
             val uri = unit.path.toUri().toString()
             searchPossible(searchRule, unit.parseTree).filter { cst ->
-                    resolveSymbols<Symbol>(cst, unit).any { it == symbol }
+                    resolveSemantics(cst, unit).any { it == symbol }
             }.map { toLocation(uri, it) }
         }
         return list

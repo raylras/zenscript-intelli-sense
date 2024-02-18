@@ -3,7 +3,6 @@ package raylras.zen.model.symbol.impl
 import raylras.zen.model.CompilationEnvironment
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.parser.ZenScriptParser.ImportDeclarationContext
-import raylras.zen.model.resolve.resolveSymbols
 import raylras.zen.model.symbol.ImportSymbol
 import raylras.zen.model.symbol.ParseTreeLocatable
 import raylras.zen.model.symbol.Symbol
@@ -25,7 +24,7 @@ fun createImportSymbol(
         override val type: VoidType = VoidType
 
         override fun getSymbols(env: CompilationEnvironment?): Sequence<Symbol> {
-            return resolveSymbols(ctx, unit)
+            return unit.env.lookupSymbols(ctx.qualifiedName().text)
         }
 
         override val cst: ImportDeclarationContext = ctx

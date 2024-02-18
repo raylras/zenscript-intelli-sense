@@ -26,9 +26,9 @@ fun createExpandFunctionSymbol(
     callback(object : ExpandFunctionSymbol, ParseTreeLocatable {
         override val parameters: List<ParameterSymbol> by lazy { ctx.formalParameter().map { unit.symbolMap[it] as ParameterSymbol } }
 
-        override val returnType: Type by lazy { resolveType<Type>(ctx.returnType(), unit) ?: AnyType }
+        override val returnType: Type by lazy { resolveType(ctx.returnType(), unit) ?: AnyType }
 
-        override val expandingType: Type by lazy { resolveType<Type>(cst.typeLiteral(), unit) ?: ErrorType }
+        override val expandingType: Type by lazy { resolveType(cst.typeLiteral(), unit) ?: ErrorType }
 
         override val simpleName: String by lazy { simpleNameCtx.text }
 

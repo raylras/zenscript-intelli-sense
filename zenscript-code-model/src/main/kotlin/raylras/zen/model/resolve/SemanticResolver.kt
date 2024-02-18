@@ -2,10 +2,7 @@ package raylras.zen.model.resolve
 
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.RuleNode
-import raylras.zen.model.CompilationEnvironment
-import raylras.zen.model.CompilationUnit
-import raylras.zen.model.SemanticEntity
-import raylras.zen.model.Visitor
+import raylras.zen.model.*
 import raylras.zen.model.brackets.BracketHandlers
 import raylras.zen.model.parser.ZenScriptParser.*
 import raylras.zen.model.symbol.*
@@ -15,47 +12,33 @@ fun resolveSemantics(tree: ParseTree?, unit: CompilationUnit): Sequence<Semantic
     return tree?.accept(SemanticVisitor(unit)).orEmpty()
 }
 
-inline fun <reified T : Symbol> resolveSymbols(tree: ParseTree?, unit: CompilationUnit): Sequence<T> {
-    return resolveSemantics(tree, unit).filterIsInstance<T>()
-}
-
-inline fun <reified T : Type> resolveTypes(tree: ParseTree?, unit: CompilationUnit): Sequence<T> {
-    return resolveSemantics(tree, unit).map {
-        when (it) {
-            is Type -> it
-            is Symbol -> it.type
-            else -> null
+fun resolveSymbol(tree: ParseTree?, unit: CompilationUnit): Symbol? {
+    resolveSemantics(tree, unit).mapToSymbol().iterator().let { iter ->
+        if (iter.hasNext()) {
+            val single = iter.next()
+            if (iter.hasNext().not()) {
+                return single
+            }
         }
-    }.filterIsInstance<T>()
+        return null
+    }
 }
 
-inline fun <reified T : Type> resolveType(tree: ParseTree?, unit: CompilationUnit): T? {
-    return resolveTypes<T>(tree, unit).firstOrNull()
+fun resolveType(tree: ParseTree?, unit: CompilationUnit): Type? {
+    resolveSemantics(tree, unit).mapToType().iterator().let { iter ->
+        if (iter.hasNext()) {
+            val single = iter.next()
+            if (iter.hasNext().not()) {
+                return single
+            }
+        }
+        return null
+    }
 }
 
 private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<SemanticEntity>>() {
-    private fun visitSemantics(ctx: ParseTree?): Sequence<SemanticEntity> {
+    override fun visit(ctx: ParseTree?): Sequence<SemanticEntity> {
         return ctx?.accept(this).orEmpty()
-    }
-
-    private inline fun <reified T : Symbol> visitSymbols(ctx: ParseTree?): Sequence<T> {
-        return visitSemantics(ctx).filterIsInstance<T>()
-    }
-
-    private fun visitTypes(ctx: ParseTree?): Sequence<Type> {
-        return visitSemantics(ctx)
-            .map {
-                when (it) {
-                    is Type -> it
-                    is Symbol -> it.type
-                    else -> null
-                }
-            }
-            .filterIsInstance<Type>()
-    }
-
-    override fun visitImportDeclaration(ctx: ImportDeclarationContext): Sequence<Symbol> {
-        return unit.env.units.flatMap { it.lookupSymbols(ctx.qualifiedName().text) }
     }
 
     override fun visitQualifiedName(ctx: QualifiedNameContext): Sequence<SemanticEntity> {
@@ -66,13 +49,9 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
         return lookupSymbols(ctx, ctx.simpleName().text, unit)
     }
 
-    override fun visitClassDeclaration(ctx: ClassDeclarationContext): Sequence<ClassSymbol> {
-        return (unit.symbolMap[ctx] as? ClassSymbol)?.let { sequenceOf(it) }.orEmpty()
-    }
-
     override fun visitMemberAccessExpr(ctx: MemberAccessExprContext): Sequence<SemanticEntity> {
         val simpleName = ctx.simpleName()?.text
-        return visitSemantics(ctx.expression())
+        return visit(ctx.expression())
             .flatMap { expr ->
                 when {
                     expr is SymbolProvider -> {
@@ -94,20 +73,20 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
     }
 
     override fun visitParensExpr(ctx: ParensExprContext): Sequence<Type> {
-        return visitTypes(ctx.expression())
+        return visit(ctx.expression()).mapToType()
     }
 
     override fun visitTypeCastExpr(ctx: TypeCastExprContext): Sequence<Type> {
-        return visitTypes(ctx.typeLiteral())
+        return visit(ctx.typeLiteral()).mapToType()
     }
 
     override fun visitAssignmentExpr(ctx: AssignmentExprContext): Sequence<Type> {
-        return visitTypes(ctx.left)
+        return visit(ctx.left).mapToType()
     }
 
     override fun visitBinaryExpr(ctx: BinaryExprContext): Sequence<Type> {
-        val leftType = visitTypes(ctx.left).firstOrNull()
-        val rightType = visitTypes(ctx.right).firstOrNull()
+        val leftType = visit(ctx.left).mapToType().firstOrNull()
+        val rightType = visit(ctx.right).mapToType().firstOrNull()
         val op = Operator.of(ctx.op.text, Operator.Kind.BINARY)
         return leftType?.applyBinaryOperator(op, rightType, unit.env)?.let { sequenceOf(it) }.orEmpty()
     }
@@ -115,26 +94,28 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
     override fun visitFunctionExpr(ctx: FunctionExprContext): Sequence<Type> {
         when {
             ctx.parent is ArgumentContext && ctx.parent.parent is CallExprContext -> {
-                val callExprCtx = ctx.parent.parent as CallExprContext
-                return visitTypes(callExprCtx.caller)
+                val argCtx = ctx.parent as ArgumentContext
+                val callCtx = ctx.parent.parent as CallExprContext
+                return visit(callCtx.caller)
+                    .mapToType()
                     .filterIsInstance<FunctionType>()
-                    .map {
-                        val index = callExprCtx.argument().indexOf(ctx.parent)
-                        it.parameterTypes.getOrNull(index)
+                    .map { caller ->
+                        val index = callCtx.argument().indexOf(argCtx)
+                        caller.parameterTypes.getOrNull(index)
                     }
-                    .map {
-                        if (it is ClassType && it.isFunctionalInterface()) {
-                            it.firstAnonymousFunctionOrNull()?.type
+                    .map { param ->
+                        if (param is ClassType && param.isFunctionalInterface()) {
+                            param.firstAnonymousFunctionOrNull()?.type
                         } else {
-                            it
+                            param
                         }
                     }
                     .filterNotNull()
             }
 
             ctx.parent is AssignmentExprContext -> {
-                val assignExpr = ctx.parent as AssignmentExprContext
-                return visitTypes(assignExpr.left).map {
+                val assignCtx = ctx.parent as AssignmentExprContext
+                return visit(assignCtx.left).mapToType().map {
                     if (it is ClassType && it.isFunctionalInterface()) {
                         it.firstAnonymousFunctionOrNull()?.type
                     } else {
@@ -154,11 +135,11 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
     }
 
     override fun visitUnaryExpr(ctx: UnaryExprContext): Sequence<Type> {
-        return visitTypes(ctx.expression())
+        return visit(ctx.expression()).mapToType()
     }
 
     override fun visitTernaryExpr(ctx: TernaryExprContext): Sequence<Type> {
-        return visitTypes(ctx.truePart) + visitTypes(ctx.falsePart)
+        return visit(ctx.truePart).mapToType() + visit(ctx.falsePart).mapToType()
     }
 
     override fun visitLiteralExpr(ctx: LiteralExprContext): Sequence<Type> {
@@ -187,14 +168,14 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
 
     override fun visitArrayLiteralExpr(ctx: ArrayLiteralExprContext): Sequence<Type> {
         val firstElement = ctx.expression().firstOrNull()
-        val firstElementType = visitTypes(firstElement).firstOrNull() ?: AnyType
+        val firstElementType = visit(firstElement).mapToType().firstOrNull() ?: AnyType
         return sequenceOf(ArrayType(firstElementType))
     }
 
     override fun visitMapLiteralExpr(ctx: MapLiteralExprContext): Sequence<Type> {
         val firstEntry = ctx.mapEntry().firstOrNull()
-        val keyType = visitTypes(firstEntry?.key).firstOrNull() ?: AnyType
-        val valueType = visitTypes(firstEntry?.value).firstOrNull() ?: AnyType
+        val keyType = visit(firstEntry?.key).mapToType().firstOrNull() ?: AnyType
+        val valueType = visit(firstEntry?.value).mapToType().firstOrNull() ?: AnyType
         return sequenceOf(MapType(keyType, valueType))
     }
 
@@ -204,7 +185,7 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
 
     override fun visitCallExpr(ctx: CallExprContext): Sequence<Type> {
         // FIXME: overloaded functions
-        val leftType = visitTypes(ctx.expression()).filterIsInstance<FunctionType>().firstOrNull()
+        val leftType = visit(ctx.expression()).mapToType().filterIsInstance<FunctionType>().firstOrNull()
         return leftType?.let { sequenceOf(it.returnType) } ?: sequenceOf(AnyType)
     }
 
@@ -225,37 +206,43 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
     }
 
     override fun visitClassType(ctx: ClassTypeContext): Sequence<Type> {
-        return visitSymbols<Symbol>(ctx.qualifiedName()).map { it.type }
+        return visit(ctx.qualifiedName()).map {
+            when (it) {
+                is ImportSymbol -> unit.env.lookupClass(it.qualifiedName)?.type
+                is ClassSymbol -> it.type
+                else -> null
+            }
+        }.filterNotNull()
     }
 
     override fun visitListType(ctx: ListTypeContext): Sequence<Type> {
-        val elementType = visitTypes(ctx.typeLiteral()).firstOrNull() ?: AnyType
+        val elementType = visit(ctx.typeLiteral()).mapToType().firstOrNull() ?: AnyType
         return sequenceOf(ListType(elementType))
     }
 
     override fun visitFunctionType(ctx: FunctionTypeContext): Sequence<Type> {
-        val paramTypes: List<Type> = ctx.typeLiteral().map { visitTypes(it).firstOrNull() ?: AnyType }
-        val returnType = visitTypes(ctx.returnType()).firstOrNull() ?: AnyType
+        val paramTypes: List<Type> = ctx.typeLiteral().map { visit(it).mapToType().firstOrNull() ?: AnyType }
+        val returnType = visit(ctx.returnType()).mapToType().firstOrNull() ?: AnyType
         return sequenceOf(FunctionType(returnType, paramTypes))
     }
 
     override fun visitReturnType(ctx: ReturnTypeContext): Sequence<SemanticEntity> {
-        return visitTypes(ctx.typeLiteral())
+        return visit(ctx.typeLiteral()).mapToType()
     }
 
     override fun visitMapType(ctx: MapTypeContext): Sequence<Type> {
-        val keyType = visitTypes(ctx.key).firstOrNull() ?: AnyType
-        val valueType = visitTypes(ctx.value).firstOrNull() ?: AnyType
+        val keyType = visit(ctx.key).mapToType().firstOrNull() ?: AnyType
+        val valueType = visit(ctx.value).mapToType().firstOrNull() ?: AnyType
         return sequenceOf(MapType(keyType, valueType))
     }
 
     override fun visitIntersectionType(ctx: IntersectionTypeContext): Sequence<Type> {
-        val types = ctx.typeLiteral().map { visitTypes(it).firstOrNull() ?: AnyType }
+        val types = ctx.typeLiteral().map { visit(it).mapToType().firstOrNull() ?: AnyType }
         return sequenceOf(IntersectionType(types))
     }
 
     override fun visitArrayType(ctx: ArrayTypeContext): Sequence<Type> {
-        val elementType = visitTypes(ctx.typeLiteral()).firstOrNull() ?: AnyType
+        val elementType = visit(ctx.typeLiteral()).mapToType().firstOrNull() ?: AnyType
         return sequenceOf(ArrayType(elementType))
     }
 
@@ -264,8 +251,8 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
     }
 
     override fun visitMemberIndexExpr(ctx: MemberIndexExprContext): Sequence<Type> {
-        val leftType = visitTypes(ctx.left).firstOrNull()
-        val rightType = visitTypes(ctx.index).firstOrNull()
+        val leftType = visit(ctx.left).mapToType().firstOrNull()
+        val rightType = visit(ctx.index).mapToType().firstOrNull()
         return leftType?.applyBinaryOperator(Operator.INDEX_GET, rightType, unit.env)
             ?.let { sequenceOf(it) }.orEmpty()
     }

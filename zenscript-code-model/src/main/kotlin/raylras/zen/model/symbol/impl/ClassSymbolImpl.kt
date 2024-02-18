@@ -5,7 +5,7 @@ import raylras.zen.model.CompilationUnit
 import raylras.zen.model.isDzsUnit
 import raylras.zen.model.isZsUnit
 import raylras.zen.model.parser.ZenScriptParser.ClassDeclarationContext
-import raylras.zen.model.resolve.resolveTypes
+import raylras.zen.model.resolve.resolveType
 import raylras.zen.model.symbol.ClassSymbol
 import raylras.zen.model.symbol.ParseTreeLocatable
 import raylras.zen.model.symbol.Symbol
@@ -48,7 +48,7 @@ fun createClassSymbol(
 
         override val interfaces: Sequence<ClassType> by lazy {
             ctx.qualifiedName()
-                ?.flatMap { resolveTypes<ClassType>(it, unit) }
+                ?.mapNotNull { resolveType(it, unit) as? ClassType }
                 ?.asSequence()
                 .orEmpty()
         }

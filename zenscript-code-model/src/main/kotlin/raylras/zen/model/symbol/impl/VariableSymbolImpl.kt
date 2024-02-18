@@ -81,7 +81,7 @@ private fun getType(ctx: ParseTree, unit: CompilationUnit): Type {
         is ForeachVariableContext -> {
             val statement = ctx.parent as ForeachStatementContext
             val variables = statement.foreachVariable()
-            val exprType = resolveType<Type>(statement.expression(), unit)
+            val exprType = resolveType(statement.expression(), unit)
             return when (val type = exprType?.applyUnaryOperator(Operator.FOR_IN, unit.env)) {
                 is ListType -> when (variables.reversed().indexOf(ctx)) {
                     0 -> type.elementType

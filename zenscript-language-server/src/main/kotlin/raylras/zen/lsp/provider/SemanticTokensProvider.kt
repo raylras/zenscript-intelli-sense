@@ -10,8 +10,7 @@ import raylras.zen.lsp.provider.data.tokenType
 import raylras.zen.model.CompilationUnit
 import raylras.zen.model.Listener
 import raylras.zen.model.parser.ZenScriptParser.*
-import raylras.zen.model.resolve.resolveSymbols
-import raylras.zen.model.symbol.Symbol
+import raylras.zen.model.resolve.resolveSymbol
 import raylras.zen.util.*
 
 object SemanticTokensProvider {
@@ -29,7 +28,7 @@ private class SemanticTokensListener(private val unit: CompilationUnit, private 
 
     override fun enterQualifiedName(ctx: QualifiedNameContext) {
         checkRange(ctx) {
-            resolveSymbols<Symbol>(ctx, unit).firstOrNull()?.let {
+            resolveSymbol(ctx, unit)?.let {
                 push(ctx.simpleName().last().textRange, it.tokenType, it.tokenModifier)
             }
         }
@@ -64,7 +63,7 @@ private class SemanticTokensListener(private val unit: CompilationUnit, private 
 
     override fun exitSimpleNameExpr(ctx: SimpleNameExprContext) {
         checkRange(ctx) {
-            resolveSymbols<Symbol>(ctx, unit).firstOrNull()?.let {
+            resolveSymbol(ctx, unit)?.let {
                 push(ctx.textRange, it.tokenType, it.tokenModifier)
             }
         }
@@ -72,7 +71,7 @@ private class SemanticTokensListener(private val unit: CompilationUnit, private 
 
     override fun exitMemberAccessExpr(ctx: MemberAccessExprContext) {
         checkRange(ctx.simpleName()) { simpleName ->
-            resolveSymbols<Symbol>(ctx, unit).firstOrNull()?.let {
+            resolveSymbol(ctx, unit)?.let {
                 push(simpleName.textRange, it.tokenType, it.tokenModifier)
             }
         }

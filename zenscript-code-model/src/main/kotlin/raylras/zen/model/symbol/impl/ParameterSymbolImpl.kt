@@ -80,7 +80,7 @@ private fun getType(ctx: FormalParameterContext, unit: CompilationUnit): Type {
 
         ctx.parent is FunctionExprContext -> {
             val index = (ctx.parent as FunctionExprContext).formalParameter().indexOf(ctx)
-            return when (val parent = resolveType<Type>(ctx.parent, unit)) {
+            return when (val parent = resolveType(ctx.parent, unit)) {
                 is FunctionType -> {
                     parent.parameterTypes[index]
                 }

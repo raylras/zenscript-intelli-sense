@@ -48,6 +48,14 @@ class CompilationEnvironment(val root: Path) {
         return units.mapNotNull { it.classMap[qualifiedName] }.flatten()
     }
 
+    fun lookupSymbol(qualifiedName: String): Symbol? {
+        return lookupSymbols(qualifiedName).firstOrNull()
+    }
+
+    fun lookupSymbols(qualifiedName: String): Sequence<Symbol> {
+        return units.flatMap { it.lookupSymbols(qualifiedName) }
+    }
+
     val rootPackage: PackageSymbol
         get() = createPackageSymbol(this)
 
