@@ -10,13 +10,17 @@ interface Type: SemanticEntity {
     val simpleTypeName: String
         get() = typeName
 
-    fun isSupertypeTo(type: Type): Boolean {
-        return this.javaClass.isAssignableFrom(type.javaClass)
+    fun isSupertypeTo(that: Type): Boolean {
+        return this.javaClass.isAssignableFrom(that.javaClass)
     }
 
-    fun isCastableTo(that: Type?, env: CompilationEnvironment): Boolean {
-        if (that == null) return false
-        return that.isSupertypeTo(this) || this.hasCasterFor(that, env)
+    fun isCastableTo(that: Type?, env: CompilationEnvironment?): Boolean {
+        return when {
+            that == null -> false
+            that.isSupertypeTo(this) -> true
+            env == null -> false
+            else -> this.hasCasterFor(that, env)
+        }
     }
 
     fun getExpands(env: CompilationEnvironment?): Sequence<Symbol> {

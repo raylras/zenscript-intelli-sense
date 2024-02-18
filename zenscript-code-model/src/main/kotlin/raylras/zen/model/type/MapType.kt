@@ -11,7 +11,7 @@ data class MapType(val keyType: Type, val valueType: Type) : Type, SymbolProvide
 
     override val simpleTypeName by lazy { "${valueType.simpleTypeName}[${keyType.simpleTypeName}]" }
 
-    override fun isCastableTo(that: Type?, env: CompilationEnvironment): Boolean {
+    override fun isCastableTo(that: Type?, env: CompilationEnvironment?): Boolean {
         return when (that) {
             is MapType -> {
                 (keyType.isCastableTo(that.keyType, env)

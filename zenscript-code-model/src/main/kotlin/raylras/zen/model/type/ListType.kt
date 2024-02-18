@@ -12,7 +12,7 @@ data class ListType(val elementType: Type) : Type, SymbolProvider {
 
     override val simpleTypeName by lazy { "[${elementType.simpleTypeName}]" }
 
-    override fun isCastableTo(that: Type?, env: CompilationEnvironment): Boolean {
+    override fun isCastableTo(that: Type?, env: CompilationEnvironment?): Boolean {
         return when (that) {
             is ListType -> {
                 elementType.isCastableTo(that.elementType, env)

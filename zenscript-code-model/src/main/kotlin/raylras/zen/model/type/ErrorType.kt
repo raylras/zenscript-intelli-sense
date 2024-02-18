@@ -5,9 +5,9 @@ import raylras.zen.model.CompilationEnvironment
 object ErrorType : Type {
     override val typeName: String = "ErrorType"
 
-    override fun isSupertypeTo(type: Type) = false
+    override fun isSupertypeTo(that: Type) = false
 
-    override fun isCastableTo(that: Type?, env: CompilationEnvironment) = false
+    override fun isCastableTo(that: Type?, env: CompilationEnvironment?) = false
 
     override fun toString(): String = typeName
 }

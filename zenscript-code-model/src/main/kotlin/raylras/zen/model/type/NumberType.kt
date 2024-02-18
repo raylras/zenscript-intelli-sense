@@ -7,7 +7,7 @@ import raylras.zen.model.symbol.SymbolProvider
 import raylras.zen.model.symbol.symbolSequence
 
 interface NumberType : Type, SymbolProvider {
-    override fun isCastableTo(that: Type?, env: CompilationEnvironment): Boolean {
+    override fun isCastableTo(that: Type?, env: CompilationEnvironment?): Boolean {
         return when (that) {
             is NumberType, is StringType -> {
                 true
