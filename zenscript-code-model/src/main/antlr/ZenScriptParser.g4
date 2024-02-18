@@ -209,7 +209,7 @@ expression
     // ParsedExpression.java: L35-L306
     | left=expression op='instanceof' right=expression       #instanceOfExpr
     | expression 'as' typeLiteral                            #typeCastExpr
-    | caller=expression '(' (argument (',' argument)*)? ','? ')'  #callExpr
+    | callee=expression '(' (argument (',' argument)*)? ','? ')'  #callExpr
     | left=expression '[' index=expression ']'               #memberIndexExpr
     | expression op='.' (simpleName | STRING_LITERAL)        #memberAccessExpr
     | from=expression op=('..' | 'to') to=expression         #intRangeExpr

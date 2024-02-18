@@ -96,7 +96,7 @@ private class SemanticVisitor(val unit: CompilationUnit) : Visitor<Sequence<Sema
             ctx.parent is ArgumentContext && ctx.parent.parent is CallExprContext -> {
                 val argCtx = ctx.parent as ArgumentContext
                 val callCtx = ctx.parent.parent as CallExprContext
-                return visit(callCtx.caller)
+                return visit(callCtx.callee)
                     .mapToType()
                     .filterIsInstance<FunctionType>()
                     .map { caller ->
