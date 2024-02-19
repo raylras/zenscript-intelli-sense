@@ -79,15 +79,44 @@ private fun getType(ctx: FormalParameterContext, unit: CompilationUnit): Type {
         }
 
         ctx.parent is FunctionExprContext -> {
-            val index = (ctx.parent as FunctionExprContext).formalParameter().indexOf(ctx)
-            return when (val parent = resolveType(ctx.parent, unit)) {
+            val paramIndex = (ctx.parent as FunctionExprContext).formalParameter().indexOf(ctx)
+            val targetFn: Type? = when {
+                ctx.parent?.parent is VariableDeclarationContext -> {
+                    resolveType((ctx.parent.parent as VariableDeclarationContext).typeLiteral(), unit)
+                }
+
+                ctx.parent?.parent is AssignmentExprContext -> {
+                    resolveType((ctx.parent.parent as AssignmentExprContext).left, unit)
+                }
+
+                ctx.parent?.parent?.parent is CallExprContext -> {
+                    val callCtx = ctx.parent.parent.parent as CallExprContext
+                    val fnIndex = callCtx.argument().indexOf(ctx.parent.parent)
+                    resolveType(callCtx.callee, unit)?.let {
+                        when (it) {
+                            is FunctionType -> {
+                                return@let it.parameterTypes[fnIndex]
+                            }
+
+                            is ClassType -> {
+                                return@let it.firstAnonymousFunctionOrNull()?.parameters?.get(fnIndex)?.type
+                            }
+
+                            else -> return@let null
+                        }
+                    }
+                }
+
+                else -> null
+            }
+            return when (targetFn) {
                 is FunctionType -> {
-                    parent.parameterTypes[index]
+                    targetFn.parameterTypes[paramIndex]
                 }
 
                 is ClassType -> {
-                    parent.firstAnonymousFunctionOrNull()
-                        ?.parameters?.get(index)?.type
+                    targetFn.firstAnonymousFunctionOrNull()
+                        ?.parameters?.get(paramIndex)?.type
                         ?: ErrorType
                 }
 
