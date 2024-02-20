@@ -240,6 +240,28 @@ class ZenLanguageService : TextDocumentService, WorkspaceService {
             }
         }
     }
+
+    override fun formatting(params: DocumentFormattingParams): CompletableFuture<List<TextEdit>> {
+        return CompletableFuture.supplyAsync {
+            val uri = params.textDocument.uri
+            logger.start(::formatting, uri)
+            lockForRead()
+            try {
+                measureTimedValue {
+                    val unit = uri.toCompilationUnit()!!
+                    FormattingProvider.formatting(unit, params)
+                }.let { (value, duration) ->
+                    logger.finish(::formatting, uri, duration = duration)
+                    value
+                }
+            } catch (e: Exception) {
+                logger.fail(::formatting, uri, throwable = e)
+                null
+            } finally {
+                unlockForRead()
+            }
+        }
+    }
     //endregion
 
     //region Workspace Service

@@ -31,6 +31,7 @@ class ZenLanguageServer(private val service: ZenLanguageService) : LanguageServe
 //            signatureHelpProvider = SignatureHelpOptions(listOf("(", ","))
             semanticTokensProvider = SemanticTokensWithRegistrationOptions(SEMANTIC_TOKENS_LEGEND, false, true)
             setInlayHintProvider(true)
+            setDocumentFormattingProvider(true)
         }
         return CompletableFuture.completedFuture(InitializeResult(capabilities))
     }
