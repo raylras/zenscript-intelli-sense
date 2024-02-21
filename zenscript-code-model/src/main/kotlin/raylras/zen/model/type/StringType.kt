@@ -1,10 +1,7 @@
 package raylras.zen.model.type
 
 import raylras.zen.model.CompilationEnvironment
-import raylras.zen.model.symbol.Operator
-import raylras.zen.model.symbol.Symbol
-import raylras.zen.model.symbol.SymbolProvider
-import raylras.zen.model.symbol.symbolSequence
+import raylras.zen.model.symbol.*
 
 object StringType : Type, SymbolProvider {
     override val typeName = "string"
@@ -15,10 +12,8 @@ object StringType : Type, SymbolProvider {
                 parameter("other", AnyType)
             }
         }
-        val classDeclared = env?.classes
-            ?.filter { it.qualifiedName == typeName }
-            ?.flatMap { it.getSymbols() }
-            ?: emptySequence()
+        val classDeclared =
+            env?.lookupClass(typeName)?.declaredMembers?.filter { it.isStatic.not() }.orEmpty()
         return builtIn + classDeclared + getExpands(env)
     }
 
