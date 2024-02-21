@@ -117,6 +117,7 @@ PREPROCESSOR: '#' ~[\r\n]* -> channel(PREPROCESSOR_CHANNEL);
 fragment EscapeSequence
     : '\\' [btnfr"'\\]
     | '\\' [uU] HexDigit HexDigit HexDigit HexDigit
+    | '\\' . // illegal escape
     ;
 
 fragment ExponentPart: [eE] [+-]? Digits;
