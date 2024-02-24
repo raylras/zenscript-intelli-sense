@@ -3,6 +3,7 @@ package raylras.zen.model
 import org.antlr.v4.runtime.CommonTokenStream
 import org.antlr.v4.runtime.tree.ParseTree
 import org.antlr.v4.runtime.tree.ParseTreeWalker
+import raylras.zen.model.diagnose.DiagnoseHandler
 import raylras.zen.model.parser.ZenScriptLexer
 import raylras.zen.model.scope.Scope
 import raylras.zen.model.symbol.*
@@ -21,6 +22,7 @@ class CompilationUnit(val path: Path, val env: CompilationEnvironment) {
 
     val scopeMap = IdentityHashMap<ParseTree, Scope>()
     val symbolMap = IdentityHashMap<ParseTree, Symbol>()
+    var diagnoseHandler: DiagnoseHandler = DiagnoseHandler(this)
 
     lateinit var tokenStream: CommonTokenStream
     lateinit var parseTree: ParseTree
@@ -156,6 +158,7 @@ class CompilationUnit(val path: Path, val env: CompilationEnvironment) {
         classMap = emptyMap()
         expandFunctionMap = emptyMap()
         staticSymbolMap = emptyMap()
+        diagnoseHandler.clear()
     }
 
     override fun toString(): String = path.toString()

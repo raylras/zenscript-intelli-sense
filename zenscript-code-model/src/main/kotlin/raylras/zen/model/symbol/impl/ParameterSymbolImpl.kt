@@ -23,7 +23,7 @@ fun createParameterSymbol(
     callback(object : ParameterSymbol, TypeAnnotatable, ParseTreeLocatable {
         override val isOptional: Boolean by lazy { ctx.defaultValue() != null }
 
-        override val isVararg: Boolean by lazy { ctx.varargsPrefix() != null }
+        override val isVararg: Boolean by lazy { ctx.varargsPrefix != null }
 
         override val simpleName: String by lazy { simpleNameCtx.text }
 

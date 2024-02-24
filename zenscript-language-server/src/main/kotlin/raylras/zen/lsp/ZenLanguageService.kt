@@ -7,6 +7,7 @@ import org.eclipse.lsp4j.services.WorkspaceService
 import org.slf4j.LoggerFactory
 import raylras.zen.lsp.StandardIOLauncher.CLIENT
 import raylras.zen.lsp.provider.*
+import raylras.zen.lsp.provider.data.publish
 import raylras.zen.model.*
 import raylras.zen.util.*
 import raylras.zen.util.l10n.L10N
@@ -50,6 +51,7 @@ class ZenLanguageService : TextDocumentService, WorkspaceService {
                 val unit = uri.toCompilationUnit()!!
                 val source = params.contentChanges[0].text
                 unit.load(source)
+                unit.diagnoseHandler.publish()
             }.let {
                 logger.finish(::didChange, uri, duration = it)
             }
@@ -256,11 +258,14 @@ class ZenLanguageService : TextDocumentService, WorkspaceService {
                     getEnv(path)?.let { env ->
                         when (event.type) {
                             FileChangeType.Created -> {
-                                createUnit(path, env).load()
+                                val unit = createUnit(path, env)
+                                unit.load()
+                                unit.diagnoseHandler.publish()
                             }
 
                             FileChangeType.Changed -> {
                                 env.unitMap[path]!!.load()
+                                env.unitMap[path]!!.diagnoseHandler.publish()
                             }
 
                             FileChangeType.Deleted -> env.unitMap.remove(path)
@@ -287,7 +292,9 @@ class ZenLanguageService : TextDocumentService, WorkspaceService {
     private fun createEnv(documentPath: Path) {
         val compilationRoot = findUpwardsOrSelf(documentPath, DEFAULT_ROOT_DIRECTORY)
         val env = CompilationEnvironment(compilationRoot)
-        env.load()
+        env.load {
+            it.diagnoseHandler.publish()
+        }
         environments.add(env)
         checkDzs(env)
     }
