@@ -47,7 +47,7 @@ fun createClassSymbol(
         }
 
         override val interfaces: Sequence<ClassType> by lazy {
-            ctx.qualifiedName()
+            ctx.extendsSpecifier()?.qualifiedName()
                 ?.mapNotNull { resolveType(it, unit) as? ClassType }
                 ?.asSequence()
                 .orEmpty()

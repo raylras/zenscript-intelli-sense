@@ -4,6 +4,9 @@ import org.antlr.v4.runtime.*
 import org.antlr.v4.runtime.atn.PredictionMode
 import org.antlr.v4.runtime.misc.ParseCancellationException
 import org.antlr.v4.runtime.tree.ParseTree
+import raylras.zen.model.diagnose.ParserErrorListener
+import raylras.zen.model.diagnose.PrettyErrorStrategy
+import raylras.zen.model.diagnose.resolveSyntaxErrors
 import raylras.zen.model.parser.ZenScriptLexer
 import raylras.zen.model.parser.ZenScriptParser
 import raylras.zen.model.resolve.resolveDeclarations
@@ -51,10 +54,12 @@ fun createUnit(unitPath: Path, env: CompilationEnvironment): CompilationUnit {
     return unit
 }
 
-fun CompilationEnvironment.load() {
+fun CompilationEnvironment.load(unitCallback: (CompilationUnit) -> Unit = {}) {
     this.clear()
     this.getUnitPaths().forEach { path ->
-        createUnit(path, this).load()
+        val unit = createUnit(path, this)
+        unit.load()
+        unitCallback(unit)
     }
 }
 
@@ -69,10 +74,11 @@ fun CompilationUnit.load(source: String) {
 fun CompilationUnit.load(charStream: CharStream) {
     this.clear()
     val tokenStream = lex(charStream)
-    val parseTree = parse(tokenStream)
+    val parseTree = parse(tokenStream, ParserErrorListener(this.diagnoseHandler), this.isDzsUnit)
     this.tokenStream = tokenStream
     this.parseTree = parseTree
     this.resolveDeclarations()
+    this.resolveSyntaxErrors()
 }
 
 fun lex(charStream: CharStream): CommonTokenStream {
@@ -81,19 +87,21 @@ fun lex(charStream: CharStream): CommonTokenStream {
     return CommonTokenStream(lexer)
 }
 
-fun parse(tokenStream: TokenStream): ParseTree {
+fun parse(tokenStream: TokenStream, errorListener: ANTLRErrorListener, isDzs: Boolean): ParseTree {
     val parser = ZenScriptParser(tokenStream)
     parser.removeErrorListeners()
     // faster but less robust strategy, effective when no syntax errors
     parser.interpreter.predictionMode = PredictionMode.SLL
     parser.errorHandler = BailErrorStrategy()
+    parser.dzs = isDzs
     try {
         return parser.compilationUnit()
     } catch (_: ParseCancellationException) {
         parser.reset()
         // fall back to default strategy, slower but more robust
         parser.interpreter.predictionMode = PredictionMode.LL
-        parser.errorHandler = DefaultErrorStrategy()
+        parser.errorHandler = PrettyErrorStrategy()
+        parser.addErrorListener(errorListener)
         return parser.compilationUnit()
     }
 }

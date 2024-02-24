@@ -1,4 +1,7 @@
 parser grammar ZenScriptParser;
+@parser::members {
+    public boolean dzs = false;
+}
 
 options { tokenVocab = ZenScriptLexer; }
 
@@ -11,11 +14,20 @@ topLevelElement
     | classDeclaration
     | functionDeclaration
     | expandFunctionDeclaration
-    | statement
+    | topLevelStatement
+    ;
+
+classDeclaration
+    : 'zenClass' simpleClassName extendsSpecifier? classBody // extended for dzs
+    ;
+
+
+extendsSpecifier
+    : 'extends' qualifiedName (',' qualifiedName)*
     ;
 
 importDeclaration
-    : 'import' qualifiedName ('as' alias = simpleName)? ';'
+    : 'import' qualifiedName ('as' alias = simpleName)? tailingSemi=';'?
     ;
 
 qualifiedName
@@ -32,21 +44,18 @@ simpleName
     ;
 
 functionDeclaration
-    : prefix='static'? 'function' simpleName '(' (formalParameter (',' formalParameter)*)? ')' ('as' returnType)? functionBody
-    | prefix=('static' | 'global')? 'function' simpleName? '(' (formalParameter (',' formalParameter)*)? ')' 'as' returnType ';' // dzs
-    ;
+    // global is only in dzs
+    : prefix=('static' | 'global')? 'function' simpleName? '(' (formalParameter (',' formalParameter)*)? ')' ('as' returnType)? (
+        {!dzs}? functionBody |
+        {dzs}? tailingSemi=';'  // dzs
+    );
 
 expandFunctionDeclaration
     : '$expand' typeLiteral '$' simpleName '(' (formalParameter (',' formalParameter)*)? ')' ('as' returnType)? functionBody
     ;
 
 formalParameter
-    : simpleName ('as' typeLiteral)? ('=' defaultValue)?
-    | varargsPrefix simpleName ('as' typeLiteral)? ('=' defaultValue)? //dzs
-    ;
-
-varargsPrefix // dzs
-    : '...'
+    : ({dzs}? varargsPrefix='...')? simpleName ('as' typeLiteral)? ('=' defaultValue)?
     ;
 
 defaultValue
@@ -61,9 +70,6 @@ functionBody
     : '{' statement* '}'
     ;
 
-classDeclaration
-    : 'zenClass' simpleClassName ('extends' qualifiedName (',' qualifiedName)*)? classBody // extended for dzs
-    ;
 
 simpleClassName
     : simpleName
@@ -80,14 +86,14 @@ simpleClassName
     ;
 
 classBody
-    : '{' classMemberDeclaration* '}'
+    : '{' additionalBracket='{'? classMemberDeclaration* '}'
     ;
 
 classMemberDeclaration
-    : variableDeclaration
-    | constructorDeclaration
+    : constructorDeclaration
     | functionDeclaration
-    | operatorFunctionDeclaration // dzs
+    | {dzs}? operatorFunctionDeclaration // dzs
+    | variableDeclaration
     | invaildStatementInClassBody
     ;
 
@@ -96,8 +102,15 @@ invaildStatementInClassBody
     ;
 
 constructorDeclaration
-    : 'zenConstructor' '(' (formalParameter (',' formalParameter)*)? ')' constructorBody
-    | 'zenConstructor' '(' (formalParameter (',' formalParameter)*)? ')' ';' // dzs
+    :  'zenConstructor' '(' (formalParameter (',' formalParameter)*)? ')' (
+            {!dzs}? constructorBody |
+            {dzs}? tailingSemi=';'
+        )
+    ;
+
+
+topLevelStatement
+    : statement
     ;
 
 constructorBody
@@ -105,8 +118,7 @@ constructorBody
     ;
 
 variableDeclaration
-    : prefix=('var' | 'val' | 'static' | 'global') simpleName ('as' typeLiteral)? ('=' initializer = expression)? ';'
-    | prefix=('var' | 'val' | 'static' | 'global') simpleName 'as' typeLiteral ';' //dzs
+    : prefix=('var' | 'val' | 'static' | 'global') simpleName? ('as' typeLiteral)? ({!dzs}? ('=' initializer = expression)?) tailingSemi=';'?
     ;
 
 operatorFunctionDeclaration // dzs
@@ -157,7 +169,7 @@ blockStatement
     ;
 
 returnStatement
-    : 'return' expression? ';'
+    : 'return' expression? tailingSemi=';'?
     ;
 
 breakStatement
@@ -189,8 +201,11 @@ whileStatement
     ;
 
 expressionStatement
-    : expression ';'?
+    : expression tailingSemi=';'?
     ;
+
+
+
 
 // Paraphrased from https://github.com/CraftTweaker/ZenScript/blob/master/src/main/java/stanhebben/zenscript/parser/expression/ParsedExpression.java
 expression
