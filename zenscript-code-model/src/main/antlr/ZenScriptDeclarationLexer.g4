@@ -1,9 +1,8 @@
-lexer grammar ZenScriptLexer;
+lexer grammar ZenScriptDeclarationLexer;
 
 channels {
     WHITE_SPACE_CHANNEL,
-    COMMENTS_CHANNEL,
-    PREPROCESSOR_CHANNEL
+    COMMENTS_CHANNEL
 }
 
 VAR:                    'var';
@@ -13,22 +12,10 @@ STATIC:                 'static';
 IMPORT:                 'import';
 FUNCTION:               'function';
 AS:                     'as';
-TO:                     'to';
 IN:                     'in';
 HAS:                    'has';
-INSTANCEOF:             'instanceof';
-THIS:                   'this';
 ZEN_CLASS:              'zenClass';
 ZEN_CONSTRUCTOR:        'zenConstructor';
-EXPAND:                 '$expand';
-
-IF:                     'if';
-ELSE:                   'else';
-FOR:                    'for';
-WHILE:                  'while';
-BREAK:                  'break';
-CONTINUE:               'continue';
-RETURN:                 'return';
 
 ANY:                    'any';
 BYTE:                   'byte';
@@ -45,7 +32,9 @@ TRUE:                   'true';
 FALSE:                  'false';
 NULL:                   'null';
 
-ORDERLY:                'orderly';  // zenutils
+EXTENDS:                'extends';
+OPERATOR:               'operator';
+FOR_IN:                 'for_in';
 
 PAREN_OPEN:             '(';
 PAREN_CLOSE:            ')';
@@ -90,13 +79,11 @@ AND_ASSIGN:             '&=';
 OR_ASSIGN:              '|=';
 CONCAT_ASSIGN:          '~=';
 DOT_DOT:                '..';
+DOT_DOT_DOT:            '...';
 
-fragment DEC_LITERAL: ('0' | [1-9] Digits?);
-fragment HEX_LITERAL: '0' [xX] HexDigits;
-fragment BIN_LITERAL: '0' [bB] [01]+;
-
-INT_LITERAL: (DEC_LITERAL | HEX_LITERAL | BIN_LITERAL);
-LONG_LITERAL: (DEC_LITERAL | HEX_LITERAL | BIN_LITERAL) [lL];
+DEC_LITERAL: ('0' | [1-9] Digits?) [lL]?;
+HEX_LITERAL: '0' [xX] HexDigits [lL]?;
+BIN_LITERAL: '0' [bB] [01]+ [lL]?;
 
 FLOAT_LITERAL: Digits '.' Digits ExponentPart? [fF];
 DOUBLE_LITERAL: Digits '.' Digits ExponentPart? [dD]?;
@@ -110,12 +97,10 @@ IDENTIFIER: Letter LetterOrDigit*;
 WHITE_SPACE: [ \t\r\n]+ -> channel(WHITE_SPACE_CHANNEL);
 BLOCK_COMMENT: '/*' .*? '*/' -> channel(COMMENTS_CHANNEL);
 LINE_COMMENT: '//' ~[\r\n]* -> channel(COMMENTS_CHANNEL);
-PREPROCESSOR: '#' ~[\r\n]* -> channel(PREPROCESSOR_CHANNEL);
 
 fragment EscapeSequence
     : '\\' [btnfr"'\\]
     | '\\' [uU] HexDigit HexDigit HexDigit HexDigit
-    | '\\' . // illegal escape
     ;
 
 fragment ExponentPart: [eE] [+-]? Digits;

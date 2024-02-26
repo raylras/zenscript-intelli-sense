@@ -8,8 +8,9 @@ group = "raylras.zen.model"
 
 dependencies {
     antlr("org.antlr:antlr4:4.13.1")
-    implementation ("org.antlr:antlr4-runtime:4.13.1")
+    implementation("org.antlr:antlr4-runtime:4.13.1")
     implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.strumenta.kolasu:kolasu-core:1.5.45")
 }
 
 sourceSets.main {
