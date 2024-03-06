@@ -6,61 +6,59 @@ import com.strumenta.kolasu.model.Node
 interface LiteralExpression : Expression
 interface NumberLiteral : LiteralExpression
 
-enum class Radix {
-    BINARY,
-    DECIMAL,
-    HEXADECIMAL;
-
-    companion object {
-        fun fromString(s: String): Radix = when {
-            s.startsWith("0B", ignoreCase = true) -> BINARY
-            s.startsWith("0X", ignoreCase = true) -> HEXADECIMAL
-            else -> DECIMAL
-        }
-    }
+fun String.toRadix(): Int = when {
+    startsWith("0B", ignoreCase = true) -> 2
+    startsWith("0X", ignoreCase = true) -> 16
+    else -> 10
 }
 
-fun String.toRadix(): Int = when {
-    this.startsWith("0B", ignoreCase = true) -> 2
-    this.startsWith("0X", ignoreCase = true) -> 16
-    else -> 10
+fun String.asDigits(): String = trimPrefix().trimSuffix()
+
+private fun String.trimPrefix(): String = when (toRadix()) {
+    2, 16 -> drop(2)
+    else -> this
+}
+
+private fun String.trimSuffix(): String = when(last()) {
+    'l', 'L', 'f', 'F', 'd', 'D' -> dropLast(1)
+    else -> this
 }
 
 data class BoolLiteral(
     val value: Boolean,
-) : LiteralExpression, Node()
+) : Node(), LiteralExpression
 
 data class IntLiteral(
     val value: Int,
     val radix: Int = 10,
-) : NumberLiteral, Node()
+) : Node(), NumberLiteral
 
 data class LongLiteral(
     val value: Long,
     val radix: Int = 10,
-) : NumberLiteral, Node()
+) : Node(), NumberLiteral
 
 data class FloatLiteral(
     val value: Float,
-) : NumberLiteral, Node()
+) : Node(), NumberLiteral
 
 data class DoubleLiteral(
     val value: Double,
-) : NumberLiteral, Node()
+) : Node(), NumberLiteral
 
 data class StringLiteral(
     val value: String,
-) : LiteralExpression, Node()
+) : Node(), LiteralExpression
 
-class NullLiteral : LiteralExpression, Node()
+class NullLiteral : Node(), LiteralExpression
 
 data class ArrayLiteral(
     val elements: List<Expression> = emptyList(),
-) : LiteralExpression, Node()
+) : Node(), LiteralExpression
 
 data class MapLiteral(
     val entries: List<MapEntry> = emptyList(),
-) : LiteralExpression, Node()
+) : Node(), LiteralExpression
 
 data class MapEntry(
     val key: Expression,

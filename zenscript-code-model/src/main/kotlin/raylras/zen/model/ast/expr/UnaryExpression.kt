@@ -6,7 +6,7 @@ import com.strumenta.kolasu.model.Node
 data class UnaryExpression(
     val operator: UnaryOperator,
     val expression: Expression,
-) : Expression, Node()
+) : Node(), Expression
 
 enum class UnaryOperator(val text: String) {
     NOT("!"),

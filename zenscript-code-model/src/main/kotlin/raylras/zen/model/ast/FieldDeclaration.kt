@@ -9,7 +9,7 @@ data class FieldDeclaration(
     val simpleName: String,
     override val typeAnnotation: TypeLiteral? = null,
     val initializer: Expression? = null,
-) : EntityDeclaration, Named, PossiblyAnnotatedType, Node() {
+) : Node(), EntityDeclaration, Named, PossiblyAnnotatedType {
     override val name: String
         get() = simpleName
 }

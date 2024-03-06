@@ -8,7 +8,7 @@ import com.strumenta.kolasu.model.Node
 data class ParameterDeclaration(
     val simpleName: String,
     val defaultValue: Expression? = null,
-) : EntityDeclaration, Named, Node() {
+) : Node(), EntityDeclaration, Named {
     override val name: String
         get() = simpleName
 }

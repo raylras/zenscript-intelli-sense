@@ -1,24 +1,17 @@
 package raylras.zen.model.ast
 
-import com.strumenta.kolasu.model.*
+import com.strumenta.kolasu.model.EntityDeclaration
+import com.strumenta.kolasu.model.Named
+import com.strumenta.kolasu.model.Node
+import com.strumenta.kolasu.model.ReferenceByName
 
 data class ClassDeclaration(
     val simpleName: String,
-    val members: List<EntityDeclaration> = emptyList(),
+    val declaredFields: List<FieldDeclaration> = emptyList(),
+    val declaredConstructors: List<ConstructorDeclaration> = emptyList(),
+    val declaredMethods: List<FunctionDeclaration> = emptyList(),
     val interfaces: List<ReferenceByName<ClassDeclaration>> = emptyList()
-) : EntityDeclaration, Named, Node() {
+) : Node(), EntityDeclaration, Named {
     override val name: String
         get() = simpleName
-
-    @Derived
-    val constructors: List<ConstructorDeclaration>
-        get() = members.filterIsInstance<ConstructorDeclaration>()
-
-    @Derived
-    val methods: List<FunctionDeclaration>
-        get() = members.filterIsInstance<FunctionDeclaration>()
-
-    @Derived
-    val fields: List<FieldDeclaration>
-        get() = members.filterIsInstance<FieldDeclaration>()
 }

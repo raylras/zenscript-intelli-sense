@@ -5,4 +5,4 @@ import com.strumenta.kolasu.model.Statement
 
 data class BlockStatement(
     val statements: List<Statement> = emptyList(),
-) : Statement, Node()
+) : Node(), Statement

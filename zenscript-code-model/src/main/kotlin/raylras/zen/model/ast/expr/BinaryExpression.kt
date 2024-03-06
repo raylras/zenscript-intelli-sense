@@ -7,7 +7,7 @@ data class BinaryExpression(
     val left: Expression,
     val operator: BinaryOperator,
     val right: Expression,
-) : Expression, Node()
+) : Node(), Expression
 
 enum class BinaryOperator(val text: String) {
     // arithmetic

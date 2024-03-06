@@ -11,7 +11,7 @@ data class ExpandFunctionDeclaration(
     val parameters: List<ParameterDeclaration> = emptyList(),
     override val returnTypeAnnotation: TypeLiteral? = null,
     val body: List<Statement> = emptyList(),
-) : EntityDeclaration, Named, PossiblyAnnotatedReturnType, Node() {
+) : Node(), EntityDeclaration, Named, PossiblyAnnotatedReturnType {
     override val name: String
         get() = simpleName
 }

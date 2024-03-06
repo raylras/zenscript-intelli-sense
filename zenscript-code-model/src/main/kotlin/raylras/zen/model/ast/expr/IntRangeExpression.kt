@@ -6,4 +6,4 @@ import com.strumenta.kolasu.model.Node
 data class IntRangeExpression(
     val from: Expression,
     val to: Expression
-) : Expression, Node()
+) : Node(), Expression

@@ -6,4 +6,4 @@ import com.strumenta.kolasu.model.Node
 data class CallExpression(
     val receiver: Expression,
     val arguments: List<Expression>,
-) : Expression, Node()
+) : Node(), Expression

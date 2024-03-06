@@ -49,7 +49,3 @@ data class PrimitiveTypeLiteral(
     override val text: String
         get() = simpleName
 }
-
-data class InvalidTypeLiteral(
-    override val text: String,
-) : TypeLiteral()

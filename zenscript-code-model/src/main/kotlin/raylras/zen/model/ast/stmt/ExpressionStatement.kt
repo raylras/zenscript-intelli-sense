@@ -6,4 +6,4 @@ import com.strumenta.kolasu.model.Statement
 
 data class ExpressionStatement(
     val expression: Expression,
-) : Statement, Node()
+) : Node(), Statement

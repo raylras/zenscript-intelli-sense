@@ -7,4 +7,4 @@ data class TernaryExpression(
     val condition: Expression,
     val truePart: Expression,
     val falsePart: Expression,
-) : Expression, Node()
+) : Node(), Expression

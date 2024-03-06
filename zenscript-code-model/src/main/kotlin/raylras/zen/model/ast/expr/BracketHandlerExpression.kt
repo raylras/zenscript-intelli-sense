@@ -5,4 +5,4 @@ import com.strumenta.kolasu.model.Node
 
 data class BracketHandlerExpression(
     val content: String
-) : Expression, Node()
+) : Node(), Expression

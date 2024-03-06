@@ -6,4 +6,4 @@ import com.strumenta.kolasu.model.Node
 data class MemberIndexExpression(
     val receiver: Expression,
     val index: Expression,
-) : Expression, Node()
+) : Node(), Expression

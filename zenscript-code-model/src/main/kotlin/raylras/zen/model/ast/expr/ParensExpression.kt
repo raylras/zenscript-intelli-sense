@@ -5,4 +5,4 @@ import com.strumenta.kolasu.model.Node
 
 data class ParensExpression(
     val expression: Expression,
-) : Expression, Node()
+) : Node(), Expression

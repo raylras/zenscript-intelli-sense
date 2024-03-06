@@ -7,4 +7,4 @@ import com.strumenta.kolasu.model.Statement
 data class WhileStatement(
     val condition: Expression,
     val body: Statement
-) : Statement, Node()
+) : Node(), Statement

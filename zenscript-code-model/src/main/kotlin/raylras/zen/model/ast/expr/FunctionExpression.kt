@@ -11,4 +11,4 @@ data class FunctionExpression(
     val parameters: List<ParameterDeclaration> = emptyList(),
     override val returnTypeAnnotation: TypeLiteral? = null,
     val body: List<Statement> = emptyList(),
-) : Expression, PossiblyAnnotatedReturnType, Node()
+) : Node(), Expression, PossiblyAnnotatedReturnType

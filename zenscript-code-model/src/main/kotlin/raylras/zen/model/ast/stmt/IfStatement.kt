@@ -8,4 +8,4 @@ data class IfStatement(
     val condition: Expression,
     val thenPart: Statement,
     val elsePart: Statement? = null
-) : Statement, Node()
+) : Node(), Statement

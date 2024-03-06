@@ -12,7 +12,7 @@ compilationUnit
     ;
 
 importDeclaration
-    : 'import' qualifiedName ('as' alias = simpleName)? ';'
+    : 'import' qualifiedName ('as' alias=simpleName)? ';'
     ;
 
 qualifiedName
@@ -26,19 +26,15 @@ simpleName
     ;
 
 functionDeclaration
-    : prefix='static'? 'function' simpleName '(' (formalParameter (',' formalParameter)*)? ')' ('as' returnType)? functionBody
+    : prefix='static'? 'function' simpleName '(' (parameters+=formalParameter (',' parameters+=formalParameter)*)? ')' ('as' returnType=typeLiteral)? functionBody
     ;
 
 expandFunctionDeclaration
-    : '$expand' typeLiteral '$' simpleName '(' (formalParameter (',' formalParameter)*)? ')' ('as' returnType)? functionBody
+    : '$expand' receiver=typeLiteral '$' simpleName '(' (parameters+=formalParameter (',' parameters+=formalParameter)*)? ')' ('as' returnType=typeLiteral)? functionBody
     ;
 
 formalParameter
     : simpleName ('as' typeLiteral)? ('=' defaultValue=expression)?
-    ;
-
-returnType
-    : typeLiteral
     ;
 
 functionBody
@@ -54,7 +50,7 @@ classBody
     ;
 
 constructorDeclaration
-    : 'zenConstructor' '(' (formalParameter (',' formalParameter)*)? ')' constructorBody
+    : 'zenConstructor' '(' (parameters+=formalParameter (',' parameters+=formalParameter)*)? ')' constructorBody
     ;
 
 constructorBody
@@ -62,7 +58,7 @@ constructorBody
     ;
 
 methodDeclaration
-    : prefix='static'? 'function' simpleName '(' (formalParameter (',' formalParameter)*)? ')' ('as' returnType)? methodBody
+    : prefix='static'? 'function' simpleName '(' (parameters+=formalParameter (',' parameters+=formalParameter)*)? ')' ('as' returnType=typeLiteral)? methodBody
     ;
 
 methodBody
@@ -110,7 +106,7 @@ ifStatement
     ;
 
 foreachStatement
-    : 'for' foreachVariable (',' foreachVariable)* 'in' expression foreachBody
+    : 'for' variables+=foreachVariable (',' variables+=foreachVariable)* 'in' iterable=expression foreachBody
     ;
 
 foreachVariable
@@ -138,21 +134,21 @@ expression
     | DOUBLE_LITERAL  #doubleLiteral
     | STRING_LITERAL  #stringLiteral
     | NULL            #nullLiteral
-    | simpleName  #simpleNameExpr
-    | 'function' '(' (formalParameter (',' formalParameter)*)? ')' ('as' returnType)? functionBody  #functionExpr
+    | simpleName      #referenceExpr
+    | 'function' '(' (parameters+=formalParameter (',' parameters+=formalParameter)*)? ')' ('as' returnType=typeLiteral)? functionBody  #functionExpr
     | '<' content '>'  #bracketHandlerExpr
-    | '[' (expression (',' expression)*)? ','? ']'  #arrayLiteral
-    | '{' (mapEntry (',' mapEntry)*)? ','? '}'      #mapLiteral
-    | '(' expression ')'                            #parensExpr
-    | left=expression op='instanceof' right=expression       #instanceOfExpr
-    | expression 'as' typeLiteral                            #typeCastExpr
-    | callee=expression '(' (argument (',' argument)*)? ','? ')'  #callExpr
-    | left=expression '[' index=expression ']'               #memberIndexExpr
-    | expression op='.' (simpleName | STRING_LITERAL)        #memberAccessExpr
-    | from=expression op=('..' | 'to') to=expression         #intRangeExpr
-    | <assoc=right> op=('!' | '-') expression                #unaryExpr
-    | left=expression op=('*' | '/' | '%') right=expression  #binaryExpr
-    | left=expression op=('+' | '-' | '~') right=expression  #binaryExpr
+    | '[' (elements+=expression (',' elements+=expression)*)? ','? ']'  #arrayLiteral
+    | '{' (entries+=mapEntry (',' entries+=mapEntry)*)? ','? '}'        #mapLiteral
+    | '(' expression ')'                                #parensExpr
+    | left=expression op='instanceof' right=expression  #instanceOfExpr
+    | expression 'as' typeLiteral                       #typeCastExpr
+    | receiver=expression '(' (arguments+=expression (',' arguments+=expression)*)? ','? ')'  #callExpr
+    | receiver=expression '[' index=expression ']'              #memberIndexExpr
+    | receiver=expression op='.' (simpleName | STRING_LITERAL)  #memberAccessExpr
+    | from=expression op=('..' | 'to') to=expression            #intRangeExpr
+    | <assoc=right> op=('!' | '-') expression                   #unaryExpr
+    | left=expression op=('*' | '/' | '%') right=expression     #binaryExpr
+    | left=expression op=('+' | '-' | '~') right=expression     #binaryExpr
     | left=expression op=('==' | '!=' | '<' | '<=' | '>' | '>=') right=expression  #binaryExpr
     | left=expression op=('|' | '^' | '&' | 'in' | 'has') right=expression   #binaryExpr
     | left=expression op=('||' | '&&') right=expression                      #binaryExpr
@@ -164,20 +160,16 @@ content
     : (~'>')*
     ;
 
-argument
-    : expression
-    ;
-
 mapEntry
     : key=expression ':' value=expression
     ;
 
 typeLiteral
     : qualifiedName                                                    #referenceType
-    | 'function' '(' (typeLiteral (',' typeLiteral)*)? ')' returnType  #functionType
+    | 'function' '(' (parameterTypes+=typeLiteral (',' parameterTypes+=typeLiteral)*)? ')' returnType=typeLiteral  #functionType
     | '[' typeLiteral ']'                                              #listType
     | typeLiteral '['']'                                               #arrayType
-    | value=typeLiteral '[' key=typeLiteral ']' ('$' 'orderly')?       #mapType
+    | valueType=typeLiteral '[' keyType=typeLiteral ']' ('$' 'orderly')?       #mapType
     | ANY     #primitiveType
     | BYTE    #primitiveType
     | SHORT   #primitiveType

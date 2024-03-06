@@ -7,4 +7,4 @@ import com.strumenta.kolasu.model.ReferenceByName
 
 data class ReferenceExpression(
     val ref: ReferenceByName<Named>,
-) : Expression, Node()
+) : Node(), Expression

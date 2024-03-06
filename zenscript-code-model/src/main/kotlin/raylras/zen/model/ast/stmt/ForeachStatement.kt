@@ -9,4 +9,4 @@ data class ForeachStatement(
     val variables: List<VariableDeclaration>,
     val iterable: Expression,
     val body: List<Statement>,
-) : Statement, Node()
+) : Node(), Statement
