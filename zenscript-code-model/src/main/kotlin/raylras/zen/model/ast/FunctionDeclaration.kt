@@ -10,7 +10,7 @@ data class FunctionDeclaration(
     val parameters: List<ParameterDeclaration> = emptyList(),
     override val returnTypeAnnotation: TypeLiteral? = null,
     val body: List<Statement> = emptyList(),
-) : Node(), EntityDeclaration, Statement, Named, PossiblyAnnotatedReturnType {
+) : Node(), EntityDeclaration, Named, PossiblyAnnotatedReturnType {
     override val name: String
         get() = simpleName
 }
