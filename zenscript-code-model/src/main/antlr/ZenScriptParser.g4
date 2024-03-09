@@ -11,6 +11,7 @@ toplevelEntity
     | classDeclaration
     | functionDeclaration
     | expandFunctionDeclaration
+    | variableDeclaration
     | statement
     ;
 

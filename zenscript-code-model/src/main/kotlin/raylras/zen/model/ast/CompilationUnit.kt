@@ -24,6 +24,10 @@ data class CompilationUnit(
         get() = toplevelEntities.filterIsInstance<ClassDeclaration>()
 
     @Derived
+    val toplevelVariables: List<VariableDeclaration>
+        get() = toplevelEntities.filterIsInstance<VariableDeclaration>()
+
+    @Derived
     val toplevelStatements: List<Statement>
         get() = toplevelEntities.filterIsInstance<Statement>()
 }
