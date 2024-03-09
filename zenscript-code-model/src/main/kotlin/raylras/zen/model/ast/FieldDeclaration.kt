@@ -6,10 +6,11 @@ import com.strumenta.kolasu.model.Named
 import com.strumenta.kolasu.model.Node
 
 data class FieldDeclaration(
+    override val declaringType: DeclaringType,
     val simpleName: String,
     override val typeAnnotation: TypeLiteral? = null,
     val initializer: Expression? = null,
-) : Node(), EntityDeclaration, Named, PossiblyAnnotatedType {
+) : Node(), EntityDeclaration, Named, DeclaringDescription, PossiblyAnnotatedType {
     override val name: String
         get() = simpleName
 }

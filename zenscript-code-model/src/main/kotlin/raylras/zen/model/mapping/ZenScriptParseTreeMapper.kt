@@ -36,6 +36,7 @@ class ZenScriptParseTreeMapper(
         }
         registerNodeFactory(FieldDeclarationContext::class) { ctx ->
             FieldDeclaration(
+                declaringType = ctx.prefix.asDeclaringType(),
                 simpleName = ctx.simpleName().text,
                 typeAnnotation = translateOptional(ctx.typeLiteral()),
                 initializer = translateOptional(ctx.initializer)
@@ -49,6 +50,7 @@ class ZenScriptParseTreeMapper(
         }
         registerNodeFactory(MethodDeclarationContext::class) { ctx ->
             FunctionDeclaration(
+                declaringType = ctx.prefix.asDeclaringType(),
                 simpleName = ctx.simpleName().text,
                 parameters = translateList(ctx.parameters),
                 returnTypeAnnotation = translateOptional(ctx.returnType),
@@ -57,6 +59,7 @@ class ZenScriptParseTreeMapper(
         }
         registerNodeFactory(FunctionDeclarationContext::class) { ctx ->
             FunctionDeclaration(
+                declaringType = ctx.prefix.asDeclaringType(),
                 simpleName = ctx.simpleName().text,
                 parameters = translateList(ctx.parameters),
                 returnTypeAnnotation = translateOptional(ctx.returnType),
@@ -74,12 +77,14 @@ class ZenScriptParseTreeMapper(
         }
         registerNodeFactory(FormalParameterContext::class) { ctx ->
             ParameterDeclaration(
+                declaringType = DeclaringType.NONE,
                 simpleName = ctx.simpleName().text,
                 defaultValue = translateOptional(ctx.defaultValue)
             )
         }
         registerNodeFactory(VariableDeclarationContext::class) { ctx ->
             VariableDeclaration(
+                declaringType = ctx.prefix.asDeclaringType(),
                 simpleName = ctx.simpleName().text,
                 typeAnnotation = translateOptional(ctx.typeLiteral()),
                 initializer = translateOptional(ctx.initializer)
@@ -123,6 +128,7 @@ class ZenScriptParseTreeMapper(
         }
         registerNodeFactory(ForeachVariableContext::class) { ctx ->
             VariableDeclaration(
+                declaringType = DeclaringType.NONE,
                 simpleName = ctx.simpleName().text
             )
         }
