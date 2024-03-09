@@ -3,12 +3,15 @@ parser grammar ZenScriptParser;
 options { tokenVocab = ZenScriptLexer; }
 
 compilationUnit
-    : ( importDeclaration
-      | classDeclaration
-      | functionDeclaration
-      | expandFunctionDeclaration
-      | statement
-      )* EOF
+    : toplevelEntity* EOF
+    ;
+
+toplevelEntity
+    : importDeclaration
+    | classDeclaration
+    | functionDeclaration
+    | expandFunctionDeclaration
+    | statement
     ;
 
 importDeclaration
@@ -46,7 +49,13 @@ classDeclaration
     ;
 
 classBody
-    : '{' (constructorDeclaration | methodDeclaration | fieldDeclaration)* '}'
+    : '{' classBodyEntity* '}'
+    ;
+
+classBodyEntity
+    : constructorDeclaration
+    | methodDeclaration
+    | fieldDeclaration
     ;
 
 constructorDeclaration

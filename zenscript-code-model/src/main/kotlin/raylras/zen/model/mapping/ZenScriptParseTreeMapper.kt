@@ -17,21 +17,22 @@ class ZenScriptParseTreeMapper(
     init {
         registerNodeFactory(CompilationUnitContext::class) { ctx ->
             CompilationUnit(
-                statements = translateList(ctx.statement()),
-                functions = translateList(ctx.functionDeclaration()),
-                expandFunctions = translateList(ctx.expandFunctionDeclaration()),
-                classes = translateList(ctx.classDeclaration())
+                toplevelEntities = translateList(ctx.toplevelEntity())
             )
+        }
+        registerNodeFactory(ToplevelEntityContext::class) { ctx ->
+            translateOnlyChild(ctx)
         }
 
         //region Declaration
         registerNodeFactory(ClassDeclarationContext::class) { ctx ->
             ClassDeclaration(
                 simpleName = ctx.simpleName().text,
-                declaredFields = translateList(ctx.classBody()?.fieldDeclaration()),
-                declaredConstructors = translateList(ctx.classBody()?.constructorDeclaration()),
-                declaredMethods = translateList(ctx.classBody()?.methodDeclaration())
+                classBodyEntities = translateList(ctx.classBody().classBodyEntity())
             )
+        }
+        registerNodeFactory(ClassBodyEntityContext::class) { ctx ->
+            translateOnlyChild(ctx)
         }
         registerNodeFactory(FieldDeclarationContext::class) { ctx ->
             FieldDeclaration(

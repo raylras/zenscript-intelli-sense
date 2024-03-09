@@ -38,8 +38,8 @@ object ZenScriptScopeProvider : DeclarativeScopeProvider(
             }
         it.node.findAncestorOfType(CompilationUnit::class.java)
             ?.let { compilationUnit ->
-                compilationUnit.functions.forEach { define(it) }
-                compilationUnit.classes.forEach { define(it) }
+                compilationUnit.toplevelFunctions.forEach { define(it) }
+                compilationUnit.toplevelClasses.forEach { define(it) }
             }
     }
 )

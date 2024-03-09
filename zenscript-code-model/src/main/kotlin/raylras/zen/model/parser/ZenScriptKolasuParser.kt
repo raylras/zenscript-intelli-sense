@@ -40,7 +40,7 @@ class ZenScriptKolasuParser :
 
 fun main() {
     val code = """
-        function foo(val arg0) {
+        function foo(arg0) {
             foo(arg0);
         }
     """.trimIndent()
