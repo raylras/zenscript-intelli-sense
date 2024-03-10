@@ -43,6 +43,20 @@ data class ReferenceTypeLiteral(
         get() = qualifiedName
 }
 
+data class UnionTypeLiteral(
+    val subTypes: List<TypeLiteral>
+) : TypeLiteral() {
+    override val text: String
+        get() = subTypes.joinToString(" | ")
+}
+
+data class IntersectionTypeLiteral(
+    val subTypes: List<TypeLiteral>
+) : TypeLiteral() {
+    override val text: String
+        get() = subTypes.joinToString(" & ")
+}
+
 data class PrimitiveTypeLiteral(
     val simpleName: String,
 ) : TypeLiteral() {

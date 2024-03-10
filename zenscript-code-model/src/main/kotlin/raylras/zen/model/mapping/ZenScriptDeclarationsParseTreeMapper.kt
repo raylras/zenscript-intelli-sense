@@ -7,11 +7,10 @@ import com.strumenta.kolasu.validation.Issue
 import org.antlr.v4.runtime.Token
 import raylras.zen.model.ast.*
 import raylras.zen.model.ast.expr.*
-import raylras.zen.model.ast.stmt.*
-import raylras.zen.model.parser.ZenScriptLexer
-import raylras.zen.model.parser.ZenScriptParser.*
+import raylras.zen.model.parser.ZenScriptDeclarationsLexer
+import raylras.zen.model.parser.ZenScriptDeclarationsParser.*
 
-class ZenScriptParseTreeMapper(
+class ZenScriptDeclarationsParseTreeMapper(
     issues: MutableList<Issue> = mutableListOf(),
     allowGenericNode: Boolean = true,
     source: Source? = null
@@ -35,7 +34,8 @@ class ZenScriptParseTreeMapper(
         }
         registerNodeFactory(ClassDeclarationContext::class) { ctx ->
             ClassDeclaration(
-                simpleName = ctx.simpleName().text,
+                simpleName = ctx.simpleClassName().text,
+                interfaces = ctx.interfaces.map { ReferenceByName(it.text) },
                 classBodyEntities = translateList(ctx.classBody().classBodyEntity())
             )
         }
@@ -46,14 +46,12 @@ class ZenScriptParseTreeMapper(
             FieldDeclaration(
                 declaringType = ctx.prefix.asDeclaringType(),
                 simpleName = ctx.simpleName().text,
-                typeAnnotation = translateOptional(ctx.typeLiteral()),
-                initializer = translateOptional(ctx.initializer)
+                typeAnnotation = translateCasted(ctx.typeLiteral())
             )
         }
         registerNodeFactory(ConstructorDeclarationContext::class) { ctx ->
             ConstructorDeclaration(
-                parameters = translateList(ctx.formalParameter()),
-                body = translateList(ctx.constructorBody()?.statement())
+                parameters = translateList(ctx.formalParameter())
             )
         }
         registerNodeFactory(MethodDeclarationContext::class) { ctx ->
@@ -61,8 +59,7 @@ class ZenScriptParseTreeMapper(
                 declaringType = ctx.prefix.asDeclaringType(),
                 simpleName = ctx.simpleName().text,
                 parameters = translateList(ctx.parameters),
-                returnTypeAnnotation = translateOptional(ctx.returnType),
-                body = translateList(ctx.methodBody()?.statement())
+                returnTypeAnnotation = translateCasted(ctx.returnType)
             )
         }
         registerNodeFactory(FunctionDeclarationContext::class) { ctx ->
@@ -70,17 +67,15 @@ class ZenScriptParseTreeMapper(
                 declaringType = ctx.prefix.asDeclaringType(),
                 simpleName = ctx.simpleName().text,
                 parameters = translateList(ctx.parameters),
-                returnTypeAnnotation = translateOptional(ctx.returnType),
-                body = translateList(ctx.functionBody()?.statement())
+                returnTypeAnnotation = translateCasted(ctx.returnType)
             )
         }
-        registerNodeFactory(ExpandFunctionDeclarationContext::class) { ctx ->
-            ExpandFunctionDeclaration(
-                receiver = translateCasted(ctx.typeLiteral()),
-                simpleName = ctx.simpleName().text,
+        registerNodeFactory(OperatorFunctionDeclarationContext::class) { ctx ->
+            FunctionDeclaration(
+                declaringType = DeclaringType.NONE,
+                simpleName = ctx.operator().text,
                 parameters = translateList(ctx.parameters),
-                returnTypeAnnotation = translateOptional(ctx.returnType),
-                body = translateList(ctx.functionBody()?.statement())
+                returnTypeAnnotation = translateCasted(ctx.returnType)
             )
         }
         registerNodeFactory(FormalParameterContext::class) { ctx ->
@@ -94,61 +89,7 @@ class ZenScriptParseTreeMapper(
             VariableDeclaration(
                 declaringType = ctx.prefix.asDeclaringType(),
                 simpleName = ctx.simpleName().text,
-                typeAnnotation = translateOptional(ctx.typeLiteral()),
-                initializer = translateOptional(ctx.initializer)
-            )
-        }
-        //endregion
-
-        //region Statement
-        registerNodeFactory(StatementContext::class) { ctx ->
-            translateOnlyChild(ctx)
-        }
-        registerNodeFactory(BlockStatementContext::class) { ctx ->
-            BlockStatement(
-                statements = translateList(ctx.statement())
-            )
-        }
-        registerNodeFactory(ReturnStatementContext::class) { ctx ->
-            ReturnStatement(
-                value = translateOptional(ctx.expression())
-            )
-        }
-        registerNodeFactory(BreakStatementContext::class) { ctx ->
-            BreakStatement()
-        }
-        registerNodeFactory(ContinueStatementContext::class) { ctx ->
-            ContinueStatement()
-        }
-        registerNodeFactory(IfStatementContext::class) { ctx ->
-            IfStatement(
-                condition = translateCasted(ctx.expression()),
-                thenPart = translateCasted(ctx.thenPart),
-                elsePart = translateOptional(ctx.elsePart)
-            )
-        }
-        registerNodeFactory(ForeachStatementContext::class) { ctx ->
-            ForeachStatement(
-                variables = translateList(ctx.variables),
-                iterable = translateCasted(ctx.iterable),
-                body = translateList(ctx.foreachBody()?.statement())
-            )
-        }
-        registerNodeFactory(ForeachVariableContext::class) { ctx ->
-            VariableDeclaration(
-                declaringType = DeclaringType.NONE,
-                simpleName = ctx.simpleName().text
-            )
-        }
-        registerNodeFactory(WhileStatementContext::class) { ctx ->
-            WhileStatement(
-                condition = translateCasted(ctx.expression()),
-                body = translateCasted(ctx.statement())
-            )
-        }
-        registerNodeFactory(ExpressionStatementContext::class) { ctx ->
-            ExpressionStatement(
-                expression = translateCasted(ctx.expression())
+                typeAnnotation = translateCasted(ctx.typeLiteral())
             )
         }
         //endregion
@@ -335,6 +276,16 @@ class ZenScriptParseTreeMapper(
                 returnType = translateCasted(ctx.returnType)
             )
         }
+        registerNodeFactory(UnionTypeContext::class) { ctx ->
+            UnionTypeLiteral(
+                subTypes = translateList(ctx.typeLiteral())
+            )
+        }
+        registerNodeFactory(IntersectionTypeContext::class) { ctx ->
+            IntersectionTypeLiteral(
+                subTypes = translateList(ctx.typeLiteral())
+            )
+        }
         registerNodeFactory(PrimitiveTypeContext::class) { ctx ->
             PrimitiveTypeLiteral(
                 simpleName = ctx.text
@@ -347,10 +298,10 @@ class ZenScriptParseTreeMapper(
 private fun Token?.asDeclaringType(): DeclaringType = when (this) {
     null -> DeclaringType.NONE
     else -> when (this.type) {
-        ZenScriptLexer.VAR -> DeclaringType.VAR
-        ZenScriptLexer.VAL -> DeclaringType.VAL
-        ZenScriptLexer.STATIC -> DeclaringType.STATIC
-        ZenScriptLexer.GLOBAL -> DeclaringType.GLOBAL
+        ZenScriptDeclarationsLexer.VAR -> DeclaringType.VAR
+        ZenScriptDeclarationsLexer.VAL -> DeclaringType.VAL
+        ZenScriptDeclarationsLexer.STATIC -> DeclaringType.STATIC
+        ZenScriptDeclarationsLexer.GLOBAL -> DeclaringType.GLOBAL
         else -> throw NoSuchElementException(
             "Unknown declaring type for token: $this." +
                     " Allowed values: ${DeclaringType.entries.joinToString()}"

@@ -1,6 +1,7 @@
 package raylras.zen.model.parser
 
 import com.strumenta.kolasu.model.Source
+import com.strumenta.kolasu.model.debugPrint
 import com.strumenta.kolasu.parsing.ANTLRTokenFactory
 import com.strumenta.kolasu.parsing.KolasuANTLRToken
 import com.strumenta.kolasu.parsing.KolasuParser
@@ -54,5 +55,5 @@ fun main() {
     symbolResolver.resolve(root, entireTree = true)
     root.assertReferencesResolved()
 
-    println(root)
+    println(root.debugPrint())
 }
