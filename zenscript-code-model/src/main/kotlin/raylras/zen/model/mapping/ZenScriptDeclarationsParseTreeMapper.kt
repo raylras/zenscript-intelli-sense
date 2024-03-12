@@ -80,7 +80,7 @@ class ZenScriptDeclarationsParseTreeMapper(
         }
         registerNodeFactory(FormalParameterContext::class) { ctx ->
             ParameterDeclaration(
-                declaringType = DeclaringType.NONE,
+                isVararg = ctx.prefix?.type == DOT_DOT_DOT,
                 simpleName = ctx.simpleName().text,
                 defaultValue = translateOptional(ctx.defaultValue)
             )
