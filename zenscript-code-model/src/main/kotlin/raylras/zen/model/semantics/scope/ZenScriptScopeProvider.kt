@@ -41,7 +41,17 @@ object ZenScriptScopeProvider : DeclarativeScopeProvider(
                 compilationUnit.toplevelFunctions.forEach { define(it) }
                 compilationUnit.toplevelClasses.forEach { define(it) }
             }
+    },
+
+/* It is impossible to do this with kolasu-core v1.5.47 */
+/*
+    scopeFor(ClassDeclaration::interfaces) {
+        it.node.findAncestorOfType(CompilationUnit::class.java)
+            ?.let { compilationUnit ->
+                compilationUnit.toplevelClasses.forEach { define(it) }
+            }
     }
+*/
 )
 
 internal fun Statement.previousStatements(): Sequence<Statement> = (this as? Node)
