@@ -201,8 +201,8 @@ class ZenScriptDeclarationsParseTreeMapper(
                 arguments = translateList(ctx.arguments)
             )
         }
-        registerNodeFactory(MemberIndexExprContext::class) { ctx ->
-            MemberIndexExpression(
+        registerNodeFactory(ArrayAccessExprContext::class) { ctx ->
+            ArrayAccessExpression(
                 receiver = translateCasted(ctx.receiver),
                 index = translateCasted(ctx.index)
             )

@@ -153,7 +153,7 @@ expression
     | left=expression op='instanceof' right=expression  #instanceOfExpr
     | expression 'as' typeLiteral                       #typeCastExpr
     | receiver=expression '(' (arguments+=expression (',' arguments+=expression)*)? ','? ')'  #callExpr
-    | receiver=expression '[' index=expression ']'              #memberIndexExpr
+    | receiver=expression '[' index=expression ']'              #arrayAccessExpr
     | receiver=expression op='.' (simpleName | STRING_LITERAL)  #memberAccessExpr
     | from=expression op=('..' | 'to') to=expression            #intRangeExpr
     | <assoc=right> op=('!' | '-') expression                   #unaryExpr
