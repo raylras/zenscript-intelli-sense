@@ -183,10 +183,9 @@ class ZenScriptDeclarationsParseTreeMapper(
             )
         }
         registerNodeFactory(InstanceOfExprContext::class) { ctx ->
-            BinaryExpression(
-                left = translateCasted(ctx.left),
-                operator = BinaryOperator.INSTANCEOF,
-                right = translateCasted(ctx.right)
+            InstanceOfExpression(
+                expression = translateCasted(ctx.expression()),
+                typeLiteral = translateCasted(ctx.typeLiteral())
             )
         }
         registerNodeFactory(TypeCastExprContext::class) { ctx ->

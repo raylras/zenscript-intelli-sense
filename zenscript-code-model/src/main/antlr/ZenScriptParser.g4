@@ -149,9 +149,9 @@ expression
     | '<' content '>'  #bracketHandlerExpr
     | '[' (elements+=expression (',' elements+=expression)*)? ','? ']'  #arrayLiteral
     | '{' (entries+=mapEntry (',' entries+=mapEntry)*)? ','? '}'        #mapLiteral
-    | '(' expression ')'                                #parensExpr
-    | left=expression op='instanceof' right=expression  #instanceOfExpr
-    | expression 'as' typeLiteral                       #typeCastExpr
+    | '(' expression ')'                   #parensExpr
+    | expression 'instanceof' typeLiteral  #instanceOfExpr
+    | expression 'as' typeLiteral          #typeCastExpr
     | receiver=expression '(' (arguments+=expression (',' arguments+=expression)*)? ','? ')'  #callExpr
     | receiver=expression '[' index=expression ']'              #arrayAccessExpr
     | receiver=expression op='.' (simpleName | STRING_LITERAL)  #memberAccessExpr

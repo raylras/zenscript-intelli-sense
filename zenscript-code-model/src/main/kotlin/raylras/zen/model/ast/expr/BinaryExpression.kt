@@ -47,7 +47,6 @@ enum class BinaryOperator(val text: String) {
     CONCAT_ASSIGN("~="),
 
     // other
-    INSTANCEOF("instanceof"),
     IN("in"),
     HAS("has"),
     CONCAT("~");
