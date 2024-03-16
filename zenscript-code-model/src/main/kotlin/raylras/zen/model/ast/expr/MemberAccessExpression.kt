@@ -7,5 +7,5 @@ import com.strumenta.kolasu.model.ReferenceByName
 
 data class MemberAccessExpression(
     val receiver: Expression,
-    val member: ReferenceByName<Named>,
+    val ref: ReferenceByName<Named>,
 ) : Node(), Expression

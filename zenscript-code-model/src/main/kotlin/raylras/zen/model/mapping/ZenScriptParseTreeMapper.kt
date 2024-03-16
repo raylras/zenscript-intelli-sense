@@ -274,7 +274,7 @@ class ZenScriptParseTreeMapper(
         registerNodeFactory(MemberAccessExprContext::class) { ctx ->
             MemberAccessExpression(
                 receiver = translateCasted(ctx.expression()),
-                member = ReferenceByName((ctx.simpleName() ?: ctx.STRING_LITERAL()).text)
+                ref = ReferenceByName((ctx.simpleName() ?: ctx.STRING_LITERAL()).text)
             )
         }
         registerNodeFactory(IntRangeExprContext::class) { ctx ->

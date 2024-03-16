@@ -1,55 +1,46 @@
 package raylras.zen.model.semantics.scope
 
 import com.strumenta.kolasu.model.Named
-import com.strumenta.kolasu.model.Node
 import com.strumenta.kolasu.model.Statement
-import com.strumenta.kolasu.model.previousSibling
 import com.strumenta.kolasu.semantics.scope.provider.declarative.DeclarativeScopeProvider
 import com.strumenta.kolasu.semantics.scope.provider.declarative.scopeFor
-import com.strumenta.kolasu.traversing.findAncestorOfType
 import raylras.zen.model.ast.*
+import raylras.zen.model.ast.expr.MemberAccessExpression
 import raylras.zen.model.ast.expr.ReferenceExpression
+import raylras.zen.model.traversing.findAncestorOfType
+import raylras.zen.model.traversing.previousStatements
 
 object ZenScriptScopeProvider : DeclarativeScopeProvider(
-    scopeFor(ReferenceExpression::ref) {
-        it.node.findAncestorOfType(Statement::class.java)
-            ?.let { statement ->
-                statement.previousStatements()
-                    .filterIsInstance<Named>()
-                    .forEach { define(it) }
-            }
-        it.node.findAncestorOfType(FunctionDeclaration::class.java)
-            ?.let { functionDeclaration ->
-                define(functionDeclaration)
-                functionDeclaration.parameters.forEach { define(it) }
-            }
-        it.node.findAncestorOfType(ExpandFunctionDeclaration::class.java)
-            ?.let { expandFunctionDeclaration ->
-                define(expandFunctionDeclaration)
-                expandFunctionDeclaration.parameters.forEach { define(it) }
-            }
-        it.node.findAncestorOfType(ClassDeclaration::class.java)
-            ?.let { classDeclaration ->
-                classDeclaration.declaredFields.forEach { define(it) }
-                classDeclaration.declaredMethods.forEach { define(it) }
-            }
-        it.node.findAncestorOfType(CompilationUnit::class.java)
-            ?.let { compilationUnit ->
-                compilationUnit.toplevelFunctions.forEach { define(it) }
-                compilationUnit.toplevelClasses.forEach { define(it) }
-            }
+    scopeFor(ReferenceExpression::ref) { (node, _) ->
+        node.findAncestorOfType<Statement>()?.apply {
+            previousStatements()
+                .filterIsInstance<Named>()
+                .forEach(::define)
+        }
+        node.findAncestorOfType<FunctionDeclaration>()?.apply {
+            define(this)
+            parameters.forEach(::define)
+        }
+        node.findAncestorOfType<ExpandFunctionDeclaration>()?.apply {
+            define(this)
+            parameters.forEach(::define)
+        }
+        node.findAncestorOfType<ClassDeclaration>()?.apply {
+            declaredFields.forEach(::define)
+            declaredMethods.forEach(::define)
+        }
+        node.findAncestorOfType<CompilationUnit>()?.apply {
+            toplevelFunctions.forEach(::define)
+            toplevelClasses.forEach(::define)
+            toplevelImports.forEach(::define)
+        }
     },
-    scopeFor(ClassReference::ref) {
-        it.node.findAncestorOfType(CompilationUnit::class.java)
-            ?.let { compilationUnit ->
-                compilationUnit.toplevelClasses.forEach { define(it) }
-            }
+    scopeFor(ClassReference::ref) { (node, _) ->
+        node.findAncestorOfType<CompilationUnit>()?.apply {
+            toplevelClasses.forEach(::define)
+        }
+    },
+    scopeFor(MemberAccessExpression::ref) { (node, _) ->
+        // TODO
     }
 )
-
-internal fun Statement.previousStatements(): Sequence<Statement> = (this as? Node)
-    ?.previousNodes()
-    ?.filterIsInstance<Statement>()
-    .orEmpty()
-
-internal fun Node.previousNodes(): Sequence<Node> = generateSequence(this) { it.previousSibling }
