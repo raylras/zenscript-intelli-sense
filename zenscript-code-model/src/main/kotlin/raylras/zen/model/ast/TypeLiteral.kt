@@ -2,64 +2,60 @@ package raylras.zen.model.ast
 
 import com.strumenta.kolasu.model.Node
 
-sealed class TypeLiteral : Node() {
-    abstract val text: String
+sealed interface TypeLiteral {
+    fun asString(): String
 }
 
 data class ArrayTypeLiteral(
     val baseType: TypeLiteral
-) : TypeLiteral() {
-    override val text: String
-        get() = baseType.text + "[]"
+) : Node(), TypeLiteral {
+    override fun asString() = baseType.asString() + "[]"
 }
 
 data class ListTypeLiteral(
     val baseType: TypeLiteral
-) : TypeLiteral() {
-    override val text: String
-        get() = "[" + baseType.text + "]"
+) : Node(), TypeLiteral {
+    override fun asString() = "[" + baseType.asString() + "]"
 }
 
 data class MapTypeLiteral(
     val keyType: TypeLiteral,
     val valueType: TypeLiteral,
-) : TypeLiteral() {
-    override val text: String
-        get() = valueType.text + "[" + keyType.text + "]"
+) : Node(), TypeLiteral {
+    override fun asString() = valueType.asString() + "[" + keyType.asString() + "]"
 }
 
 data class FunctionTypeLiteral(
     val parameterTypes: List<TypeLiteral>,
     val returnType: TypeLiteral,
-) : TypeLiteral() {
-    override val text: String
-        get() = "function${parameterTypes.joinToString(",", prefix = "(", postfix = ")${returnType.text}") { it.text }}"
+) : Node(), TypeLiteral {
+    override fun asString() = parameterTypes.joinToString(
+        separator = ",",
+        prefix = "function(",
+        postfix = ")${returnType.asString()}"
+    ) { paramType -> paramType.asString() }
 }
 
 data class ReferenceTypeLiteral(
-    val qualifiedName: String,
-) : TypeLiteral() {
-    override val text: String
-        get() = qualifiedName
+    val typeName: String,
+) : Node(), TypeLiteral {
+    override fun asString() = typeName
 }
 
 data class UnionTypeLiteral(
     val subTypes: List<TypeLiteral>
-) : TypeLiteral() {
-    override val text: String
-        get() = subTypes.joinToString(" | ")
+) : Node(), TypeLiteral {
+    override fun asString() = subTypes.joinToString(" | ")
 }
 
 data class IntersectionTypeLiteral(
     val subTypes: List<TypeLiteral>
-) : TypeLiteral() {
-    override val text: String
-        get() = subTypes.joinToString(" & ")
+) : Node(), TypeLiteral {
+    override fun asString() = subTypes.joinToString(" & ")
 }
 
 data class PrimitiveTypeLiteral(
-    val simpleName: String,
-) : TypeLiteral() {
-    override val text: String
-        get() = simpleName
+    val typeName: String,
+) : Node(), TypeLiteral {
+    override fun asString() = typeName
 }

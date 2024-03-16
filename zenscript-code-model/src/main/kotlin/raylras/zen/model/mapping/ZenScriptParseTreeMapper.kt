@@ -25,17 +25,24 @@ class ZenScriptParseTreeMapper(
         registerNodeFactory(ToplevelEntityContext::class) { ctx ->
             translateOnlyChild(ctx)
         }
+        registerNodeFactory(SimpleNameContext::class) { ctx ->
+            Name(ctx.text)
+        }
+        registerNodeFactory(QualifiedNameContext::class) { ctx ->
+            Name(ctx.text)
+        }
 
         //region Declaration
         registerNodeFactory(ImportDeclarationContext::class) { ctx ->
             ImportDeclaration(
-                qualifiedName = ctx.qualifiedName().text,
-                alias = translateOptional(ctx.alias)
+                qualifiedName = translateCasted(ctx.qualifiedName()),
+                alias = translateOptional(ctx.alias),
+                simpleName = translateCasted(ctx.alias ?: ctx.qualifiedName().simpleName().last())
             )
         }
         registerNodeFactory(ClassDeclarationContext::class) { ctx ->
             ClassDeclaration(
-                simpleName = ctx.simpleName().text,
+                simpleName = translateCasted(ctx.simpleName()),
                 classBodyEntities = translateList(ctx.classBody().classBodyEntity())
             )
         }
@@ -45,7 +52,7 @@ class ZenScriptParseTreeMapper(
         registerNodeFactory(FieldDeclarationContext::class) { ctx ->
             FieldDeclaration(
                 declaringKind = ctx.prefix.asDeclaringKind(),
-                simpleName = ctx.simpleName().text,
+                simpleName = translateCasted(ctx.simpleName()),
                 typeLiteral = translateOptional(ctx.typeLiteral()),
                 initializer = translateOptional(ctx.initializer)
             )
@@ -59,7 +66,7 @@ class ZenScriptParseTreeMapper(
         registerNodeFactory(MethodDeclarationContext::class) { ctx ->
             FunctionDeclaration(
                 declaringKind = ctx.prefix.asDeclaringKind(),
-                simpleName = ctx.simpleName().text,
+                simpleName = translateCasted(ctx.simpleName()),
                 parameters = translateList(ctx.parameters),
                 returnTypeLiteral = translateOptional(ctx.returnType),
                 body = translateList(ctx.methodBody()?.statement())
@@ -68,7 +75,7 @@ class ZenScriptParseTreeMapper(
         registerNodeFactory(FunctionDeclarationContext::class) { ctx ->
             FunctionDeclaration(
                 declaringKind = ctx.prefix.asDeclaringKind(),
-                simpleName = ctx.simpleName().text,
+                simpleName = translateCasted(ctx.simpleName()),
                 parameters = translateList(ctx.parameters),
                 returnTypeLiteral = translateOptional(ctx.returnType),
                 body = translateList(ctx.functionBody()?.statement())
@@ -77,7 +84,7 @@ class ZenScriptParseTreeMapper(
         registerNodeFactory(ExpandFunctionDeclarationContext::class) { ctx ->
             ExpandFunctionDeclaration(
                 receiver = translateCasted(ctx.typeLiteral()),
-                simpleName = ctx.simpleName().text,
+                simpleName = translateCasted(ctx.simpleName()),
                 parameters = translateList(ctx.parameters),
                 returnTypeLiteral = translateOptional(ctx.returnType),
                 body = translateList(ctx.functionBody()?.statement())
@@ -85,14 +92,14 @@ class ZenScriptParseTreeMapper(
         }
         registerNodeFactory(FormalParameterContext::class) { ctx ->
             ParameterDeclaration(
-                simpleName = ctx.simpleName().text,
+                simpleName = translateCasted(ctx.simpleName()),
                 defaultValue = translateOptional(ctx.defaultValue)
             )
         }
         registerNodeFactory(VariableDeclarationContext::class) { ctx ->
             VariableDeclaration(
                 declaringKind = ctx.prefix.asDeclaringKind(),
-                simpleName = ctx.simpleName().text,
+                simpleName = translateCasted(ctx.simpleName()),
                 typeLiteral = translateOptional(ctx.typeLiteral()),
                 initializer = translateOptional(ctx.initializer)
             )
@@ -136,7 +143,7 @@ class ZenScriptParseTreeMapper(
         registerNodeFactory(ForeachVariableContext::class) { ctx ->
             VariableDeclaration(
                 declaringKind = DeclaringKind.NONE,
-                simpleName = ctx.simpleName().text
+                simpleName = translateCasted(ctx.simpleName()),
             )
         }
         registerNodeFactory(WhileStatementContext::class) { ctx ->
@@ -308,7 +315,7 @@ class ZenScriptParseTreeMapper(
         //region Type Literal
         registerNodeFactory(ReferenceTypeContext::class) { ctx ->
             ReferenceTypeLiteral(
-                qualifiedName = ctx.qualifiedName().text
+                typeName = ctx.qualifiedName().text
             )
         }
         registerNodeFactory(ArrayTypeContext::class) { ctx ->
@@ -335,7 +342,7 @@ class ZenScriptParseTreeMapper(
         }
         registerNodeFactory(PrimitiveTypeContext::class) { ctx ->
             PrimitiveTypeLiteral(
-                simpleName = ctx.text
+                typeName = ctx.text
             )
         }
         //endregion

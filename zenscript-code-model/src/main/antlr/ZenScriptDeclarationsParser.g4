@@ -25,7 +25,7 @@ formalParameter
     ;
 
 classDeclaration
-    : 'zenClass' simpleClassName ('extends' interfaces+=qualifiedName (',' interfaces+=qualifiedName)*)? classBody
+    : 'zenClass' simpleClassName ('extends' interfaces+=classReference (',' interfaces+=classReference)*)? classBody
     ;
 
 simpleClassName
@@ -40,6 +40,10 @@ simpleClassName
     | 'bool'
     | 'void'
     | 'string'
+    ;
+
+classReference
+    : qualifiedName
     ;
 
 classBodyEntity

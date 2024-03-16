@@ -7,10 +7,7 @@ import com.strumenta.kolasu.model.previousSibling
 import com.strumenta.kolasu.semantics.scope.provider.declarative.DeclarativeScopeProvider
 import com.strumenta.kolasu.semantics.scope.provider.declarative.scopeFor
 import com.strumenta.kolasu.traversing.findAncestorOfType
-import raylras.zen.model.ast.ClassDeclaration
-import raylras.zen.model.ast.CompilationUnit
-import raylras.zen.model.ast.ExpandFunctionDeclaration
-import raylras.zen.model.ast.FunctionDeclaration
+import raylras.zen.model.ast.*
 import raylras.zen.model.ast.expr.ReferenceExpression
 
 object ZenScriptScopeProvider : DeclarativeScopeProvider(
@@ -42,16 +39,12 @@ object ZenScriptScopeProvider : DeclarativeScopeProvider(
                 compilationUnit.toplevelClasses.forEach { define(it) }
             }
     },
-
-/* It is impossible to do this with kolasu-core v1.5.47 */
-/*
-    scopeFor(ClassDeclaration::interfaces) {
+    scopeFor(ClassReference::ref) {
         it.node.findAncestorOfType(CompilationUnit::class.java)
             ?.let { compilationUnit ->
                 compilationUnit.toplevelClasses.forEach { define(it) }
             }
     }
-*/
 )
 
 internal fun Statement.previousStatements(): Sequence<Statement> = (this as? Node)

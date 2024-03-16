@@ -5,10 +5,7 @@ import com.strumenta.kolasu.model.Named
 import com.strumenta.kolasu.model.Node
 
 data class ImportDeclaration(
-    val qualifiedName: String,
-    val alias: String? = null
-) : Node(), EntityDeclaration, Named {
-    val simpleName: String = alias ?: qualifiedName.substringAfterLast(".")
-    override val name: String
-        get() = simpleName
-}
+    val qualifiedName: Name,
+    val alias: Name? = null,
+    val simpleName: Name
+) : Node(), EntityDeclaration, Named by simpleName

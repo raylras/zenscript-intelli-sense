@@ -1,15 +1,15 @@
 package raylras.zen.model.ast
 
-import com.strumenta.kolasu.model.*
+import com.strumenta.kolasu.model.Derived
+import com.strumenta.kolasu.model.EntityDeclaration
+import com.strumenta.kolasu.model.Named
+import com.strumenta.kolasu.model.Node
 
 data class ClassDeclaration(
-    val simpleName: String,
-    val interfaces: List<ReferenceByName<ClassDeclaration>> = emptyList(),
+    val simpleName: Name,
+    val interfaces: List<ClassReference> = emptyList(),
     val classBodyEntities: List<Node>
-) : Node(), EntityDeclaration, Named {
-    override val name: String
-        get() = simpleName
-
+) : Node(), EntityDeclaration, Named by simpleName {
     @Derived
     val declaredFields: List<FieldDeclaration>
         get() = classBodyEntities.filterIsInstance<FieldDeclaration>()
@@ -29,15 +29,15 @@ data class ClassDeclaration(
     @Derived
     val methods: Sequence<FunctionDeclaration>
         get() = declaredMethods.asSequence() + walkInterfaces().flatMap { it.declaredMethods }
+}
 
-    fun walkInterfaces(): Sequence<ClassDeclaration> {
-        val stack = ArrayDeque(interfaces)
-        return generateSequence {
-            stack.removeFirstOrNull()?.let { popped ->
-                val referred = requireNotNull(popped.referred) { "Unsolved interface ${popped.name}" }
-                stack.addAll(referred.interfaces)
-                referred
-            }
+fun ClassDeclaration.walkInterfaces(): Sequence<ClassDeclaration> {
+    val stack = ArrayDeque(interfaces)
+    return generateSequence {
+        stack.removeFirstOrNull()?.let { popped ->
+            val referred = requireNotNull(popped.ref.referred) { "Unsolved interface ${popped.name}" }
+            stack.addAll(referred.interfaces)
+            referred
         }
     }
 }

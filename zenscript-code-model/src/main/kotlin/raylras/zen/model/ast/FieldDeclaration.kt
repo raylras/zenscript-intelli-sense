@@ -7,10 +7,7 @@ import com.strumenta.kolasu.model.Node
 
 data class FieldDeclaration(
     override val declaringKind: DeclaringKind,
-    val simpleName: String,
+    val simpleName: Name,
     val typeLiteral: TypeLiteral? = null,
     val initializer: Expression? = null,
-) : Node(), EntityDeclaration, Named, DeclaringDescription {
-    override val name: String
-        get() = simpleName
-}
+) : Node(), EntityDeclaration, DeclaringDescription, Named by simpleName

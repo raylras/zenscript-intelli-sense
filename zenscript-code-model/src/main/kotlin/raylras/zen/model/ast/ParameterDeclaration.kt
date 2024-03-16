@@ -8,9 +8,6 @@ import com.strumenta.kolasu.model.Node
 data class ParameterDeclaration(
     override val declaringKind: DeclaringKind = DeclaringKind.NONE,
     val isVararg: Boolean = false,
-    val simpleName: String,
+    val simpleName: Name,
     val defaultValue: Expression? = null,
-) : Node(), EntityDeclaration, DeclaringDescription, Named {
-    override val name: String
-        get() = simpleName
-}
+) : Node(), EntityDeclaration, DeclaringDescription, Named by simpleName

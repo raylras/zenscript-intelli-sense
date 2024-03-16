@@ -6,12 +6,12 @@ import com.strumenta.kolasu.parsing.ANTLRTokenFactory
 import com.strumenta.kolasu.parsing.KolasuANTLRToken
 import com.strumenta.kolasu.parsing.KolasuParser
 import com.strumenta.kolasu.semantics.symbol.resolver.SymbolResolver
-import com.strumenta.kolasu.traversing.walkDescendants
+import com.strumenta.kolasu.testing.assertReferencesNotResolved
+import com.strumenta.kolasu.testing.assertReferencesResolved
 import com.strumenta.kolasu.validation.Issue
 import org.antlr.v4.runtime.CharStream
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.TokenStream
-import raylras.zen.model.ast.ClassDeclaration
 import raylras.zen.model.ast.CompilationUnit
 import raylras.zen.model.mapping.ZenScriptDeclarationsParseTreeMapper
 import raylras.zen.model.parser.ZenScriptDeclarationsParser.CompilationUnitContext
@@ -53,15 +53,9 @@ fun main() {
     val root = result.root!!
 
     val symbolResolver = SymbolResolver(ZenScriptScopeProvider)
+    root.assertReferencesNotResolved()
     symbolResolver.resolve(root, entireTree = true)
-
-    // workaround: solve interfaces
-    root.walkDescendants()
-        .filterIsInstance<ClassDeclaration>()
-        .flatMap { it.interfaces }
-        .forEach { ref ->
-            ref.referred = root.toplevelClasses.find { it.name == ref.name }
-        }
+    root.assertReferencesResolved()
 
     println(root.debugPrint())
 }
