@@ -1,10 +1,10 @@
 package raylras.zen.model.ast
 
 interface DeclaringDescription {
-    val declaringType: DeclaringType
+    val declaringKind: DeclaringKind
 }
 
-enum class DeclaringType {
+enum class DeclaringKind {
     VAR,
     VAL,
     STATIC,

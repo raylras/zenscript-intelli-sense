@@ -6,7 +6,7 @@ import com.strumenta.kolasu.model.Named
 import com.strumenta.kolasu.model.Node
 
 data class ParameterDeclaration(
-    override val declaringType: DeclaringType = DeclaringType.NONE,
+    override val declaringKind: DeclaringKind = DeclaringKind.NONE,
     val isVararg: Boolean = false,
     val simpleName: String,
     val defaultValue: Expression? = null,

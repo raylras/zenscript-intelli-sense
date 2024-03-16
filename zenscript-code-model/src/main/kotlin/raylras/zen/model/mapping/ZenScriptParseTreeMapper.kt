@@ -44,7 +44,7 @@ class ZenScriptParseTreeMapper(
         }
         registerNodeFactory(FieldDeclarationContext::class) { ctx ->
             FieldDeclaration(
-                declaringType = ctx.prefix.asDeclaringType(),
+                declaringKind = ctx.prefix.asDeclaringKind(),
                 simpleName = ctx.simpleName().text,
                 typeLiteral = translateOptional(ctx.typeLiteral()),
                 initializer = translateOptional(ctx.initializer)
@@ -58,7 +58,7 @@ class ZenScriptParseTreeMapper(
         }
         registerNodeFactory(MethodDeclarationContext::class) { ctx ->
             FunctionDeclaration(
-                declaringType = ctx.prefix.asDeclaringType(),
+                declaringKind = ctx.prefix.asDeclaringKind(),
                 simpleName = ctx.simpleName().text,
                 parameters = translateList(ctx.parameters),
                 returnTypeLiteral = translateOptional(ctx.returnType),
@@ -67,7 +67,7 @@ class ZenScriptParseTreeMapper(
         }
         registerNodeFactory(FunctionDeclarationContext::class) { ctx ->
             FunctionDeclaration(
-                declaringType = ctx.prefix.asDeclaringType(),
+                declaringKind = ctx.prefix.asDeclaringKind(),
                 simpleName = ctx.simpleName().text,
                 parameters = translateList(ctx.parameters),
                 returnTypeLiteral = translateOptional(ctx.returnType),
@@ -91,7 +91,7 @@ class ZenScriptParseTreeMapper(
         }
         registerNodeFactory(VariableDeclarationContext::class) { ctx ->
             VariableDeclaration(
-                declaringType = ctx.prefix.asDeclaringType(),
+                declaringKind = ctx.prefix.asDeclaringKind(),
                 simpleName = ctx.simpleName().text,
                 typeLiteral = translateOptional(ctx.typeLiteral()),
                 initializer = translateOptional(ctx.initializer)
@@ -135,7 +135,7 @@ class ZenScriptParseTreeMapper(
         }
         registerNodeFactory(ForeachVariableContext::class) { ctx ->
             VariableDeclaration(
-                declaringType = DeclaringType.NONE,
+                declaringKind = DeclaringKind.NONE,
                 simpleName = ctx.simpleName().text
             )
         }
@@ -342,16 +342,16 @@ class ZenScriptParseTreeMapper(
     }
 }
 
-private fun Token?.asDeclaringType(): DeclaringType = when (this) {
-    null -> DeclaringType.NONE
+private fun Token?.asDeclaringKind(): DeclaringKind = when (this) {
+    null -> DeclaringKind.NONE
     else -> when (this.type) {
-        ZenScriptLexer.VAR -> DeclaringType.VAR
-        ZenScriptLexer.VAL -> DeclaringType.VAL
-        ZenScriptLexer.STATIC -> DeclaringType.STATIC
-        ZenScriptLexer.GLOBAL -> DeclaringType.GLOBAL
+        ZenScriptLexer.VAR -> DeclaringKind.VAR
+        ZenScriptLexer.VAL -> DeclaringKind.VAL
+        ZenScriptLexer.STATIC -> DeclaringKind.STATIC
+        ZenScriptLexer.GLOBAL -> DeclaringKind.GLOBAL
         else -> throw NoSuchElementException(
-            "Unknown declaring type for token: $this." +
-                    " Allowed values: ${DeclaringType.entries.joinToString()}"
+            "Unknown declaring kind for token: $this." +
+                    " Allowed values: ${DeclaringKind.entries.joinToString()}"
         )
     }
 }

@@ -6,7 +6,7 @@ import com.strumenta.kolasu.model.Named
 import com.strumenta.kolasu.model.Node
 
 data class FieldDeclaration(
-    override val declaringType: DeclaringType,
+    override val declaringKind: DeclaringKind,
     val simpleName: String,
     val typeLiteral: TypeLiteral? = null,
     val initializer: Expression? = null,

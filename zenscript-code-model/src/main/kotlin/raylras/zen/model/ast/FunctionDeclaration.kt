@@ -6,7 +6,7 @@ import com.strumenta.kolasu.model.PossiblyNamed
 import com.strumenta.kolasu.model.Statement
 
 data class FunctionDeclaration(
-    override val declaringType: DeclaringType,
+    override val declaringKind: DeclaringKind,
     val simpleName: String?,
     val parameters: List<ParameterDeclaration> = emptyList(),
     val returnTypeLiteral: TypeLiteral? = null,

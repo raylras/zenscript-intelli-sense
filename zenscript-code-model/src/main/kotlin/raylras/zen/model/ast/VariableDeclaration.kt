@@ -3,7 +3,7 @@ package raylras.zen.model.ast
 import com.strumenta.kolasu.model.*
 
 data class VariableDeclaration(
-    override val declaringType: DeclaringType,
+    override val declaringKind: DeclaringKind,
     val simpleName: String,
     val typeLiteral: TypeLiteral? = null,
     val initializer: Expression? = null,
