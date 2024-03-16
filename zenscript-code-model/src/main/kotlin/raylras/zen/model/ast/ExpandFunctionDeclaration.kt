@@ -9,9 +9,9 @@ data class ExpandFunctionDeclaration(
     val receiver: TypeLiteral,
     val simpleName: String,
     val parameters: List<ParameterDeclaration> = emptyList(),
-    override val returnTypeAnnotation: TypeLiteral? = null,
+    val returnTypeLiteral: TypeLiteral? = null,
     val body: List<Statement> = emptyList(),
-) : Node(), EntityDeclaration, Named, PossiblyAnnotatedReturnType {
+) : Node(), EntityDeclaration, Named {
     override val name: String
         get() = simpleName
 }

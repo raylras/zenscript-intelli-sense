@@ -9,9 +9,9 @@ data class FunctionDeclaration(
     override val declaringType: DeclaringType,
     val simpleName: String?,
     val parameters: List<ParameterDeclaration> = emptyList(),
-    override val returnTypeAnnotation: TypeLiteral? = null,
+    val returnTypeLiteral: TypeLiteral? = null,
     val body: List<Statement> = emptyList(),
-) : Node(), EntityDeclaration, PossiblyNamed, DeclaringDescription, PossiblyAnnotatedReturnType {
+) : Node(), EntityDeclaration, PossiblyNamed, DeclaringDescription {
     override val name: String?
         get() = simpleName
 }

@@ -46,7 +46,7 @@ class ZenScriptParseTreeMapper(
             FieldDeclaration(
                 declaringType = ctx.prefix.asDeclaringType(),
                 simpleName = ctx.simpleName().text,
-                typeAnnotation = translateOptional(ctx.typeLiteral()),
+                typeLiteral = translateOptional(ctx.typeLiteral()),
                 initializer = translateOptional(ctx.initializer)
             )
         }
@@ -61,7 +61,7 @@ class ZenScriptParseTreeMapper(
                 declaringType = ctx.prefix.asDeclaringType(),
                 simpleName = ctx.simpleName().text,
                 parameters = translateList(ctx.parameters),
-                returnTypeAnnotation = translateOptional(ctx.returnType),
+                returnTypeLiteral = translateOptional(ctx.returnType),
                 body = translateList(ctx.methodBody()?.statement())
             )
         }
@@ -70,7 +70,7 @@ class ZenScriptParseTreeMapper(
                 declaringType = ctx.prefix.asDeclaringType(),
                 simpleName = ctx.simpleName().text,
                 parameters = translateList(ctx.parameters),
-                returnTypeAnnotation = translateOptional(ctx.returnType),
+                returnTypeLiteral = translateOptional(ctx.returnType),
                 body = translateList(ctx.functionBody()?.statement())
             )
         }
@@ -79,7 +79,7 @@ class ZenScriptParseTreeMapper(
                 receiver = translateCasted(ctx.typeLiteral()),
                 simpleName = ctx.simpleName().text,
                 parameters = translateList(ctx.parameters),
-                returnTypeAnnotation = translateOptional(ctx.returnType),
+                returnTypeLiteral = translateOptional(ctx.returnType),
                 body = translateList(ctx.functionBody()?.statement())
             )
         }
@@ -93,7 +93,7 @@ class ZenScriptParseTreeMapper(
             VariableDeclaration(
                 declaringType = ctx.prefix.asDeclaringType(),
                 simpleName = ctx.simpleName().text,
-                typeAnnotation = translateOptional(ctx.typeLiteral()),
+                typeLiteral = translateOptional(ctx.typeLiteral()),
                 initializer = translateOptional(ctx.initializer)
             )
         }
@@ -210,7 +210,7 @@ class ZenScriptParseTreeMapper(
         registerNodeFactory(FunctionExprContext::class) { ctx ->
             FunctionExpression(
                 parameters = translateList(ctx.parameters),
-                returnTypeAnnotation = translateOptional(ctx.returnType),
+                returnTypeLiteral = translateOptional(ctx.returnType),
                 body = translateList(ctx.functionBody()?.statement())
             )
         }

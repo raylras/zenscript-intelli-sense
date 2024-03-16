@@ -5,9 +5,9 @@ import com.strumenta.kolasu.model.*
 data class VariableDeclaration(
     override val declaringType: DeclaringType,
     val simpleName: String,
-    override val typeAnnotation: TypeLiteral? = null,
+    val typeLiteral: TypeLiteral? = null,
     val initializer: Expression? = null,
-) : Node(), EntityDeclaration, Statement, Named, DeclaringDescription, PossiblyAnnotatedType {
+) : Node(), EntityDeclaration, Statement, Named, DeclaringDescription {
     override val name: String
         get() = simpleName
 }
