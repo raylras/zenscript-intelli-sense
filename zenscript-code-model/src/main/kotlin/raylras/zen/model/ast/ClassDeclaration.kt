@@ -32,11 +32,11 @@ data class ClassDeclaration(
 }
 
 fun ClassDeclaration.walkInterfaces(): Sequence<ClassDeclaration> {
-    val stack = ArrayDeque(interfaces)
+    val deque = ArrayDeque(interfaces)
     return generateSequence {
-        stack.removeFirstOrNull()?.let { popped ->
+        deque.removeFirstOrNull()?.let { popped ->
             val referred = requireNotNull(popped.ref.referred) { "Unsolved interface ${popped.name}" }
-            stack.addAll(referred.interfaces)
+            deque.addAll(referred.interfaces)
             referred
         }
     }
