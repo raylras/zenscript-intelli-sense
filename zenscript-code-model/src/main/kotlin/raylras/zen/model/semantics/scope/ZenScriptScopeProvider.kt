@@ -7,6 +7,8 @@ import com.strumenta.kolasu.semantics.scope.provider.declarative.scopeFor
 import raylras.zen.model.ast.*
 import raylras.zen.model.ast.expr.MemberAccessExpression
 import raylras.zen.model.ast.expr.ReferenceExpression
+import raylras.zen.model.semantics.type.ZenScriptTypeProvider
+import raylras.zen.model.semantics.type.provider.typeOf
 import raylras.zen.model.traversing.findAncestorOfType
 import raylras.zen.model.traversing.previousStatements
 
@@ -41,6 +43,9 @@ object ZenScriptScopeProvider : DeclarativeScopeProvider(
         }
     },
     scopeFor(MemberAccessExpression::ref) { (node, _) ->
-        // TODO
+        ZenScriptTypeProvider.typeOf(node.receiver)
+            ?.members
+            ?.filterIsInstance<Named>()
+            ?.forEach(::define)
     }
 )

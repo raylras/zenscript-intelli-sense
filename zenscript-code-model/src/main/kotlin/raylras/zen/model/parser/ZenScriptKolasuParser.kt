@@ -41,8 +41,10 @@ class ZenScriptKolasuParser :
 
 fun main() {
     val code = """
-        function foo(arg0) {
-            foo(arg0);
+        A.foo
+        
+        zenClass A {
+            static foo as int;
         }
     """.trimIndent()
     val parser = ZenScriptKolasuParser()
@@ -52,6 +54,7 @@ fun main() {
     val root = result.root!!
 
     root.assertReferencesNotResolved()
+    symbolResolver.resolve(root, entireTree = true)
     symbolResolver.resolve(root, entireTree = true)
     root.assertReferencesResolved()
 
