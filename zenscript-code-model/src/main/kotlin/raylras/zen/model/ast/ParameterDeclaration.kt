@@ -9,5 +9,6 @@ data class ParameterDeclaration(
     override val declaringKind: DeclaringKind = DeclaringKind.NONE,
     val isVararg: Boolean = false,
     val simpleName: Name,
+    val typeLiteral: TypeLiteral?,
     val defaultValue: Expression? = null,
 ) : Node(), EntityDeclaration, DeclaringDescription, Named by simpleName

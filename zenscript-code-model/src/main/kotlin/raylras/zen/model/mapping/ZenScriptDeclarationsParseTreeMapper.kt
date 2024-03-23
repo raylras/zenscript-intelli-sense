@@ -104,6 +104,7 @@ class ZenScriptDeclarationsParseTreeMapper(
             ParameterDeclaration(
                 isVararg = ctx.prefix?.type == DOT_DOT_DOT,
                 simpleName = translateCasted(ctx.simpleName()),
+                typeLiteral = translateOptional(ctx.typeLiteral()),
                 defaultValue = translateOptional(ctx.defaultValue)
             )
         }

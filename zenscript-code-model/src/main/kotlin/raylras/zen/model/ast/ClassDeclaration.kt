@@ -29,6 +29,10 @@ data class ClassDeclaration(
     @Derived
     val methods: Sequence<FunctionDeclaration>
         get() = declaredMethods.asSequence() + walkInterfaces().flatMap { it.declaredMethods }
+
+    @Derived
+    val members: Sequence<Node>
+        get() = classBodyEntities.asSequence() + walkInterfaces().flatMap { it.classBodyEntities }
 }
 
 fun ClassDeclaration.walkInterfaces(): Sequence<ClassDeclaration> {
