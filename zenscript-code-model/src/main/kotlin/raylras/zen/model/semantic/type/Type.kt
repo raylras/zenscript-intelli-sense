@@ -1,4 +1,4 @@
-package raylras.zen.model.semantics.type
+package raylras.zen.model.semantic.type
 
 import com.strumenta.kolasu.model.PossiblyNamed
 

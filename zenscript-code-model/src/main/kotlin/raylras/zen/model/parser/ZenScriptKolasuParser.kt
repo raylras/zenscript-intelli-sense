@@ -13,9 +13,9 @@ import org.antlr.v4.runtime.CharStream
 import org.antlr.v4.runtime.Lexer
 import org.antlr.v4.runtime.TokenStream
 import raylras.zen.model.ast.CompilationUnit
-import raylras.zen.model.mapping.ZenScriptParseTreeMapper
 import raylras.zen.model.parser.ZenScriptParser.CompilationUnitContext
-import raylras.zen.model.semantics.scope.ZenScriptScopeProvider
+import raylras.zen.model.parser.mapper.ZenScriptNodeMapper
+import raylras.zen.model.semantic.scope.provider.ZenScriptScopeProvider
 
 class ZenScriptKolasuParser :
     KolasuParser<CompilationUnit, ZenScriptParser, CompilationUnitContext, KolasuANTLRToken>(ANTLRTokenFactory()) {
@@ -34,7 +34,7 @@ class ZenScriptKolasuParser :
         issues: MutableList<Issue>,
         source: Source?
     ): CompilationUnit? {
-        val mapper = ZenScriptParseTreeMapper(issues = issues, source = source)
+        val mapper = ZenScriptNodeMapper(issues = issues, source = source)
         return mapper.transform(parseTreeRoot) as? CompilationUnit
     }
 }

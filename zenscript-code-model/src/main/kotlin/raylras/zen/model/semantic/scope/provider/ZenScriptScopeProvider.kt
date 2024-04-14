@@ -1,4 +1,4 @@
-package raylras.zen.model.semantics.scope
+package raylras.zen.model.semantic.scope.provider
 
 import com.strumenta.kolasu.model.Named
 import com.strumenta.kolasu.model.Statement
@@ -7,8 +7,8 @@ import com.strumenta.kolasu.semantics.scope.provider.declarative.scopeFor
 import raylras.zen.model.ast.*
 import raylras.zen.model.ast.expr.MemberAccessExpression
 import raylras.zen.model.ast.expr.ReferenceExpression
-import raylras.zen.model.semantics.type.ZenScriptTypeProvider
-import raylras.zen.model.semantics.type.provider.typeOf
+import raylras.zen.model.semantic.type.provider.ZenScriptTypeProvider
+import raylras.zen.model.semantic.type.provider.typeOf
 import raylras.zen.model.traversing.findAncestorOfType
 import raylras.zen.model.traversing.previousStatements
 

@@ -1,15 +1,11 @@
-package raylras.zen.model.semantics.type
+package raylras.zen.model.semantic.type.provider
 
 import raylras.zen.model.ast.ClassDeclaration
 import raylras.zen.model.ast.FunctionDeclaration
 import raylras.zen.model.ast.ParameterDeclaration
 import raylras.zen.model.ast.VariableDeclaration
 import raylras.zen.model.ast.expr.*
-import raylras.zen.model.semantics.type.provider.declarative.DeclarativeTypeProvider
-import raylras.zen.model.semantics.type.provider.declarative.multipleTypeFor
-import raylras.zen.model.semantics.type.provider.declarative.typeFor
-import raylras.zen.model.semantics.type.provider.reifiedTypeOf
-import raylras.zen.model.semantics.type.provider.typeOf
+import raylras.zen.model.semantic.type.*
 
 object ZenScriptTypeProvider : DeclarativeTypeProvider() {
     init {

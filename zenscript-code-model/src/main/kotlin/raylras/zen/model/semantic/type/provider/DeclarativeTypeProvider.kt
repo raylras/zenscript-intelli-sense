@@ -1,8 +1,7 @@
-package raylras.zen.model.semantics.type.provider.declarative
+package raylras.zen.model.semantic.type.provider
 
 import com.strumenta.kolasu.model.Node
-import raylras.zen.model.semantics.type.Type
-import raylras.zen.model.semantics.type.provider.TypeProvider
+import raylras.zen.model.semantic.type.Type
 import kotlin.reflect.KClass
 import kotlin.reflect.safeCast
 

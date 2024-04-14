@@ -1,6 +1,6 @@
-package raylras.zen.model.semantics.type.provider
+package raylras.zen.model.semantic.type.provider
 
-import raylras.zen.model.semantics.type.Type
+import raylras.zen.model.semantic.type.Type
 
 interface TypeProvider {
     fun multipleTypeOf(node: Any?): Iterable<Type>
