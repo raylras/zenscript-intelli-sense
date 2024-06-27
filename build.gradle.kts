@@ -23,6 +23,10 @@ subprojects {
         }
     }
 
+    tasks.withType<Jar> {
+        archiveBaseName = "intellizen-${project.name}"
+    }
+
     tasks.withType<Test> {
         useJUnitPlatform()
     }
