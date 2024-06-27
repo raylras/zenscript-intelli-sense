@@ -34,10 +34,10 @@ tasks.named<Copy>("distDeps") {
 }
 
 tasks.named<Delete>("clean") {
-    finalizedBy(tasks.named("cleanGen"))
+    finalizedBy(tasks.named("cleanGrammarSource"))
 }
 
-tasks.register<Delete>("cleanGen") {
+tasks.register<Delete>("cleanGrammarSource") {
     group = "build"
     delete("src/main/gen")
 }
