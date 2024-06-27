@@ -11,15 +11,14 @@ repositories {
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
 
-    // LSP4J no longer supports Java 8 starting with v0.21.0
     tasks.withType<JavaCompile> {
-        sourceCompatibility = "11"
-        targetCompatibility = "11"
+        sourceCompatibility = "17"
+        targetCompatibility = "17"
     }
 
     tasks.withType<KotlinCompile> {
         kotlinOptions {
-            jvmTarget = "11"
+            jvmTarget = "17"
         }
     }
 
