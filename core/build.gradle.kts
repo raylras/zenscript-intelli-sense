@@ -10,8 +10,8 @@ dependencies {
     antlr("org.antlr:antlr4:4.13.1")
     implementation("org.antlr:antlr4-runtime:4.13.1")
     implementation("com.google.code.gson:gson:2.11.0")
-    implementation("com.strumenta.kolasu:kolasu-core:1.5.60")
-    implementation("com.strumenta.kolasu:kolasu-semantics:1.5.60")
+    implementation("com.strumenta.kolasu:kolasu-core:1.5.62")
+    implementation("com.strumenta.kolasu:kolasu-semantics:1.5.62")
 }
 
 sourceSets.main {
