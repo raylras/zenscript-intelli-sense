@@ -1,3 +1,4 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
@@ -11,27 +12,21 @@ repositories {
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
 
-    /*
-        Additional information:
-
-        The last version supporting Java 1.8 is lsp4j 0.19.1.
-        Starting from lsp4j 0.21.0, Java 11 is required.
-
-        Consider setting compatibility to 11.
-
-        @see ::zenscript-language-server/build.gradle.kts
-        @see ::vscode-extension/client/src/extension.js
-    */
+    // LSP4J no longer supports Java 1.8 starting from v0.21.0
 
     tasks.withType<JavaCompile> {
-        sourceCompatibility = "1.8"
-        targetCompatibility = "1.8"
+        sourceCompatibility = JavaVersion.VERSION_11.toString()
+        targetCompatibility = JavaVersion.VERSION_11.toString()
     }
 
     tasks.withType<KotlinCompile> {
-        kotlinOptions {
-            jvmTarget = "1.8"
+        compilerOptions {
+            jvmTarget = JvmTarget.JVM_11
         }
+    }
+
+    tasks.withType<Jar> {
+        archiveBaseName = "intellizen-${project.name}"
     }
 
     tasks.withType<Test> {
