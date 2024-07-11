@@ -1,0 +1,23 @@
+[versions]
+kotlin = "2.0.0"
+antlr = "4.13.1"
+gson = "2.11.0"
+slf4j = "2.0.13"
+lsp4j = "0.23.1"
+junit = "5.10.3"
+
+# LSP4J no longer supports Java 1.8 starting from v0.21.0
+jvmTarget = "11"
+
+[libraries]
+antlr4 = { module = "org.antlr:antlr4", version.ref = "antlr" }
+antlr4-runtime = { module = "org.antlr:antlr4-runtime", version.ref = "antlr" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+slf4j-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j" }
+lsp4j = { module = "org.eclipse.lsp4j:org.eclipse.lsp4j", version.ref = "lsp4j" }
+lsp4j-jsonrpc = { module = "org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc", version.ref = "lsp4j" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+junit-jupiter = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

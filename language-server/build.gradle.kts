@@ -1,15 +1,15 @@
-group = "raylras.intellizen.languageserver"
+plugins {
+    alias(libs.plugins.kotlin.jvm)
+}
 
 dependencies {
     implementation(project(":core"))
     implementation(project(":i18n"))
-    implementation("org.eclipse.lsp4j:org.eclipse.lsp4j:0.21.2")
-    implementation("org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc:0.21.2")
-    implementation("com.google.code.gson:gson:2.10.1")
-}
+    implementation(libs.slf4j.api)
+    implementation(libs.slf4j.simple)
+    implementation(libs.lsp4j)
+    implementation(libs.lsp4j.jsonrpc)
+    implementation(libs.gson)
 
-tasks.named<Copy>("distDeps") {
-    include("org.eclipse.lsp4j-*.jar")
-    include("org.eclipse.lsp4j.jsonrpc-*.jar")
-    include("gson-*.jar")
+    testImplementation(libs.junit.jupiter)
 }

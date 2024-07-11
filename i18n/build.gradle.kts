@@ -1,1 +1,3 @@
-group = "raylras.intellizen.i18n"
+plugins {
+    alias(libs.plugins.kotlin.jvm)
+}

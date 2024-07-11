@@ -2,49 +2,27 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.0.0-Beta3" apply false
-}
-
-repositories {
-    mavenCentral()
+    alias(libs.plugins.kotlin.jvm) apply false
 }
 
 subprojects {
-    apply(plugin = "org.jetbrains.kotlin.jvm")
-
-    // LSP4J no longer supports Java 1.8 starting from v0.21.0
+    repositories {
+        mavenCentral()
+    }
 
     tasks.withType<JavaCompile> {
-        sourceCompatibility = JavaVersion.VERSION_11.toString()
-        targetCompatibility = JavaVersion.VERSION_11.toString()
+        sourceCompatibility = libs.versions.jvmTarget.get()
+        targetCompatibility = libs.versions.jvmTarget.get()
     }
 
     tasks.withType<KotlinCompile> {
         compilerOptions {
-            jvmTarget = JvmTarget.JVM_11
+            jvmTarget = libs.versions.jvmTarget.map { JvmTarget.fromTarget(it) }
         }
     }
 
     tasks.withType<Jar> {
         archiveBaseName = "intellizen-${project.name}"
-    }
-
-    tasks.withType<Test> {
-        useJUnitPlatform()
-    }
-
-    repositories {
-        mavenCentral()
-    }
-
-    dependencies {
-        val implementation by configurations
-        implementation("org.slf4j:slf4j-api:2.0.11")
-        implementation("org.slf4j:slf4j-simple:2.0.11")
-
-        val testImplementation by configurations
-        testImplementation(platform("org.junit:junit-bom:5.10.1"))
-        testImplementation("org.junit.jupiter:junit-jupiter")
     }
 
     tasks.register<Copy>("dist") {
@@ -61,12 +39,15 @@ subprojects {
         into("../vscode-extension/server")
 
         include("kotlin-stdlib-*.jar")
-        include("slf4j-api-*.jar")
-        include("slf4j-simple-*.jar")
+        include(libs.antlr4.runtime)
+        include(libs.slf4j.api)
+        include(libs.slf4j.simple)
+        include(libs.lsp4j)
+        include(libs.lsp4j.jsonrpc)
+        include(libs.gson)
     }
 }
 
-// root project
 tasks.register<Delete>("clean") {
     group = "build"
     delete("build")
@@ -77,4 +58,13 @@ tasks.register<Delete>("clean") {
 tasks.register<Delete>("cleanDist") {
     group = "dist"
     delete("vscode-extension/server")
+}
+
+fun Copy.include(dep: ProviderConvertible<MinimalExternalModuleDependency>) {
+    include(dep.asProvider())
+}
+
+fun Copy.include(dep: Provider<MinimalExternalModuleDependency>) {
+    val jarFile = dep.map { it.name + "-" + it.version + ".jar" }.get()
+    include(jarFile)
 }

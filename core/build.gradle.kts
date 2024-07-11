@@ -1,16 +1,19 @@
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    id ("antlr")
+    antlr
+    alias(libs.plugins.kotlin.jvm)
 }
 
-group = "raylras.intellizen.core"
-
 dependencies {
-    antlr("org.antlr:antlr4:4.13.1")
+    antlr(libs.antlr4)
     implementation(project(":i18n"))
-    implementation("org.antlr:antlr4-runtime:4.13.1")
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation(libs.antlr4.runtime)
+    implementation(libs.slf4j.api)
+    implementation(libs.slf4j.simple)
+    implementation(libs.gson)
+
+    testImplementation(libs.junit.jupiter)
 }
 
 sourceSets.main {
@@ -29,11 +32,6 @@ tasks.named<KotlinCompile>("compileKotlin") {
 
 tasks.named<KotlinCompile>("compileTestKotlin") {
     dependsOn("generateTestGrammarSource")
-}
-
-tasks.named<Copy>("distDeps") {
-    include("antlr4-runtime-*.jar")
-    include("gson-*.jar")
 }
 
 tasks.named<Delete>("clean") {
