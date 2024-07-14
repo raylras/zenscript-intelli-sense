@@ -1,55 +1,28 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-    kotlin("jvm") version "2.0.0-Beta3" apply false
-}
-
-repositories {
-    mavenCentral()
+    alias(libs.plugins.kotlin.jvm) apply false
 }
 
 subprojects {
-    apply(plugin = "org.jetbrains.kotlin.jvm")
-
-    /*
-        Additional information:
-
-        The last version supporting Java 1.8 is lsp4j 0.19.1.
-        Starting from lsp4j 0.21.0, Java 11 is required.
-
-        Consider setting compatibility to 11.
-
-        @see ::zenscript-language-server/build.gradle.kts
-        @see ::vscode-extension/client/src/extension.js
-    */
-
-    tasks.withType<JavaCompile> {
-        sourceCompatibility = "1.8"
-        targetCompatibility = "1.8"
-    }
-
-    tasks.withType<KotlinCompile> {
-        kotlinOptions {
-            jvmTarget = "1.8"
-        }
-    }
-
-    tasks.withType<Test> {
-        useJUnitPlatform()
-    }
-
     repositories {
         mavenCentral()
     }
 
-    dependencies {
-        val implementation by configurations
-        implementation("org.slf4j:slf4j-api:2.0.11")
-        implementation("org.slf4j:slf4j-simple:2.0.11")
+    tasks.withType<JavaCompile> {
+        sourceCompatibility = libs.versions.jvmTarget.get()
+        targetCompatibility = libs.versions.jvmTarget.get()
+    }
 
-        val testImplementation by configurations
-        testImplementation(platform("org.junit:junit-bom:5.10.1"))
-        testImplementation("org.junit.jupiter:junit-jupiter")
+    tasks.withType<KotlinCompile> {
+        compilerOptions {
+            jvmTarget = libs.versions.jvmTarget.map { JvmTarget.fromTarget(it) }
+        }
+    }
+
+    tasks.withType<Jar> {
+        archiveBaseName = "intellizen-${project.name}"
     }
 
     tasks.register<Copy>("dist") {
@@ -66,12 +39,15 @@ subprojects {
         into("../vscode-extension/server")
 
         include("kotlin-stdlib-*.jar")
-        include("slf4j-api-*.jar")
-        include("slf4j-simple-*.jar")
+        include(libs.antlr4.runtime)
+        include(libs.slf4j.api)
+        include(libs.slf4j.simple)
+        include(libs.lsp4j)
+        include(libs.lsp4j.jsonrpc)
+        include(libs.gson)
     }
 }
 
-// root project
 tasks.register<Delete>("clean") {
     group = "build"
     delete("build")
@@ -82,4 +58,13 @@ tasks.register<Delete>("clean") {
 tasks.register<Delete>("cleanDist") {
     group = "dist"
     delete("vscode-extension/server")
+}
+
+fun Copy.include(dep: ProviderConvertible<MinimalExternalModuleDependency>) {
+    include(dep.asProvider())
+}
+
+fun Copy.include(dep: Provider<MinimalExternalModuleDependency>) {
+    val jarFile = dep.map { it.name + "-" + it.version + ".jar" }.get()
+    include(jarFile)
 }

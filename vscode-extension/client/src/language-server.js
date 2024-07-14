@@ -11,7 +11,7 @@ export async function activateLanguageServer(javaBin) {
 
     const config = workspace.getConfiguration();
     const classpath = join(__dirname, '..', '..', 'server', '*');
-    const main = 'raylras.zen.lsp.StandardIOLauncher';
+    const main = 'raylras.intellizen.languageserver.StandardIOLauncher';
 
     /** @type {string[]} */
     const args = [];
