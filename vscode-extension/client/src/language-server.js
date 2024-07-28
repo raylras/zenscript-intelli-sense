@@ -1,5 +1,5 @@
 import {join} from "node:path";
-import {window, workspace} from "vscode";
+import {window} from "vscode";
 import {LanguageClient, LanguageClientOptions, ServerOptions} from "vscode-languageclient/node";
 
 /**
@@ -9,28 +9,30 @@ export async function activateLanguageServer(javaBin) {
     const logChannel = window.createOutputChannel('ZenScript Language Server', "log");
     logChannel.appendLine('Starting ZensScript language server');
 
-    const config = workspace.getConfiguration();
-    const classpath = join(__dirname, '..', '..', 'server', '*');
-    const main = 'raylras.intellizen.languageserver.StandardIOLauncher';
+    // const config = workspace.getConfiguration();
+    // const classpath = join(__dirname, '..', '..', 'server', '*');
+    // const main = 'raylras.intellizen.languageserver.StandardIOLauncher';
 
     /** @type {string[]} */
-    const args = [];
+    // const args = [];
 
-    args.push("-Dfile.encoding=UTF-8")
+    // args.push("-Dfile.encoding=UTF-8")
 
-    if (config.get('zenscript.languageServer.enableJavaArguments')) {
-        args.push(config.get('zenscript.languageServer.javaArguments'));
-    }
+    // if (config.get('zenscript.languageServer.enableJavaArguments')) {
+    //     args.push(config.get('zenscript.languageServer.javaArguments'));
+    // }
 
-    args.push('-classpath', classpath);
-    args.push(main);
+    // args.push('-classpath', classpath);
+    // args.push(main);
 
-    logChannel.appendLine(`Launch command: "${[javaBin, ...args].join(' ')}"`)
+    // logChannel.appendLine(`Launch command: "${[javaBin, ...args].join(' ')}"`)
+
+    const exe = join(__dirname, '..', '..', 'server', "intellizen-language-server.exe")
 
     /** @type {ServerOptions} */
     const serverOptions = {
-        command: javaBin,
-        args: args,
+        command: exe,
+        // args: args,
         options: {}
     };
 

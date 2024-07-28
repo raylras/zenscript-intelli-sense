@@ -6,6 +6,7 @@ slf4j = "2.0.13"
 lsp4j = "0.23.1"
 junit-jupiter = "5.10.3"
 junit-platform = "1.10.3"
+graalvm-buildtools-native = "0.10.2"
 
 # LSP4J no longer supports Java 1.8 starting from v0.21.0
 jvmTarget = "11"
@@ -23,3 +24,4 @@ junit-platform-launcher = { module = "org.junit.platform:junit-platform-launcher
 
 [plugins]
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+graalvm-buildtools-native = { id = "org.graalvm.buildtools.native", version.ref = "graalvm-buildtools-native" }

@@ -1,0 +1,36 @@
+{
+  "resources":{
+  "includes":[{
+    "pattern":"\\QMETA-INF/services/java.lang.System$LoggerFinder\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/java.net.spi.InetAddressResolverProvider\\E"
+  }, {
+    "pattern":"\\QMETA-INF/services/org.slf4j.spi.SLF4JServiceProvider\\E"
+  }, {
+    "pattern":"\\Ql10n.properties\\E"
+  }, {
+    "pattern":"\\Ql10n_zh-cn.properties\\E"
+  }, {
+    "pattern":"\\Ql10n_zh.properties\\E"
+  }, {
+    "pattern":"\\Ql10n_zh_CN.properties\\E"
+  }, {
+    "pattern":"\\Ql10n_zh_Hans.properties\\E"
+  }, {
+    "pattern":"\\Ql10n_zh_Hans_CN.properties\\E"
+  }, {
+    "pattern":"\\Qsimplelogger.properties\\E"
+  }, {
+    "pattern":"java.base:\\Qjdk/internal/icu/impl/data/icudt74b/nfkc.nrm\\E"
+  }]},
+  "bundles":[{
+    "name":"l10n",
+    "locales":["und"]
+  }, {
+    "name":"sun.text.resources.cldr.FormatData",
+    "locales":["und", "zh", "zh-CN", "zh-Hans", "zh-Hans-CN"]
+  }, {
+    "name":"sun.util.resources.cldr.CalendarData",
+    "locales":["und"]
+  }]
+}

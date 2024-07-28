@@ -1,32 +1,21 @@
 # ZenScript IntelliSense
+![GitHub License](https://img.shields.io/github/license/raylras/zenscript-intelli-sense)
+![GitHub repo size](https://img.shields.io/github/repo-size/raylras/zenscript-intelli-sense)
+![Static Badge](https://img.shields.io/badge/demo-native_image-orange)
+
+## Native image branch
+Technical testing of GraalVM native image.  
+_NOTICE_: `proxy-config.json`, `reflect-config.json`, `resource-config.json` is machine generated, see [Tracing Agent](https://www.graalvm.org/latest/reference-manual/native-image/metadata/AutomaticMetadataCollection/#tracing-agent).
 
 ## Quick Start
 
-1. Install JDK 11+ (JDK 21 LTS recommended) and Node.js (Node.js 20 LTS recommended).
+1. Install GraalVM 22, Visual Studio 2022 Build Tools, and Node.js 20
 2. Clone this project
-    - `git clone https://github.com/raylras/zenscript-intelli-sense`
+    - `git clone -b native-image https://github.com/raylras/zenscript-intelli-sense`
 3. Build the language server
     - `cd zenscript-intelli-sense`
-    - `./gradlew dist`
+    - `./gradlew distNative`
 4. Build the VSCode extension
     - `cd vscode-extension`
     - `npm install`
     - `npm run package`
-
-## Development
-
-- Install VSCode, IntelliJ IDEA
-> It is recommended to install the IntelliJ IDEA plugin [ANTLR v4](https://plugins.jetbrains.com/plugin/7358-antlr-v4).
-- Debugging the language server
-  1. Open VSCode settings, find `ZenScript`, check the `Enable Java Arguments` option, and restart VSCode.
-  2. Create a `Remote JVM Debug` configuration in `IntelliJ IDEA`.
-    > Check the logs in the VSCode `Panel`, `Output`, `ZenScript Language Server`.
-- Debugging the VSCode extension
-  1. Use VSCode to open the `vscode-extension` directory,
-  2. click `Run`, `Start Debugging`, or press the shortcut key `F5`.
-- Debugging TextMate syntax
-  1. Enable `VSCode`, `View`, `Command Palette`, `Developer: Inspect Editor Tokens and Scopes` option.
-
-## License
-
-[MIT](LICENSE) © raylras

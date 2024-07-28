@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.graalvm.buildtools.native)
 }
 
 dependencies {
@@ -13,6 +14,24 @@ dependencies {
 
     testImplementation(libs.junit.jupiter)
     testRuntimeOnly(libs.junit.platform.launcher)
+}
+
+graalvmNative {
+    binaries {
+        named("main") {
+            imageName.set("intellizen-language-server")
+            mainClass.set("raylras.intellizen.languageserver.StandardIOLauncher")
+            buildArgs.add("-O4")
+        }
+    }
+}
+
+tasks.register<Copy>("distNative") {
+    group = "dist"
+    from("build/native/nativeCompile")
+    into("../vscode-extension/server")
+    include("*.exe", "*.dll")
+    dependsOn("nativeCompile")
 }
 
 tasks.test {
