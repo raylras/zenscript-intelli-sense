@@ -1,6 +1,6 @@
 [versions]
 kotlin = "2.0.0"
-antlr = "4.13.1"
+antlr = "4.13.2"
 gson = "2.11.0"
 slf4j = "2.0.13"
 lsp4j = "0.23.1"
